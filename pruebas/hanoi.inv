@@ -1,0 +1,26 @@
+// hanoi.inv - Programa de referencia Apendice E.5
+// Torres de Hanoi resueltas de forma recursiva
+
+int movimientos = 0;
+
+void hanoi(int discos, int origen, int destino, int auxiliar) {
+    si (discos == 1) {
+        movimientos++;
+        imprimir("Mover disco 1 de "); imprimir(origen);
+        imprimir(" a "); imprimir(destino); imprimir("\n");
+        return;
+    }
+    hanoi(discos - 1, origen, auxiliar, destino);
+    movimientos++;
+    imprimir("Mover disco "); imprimir(discos);
+    imprimir(" de "); imprimir(origen);
+    imprimir(" a ");  imprimir(destino); imprimir("\n");
+    hanoi(discos - 1, auxiliar, destino, origen);
+}
+
+void main() {
+    hanoi(3, 1, 3, 2);
+    imprimir("Total de movimientos: ");
+    imprimir(movimientos);
+    imprimir("\n");
+}

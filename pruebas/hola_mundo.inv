@@ -1,0 +1,4 @@
+// hola_mundo.inv - Programa de referencia §17.1
+void main() {
+    imprimir("Hola, mundo!\n");
+}

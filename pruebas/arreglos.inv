@@ -1,0 +1,39 @@
+// arreglos.inv - Programa de referencia §17.7
+const int N = 7;
+
+void imprimirArr(int [] arr, int tam) {
+    imprimir("[ ");
+    para (int i = 0; i < tam; i++) {
+        imprimir(arr[i]);
+        si (i < tam - 1) { imprimir(", "); }
+    }
+    imprimir(" ]\n");
+}
+
+void ordenarBurbuja(int [] arr, int tam) {
+    para (int i = 0; i < tam - 1; i++) {
+        para (int j = 0; j < tam - 1 - i; j++) {
+            si (arr[j] > arr[j+1]) {
+                int t = arr[j]; arr[j] = arr[j+1]; arr[j+1] = t;
+            }
+        }
+    }
+}
+
+int buscar(int [] arr, int tam, int objetivo) {
+    para (int i = 0; i < tam; i++) {
+        si (arr[i] == objetivo) { return i; }
+    }
+    return -1;
+}
+
+void main() {
+    int [N] datos = {64, 25, 12, 22, 11, 90, 38};
+    imprimir("Original:  "); imprimirArr(datos, N);
+    ordenarBurbuja(datos, N);
+    imprimir("Ordenado:  "); imprimirArr(datos, N);
+    int pos = buscar(datos, N, 25);
+    imprimir("25 en posición: "); imprimir(pos); imprimir("\n");
+    pos = buscar(datos, N, 99);
+    imprimir("99 en posición: "); imprimir(pos); imprimir("\n");
+}

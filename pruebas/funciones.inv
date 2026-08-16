@@ -1,0 +1,41 @@
+// funciones.inv - Programa de referencia §17.5
+int factorial(int n) {
+    si (n <= 1) { return 1; }
+    return n * factorial(n - 1);
+}
+
+bool esPrimo(int n) {
+    si (n < 2) { return false; }
+    para (int i = 2; i * i <= n; i++) {
+        si (n % i == 0) { return false; }
+    }
+    return true;
+}
+
+float potencia(float base, int exp) {
+    si (exp == 0) { return 1.0; }
+    return base * potencia(base, exp - 1);
+}
+
+string paridad(int n) {
+    si (n % 2 == 0) { return "par"; }
+    return "impar";
+}
+
+void main() {
+    para (int i = 0; i <= 7; i++) {
+        imprimir(i); imprimir("! = ");
+        imprimir(factorial(i)); imprimir("\n");
+    }
+
+    imprimir("\nPrimos hasta 20: ");
+    para (int i = 2; i <= 20; i++) {
+        si (esPrimo(i)) {
+            imprimir(i); imprimir(" ");
+        }
+    }
+    imprimir("\n");
+
+    imprimir("\n2^10 = "); imprimir(potencia(2.0, 10)); imprimir("\n");
+    imprimir("7 es "); imprimir(paridad(7)); imprimir("\n");
+}

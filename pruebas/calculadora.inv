@@ -1,0 +1,35 @@
+// calculadora.inv - Programa original: Calculadora interactiva
+float suma(float a, float b) {
+    return a + b;
+}
+
+float resta(float a, float b) {
+    return a - b;
+}
+
+float multiplicacion(float a, float b) {
+    return a * b;
+}
+
+float division(float a, float b) {
+    si (b == 0.0) { return 0.0; }
+    return a / b;
+}
+
+int factorial(int n) {
+    si (n <= 1) { return 1; }
+    return n * factorial(n - 1);
+}
+
+void main() {
+    imprimir("=== CALCULADORA InvenioLang ===\n");
+    imprimir("Suma: 10 + 5 = "); imprimir(suma(10.0, 5.0)); imprimir("\n");
+    imprimir("Resta: 10 - 5 = "); imprimir(resta(10.0, 5.0)); imprimir("\n");
+    imprimir("Multiplicacion: 10 * 5 = "); imprimir(multiplicacion(10.0, 5.0)); imprimir("\n");
+    imprimir("Division: 10 / 5 = "); imprimir(division(10.0, 5.0)); imprimir("\n");
+    imprimir("Division: 10 / 0 = "); imprimir(division(10.0, 0.0)); imprimir("\n");
+    imprimir("\nFactoriales:\n");
+    para (int i = 1; i <= 10; i++) {
+        imprimir(i); imprimir("! = "); imprimir(factorial(i)); imprimir("\n");
+    }
+}

@@ -1,0 +1,24 @@
+// tipos.inv - Programa de referencia §17.2 (adaptado: nombres unicos)
+void main() {
+    int    a  = 42;
+    float  b  = 3.14;
+    string c  = "InvenioLang";
+    bool   d  = true;
+
+    imprimir("Entero:  "); imprimir(a);  imprimir("\n");
+    imprimir("Real:    "); imprimir(b);  imprimir("\n");
+    imprimir("Texto:   "); imprimir(c);  imprimir("\n");
+    imprimir("Logico:  "); imprimir(d);  imprimir("\n");
+
+    // Promocion automatica int -> float
+    float promovido = a;
+    imprimir("Promovido: "); imprimir(promovido); imprimir("\n");
+
+    // Conversión explícita
+    string como_texto = int_a_texto(a);
+    imprimir("Como texto: "); imprimir(como_texto); imprimir("\n");
+
+    // Constante
+    const float PI = 3.14159;
+    imprimir("PI: "); imprimir(PI); imprimir("\n");
+}

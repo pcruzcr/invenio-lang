@@ -1,0 +1,40 @@
+// procedimientos.inv - Programa de referencia §17.6
+void dibujarLinea(int longitud, string caracter) {
+    para (int i = 0; i < longitud; i++) {
+        imprimir(caracter);
+    }
+    imprimir("\n");
+}
+
+void mostrarTitulo(string titulo) {
+    int largo = 30;
+    dibujarLinea(largo, "=");
+    imprimir("  "); imprimir(titulo); imprimir("\n");
+    dibujarLinea(largo, "=");
+}
+
+void mostrarResultado(string nombre, float valor, bool aprobado) {
+    si (!aprobado) {
+        imprimir("[REPROBADO] ");
+        imprimir(nombre); imprimir("\n");
+        return;
+    }
+    imprimir("[APROBADO]  ");
+    imprimir(nombre); imprimir(": ");
+    imprimir(valor); imprimir("\n");
+}
+
+float promedio(float a, float b, float c) {
+    return (a + b + c) / 3.0;
+}
+
+void main() {
+    mostrarTitulo("Reporte de Calificaciones");
+    float p1 = promedio(85.0, 90.0, 88.0);
+    float p2 = promedio(55.0, 60.0, 58.0);
+    float p3 = promedio(72.0, 78.0, 75.0);
+    mostrarResultado("Ana",    p1, p1 >= 70.0);
+    mostrarResultado("Carlos", p2, p2 >= 70.0);
+    mostrarResultado("María",  p3, p3 >= 70.0);
+    dibujarLinea(30, "-");
+}

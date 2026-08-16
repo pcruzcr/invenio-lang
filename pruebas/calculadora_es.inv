@@ -1,0 +1,22 @@
+// calculadora_es.inv - Programa de referencia Apendice E.3
+// Programa escrito integramente en espanol
+
+entero maximo(entero a, entero b) {
+    si (a >= b) { retornar a; }
+    retornar b;
+}
+
+vacio mostrar(texto etiqueta, entero valor) {
+    imprimir(etiqueta);
+    imprimir(": ");
+    imprimir(valor);
+    imprimir("\n");
+}
+
+vacio main() {
+    entero x = 12;
+    entero y = 30;
+    mostrar("Máximo",   maximo(x, y));
+    mostrar("Suma",     x + y);
+    mostrar("Producto", x * y);
+}

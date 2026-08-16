@@ -1,0 +1,52 @@
+// estadisticas.inv - Programa original: Estadísticas de calificaciones
+const int NUM_EST = 10;
+
+float promedio(int [] arr, int tam) {
+    float suma = 0.0;
+    para (int i = 0; i < tam; i++) {
+        suma = suma + arr[i];
+    }
+    return suma / tam;
+}
+
+int maximo(int [] arr, int tam) {
+    int max = arr[0];
+    para (int i = 1; i < tam; i++) {
+        si (arr[i] > max) { max = arr[i]; }
+    }
+    return max;
+}
+
+int minimo(int [] arr, int tam) {
+    int min = arr[0];
+    para (int i = 1; i < tam; i++) {
+        si (arr[i] < min) { min = arr[i]; }
+    }
+    return min;
+}
+
+string clasificarNota(float nota) {
+    si (nota >= 90.0) { return "Excelente"; }
+    si (nota >= 80.0) { return "Bueno"; }
+    si (nota >= 70.0) { return "Regular"; }
+    si (nota >= 60.0) { return "Suficiente"; }
+    return "Insuficiente";
+}
+
+void main() {
+    int [NUM_EST] calificaciones = {85, 92, 78, 95, 60, 88, 73, 100, 45, 91};
+
+    imprimir("=== REPORTE DE CALIFICACIONES ===\n");
+    imprimir("Calificaciones:\n");
+    para (int i = 0; i < NUM_EST; i++) {
+        imprimir("  Estudiante "); imprimir(i + 1); imprimir(": ");
+        imprimir(calificaciones[i]); imprimir(" -> ");
+        imprimir(clasificarNota(calificaciones[i])); imprimir("\n");
+    }
+
+    float prom = promedio(calificaciones, NUM_EST);
+    imprimir("\nEstadísticas:\n");
+    imprimir("  Promedio: "); imprimir(prom); imprimir("\n");
+    imprimir("  Maximo:   "); imprimir(maximo(calificaciones, NUM_EST)); imprimir("\n");
+    imprimir("  Minimo:   "); imprimir(minimo(calificaciones, NUM_EST)); imprimir("\n");
+}

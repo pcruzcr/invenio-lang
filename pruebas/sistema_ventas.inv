@@ -1,0 +1,123 @@
+// sistema_ventas.inv - Programa integrador §17.9
+// Sistema de analisis de ventas mensuales
+
+const int MESES    = 12;
+const int PRODUCTOS = 3;
+const float META   = 10000.0;
+
+// -- Funciones de cálculo --
+float totalMes(float [][] ventas, int mes) {
+    float total = 0.0;
+    para (int p = 0; p < PRODUCTOS; p++) {
+        total += ventas[mes][p];
+    }
+    return total;
+}
+
+float promedioAnual(float [] totales) {
+    float suma = 0.0;
+    para (int m = 0; m < MESES; m++) {
+        suma += totales[m];
+    }
+    return suma / MESES;
+}
+
+int mesesSobreMeta(float [] totales) {
+    int count = 0;
+    para (int m = 0; m < MESES; m++) {
+        si (totales[m] >= META) { count++; }
+    }
+    return count;
+}
+
+int mesMayor(float [] totales) {
+    int mejor = 0;
+    para (int m = 1; m < MESES; m++) {
+        si (totales[m] > totales[mejor]) { mejor = m; }
+    }
+    return mejor;
+}
+
+string nombreMes(int m) {
+    si (m == 0)  { return "Enero";      }
+    si (m == 1)  { return "Febrero";    }
+    si (m == 2)  { return "Marzo";      }
+    si (m == 3)  { return "Abril";      }
+    si (m == 4)  { return "Mayo";       }
+    si (m == 5)  { return "Junio";      }
+    si (m == 6)  { return "Julio";      }
+    si (m == 7)  { return "Agosto";     }
+    si (m == 8)  { return "Septiembre"; }
+    si (m == 9)  { return "Octubre";    }
+    si (m == 10) { return "Noviembre";  }
+    return "Diciembre";
+}
+
+// -- Procedimientos de presentacion --
+void encabezado() {
+    imprimir("====================================\n");
+    imprimir("   ANÁLISIS DE VENTAS ANUALES       \n");
+    imprimir("====================================\n");
+}
+
+void reporteMensual(float [] totales) {
+    imprimir("\n-- Totales por mes --\n");
+    para (int m = 0; m < MESES; m++) {
+        imprimir(nombreMes(m));
+        imprimir(": ");
+        imprimir(totales[m]);
+        si (totales[m] >= META) {
+            imprimir(" ✓");
+        }
+        imprimir("\n");
+    }
+}
+
+void resumenEjecutivo(float [] totales) {
+    float prom = promedioAnual(totales);
+    int   sobre = mesesSobreMeta(totales);
+    int   mejor = mesMayor(totales);
+
+    imprimir("\n-- Resumen Ejecutivo --\n");
+    imprimir("Promedio mensual: "); imprimir(prom);  imprimir("\n");
+    imprimir("Meta mensual:     "); imprimir(META);  imprimir("\n");
+    imprimir("Meses sobre meta: "); imprimir(sobre); imprimir("\n");
+    imprimir("Mejor mes:        "); imprimir(nombreMes(mejor));
+    imprimir(" ("); imprimir(totales[mejor]); imprimir(")\n");
+
+    si (sobre >= 6) {
+        imprimir("Estado: AÑO EXITOSO\n");
+    } sino {
+        imprimir("Estado: AÑO REGULAR\n");
+    }
+}
+
+// -- Programa principal --
+void main() {
+    // Datos de ventas [mes][producto]
+    float [MESES][PRODUCTOS] ventas = {
+        {3200.0, 4100.0, 2900.0},   // Enero
+        {2800.0, 3500.0, 3100.0},   // Febrero
+        {4200.0, 5100.0, 3800.0},   // Marzo
+        {3900.0, 4800.0, 4100.0},   // Abril
+        {5200.0, 6100.0, 4900.0},   // Mayo
+        {6100.0, 7200.0, 5800.0},   // Junio
+        {5800.0, 6900.0, 5200.0},   // Julio
+        {4900.0, 5800.0, 4600.0},   // Agosto
+        {4100.0, 4900.0, 3900.0},   // Septiembre
+        {3800.0, 4500.0, 3600.0},   // Octubre
+        {5500.0, 6400.0, 5100.0},   // Noviembre
+        {7200.0, 8100.0, 6900.0}    // Diciembre
+    };
+
+    // Calcular totales por mes
+    float [MESES] totales;
+    para (int m = 0; m < MESES; m++) {
+        totales[m] = totalMes(ventas, m);
+    }
+
+    // Mostrar reporte
+    encabezado();
+    reporteMensual(totales);
+    resumenEjecutivo(totales);
+}

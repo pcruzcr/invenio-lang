@@ -1,0 +1,37 @@
+# --- Cachés de Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.pytest_cache/
+.benchmarks/
+.ruff_cache/
+
+# --- Tablas generadas por PLY ---
+# Se regeneran solas al construir el parser; versionarlas provoca conflictos
+# y tablas obsoletas tras cualquier cambio en la gramática.
+parser.out
+parsetab.py
+inveniolang/parser.out
+inveniolang/parsetab.py
+
+# --- Entornos virtuales ---
+.venv/
+venv/
+env/
+
+# --- Empaquetado ---
+build/
+dist/
+*.egg-info/
+
+# --- Editores y sistema operativo ---
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Archivos temporales de trabajo ---
+*.log
+*.tmp

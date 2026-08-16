@@ -1,0 +1,10 @@
+// escapes.inv - Programa de referencia Apendice E.1
+// Demostracion de todas las secuencias de escape de la Seccion 2.8
+
+void main() {
+    imprimir("Salto de línea: A\nB\n");
+    imprimir("Tabulador: A\tB\n");
+    imprimir("Comilla doble: \"hola\"\n");
+    imprimir("Comilla simple: 'hola'\n");
+    imprimir("Barra invertida: C:\\ruta\n");
+}

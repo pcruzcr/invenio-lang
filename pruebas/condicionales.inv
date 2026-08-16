@@ -1,0 +1,30 @@
+// condicionales.inv - Programa de referencia §17.3
+string clasificarTemp(float t) {
+    si (t < 0.0) {
+        return "Bajo cero";
+    } sino { si (t < 15.0) {
+        return "Frio";
+    } sino { si (t < 25.0) {
+        return "Templado";
+    } sino { si (t < 35.0) {
+        return "Calido";
+    } sino {
+        return "Muy caliente";
+    } } } }
+}
+
+void main() {
+    float [5] temps = {-5.0, 10.0, 20.0, 30.0, 40.0};
+    para (int i = 0; i < 5; i++) {
+        imprimir(temps[i]);
+        imprimir(" grados: ");
+        imprimir(clasificarTemp(temps[i]));
+        imprimir("\n");
+    }
+
+    // Condicional con operadores logicos
+    float x = 22.0;
+    si (x >= 15.0 && x <= 25.0) {
+        imprimir("Temperatura ideal\n");
+    }
+}

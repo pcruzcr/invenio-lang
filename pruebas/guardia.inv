@@ -1,0 +1,24 @@
+// guardia.inv - Programa de referencia Apendice E.4
+// Patron de guardia con retorno anticipado
+
+float dividir(float dividendo, float divisor) {
+    si (divisor == 0.0) {
+        imprimir("Error: división por cero\n");
+        return 0.0;
+    }
+    return dividendo / divisor;
+}
+
+string validarEdad(int edad) {
+    si (edad < 0)   { return "Negativa"; }
+    si (edad > 150) { return "Irreal";   }
+    si (edad < 18)  { return "Menor";    }
+    return "Adulto";
+}
+
+void main() {
+    imprimir(dividir(10.0, 2.0));  imprimir("\n");
+    imprimir(dividir(7.0, 0.0));   imprimir("\n");
+    imprimir(validarEdad(-5));     imprimir("\n");
+    imprimir(validarEdad(25));     imprimir("\n");
+}

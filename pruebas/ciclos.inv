@@ -1,0 +1,35 @@
+// ciclos.inv - Programa de referencia §17.4
+void main() {
+    // While: cuenta regresiva
+    imprimir("Cuenta: ");
+    int n = 5;
+    mientras (n > 0) {
+        imprimir(n); imprimir(" ");
+        n--;
+    }
+    imprimir("\n");
+
+    // For: suma de cuadrados
+    int suma = 0;
+    para (int i = 1; i <= 5; i++) {
+        suma += i * i;
+    }
+    imprimir("Suma cuadrados 1-5: "); imprimir(suma); imprimir("\n");
+
+    // Continue: solo impares
+    imprimir("Impares: ");
+    para (int j = 1; j <= 10; j++) {
+        si (j % 2 == 0) { continuar; }
+        imprimir(j); imprimir(" ");
+    }
+    imprimir("\n");
+
+    // Break: primer múltiplo de 7
+    para (int k = 1; k <= 100; k++) {
+        si (k % 7 == 0) {
+            imprimir("Primer múltiplo de 7: ");
+            imprimir(k); imprimir("\n");
+            romper;
+        }
+    }
+}

@@ -1,0 +1,47 @@
+// matrices.inv - Programa de referencia §17.8
+const int F = 3;
+const int C = 3;
+
+void imprimirMatriz(int [][] m, int f, int c) {
+    para (int i = 0; i < f; i++) {
+        para (int j = 0; j < c; j++) {
+            imprimir(m[i][j]);
+            imprimir("\t");
+        }
+        imprimir("\n");
+    }
+}
+
+int sumaFila(int [][] m, int fila, int cols) {
+    int s = 0;
+    para (int j = 0; j < cols; j++) { s += m[fila][j]; }
+    return s;
+}
+
+void transponer(int [][] m, int n) {
+    para (int i = 0; i < n; i++) {
+        para (int j = i + 1; j < n; j++) {
+            int t = m[i][j]; m[i][j] = m[j][i]; m[j][i] = t;
+        }
+    }
+}
+
+void main() {
+    int [F][C] m = {
+        {1, 2, 3},
+        {4, 5, 6},
+        {7, 8, 9}
+    };
+
+    imprimir("Matriz original:\n");
+    imprimirMatriz(m, F, C);
+
+    para (int i = 0; i < F; i++) {
+        imprimir("Suma fila "); imprimir(i); imprimir(": ");
+        imprimir(sumaFila(m, i, C)); imprimir("\n");
+    }
+
+    transponer(m, F);
+    imprimir("\nMatriz transpuesta:\n");
+    imprimirMatriz(m, F, C);
+}

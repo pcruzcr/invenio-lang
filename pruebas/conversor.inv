@@ -1,0 +1,40 @@
+// conversor.inv - Programa original: Conversor de unidades con funciones integradas
+float celsius_a_fahrenheit(float c) {
+    return c * 9.0 / 5.0 + 32.0;
+}
+
+float fahrenheit_a_celsius(float f) {
+    return (f - 32.0) * 5.0 / 9.0;
+}
+
+void mostrarTabla() {
+    imprimir("Celsius  Fahrenheit\n");
+    imprimir("-------  ----------\n");
+    para (int c = 0; c <= 100; c = c + 10) {
+        float f = celsius_a_fahrenheit(c);
+        imprimir(c); imprimir("        ");
+        imprimir(f); imprimir("\n");
+    }
+}
+
+void probarConversiones() {
+    imprimir("\nPrueba de funciones integradas:\n");
+    string s1 = int_a_texto(42);
+    imprimir("int_a_texto(42) = "); imprimir(s1); imprimir("\n");
+    string s2 = float_a_texto(3.14);
+    imprimir("float_a_texto(3.14) = "); imprimir(s2); imprimir("\n");
+    string s3 = bool_a_texto(true);
+    imprimir("bool_a_texto(true) = "); imprimir(s3); imprimir("\n");
+}
+
+void main() {
+    imprimir("=== CONVERSOR DE TEMPERATURAS ===\n");
+    float tempF = celsius_a_fahrenheit(25.0);
+    imprimir("25 C = "); imprimir(tempF); imprimir(" F\n");
+
+    float tempC = fahrenheit_a_celsius(77.0);
+    imprimir("77 F = "); imprimir(tempC); imprimir(" C\n");
+
+    mostrarTabla();
+    probarConversiones();
+}
