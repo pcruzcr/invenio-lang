@@ -20,6 +20,10 @@ class Parser:
         self.error_manager = error_manager or ErrorManager()
         self.tokens = self.lexer.tokens
         self.parser_obj = None
+        # Rastreo del último `if` sin `else` para distinguir IL-SIN-032 de
+        # IL-SIN-033 (véase p_elem_bloque y p_else_huerfano).
+        self._if_sin_else = None
+        self._elems_tras_if = 0
 
     def build(self, **kwargs):
         self.parser_obj = yacc.yacc(module=self, **kwargs)
@@ -335,7 +339,15 @@ class Parser:
     def p_elem_bloque(self, p):
         """elem_bloque : decl_local
                        | instruccion"""
-        p[0] = p[1]
+        # Rastrear si entre un `if` sin `else` y un `else` posterior se coló
+        # alguna instrucción: es lo que distingue IL-SIN-033 de IL-SIN-032.
+        elem = p[1]
+        if isinstance(elem, IfStmt) and elem.bloque_else is None:
+            self._if_sin_else = (elem.linea, elem.columna)
+            self._elems_tras_if = 0
+        elif self._if_sin_else is not None:
+            self._elems_tras_if += 1
+        p[0] = elem
 
     def p_subrutina_local(self, p):
         """elem_bloque : def_funcion
@@ -593,12 +605,25 @@ class Parser:
 
     def p_else_huerfano(self, p):
         """instruccion_error : KW_ELSE bloque"""
-        # IL-SIN-032: cláusula else sin if previo (§8.2)
-        self.error_manager.error_sintactico(
-            'IL-SIN-032',
-            'Cláusula else / sino sin un if previo en el mismo alcance',
-            p.lineno(1), self._col(p, 1)
-        )
+        # Un `else` que el parser no pudo ligar a su `if` admite dos lecturas
+        # (§8.2). Si hay un `if` sin `else` antes y entre ambos se colaron
+        # instrucciones, el error es esa separación (IL-SIN-033); si no hay
+        # ningún `if` previo, el `else` sobra (IL-SIN-032).
+        if self._if_sin_else is not None and self._elems_tras_if > 0:
+            self.error_manager.error_sintactico(
+                'IL-SIN-033',
+                f'No puede aparecer una instrucción entre el bloque del if '
+                f'(línea {self._if_sin_else[0]}) y su cláusula else / sino',
+                p.lineno(1), self._col(p, 1)
+            )
+        else:
+            self.error_manager.error_sintactico(
+                'IL-SIN-032',
+                'Cláusula else / sino sin un if previo en el mismo alcance',
+                p.lineno(1), self._col(p, 1)
+            )
+        self._if_sin_else = None
+        self._elems_tras_if = 0
         p[0] = p[2]
 
     def p_while_stmt(self, p):
@@ -944,6 +969,8 @@ class Parser:
         """
         self.error_manager.set_archivo(archivo)
         self.error_manager.limpiar()
+        self._if_sin_else = None
+        self._elems_tras_if = 0
 
         if not self.parser_obj:
             self.build()

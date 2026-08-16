@@ -96,6 +96,32 @@ class SemanticAnalyzer:
         entrada.params = [self._tipo_parametro(p) for p in nodo.parametros]
         if isinstance(nodo, FunctionDecl):
             entrada.tipo_retorno = nodo.tipo_retorno
+        else:
+            # Se marca en la declaración (no al visitar el cuerpo) para que el
+            # dato esté disponible sea cual sea el orden de las subrutinas.
+            entrada.retorna_valor = self._retorna_valor(nodo.bloque.elementos)
+
+    def _retorna_valor(self, elems):
+        """Indica si un cuerpo contiene algún `return` con expresión.
+
+        Se usa para distinguir IL-SEM-051 de IL-SEM-061 (§10.2, §11.5): una
+        subrutina declarada `void` que devuelve un valor y además se invoca
+        dentro de una expresión revela que el programador quiso declarar una
+        función, no un procedimiento.
+        """
+        for e in elems:
+            if isinstance(e, ReturnStmt):
+                if e.expr is not None:
+                    return True
+            elif isinstance(e, IfStmt):
+                if self._retorna_valor(e.bloque_then.elementos):
+                    return True
+                if e.bloque_else and self._retorna_valor(e.bloque_else.elementos):
+                    return True
+            elif isinstance(e, (WhileStmt, ForStmt)):
+                if self._retorna_valor(e.bloque.elementos):
+                    return True
+        return False
 
     def _tipo_parametro(self, param):
         """Retorna la representación del tipo de un parámetro."""
@@ -903,11 +929,7 @@ class SemanticAnalyzer:
                         nodo.linea, nodo.columna
                     )
             elif entrada.tipo_simbolo == TipoSimbolo.PROCEDIMIENTO:
-                self.error_manager.error_semantico(
-                    'IL-SEM-060',
-                    f'Procedimiento "{nodo.nombre}" usado como expresión',
-                    nodo.linea, nodo.columna
-                )
+                self._reportar_uso_como_valor(entrada, nodo.nombre, nodo)
         elif isinstance(nodo, ArrayAccess):
             entrada = self.tabla.buscar(nodo.nombre)
             if entrada is None:
@@ -932,13 +954,29 @@ class SemanticAnalyzer:
         elif isinstance(nodo, FunctionCall):
             callee = self.tabla.buscar_funcion(nodo.nombre)
             if callee and callee.tipo_simbolo == TipoSimbolo.PROCEDIMIENTO:
-                # IL-SEM-060: procedimiento usado en una expresión (§11.4.1)
-                self.error_manager.error_semantico(
-                    'IL-SEM-060',
-                    f'Procedimiento "{nodo.nombre}" usado como expresión',
-                    nodo.linea, nodo.columna
-                )
+                self._reportar_uso_como_valor(callee, nodo.nombre, nodo)
             self._visitar_llamada(nodo.nombre, nodo.argumentos, nodo)
+
+    def _reportar_uso_como_valor(self, entrada, nombre, nodo):
+        """Reporta el uso de un procedimiento donde se espera un valor.
+
+        Si además devuelve un valor, el error de fondo está en la declaración:
+        se quiso escribir una función y se declaró `void` (IL-SEM-051, §10.2).
+        Si no devuelve nada, el error está en el uso (IL-SEM-060, §11.4.1).
+        """
+        if getattr(entrada, 'retorna_valor', False):
+            self.error_manager.error_semantico(
+                'IL-SEM-051',
+                f'"{nombre}" devuelve un valor pero está declarada con tipo '
+                f'de retorno void; declárela como función con su tipo',
+                nodo.linea, nodo.columna
+            )
+        else:
+            self.error_manager.error_semantico(
+                'IL-SEM-060',
+                f'Procedimiento "{nombre}" usado como expresión',
+                nodo.linea, nodo.columna
+            )
 
     def _visitar_llamada(self, nombre, argumentos, nodo):
         """Verifica una llamada a función/procedimiento."""

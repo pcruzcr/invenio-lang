@@ -103,23 +103,35 @@ catalogo no puede cumplir esa funcion. Los tres estan implementados.
 
 ---
 
-## E-05 — `IL-SEM-051` no tiene caso alcanzable
+## E-05 — Alcance de `IL-SEM-051` frente a `IL-SEM-061`
 
 | | |
 |---|---|
-| **En conflicto** | §15.4 lo ilustra con `void f() { return 1; }`, que es un procedimiento |
-| **Resolucion** | **Retirar `IL-SEM-051` del catalogo**; el caso corresponde a `IL-SEM-061` |
-| **Corregir** | §15.4 y §10.2 |
+| **En conflicto** | §15.4 ilustra `IL-SEM-051` con `void f() { return 1; }`, que por §16.9 es un procedimiento y correspondería a `IL-SEM-061` |
+| **Resolucion** | **Los dos codigos son validos y describen reglas distintas**: 051 diagnostica la declaracion, 061 la instruccion |
+| **Corregir** | §15.4 y §10.2 (precisar el criterio) |
 
 §15.4 describe `IL-SEM-051` como «funcion declarada con void como tipo de retorno»
 y lo ejemplifica con `void f() { return 1; }`. Pero la gramatica de §16.8 y §16.9
-distingue funcion de procedimiento precisamente por el tipo de retorno: una
-subrutina declarada `void` **es** un procedimiento, no una funcion con tipo
-invalido. El error real de ese ejemplo es el `return` con valor dentro de un
-procedimiento, que ya cubre `IL-SEM-061` (§11.5).
+distingue funcion de procedimiento precisamente por el tipo de retorno, asi que
+una subrutina declarada `void` **es** un procedimiento. Leidos al pie de la letra,
+`IL-SEM-051` e `IL-SEM-061` describirian el mismo programa.
 
-No existe forma de escribir una «funcion con tipo de retorno void» en la gramatica
-1.0, por lo que el codigo es inalcanzable por construccion.
+Se resuelve precisando que cada codigo diagnostica un aspecto distinto del mismo
+error, y la implementacion los distingue por como se **usa** la subrutina:
+
+| Situacion | Codigo | Razon |
+|-----------|--------|-------|
+| `void f(){ return 1; }` y en algun punto `x = f();` | **`IL-SEM-051`** | El programador quiso una funcion y la declaro `void`. El error esta en la declaracion. |
+| `void f(){ return 1; }` invocada solo como instruccion `f();` | **`IL-SEM-061`** | La declaracion es coherente; sobra el valor en el `return`. |
+| `void p(){ imprimir(1); }` usada como `x = p();` | **`IL-SEM-060`** | El procedimiento no devuelve nada; el error esta en el uso. |
+
+Cuando ambas condiciones se cumplen a la vez se emiten los dos codigos, porque
+son dos reglas distintas violadas en dos puntos distintos del programa (§10.2 y
+§11.5), cada una con su linea y su columna.
+
+Con esta precision **el catalogo queda completo**: los 92 codigos tienen al menos
+un caso alcanzable.
 
 ---
 
@@ -225,12 +237,13 @@ posicion del archivo».
 | `IL-EJE-002` | Activo — division real entre cero (E-03) |
 | `IL-EJE-006` | Activo — division entera entre cero y modulo (E-03) |
 | `IL-SEM-010` | Activo — integrar en el catalogo §15.4 (E-04) |
-| `IL-SEM-051` | **Retirado** — inalcanzable por construccion (E-05) |
+| `IL-SEM-051` | Activo — subrutina void usada como funcion (E-05) |
 | `IL-SEM-080` | Activo — integrar en el catalogo §15.4 (E-04) |
 | `IL-SEM-081` | Activo — integrar en el catalogo §15.4 (E-04) |
 | `IL-SIN-033` | **Retirado** — cubierto por `IL-SIN-032` (E-06) |
 | `IL-WARN-040` | **Nuevo** — declaracion postfija de arreglo o matriz (E-02) |
 
-Con estas resoluciones el catalogo queda **completo**: todos los codigos vigentes
-tienen al menos un caso alcanzable, y la suite `pruebas/conformidad.py` ejercita
-cada uno.
+Con estas resoluciones el catalogo queda **completo**: los 92 codigos tienen al
+menos un caso alcanzable y la suite `pruebas/conformidad.py` ejercita cada uno.
+El unico retirado es `IL-SIN-033`, cuya deteccion es incompatible con la propia
+gramatica del lenguaje (E-06).
