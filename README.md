@@ -1,8 +1,8 @@
 # InvenioLang 1.0 - Compilador Educativo
 
 **Curso:** TIIT2002.2 Lenguajes Formales II  
-**Universidad:** Invenio - Tecnologias de Informacion y Comunicacion Empresarial (TICEC)  
-**Profesor:** Donny Nunez del Rosario  
+**Universidad:** Invenio - Tecnologias de Informacion y Comunicacion Empresarial (TICE)  
+**Profesor:** Pablo Jose Cruz Salazar  
 **Sede:** Los Angeles de Tilaran  
 
 ## Descripcion
