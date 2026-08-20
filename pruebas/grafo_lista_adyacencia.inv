@@ -1,0 +1,115 @@
+// grafo_lista_adyacencia.inv - Estructura de Datos: grafo con lista de
+// adyacencia (POO) -- BFS con una cola enlazada, DFS recursivo (Etapa 8).
+// El arreglo de cabezas de lista vive como variable local (los atributos
+// de clase de InvenioLang son escalares, sin arreglos -- ver
+// docs/InvenioLang_2.0_POO.md); las aristas y los recorridos son
+// procedimientos libres que reciben ese arreglo, igual que
+// arreglo_objetos.inv (Etapa 3) opera sobre un arreglo de objetos sin una
+// clase contenedora.
+const int N = 6;
+
+clase NodoAdj {
+    publico entero vertice;
+    publico NodoAdj siguiente;
+    NodoAdj(entero v) { this.vertice = v; }
+}
+
+clase NodoCola {
+    publico entero valor;
+    publico NodoCola siguiente;
+    NodoCola(entero v) { this.valor = v; }
+}
+
+clase Cola {
+    privado NodoCola frente;
+    privado NodoCola final;
+
+    publico void encolar(entero v) {
+        NodoCola n = nuevo NodoCola(v);
+        si (this.frente == nulo) {
+            this.frente = n;
+        } sino {
+            NodoCola f = this.final;
+            f.siguiente = n;
+        }
+        this.final = n;
+    }
+
+    publico entero desencolar() {
+        NodoCola n = this.frente;
+        this.frente = n.siguiente;
+        return n.valor;
+    }
+
+    publico bool vacia() {
+        return this.frente == nulo;
+    }
+}
+
+void agregarArista(NodoAdj [] cabezas, int a, int b) {
+    NodoAdj nb = nuevo NodoAdj(b);
+    nb.siguiente = cabezas[a];
+    cabezas[a] = nb;
+    NodoAdj na = nuevo NodoAdj(a);
+    na.siguiente = cabezas[b];
+    cabezas[b] = na;
+}
+
+void bfs(NodoAdj [] cabezas, int inicio) {
+    bool [N] visitado;
+    para (int i = 0; i < N; i++) { visitado[i] = false; }
+
+    Cola pendientes = nuevo Cola();
+    pendientes.encolar(inicio);
+    visitado[inicio] = true;
+
+    imprimir("BFS desde "); imprimir(inicio); imprimir(": ");
+    mientras (!pendientes.vacia()) {
+        int actual = pendientes.desencolar();
+        imprimir(actual); imprimir(" ");
+        NodoAdj n = cabezas[actual];
+        mientras (n != nulo) {
+            si (!visitado[n.vertice]) {
+                visitado[n.vertice] = true;
+                pendientes.encolar(n.vertice);
+            }
+            n = n.siguiente;
+        }
+    }
+    imprimir("\n");
+}
+
+void dfsRec(NodoAdj [] cabezas, int actual, bool [] visitado) {
+    visitado[actual] = true;
+    imprimir(actual); imprimir(" ");
+    NodoAdj n = cabezas[actual];
+    mientras (n != nulo) {
+        si (!visitado[n.vertice]) {
+            dfsRec(cabezas, n.vertice, visitado);
+        }
+        n = n.siguiente;
+    }
+}
+
+void dfs(NodoAdj [] cabezas, int inicio) {
+    bool [N] visitado;
+    para (int i = 0; i < N; i++) { visitado[i] = false; }
+    imprimir("DFS desde "); imprimir(inicio); imprimir(": ");
+    dfsRec(cabezas, inicio, visitado);
+    imprimir("\n");
+}
+
+void main() {
+    NodoAdj cabezas[N];
+    para (int i = 0; i < N; i++) { cabezas[i] = nulo; }
+
+    agregarArista(cabezas, 0, 1);
+    agregarArista(cabezas, 0, 2);
+    agregarArista(cabezas, 1, 3);
+    agregarArista(cabezas, 2, 3);
+    agregarArista(cabezas, 3, 4);
+    agregarArista(cabezas, 4, 5);
+
+    bfs(cabezas, 0);
+    dfs(cabezas, 0);
+}

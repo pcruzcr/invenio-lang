@@ -1,0 +1,57 @@
+// tabla_hash_arreglo.inv - Estructura de Datos: Tabla hash con arreglos
+// paralelos (claves/valores) y sondeo lineal para resolver colisiones,
+// sin POO (Etapa 8).
+const int CAP = 10;
+
+int funcionHash(int clave) {
+    return clave % CAP;
+}
+
+void main() {
+    int [CAP] claves;
+    int [CAP] valores;
+    bool [CAP] ocupado;
+
+    para (int i = 0; i < CAP; i++) { ocupado[i] = false; }
+
+    // 15, 25 y 5 colisionan (5 % 10 == 15 % 10 == 25 % 10 == 5): el
+    // sondeo lineal los va corriendo a la siguiente cubeta libre.
+    int [4] clavesInsertar = {5, 15, 25, 3};
+    int [4] valoresInsertar = {100, 200, 300, 400};
+
+    para (int i = 0; i < 4; i++) {
+        int clave = clavesInsertar[i];
+        int indice = funcionHash(clave);
+        mientras (ocupado[indice]) {
+            indice = (indice + 1) % CAP;
+        }
+        claves[indice] = clave;
+        valores[indice] = valoresInsertar[i];
+        ocupado[indice] = true;
+        imprimir("insertar "); imprimir(clave); imprimir(" -> indice "); imprimir(indice); imprimir("\n");
+    }
+
+    para (int i = 0; i < 4; i++) {
+        int clave = clavesInsertar[i];
+        int indice = funcionHash(clave);
+        int pasos = 0;
+        mientras (ocupado[indice] && claves[indice] != clave && pasos < CAP) {
+            indice = (indice + 1) % CAP;
+            pasos++;
+        }
+        si (ocupado[indice] && claves[indice] == clave) {
+            imprimir("buscar "); imprimir(clave); imprimir(" = "); imprimir(valores[indice]); imprimir("\n");
+        }
+    }
+
+    int claveFalsa = 99;
+    int indice = funcionHash(claveFalsa);
+    int pasos = 0;
+    mientras (ocupado[indice] && claves[indice] != claveFalsa && pasos < CAP) {
+        indice = (indice + 1) % CAP;
+        pasos++;
+    }
+    si (!ocupado[indice] || claves[indice] != claveFalsa) {
+        imprimir("buscar 99: no encontrado\n");
+    }
+}

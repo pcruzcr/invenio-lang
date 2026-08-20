@@ -47,7 +47,7 @@ r = verificar("caracter #", "void main() { # }", ["IL-LEX-002"])
 resultados.append(r)
 r = verificar("caracter $", "void main() { $ }", ["IL-LEX-002"])
 resultados.append(r)
-r = verificar("caracter ^", "void main() { ^ }", ["IL-LEX-002"])
+r = verificar("caracter `", "void main() { ` }", ["IL-LEX-002"])
 resultados.append(r)
 
 print("\n[IL-LEX-003] Caracter de control invalido")

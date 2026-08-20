@@ -1,0 +1,31 @@
+// n_reinas.inv - Algoritmos: backtracking clasico, problema de las N reinas
+// (Etapa 11). columna[fila] guarda en que columna esta la reina de esa
+// fila; se prueba cada columna, se retrocede si genera un conflicto.
+const int N = 6;
+
+bool esSegura(int [] columna, int fila, int col) {
+    para (int f = 0; f < fila; f++) {
+        si (columna[f] == col) { return false; }               // misma columna
+        si (columna[f] - f == col - fila) { return false; }     // misma diagonal \
+        si (columna[f] + f == col + fila) { return false; }     // misma diagonal /
+    }
+    return true;
+}
+
+int resolver(int [] columna, int fila) {
+    si (fila == N) { return 1; }
+    int total = 0;
+    para (int col = 0; col < N; col++) {
+        si (esSegura(columna, fila, col)) {
+            columna[fila] = col;
+            total = total + resolver(columna, fila + 1);
+        }
+    }
+    return total;
+}
+
+void main() {
+    int [N] columna;
+    int soluciones = resolver(columna, 0);
+    imprimir("soluciones para N="); imprimir(N); imprimir(": "); imprimir(soluciones); imprimir("\n");
+}

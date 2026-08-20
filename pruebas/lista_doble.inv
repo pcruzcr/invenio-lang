@@ -1,0 +1,72 @@
+// lista_doble.inv - Estructura de Datos: lista doblemente enlazada (Etapa
+// 11). Cada nodo conoce a su vecino anterior Y siguiente -- a diferencia
+// de lista_enlazada.inv (Etapa 3), permite recorrer en ambas direcciones e
+// insertar/eliminar en O(1) en cualquiera de los dos extremos sin tener
+// que recorrer la lista para encontrar el nodo previo.
+
+clase NodoDoble {
+    publico entero valor;
+    publico NodoDoble anterior;
+    publico NodoDoble siguiente;
+    NodoDoble(entero v) { this.valor = v; }
+}
+
+clase ListaDoble {
+    privado NodoDoble cabeza;
+    privado NodoDoble cola;
+
+    publico void insertarInicio(entero v) {
+        NodoDoble nodo = nuevo NodoDoble(v);
+        si (this.cabeza == nulo) {
+            this.cabeza = nodo;
+            this.cola = nodo;
+        } sino {
+            nodo.siguiente = this.cabeza;
+            NodoDoble viejaCabeza = this.cabeza;
+            viejaCabeza.anterior = nodo;
+            this.cabeza = nodo;
+        }
+    }
+
+    publico void insertarFinal(entero v) {
+        NodoDoble nodo = nuevo NodoDoble(v);
+        si (this.cola == nulo) {
+            this.cabeza = nodo;
+            this.cola = nodo;
+        } sino {
+            nodo.anterior = this.cola;
+            NodoDoble viejaCola = this.cola;
+            viejaCola.siguiente = nodo;
+            this.cola = nodo;
+        }
+    }
+
+    publico void recorrerAdelante() {
+        NodoDoble actual = this.cabeza;
+        mientras (actual != nulo) {
+            imprimir(actual.valor); imprimir(" ");
+            actual = actual.siguiente;
+        }
+        imprimir("\n");
+    }
+
+    publico void recorrerAtras() {
+        NodoDoble actual = this.cola;
+        mientras (actual != nulo) {
+            imprimir(actual.valor); imprimir(" ");
+            actual = actual.anterior;
+        }
+        imprimir("\n");
+    }
+}
+
+void main() {
+    ListaDoble lista = nuevo ListaDoble();
+    lista.insertarFinal(2);
+    lista.insertarFinal(3);
+    lista.insertarInicio(1);
+    lista.insertarFinal(4);
+
+    imprimir("Adelante: "); lista.recorrerAdelante();
+    imprimir("Atras:    "); lista.recorrerAtras();
+}

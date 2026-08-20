@@ -1,0 +1,34 @@
+// enumeraciones.inv - Enumeraciones (Etapa 11): un conjunto cerrado de
+// nombres con significado, en vez de "numeros magicos" sueltos. Cada
+// miembro recibe su posicion de declaracion como valor entero implicito
+// (LUNES=0, MARTES=1, ...). Internamente se registra como una clase con
+// atributos estaticos, asi que NombreEnum.MIEMBRO reutiliza el mismo
+// mecanismo de acceso estatico ya existente (Etapa 7) -- pero, a
+// diferencia de un `const int`, el enum es un TIPO propio: no se puede
+// comparar ni asignar contra un entero suelto sin querer.
+
+enum DiaSemana {
+    LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO
+}
+
+enum Color { ROJO, VERDE, AZUL }
+
+bool esFinDeSemana(DiaSemana d) {
+    return d == DiaSemana.SABADO || d == DiaSemana.DOMINGO;
+}
+
+clase Figura {
+    publico Color color;
+    Figura(Color c) { this.color = c; }
+    publico bool esRoja() { return this.color == Color.ROJO; }
+}
+
+void main() {
+    DiaSemana hoy = DiaSemana.MIERCOLES;
+    imprimir("hoy (ordinal): "); imprimir(hoy); imprimir("\n");
+    imprimir("es fin de semana: "); imprimir(esFinDeSemana(hoy)); imprimir("\n");
+    imprimir("es fin de semana (sabado): "); imprimir(esFinDeSemana(DiaSemana.SABADO)); imprimir("\n");
+
+    Figura f = nuevo Figura(Color.ROJO);
+    imprimir("figura es roja: "); imprimir(f.esRoja()); imprimir("\n");
+}

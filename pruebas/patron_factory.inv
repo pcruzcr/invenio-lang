@@ -1,0 +1,40 @@
+// patron_factory.inv - Patron de diseno: Factory Method (Etapa 11). El
+// codigo cliente pide un objeto por categoria (un texto) sin conocer la
+// clase concreta que se va a instanciar -- una funcion fabrica centraliza
+// esa decision, usando una jerarquia de clases abstractas (Etapa 7).
+
+abstracta clase Animal {
+    publico abstracto texto sonido();
+
+    publico texto describir() {
+        return "Hace: " + this.sonido();
+    }
+}
+
+clase Perro hereda Animal {
+    publico texto sonido() { return "Guau"; }
+}
+
+clase Gato hereda Animal {
+    publico texto sonido() { return "Miau"; }
+}
+
+clase Vaca hereda Animal {
+    publico texto sonido() { return "Muu"; }
+}
+
+// La "fabrica": una funcion libre que, dado un texto, decide que clase
+// concreta instanciar. El cliente (main) nunca escribe "nuevo Perro()"
+// directamente -- solo conoce el tipo abstracto Animal.
+Animal crearAnimal(texto tipo) {
+    si (tipo == "perro") { return nuevo Perro(); }
+    sino { si (tipo == "gato") { return nuevo Gato(); } sino { return nuevo Vaca(); } }
+}
+
+void main() {
+    texto [3] tipos = {"perro", "gato", "vaca"};
+    para (int i = 0; i < 3; i++) {
+        Animal a = crearAnimal(tipos[i]);
+        imprimir(tipos[i]); imprimir(" -> "); imprimir(a.describir()); imprimir("\n");
+    }
+}

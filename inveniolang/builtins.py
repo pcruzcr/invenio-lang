@@ -1,6 +1,11 @@
 # Funciones Integradas de InvenioLang 1.0 (Sección 19)
-# Implementa las 8 funciones de conversión entre tipos
+# Implementa las 8 funciones de conversión entre tipos, más la librería
+# estándar de cadenas y matemática de la Etapa 6 (lenguaje estructurado
+# completo, ver docs/InvenioLang_Etapa6_Estructurado.md).
 
+import math
+import os
+import random
 import re
 
 # Rango del tipo int / entero: 32 bits con signo (§4.2.1)
@@ -129,6 +134,160 @@ def texto_a_bool(val):
     )
 
 
+# ============================================================
+# Librería estándar (Etapa 6: lenguaje estructurado completo)
+# ============================================================
+
+def longitud(s):
+    """Cantidad de caracteres de una cadena."""
+    return len(s)
+
+
+def subcadena(s, inicio, fin):
+    """Subcadena [inicio, fin) de s. IL-EST-010 si el rango es inválido."""
+    if inicio < 0 or fin > len(s) or inicio > fin:
+        raise BuiltInError(
+            'IL-EST-010',
+            f'subcadena: rango [{inicio},{fin}) inválido para una cadena '
+            f'de longitud {len(s)}'
+        )
+    return s[inicio:fin]
+
+
+def mayusculas(s):
+    return s.upper()
+
+
+def minusculas(s):
+    return s.lower()
+
+
+def caracter_en(s, i):
+    """Carácter (como cadena de 1) en la posición i. IL-EST-011 si i está
+    fuera de rango."""
+    if i < 0 or i >= len(s):
+        raise BuiltInError(
+            'IL-EST-011',
+            f'caracter_en: índice {i} fuera de rango para una cadena de '
+            f'longitud {len(s)}'
+        )
+    return s[i]
+
+
+def indice_de(s, sub):
+    """Posición de la primera aparición de sub en s, o -1 si no aparece
+    (mismo convenio que arreglos.inv::buscar)."""
+    return s.find(sub)
+
+
+def recortar(s):
+    """Quita espacios en blanco al inicio y al final."""
+    return s.strip()
+
+
+def invertir_texto(s):
+    """Cadena invertida (Etapa 10) -- ejercicio clásico de Fundamentos
+    (verificar palíndromos) sin tener que armar el bucle manual cada vez."""
+    return s[::-1]
+
+
+def raiz(x):
+    """Raíz cuadrada. IL-EST-012 si x es negativo."""
+    if x < 0:
+        raise BuiltInError('IL-EST-012', f'raiz: no está definida para {x} (negativo)')
+    return math.sqrt(x)
+
+
+def potencia(base, exponente):
+    """base elevado a exponente. IL-EST-013 si el resultado no es un
+    número real (p. ej. raíz de un negativo con exponente fraccionario)."""
+    try:
+        resultado = base ** exponente
+    except (ValueError, OverflowError) as e:
+        raise BuiltInError('IL-EST-013', f'potencia: {e}')
+    if isinstance(resultado, complex):
+        raise BuiltInError(
+            'IL-EST-013',
+            f'potencia: {base} ** {exponente} no produce un número real'
+        )
+    return float(resultado)
+
+
+def absoluto(x):
+    return abs(x)
+
+
+def piso(x):
+    """Redondea hacia abajo al entero más cercano."""
+    return math.floor(x)
+
+
+def techo(x):
+    """Redondea hacia arriba al entero más cercano."""
+    return math.ceil(x)
+
+
+def azar(minimo_, maximo_):
+    """Entero aleatorio uniforme en [minimo_, maximo_]. IL-EST-014 si el
+    rango es inválido."""
+    if minimo_ > maximo_:
+        raise BuiltInError(
+            'IL-EST-014',
+            f'azar: el mínimo ({minimo_}) no puede ser mayor que el '
+            f'máximo ({maximo_})'
+        )
+    return random.randint(minimo_, maximo_)
+
+
+# ============================================================
+# Entrada/salida de archivos (Etapa 10)
+# ============================================================
+#
+# Alcance deliberadamente simple: texto plano completo por llamada (sin
+# lectura línea a línea ni un tipo "manejador de archivo" nuevo) -- cubre
+# el caso real de un ejercicio de Fundamentos/Programación 2 (guardar un
+# resultado, leer datos de entrada desde un archivo) sin ampliar el sistema
+# de tipos. Codificación siempre UTF-8, igual que el resto del lenguaje.
+
+def existe_archivo(ruta):
+    """True si `ruta` existe y es un archivo regular (no directorio).
+    Nunca falla -- una ruta inexistente es simplemente False, no un error."""
+    return os.path.isfile(ruta)
+
+
+def leer_archivo(ruta):
+    """Contenido completo de `ruta` como texto. IL-EST-015 si no existe, no
+    se puede leer (permisos) o no es UTF-8 válido."""
+    try:
+        with open(ruta, 'r', encoding='utf-8') as f:
+            return f.read()
+    except (OSError, UnicodeDecodeError) as e:
+        raise BuiltInError('IL-EST-015', f'leer_archivo: no se pudo leer "{ruta}": {e}')
+
+
+def escribir_archivo(ruta, contenido):
+    """Escribe `contenido` en `ruta`, reemplazando el archivo si ya existe
+    (o creándolo). Retorna verdadero si tuvo éxito; IL-EST-016 si no se
+    pudo escribir (ruta inválida, permisos, disco lleno, ...)."""
+    try:
+        with open(ruta, 'w', encoding='utf-8') as f:
+            f.write(contenido)
+        return True
+    except OSError as e:
+        raise BuiltInError('IL-EST-016', f'escribir_archivo: no se pudo escribir "{ruta}": {e}')
+
+
+def agregar_archivo(ruta, contenido):
+    """Agrega `contenido` al final de `ruta` (la crea si no existe).
+    Retorna verdadero si tuvo éxito; IL-EST-017 si no se pudo escribir."""
+    try:
+        with open(ruta, 'a', encoding='utf-8') as f:
+            f.write(contenido)
+        return True
+    except OSError as e:
+        raise BuiltInError('IL-EST-017', f'agregar_archivo: no se pudo escribir "{ruta}": {e}')
+
+
 # Tabla de funciones integradas: nombre -> (funcion, tipo_retorno, [tipos_parametros])
 # Nombres canónicos (Sección 4 / README): int_a_float, int_a_texto, texto_a_int, ...
 # La Sección 19 usa nomenclatura distinta (int_to_float, int_to_string, string_to_int, ...)
@@ -182,6 +341,61 @@ _ALIAS_ESPANOL = {
 for _base, _alias in _ALIAS_ESPANOL.items():
     _func, _ret, _params = FUNCIONES_BUILT_IN[_base]
     _registrar(_alias, _func, _ret, _params)
+
+# Librería estándar (Etapa 6): un nombre canónico en español + un alias en
+# inglés por función, mismo patrón bilingüe que el resto del lenguaje.
+#
+# Nota de diseño: los nombres de función integrada están reservados en TODO
+# ámbito (§19.1, IL-SEM-080) -- por eso NO se usan aquí palabras como
+# "longitud", "raiz", "potencia", "maximo" o "minimo" a secas: son
+# exactamente los nombres que varios programas de referencia PERMANENTES
+# (§18.1) ya usan para sus propias variables/funciones de ejercicio
+# (`potencia` en funciones.inv, `raiz` en arbol_binario.inv, `maximo`/
+# `minimo` en estadisticas.inv/calculadora_es.inv, `longitud` como
+# parámetro en procedimientos.inv). Reservarlas rompería esos programas.
+# `maximo`/`minimo` además quedan fuera de la librería a propósito: con el
+# operador ternario nuevo, `a > b ? a : b` los vuelve triviales de escribir
+# sin necesidad de una función integrada que colisione con ese nombre tan
+# común en ejercicios.
+_registrar('longitud_texto', longitud, 'int', ['string'])
+_registrar('text_length', longitud, 'int', ['string'])
+_registrar('subcadena', subcadena, 'string', ['string', 'int', 'int'])
+_registrar('substring', subcadena, 'string', ['string', 'int', 'int'])
+_registrar('mayusculas', mayusculas, 'string', ['string'])
+_registrar('to_upper', mayusculas, 'string', ['string'])
+_registrar('minusculas', minusculas, 'string', ['string'])
+_registrar('to_lower', minusculas, 'string', ['string'])
+_registrar('caracter_en', caracter_en, 'string', ['string', 'int'])
+_registrar('char_at', caracter_en, 'string', ['string', 'int'])
+_registrar('indice_de', indice_de, 'int', ['string', 'string'])
+_registrar('index_of', indice_de, 'int', ['string', 'string'])
+_registrar('recortar', recortar, 'string', ['string'])
+_registrar('trim', recortar, 'string', ['string'])
+_registrar('invertir_texto', invertir_texto, 'string', ['string'])
+_registrar('reverse_string', invertir_texto, 'string', ['string'])
+
+_registrar('raiz_cuadrada', raiz, 'float', ['float'])
+_registrar('sqrt', raiz, 'float', ['float'])
+_registrar('elevar', potencia, 'float', ['float', 'float'])
+_registrar('pow', potencia, 'float', ['float', 'float'])
+_registrar('absoluto', absoluto, 'int', ['int'])
+_registrar('abs', absoluto, 'int', ['int'])
+_registrar('piso', piso, 'int', ['float'])
+_registrar('floor', piso, 'int', ['float'])
+_registrar('techo', techo, 'int', ['float'])
+_registrar('ceil', techo, 'int', ['float'])
+_registrar('azar', azar, 'int', ['int', 'int'])
+_registrar('random', azar, 'int', ['int', 'int'])
+
+# Entrada/salida de archivos (Etapa 10)
+_registrar('existe_archivo', existe_archivo, 'bool', ['string'])
+_registrar('file_exists', existe_archivo, 'bool', ['string'])
+_registrar('leer_archivo', leer_archivo, 'string', ['string'])
+_registrar('read_file', leer_archivo, 'string', ['string'])
+_registrar('escribir_archivo', escribir_archivo, 'bool', ['string', 'string'])
+_registrar('write_file', escribir_archivo, 'bool', ['string', 'string'])
+_registrar('agregar_archivo', agregar_archivo, 'bool', ['string', 'string'])
+_registrar('append_file', agregar_archivo, 'bool', ['string', 'string'])
 
 
 def es_built_in(nombre):

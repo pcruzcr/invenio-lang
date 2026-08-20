@@ -1,0 +1,59 @@
+// patron_observer.inv - Patron de diseno: Observer (Etapa 11). Un "sujeto"
+// mantiene una lista de "observadores" y les avisa automaticamente cuando
+// su estado cambia, sin conocer sus clases concretas -- solo el tipo
+// abstracto Observador (Etapa 7). Los atributos de clase de InvenioLang
+// son escalares (sin arreglos, ver docs/InvenioLang_2.0_POO.md) -- la
+// lista de observadores se implementa como lista enlazada (NodoObservador),
+// mismo patron ya usado en Etapa 8 para evitar esa limitacion.
+
+abstracta clase Observador {
+    publico abstracto void notificar(entero temperatura);
+}
+
+clase PantallaActual hereda Observador {
+    publico void notificar(entero temperatura) {
+        imprimir("[Pantalla] Temperatura actual: "); imprimir(entero_a_texto(temperatura)); imprimir("\n");
+    }
+}
+
+clase RegistroHistorico hereda Observador {
+    publico entero ultimaTemperatura;
+    publico void notificar(entero temperatura) {
+        this.ultimaTemperatura = temperatura;
+        imprimir("[Registro] Guardada temperatura: "); imprimir(entero_a_texto(temperatura)); imprimir("\n");
+    }
+}
+
+clase NodoObservador {
+    publico Observador observador;
+    publico NodoObservador siguiente;
+    NodoObservador(Observador o) { this.observador = o; }
+}
+
+clase EstacionClima {
+    privado NodoObservador cabeza;
+
+    publico void agregarObservador(Observador o) {
+        NodoObservador nodo = nuevo NodoObservador(o);
+        nodo.siguiente = this.cabeza;
+        this.cabeza = nodo;
+    }
+
+    publico void actualizarTemperatura(entero temperatura) {
+        NodoObservador actual = this.cabeza;
+        mientras (actual != nulo) {
+            Observador o = actual.observador;
+            o.notificar(temperatura);
+            actual = actual.siguiente;
+        }
+    }
+}
+
+void main() {
+    EstacionClima estacion = nuevo EstacionClima();
+    estacion.agregarObservador(nuevo PantallaActual());
+    estacion.agregarObservador(nuevo RegistroHistorico());
+
+    estacion.actualizarTemperatura(22);
+    estacion.actualizarTemperatura(25);
+}

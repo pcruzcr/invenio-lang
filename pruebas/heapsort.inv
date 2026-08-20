@@ -1,0 +1,56 @@
+// heapsort.inv - Algoritmos: ordenamiento por monticulo (heapsort) --
+// construye un monticulo maximo (max-heap) en el propio arreglo y va
+// extrayendo el maximo al final, en su lugar (in-place). Etapa 10:
+// mismo caso de prueba (Original/Ordenado) que insercion/seleccion/
+// quicksort/mergesort (Etapa 8), para comparar los cinco algoritmos.
+void imprimirArr(int [] arr, int tam) {
+    imprimir("[ ");
+    para (int i = 0; i < tam; i++) {
+        imprimir(arr[i]);
+        si (i < tam - 1) { imprimir(", "); }
+    }
+    imprimir(" ]\n");
+}
+
+void intercambiar(int [] arr, int i, int j) {
+    int t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+}
+
+void siftDownMax(int [] arr, int n, int i) {
+    mientras (verdadero) {
+        int izq = 2 * i + 1;
+        int der = 2 * i + 2;
+        int mayor = i;
+        si (izq < n && arr[izq] > arr[mayor]) { mayor = izq; }
+        si (der < n && arr[der] > arr[mayor]) { mayor = der; }
+        si (mayor == i) { romper; }
+        intercambiar(arr, i, mayor);
+        i = mayor;
+    }
+}
+
+void heapsort(int [] arr, int n) {
+    // Construir el monticulo maximo: siftDown desde el ultimo padre hacia
+    // la raiz es O(n), mas eficiente que insertar uno por uno (O(n log n)).
+    int i = n / 2 - 1;
+    mientras (i >= 0) {
+        siftDownMax(arr, n, i);
+        i--;
+    }
+    // Extraer el maximo repetidamente: se intercambia con el final del
+    // arreglo activo y se restaura la propiedad de monticulo sobre lo que
+    // queda -- el arreglo queda ordenado ascendentemente in-place.
+    int fin = n - 1;
+    mientras (fin > 0) {
+        intercambiar(arr, 0, fin);
+        siftDownMax(arr, fin, 0);
+        fin--;
+    }
+}
+
+void main() {
+    int [7] datos = {64, 25, 12, 22, 11, 90, 38};
+    imprimir("Original:  "); imprimirArr(datos, 7);
+    heapsort(datos, 7);
+    imprimir("Ordenado:  "); imprimirArr(datos, 7);
+}

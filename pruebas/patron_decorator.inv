@@ -1,0 +1,54 @@
+// patron_decorator.inv - Patron de diseno: Decorator (Etapa 11). Se le
+// agregan responsabilidades a un objeto envolviendolo en otro objeto de la
+// misma interfaz abstracta (composicion, no herencia) -- cada decorador
+// "envuelve" una Bebida y le agrega su propio costo/descripcion antes de
+// delegar al objeto envuelto.
+
+abstracta clase Bebida {
+    publico abstracto real costo();
+    publico abstracto texto descripcion();
+}
+
+clase Cafe hereda Bebida {
+    publico real costo() { return 1.50; }
+    publico texto descripcion() { return "Cafe"; }
+}
+
+// Los decoradores tambien heredan de Bebida (misma interfaz) y guardan una
+// referencia a la Bebida que envuelven.
+clase ConLeche hereda Bebida {
+    privado Bebida base;
+    ConLeche(Bebida b) { this.base = b; }
+    publico real costo() {
+        Bebida b = this.base;
+        return b.costo() + 0.50;
+    }
+    publico texto descripcion() {
+        Bebida b = this.base;
+        return b.descripcion() + " + leche";
+    }
+}
+
+clase ConChocolate hereda Bebida {
+    privado Bebida base;
+    ConChocolate(Bebida b) { this.base = b; }
+    publico real costo() {
+        Bebida b = this.base;
+        return b.costo() + 0.75;
+    }
+    publico texto descripcion() {
+        Bebida b = this.base;
+        return b.descripcion() + " + chocolate";
+    }
+}
+
+void main() {
+    Bebida pedido = nuevo Cafe();
+    imprimir(pedido.descripcion()); imprimir(": $"); imprimir(real_a_texto(pedido.costo())); imprimir("\n");
+
+    pedido = nuevo ConLeche(pedido);
+    imprimir(pedido.descripcion()); imprimir(": $"); imprimir(real_a_texto(pedido.costo())); imprimir("\n");
+
+    pedido = nuevo ConChocolate(pedido);
+    imprimir(pedido.descripcion()); imprimir(": $"); imprimir(real_a_texto(pedido.costo())); imprimir("\n");
+}

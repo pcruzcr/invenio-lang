@@ -1,0 +1,40 @@
+// estructurado.inv - Programa de referencia de la Etapa 6
+// (switch/case con fallthrough, do-while, ternario, try/catch, libreria
+// estandar de cadenas). Ver docs/InvenioLang_Etapa6_Estructurado.md §7.
+
+int categorizar(int nota) {
+    switch (nota / 10) {
+        case 10:
+        case 9: return 0;   // Excelente (cae de 10 a 9)
+        case 8: return 1;   // Muy bueno
+        case 7: return 2;   // Bueno
+        default: return 3;  // Insuficiente
+    }
+    return 3;  // ver §3.4 de la spec: un switch exhaustivo no cierra la
+               // ruta para IL-SEM-050, se necesita este return adicional
+}
+
+void main() {
+    int [5] notas = {95, 82, 71, 60, 100};
+    string [4] etiquetas = {"Excelente", "Muy bueno", "Bueno", "Insuficiente"};
+
+    int i = 0;
+    do {
+        int cat = categorizar(notas[i]);
+        imprimir(entero_a_texto(notas[i]));
+        imprimir(": ");
+        imprimir(etiquetas[cat]);
+        imprimir(notas[i] >= 60 ? " (aprobado)\n" : " (reprobado)\n");
+        i = i + 1;
+    } while (i < 5);
+
+    try {
+        int x = 10 / (notas[0] - 95);
+    } catch (e) {
+        imprimir("Error controlado: ");
+        imprimir(e.codigo);
+        imprimir("\n");
+    }
+
+    imprimir(mayusculas(subcadena("fin del programa", 0, 3)));
+}

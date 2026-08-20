@@ -65,6 +65,24 @@ class ErrorManager:
         if len(self.errores) >= self.max_errores:
             self.detener = True
 
+    def error_poo(self, codigo, mensaje, linea, columna):
+        """Registra un error de POO (IL-POO, InvenioLang 2.0 -- docs/
+        InvenioLang_2.0_POO.md)."""
+        err = InvenioLangError(codigo, mensaje, linea, columna, self.archivo_actual)
+        self.errores.append(err)
+        if len(self.errores) >= self.max_errores:
+            self.detener = True
+
+    def error_estructurado(self, codigo, mensaje, linea, columna):
+        """Registra un error del lenguaje estructurado completo (IL-EST,
+        Etapa 6 -- switch/do-while/ternario/try-catch). Prefijo propio, igual
+        que IL-POO, para no perturbar el catálogo v1.0 (§18.1: estable entre
+        versiones)."""
+        err = InvenioLangError(codigo, mensaje, linea, columna, self.archivo_actual)
+        self.errores.append(err)
+        if len(self.errores) >= self.max_errores:
+            self.detener = True
+
     def error_ejecucion(self, codigo, mensaje, linea, columna):
         """Registra un error de ejecucion (IL-EJE)."""
         err = InvenioLangError(codigo, mensaje, linea, columna, self.archivo_actual)

@@ -1,0 +1,71 @@
+// monticulo.inv - Estructura de Datos: monticulo binario minimo (min-heap)
+// con arreglo, usado como cola de prioridad -- insertar (sift-up) y
+// extraer el minimo (sift-down) en O(log n). Etapa 10: cierra el hueco de
+// colas de prioridad senalado en el analisis de Fase 1/Fase 2 (Etapa 8
+// cubrio pilas, colas, listas, arboles, grafos y tablas hash, pero
+// ningun monticulo).
+const int CAP = 20;
+
+int tam = 0;
+int [CAP] datos;
+
+void intercambiar(int [] arr, int i, int j) {
+    int t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+}
+
+void siftUp(int [] arr, int i) {
+    mientras (i > 0) {
+        int padreIdx = (i - 1) / 2;
+        si (arr[padreIdx] <= arr[i]) { romper; }
+        intercambiar(arr, padreIdx, i);
+        i = padreIdx;
+    }
+}
+
+void siftDown(int [] arr, int n, int i) {
+    mientras (verdadero) {
+        int izq = 2 * i + 1;
+        int der = 2 * i + 2;
+        int menor = i;
+        si (izq < n && arr[izq] < arr[menor]) { menor = izq; }
+        si (der < n && arr[der] < arr[menor]) { menor = der; }
+        si (menor == i) { romper; }
+        intercambiar(arr, i, menor);
+        i = menor;
+    }
+}
+
+void insertar(int valor) {
+    datos[tam] = valor;
+    siftUp(datos, tam);
+    tam = tam + 1;
+    imprimir("insertar "); imprimir(valor); imprimir("\n");
+}
+
+int extraerMinimo() {
+    int minimo = datos[0];
+    tam = tam - 1;
+    datos[0] = datos[tam];
+    siftDown(datos, tam, 0);
+    return minimo;
+}
+
+void main() {
+    insertar(8);
+    insertar(3);
+    insertar(10);
+    insertar(1);
+    insertar(6);
+
+    // Un monticulo siempre extrae en orden ascendente: es lo que lo hace
+    // util como cola de prioridad (el siguiente en salir es el de mayor
+    // prioridad -- aqui, el menor valor).
+    mientras (tam > 0) {
+        imprimir("extraer minimo: ");
+        imprimir(extraerMinimo());
+        imprimir("\n");
+    }
+    imprimir("monticulo vacio: ");
+    imprimir(tam == 0);
+    imprimir("\n");
+}

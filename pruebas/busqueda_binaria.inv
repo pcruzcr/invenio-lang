@@ -1,0 +1,21 @@
+// busqueda_binaria.inv - Algoritmos: busqueda binaria sobre un arreglo
+// ordenado (Etapa 8)
+int busquedaBinaria(int [] arr, int n, int objetivo) {
+    int izq = 0;
+    int der = n - 1;
+    mientras (izq <= der) {
+        int medio = (izq + der) / 2;
+        si (arr[medio] == objetivo) { return medio; }
+        si (arr[medio] < objetivo) { izq = medio + 1; }
+        sino { der = medio - 1; }
+    }
+    return -1;
+}
+
+void main() {
+    int [7] datos = {11, 12, 22, 25, 38, 64, 90};
+    imprimir("25 en posicion: "); imprimir(entero_a_texto(busquedaBinaria(datos, 7, 25))); imprimir("\n");
+    imprimir("11 en posicion: "); imprimir(entero_a_texto(busquedaBinaria(datos, 7, 11))); imprimir("\n");
+    imprimir("90 en posicion: "); imprimir(entero_a_texto(busquedaBinaria(datos, 7, 90))); imprimir("\n");
+    imprimir("99 en posicion: "); imprimir(entero_a_texto(busquedaBinaria(datos, 7, 99))); imprimir("\n");
+}

@@ -1,0 +1,34 @@
+// arreglo_objetos.inv - Estructura de Datos: arreglo de objetos (POO)
+clase Persona {
+    publico texto nombre;
+    publico entero edad;
+    Persona(texto n, entero e) { this.nombre = n; this.edad = e; }
+    publico texto describir() {
+        return this.nombre + " (" + entero_a_texto(this.edad) + ")";
+    }
+}
+
+entero buscarPorNombre(Persona[] personas, entero n, texto objetivo) {
+    para (entero i = 0; i < n; i++) {
+        si (personas[i].nombre == objetivo) { return i; }
+    }
+    return -1;
+}
+
+void main() {
+    const entero N = 3;
+    Persona personas[N];
+    personas[0] = nuevo Persona("Ana", 30);
+    personas[1] = nuevo Persona("Beto", 25);
+    personas[2] = nuevo Persona("Cata", 40);
+
+    para (entero i = 0; i < N; i++) {
+        imprimir(personas[i].describir());
+        imprimir("\n");
+    }
+
+    entero pos = buscarPorNombre(personas, N, "Beto");
+    imprimir("Beto en posicion: ");
+    imprimir(entero_a_texto(pos));
+    imprimir("\n");
+}

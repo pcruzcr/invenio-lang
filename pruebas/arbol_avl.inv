@@ -1,0 +1,102 @@
+// arbol_avl.inv - Estructura de Datos: arbol AVL, un arbol binario de
+// busqueda auto-balanceado (Etapa 11). A diferencia de arbol_binario.inv
+// (Etapa 3), que puede degenerar en una lista si se insertan los valores
+// ya ordenados, el AVL mantiene la diferencia de alturas entre los dos
+// subarboles de cada nodo en como maximo 1, usando rotaciones simples y
+// dobles despues de cada insercion.
+//
+// insertar() es una funcion LIBRE (no un metodo) que retorna la nueva
+// raiz del subarbol: una rotacion puede cambiar cual nodo queda arriba,
+// asi que el llamador siempre debe reasignar "raiz = insertar(raiz, v)".
+
+clase NodoAVL {
+    publico entero valor;
+    publico entero altura;
+    publico NodoAVL izquierda;
+    publico NodoAVL derecha;
+    NodoAVL(entero v) { this.valor = v; this.altura = 1; }
+}
+
+int altura(NodoAVL n) {
+    si (n == nulo) { return 0; }
+    return n.altura;
+}
+
+void actualizarAltura(NodoAVL n) {
+    int hi = altura(n.izquierda);
+    int hd = altura(n.derecha);
+    n.altura = 1 + (hi > hd ? hi : hd);
+}
+
+int factorBalance(NodoAVL n) {
+    si (n == nulo) { return 0; }
+    return altura(n.izquierda) - altura(n.derecha);
+}
+
+NodoAVL rotarDerecha(NodoAVL y) {
+    NodoAVL x = y.izquierda;
+    NodoAVL t2 = x.derecha;
+    x.derecha = y;
+    y.izquierda = t2;
+    actualizarAltura(y);
+    actualizarAltura(x);
+    return x;
+}
+
+NodoAVL rotarIzquierda(NodoAVL x) {
+    NodoAVL y = x.derecha;
+    NodoAVL t2 = y.izquierda;
+    y.izquierda = x;
+    x.derecha = t2;
+    actualizarAltura(x);
+    actualizarAltura(y);
+    return y;
+}
+
+NodoAVL insertar(NodoAVL n, entero v) {
+    si (n == nulo) { return nuevo NodoAVL(v); }
+    si (v < n.valor) { n.izquierda = insertar(n.izquierda, v); }
+    sino { n.derecha = insertar(n.derecha, v); }
+
+    actualizarAltura(n);
+    int balance = factorBalance(n);
+    NodoAVL izq = n.izquierda;
+    NodoAVL der = n.derecha;
+
+    // Izquierda-Izquierda
+    si (balance > 1 && v < izq.valor) { return rotarDerecha(n); }
+    // Derecha-Derecha
+    si (balance < -1 && v > der.valor) { return rotarIzquierda(n); }
+    // Izquierda-Derecha
+    si (balance > 1 && v > izq.valor) {
+        n.izquierda = rotarIzquierda(izq);
+        return rotarDerecha(n);
+    }
+    // Derecha-Izquierda
+    si (balance < -1 && v < der.valor) {
+        n.derecha = rotarDerecha(der);
+        return rotarIzquierda(n);
+    }
+    return n;
+}
+
+void inorder(NodoAVL n) {
+    si (n == nulo) { return; }
+    inorder(n.izquierda);
+    imprimir(n.valor); imprimir(" ");
+    inorder(n.derecha);
+}
+
+void main() {
+    NodoAVL raiz = nulo;
+    // Insertados en orden ascendente: un BST comun degeneraria en una
+    // lista (altura N); el AVL se reequilibra en cada paso.
+    int [7] valores = {10, 20, 30, 40, 50, 60, 70};
+    para (int i = 0; i < 7; i++) {
+        raiz = insertar(raiz, valores[i]);
+    }
+
+    imprimir("In-order: "); inorder(raiz); imprimir("\n");
+    imprimir("Altura del arbol: "); imprimir(altura(raiz)); imprimir("\n");
+    imprimir("Raiz: "); imprimir(raiz.valor); imprimir("\n");
+}

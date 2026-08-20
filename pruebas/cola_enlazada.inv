@@ -1,0 +1,44 @@
+// cola_enlazada.inv - Estructura de Datos: Cola (queue) enlazada (POO)
+clase Nodo {
+    publico entero valor;
+    publico Nodo siguiente;
+    Nodo(entero v) { this.valor = v; }
+}
+
+clase ColaEnlazada {
+    privado Nodo frente;
+    privado Nodo final;
+
+    publico void encolar(entero v) {
+        Nodo n = nuevo Nodo(v);
+        si (this.frente == nulo) {
+            this.frente = n;
+        } sino {
+            Nodo f = this.final;
+            f.siguiente = n;
+        }
+        this.final = n;
+    }
+
+    publico entero desencolar() {
+        Nodo n = this.frente;
+        this.frente = n.siguiente;
+        return n.valor;
+    }
+
+    publico bool vacia() {
+        return this.frente == nulo;
+    }
+}
+
+void main() {
+    ColaEnlazada c = nuevo ColaEnlazada();
+    c.encolar(10);
+    c.encolar(20);
+    c.encolar(30);
+    mientras (!c.vacia()) {
+        imprimir(entero_a_texto(c.desencolar()));
+        imprimir(" ");
+    }
+    imprimir("\n");
+}

@@ -1,0 +1,43 @@
+// mergesort.inv - Algoritmos: mergesort (ordenamiento por mezcla)
+// recursivo (Etapa 8)
+const int MAXN = 20;
+
+void imprimirArr(int [] arr, int tam) {
+    imprimir("[ ");
+    para (int i = 0; i < tam; i++) {
+        imprimir(arr[i]);
+        si (i < tam - 1) { imprimir(", "); }
+    }
+    imprimir(" ]\n");
+}
+
+void combinar(int [] arr, int izq, int medio, int der) {
+    int [MAXN] temp;
+    int i = izq;
+    int j = medio + 1;
+    int k = izq;
+    mientras (i <= medio && j <= der) {
+        si (arr[i] <= arr[j]) { temp[k] = arr[i]; i++; }
+        sino { temp[k] = arr[j]; j++; }
+        k++;
+    }
+    mientras (i <= medio) { temp[k] = arr[i]; i++; k++; }
+    mientras (j <= der) { temp[k] = arr[j]; j++; k++; }
+    para (int x = izq; x <= der; x++) { arr[x] = temp[x]; }
+}
+
+void mergesort(int [] arr, int izq, int der) {
+    si (izq < der) {
+        int medio = (izq + der) / 2;
+        mergesort(arr, izq, medio);
+        mergesort(arr, medio + 1, der);
+        combinar(arr, izq, medio, der);
+    }
+}
+
+void main() {
+    int [7] datos = {64, 25, 12, 22, 11, 90, 38};
+    imprimir("Original:  "); imprimirArr(datos, 7);
+    mergesort(datos, 0, 6);
+    imprimir("Ordenado:  "); imprimirArr(datos, 7);
+}

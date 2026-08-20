@@ -1,0 +1,28 @@
+// ordenamiento_seleccion.inv - Algoritmos: ordenamiento por seleccion (Etapa 8)
+void imprimirArr(int [] arr, int tam) {
+    imprimir("[ ");
+    para (int i = 0; i < tam; i++) {
+        imprimir(arr[i]);
+        si (i < tam - 1) { imprimir(", "); }
+    }
+    imprimir(" ]\n");
+}
+
+void ordenarSeleccion(int [] arr, int n) {
+    para (int i = 0; i < n - 1; i++) {
+        int indiceMin = i;
+        para (int j = i + 1; j < n; j++) {
+            si (arr[j] < arr[indiceMin]) { indiceMin = j; }
+        }
+        si (indiceMin != i) {
+            int t = arr[i]; arr[i] = arr[indiceMin]; arr[indiceMin] = t;
+        }
+    }
+}
+
+void main() {
+    int [7] datos = {64, 25, 12, 22, 11, 90, 38};
+    imprimir("Original:  "); imprimirArr(datos, 7);
+    ordenarSeleccion(datos, 7);
+    imprimir("Ordenado:  "); imprimirArr(datos, 7);
+}

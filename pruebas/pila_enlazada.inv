@@ -1,0 +1,41 @@
+// pila_enlazada.inv - Estructura de Datos: Pila (stack) enlazada (POO)
+clase Nodo {
+    publico entero valor;
+    publico Nodo siguiente;
+    Nodo(entero v) { this.valor = v; }
+}
+
+clase PilaEnlazada {
+    privado Nodo cima;
+
+    publico void apilar(entero v) {
+        Nodo n = nuevo Nodo(v);
+        n.siguiente = this.cima;
+        this.cima = n;
+    }
+
+    publico entero desapilar() {
+        Nodo n = this.cima;
+        this.cima = n.siguiente;
+        return n.valor;
+    }
+
+    publico bool vacia() {
+        return this.cima == nulo;
+    }
+}
+
+void main() {
+    PilaEnlazada p = nuevo PilaEnlazada();
+    p.apilar(1);
+    p.apilar(2);
+    p.apilar(3);
+    mientras (!p.vacia()) {
+        imprimir(entero_a_texto(p.desapilar()));
+        imprimir(" ");
+    }
+    imprimir("\n");
+    imprimir("vacia: ");
+    imprimir(p.vacia());
+    imprimir("\n");
+}

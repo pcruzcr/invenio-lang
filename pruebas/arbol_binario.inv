@@ -1,0 +1,51 @@
+// arbol_binario.inv - Estructura de Datos: Arbol binario de busqueda (POO)
+clase Nodo {
+    publico entero valor;
+    publico Nodo izquierda;
+    publico Nodo derecha;
+    Nodo(entero v) { this.valor = v; }
+
+    publico void insertar(entero v) {
+        si (v < this.valor) {
+            si (this.izquierda == nulo) {
+                this.izquierda = nuevo Nodo(v);
+            } sino {
+                Nodo hijo = this.izquierda;
+                hijo.insertar(v);
+            }
+        } sino {
+            si (this.derecha == nulo) {
+                this.derecha = nuevo Nodo(v);
+            } sino {
+                Nodo hijo = this.derecha;
+                hijo.insertar(v);
+            }
+        }
+    }
+
+    publico void inorder() {
+        si (this.izquierda != nulo) {
+            Nodo hijo = this.izquierda;
+            hijo.inorder();
+        }
+        imprimir(entero_a_texto(this.valor));
+        imprimir(" ");
+        si (this.derecha != nulo) {
+            Nodo hijo = this.derecha;
+            hijo.inorder();
+        }
+    }
+}
+
+void main() {
+    Nodo raiz = nuevo Nodo(50);
+    raiz.insertar(30);
+    raiz.insertar(70);
+    raiz.insertar(20);
+    raiz.insertar(40);
+    raiz.insertar(60);
+    raiz.insertar(80);
+    imprimir("In-order: ");
+    raiz.inorder();
+    imprimir("\n");
+}

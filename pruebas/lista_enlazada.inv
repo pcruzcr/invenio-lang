@@ -1,0 +1,50 @@
+// lista_enlazada.inv - Estructura de Datos: Lista simplemente enlazada (POO)
+clase Nodo {
+    publico entero valor;
+    publico Nodo siguiente;
+    Nodo(entero v) { this.valor = v; }
+}
+
+clase ListaEnlazada {
+    privado Nodo cabeza;
+    privado Nodo cola;
+    privado entero tamano;
+
+    publico void agregar(entero v) {
+        Nodo n = nuevo Nodo(v);
+        si (this.cabeza == nulo) {
+            this.cabeza = n;
+        } sino {
+            Nodo c = this.cola;
+            c.siguiente = n;
+        }
+        this.cola = n;
+        this.tamano = this.tamano + 1;
+    }
+
+    publico entero longitud() {
+        return this.tamano;
+    }
+
+    publico void imprimirTodo() {
+        Nodo actual = this.cabeza;
+        mientras (actual != nulo) {
+            imprimir(entero_a_texto(actual.valor));
+            imprimir(" ");
+            actual = actual.siguiente;
+        }
+    }
+}
+
+void main() {
+    ListaEnlazada lista = nuevo ListaEnlazada();
+    lista.agregar(10);
+    lista.agregar(20);
+    lista.agregar(30);
+    imprimir("Lista: ");
+    lista.imprimirTodo();
+    imprimir("\n");
+    imprimir("Longitud: ");
+    imprimir(entero_a_texto(lista.longitud()));
+    imprimir("\n");
+}

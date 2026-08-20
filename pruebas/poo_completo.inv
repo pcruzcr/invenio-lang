@@ -1,0 +1,62 @@
+// poo_completo.inv - Programa de referencia de la Etapa 7 (POO completo)
+// Combina las 4 caracteristicas nuevas en un solo programa: clase abstracta
+// con contador estatico de instancias, sobrecarga de metodos, y una clase
+// generica Caja<T> usada con dos tipos distintos.
+// Ver docs/InvenioLang_2.0_POO.md (seccion Etapa 7).
+
+abstracta clase Figura {
+    publico estatico entero contadorInstancias;
+
+    Figura() { Figura.contadorInstancias = Figura.contadorInstancias + 1; }
+
+    publico abstracto real area();
+
+    publico texto describir() {
+        return "Area: " + real_a_texto(this.area());
+    }
+}
+
+clase Circulo hereda Figura {
+    privado real radio;
+    Circulo(real r) { super(); this.radio = r; }
+    publico real area() { return 3.14 * this.radio * this.radio; }
+}
+
+clase Cuadrado hereda Figura {
+    privado real lado;
+    Cuadrado(real l) { super(); this.lado = l; }
+    publico real area() { return this.lado * this.lado; }
+}
+
+clase Sumador {
+    publico entero sumar(entero a, entero b) { return a + b; }
+    publico real sumar(real a, real b) { return a + b; }
+}
+
+clase Caja<T> {
+    privado T contenido;
+    publico void guardar(T v) { this.contenido = v; }
+    publico T obtener() { return this.contenido; }
+}
+
+void main() {
+    Figura f1 = nuevo Circulo(2.0);
+    Figura f2 = nuevo Cuadrado(3.0);
+    imprimir(f1.describir());
+    imprimir("\n");
+    imprimir(f2.describir());
+    imprimir("\n");
+    imprimir("Instancias: ");
+    imprimir(entero_a_texto(Figura.contadorInstancias));
+    imprimir("\n");
+
+    Sumador s = nuevo Sumador();
+    imprimir(entero_a_texto(s.sumar(2, 3)));
+    imprimir(" ");
+    imprimir(real_a_texto(s.sumar(2.5, 1.5)));
+    imprimir("\n");
+
+    Caja<entero> caja = nuevo Caja<entero>();
+    caja.guardar(99);
+    imprimir(entero_a_texto(caja.obtener()));
+}

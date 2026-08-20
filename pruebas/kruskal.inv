@@ -1,0 +1,56 @@
+// kruskal.inv - Algoritmos: arbol de expansion minima (MST) con Kruskal +
+// Union-Find (Etapa 11). Las aristas se guardan en 3 arreglos paralelos
+// (origen, destino, peso -- InvenioLang no tiene una struct/tupla nativa),
+// se ordenan por peso (insercion, ya usado en Etapa 8) y Union-Find decide
+// si una arista conecta dos componentes distintas o formaria un ciclo.
+const int N = 6;
+const int M = 9;
+
+int encontrar(int [] parentesco, int x) {
+    mientras (parentesco[x] != x) { x = parentesco[x]; }
+    return x;
+}
+
+void unir(int [] parentesco, int a, int b) {
+    int raizA = encontrar(parentesco, a);
+    int raizB = encontrar(parentesco, b);
+    parentesco[raizA] = raizB;
+}
+
+void ordenarPorPeso(int [] origen, int [] destino, int [] peso, int m) {
+    para (int i = 1; i < m; i++) {
+        int po = origen[i]; int pd = destino[i]; int pp = peso[i];
+        int j = i - 1;
+        mientras (j >= 0 && peso[j] > pp) {
+            origen[j + 1] = origen[j]; destino[j + 1] = destino[j]; peso[j + 1] = peso[j];
+            j--;
+        }
+        origen[j + 1] = po; destino[j + 1] = pd; peso[j + 1] = pp;
+    }
+}
+
+void main() {
+    int [M] origen = {0, 0, 1, 1, 2, 2, 3, 3, 4};
+    int [M] destino = {1, 2, 2, 3, 3, 4, 4, 5, 5};
+    int [M] peso =    {4, 1, 2, 5, 8, 3, 6, 7, 2};
+
+    ordenarPorPeso(origen, destino, peso, M);
+
+    int [N] parentesco;
+    para (int i = 0; i < N; i++) { parentesco[i] = i; }
+
+    int aristasUsadas = 0;
+    int pesoTotal = 0;
+    para (int i = 0; i < M; i++) {
+        si (aristasUsadas == N - 1) { romper; }
+        int a = origen[i]; int b = destino[i];
+        si (encontrar(parentesco, a) != encontrar(parentesco, b)) {
+            unir(parentesco, a, b);
+            imprimir("arista "); imprimir(a); imprimir("-"); imprimir(b);
+            imprimir(" peso "); imprimir(peso[i]); imprimir("\n");
+            pesoTotal = pesoTotal + peso[i];
+            aristasUsadas = aristasUsadas + 1;
+        }
+    }
+    imprimir("peso total MST: "); imprimir(pesoTotal); imprimir("\n");
+}

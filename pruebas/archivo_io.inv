@@ -1,0 +1,25 @@
+// archivo_io.inv - Entrada/salida de archivos (Etapa 10): escribir_archivo,
+// agregar_archivo, leer_archivo y existe_archivo -- texto plano completo
+// por llamada, UTF-8. Al ejecutarse crea "ejemplo_archivo.tmp" junto al
+// directorio de trabajo actual (extension .tmp -- ignorada por git).
+void main() {
+    texto ruta = "ejemplo_archivo.tmp";
+
+    imprimir("existe antes: "); imprimir(existe_archivo(ruta)); imprimir("\n");
+
+    bool ok1 = escribir_archivo(ruta, "primera linea\n");
+    bool ok2 = agregar_archivo(ruta, "segunda linea\n");
+    imprimir("escritura ok: "); imprimir(ok1 && ok2); imprimir("\n");
+
+    imprimir("existe despues: "); imprimir(existe_archivo(ruta)); imprimir("\n");
+
+    texto contenido = leer_archivo(ruta);
+    imprimir("contenido:\n");
+    imprimir(contenido);
+
+    intentar {
+        texto x = leer_archivo("este_archivo_no_existe_de_verdad.tmp");
+    } capturar (e) {
+        imprimir("error controlado: "); imprimir(e.codigo); imprimir("\n");
+    }
+}

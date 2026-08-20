@@ -10,6 +10,7 @@ from .errors import ErrorManager
 from .semantic import SemanticAnalyzer
 from .type_checker import TypeChecker
 from .interpreter import Interpreter, DebugStopped
+from . import ir as ir_mod
 
 
 def leer_fuente(ruta, error_manager=None):
@@ -297,6 +298,174 @@ def trazar_archivo(ruta, max_pasos=None):
     return 1 if n_err else 0
 
 
+def _compilar_estatico(ruta):
+    """Corre léxico->sintáctico->semántico->tipos y retorna (ast, tabla, em)
+    si no hubo errores, o (None, None, em) si los hubo (ya impresos)."""
+    codigo, fallo = leer_fuente(ruta)
+    if fallo is not None:
+        return None, None, None
+    nombre_archivo = os.path.basename(ruta)
+    em = ErrorManager()
+    lexer = Lexer(em)
+    lexer.tokenizar(codigo, nombre_archivo)
+    if em.hay_errores():
+        print("ERRORES LÉXICOS")
+        for e in em.obtener_reportes():
+            print("  " + e)
+        return None, None, em
+    parser = Parser(lexer, em)
+    ast, em = parser.analizar(codigo, nombre_archivo)
+    if em.hay_errores():
+        print("ERRORES SINTÁCTICOS")
+        for e in em.obtener_reportes():
+            print("  " + e)
+        return None, None, em
+    semantico = SemanticAnalyzer(em)
+    tabla = semantico.analizar(ast)
+    if em.hay_errores():
+        print("ERRORES SEMÁNTICOS")
+        for e in em.obtener_reportes():
+            print("  " + e)
+        return None, None, em
+    tc = TypeChecker(em, tabla)
+    tc.verificar(ast)
+    if em.hay_errores():
+        print("ERRORES DE TIPOS")
+        for e in em.obtener_reportes():
+            print("  " + e)
+        return None, None, em
+    return ast, tabla, em
+
+
+def _generar_ir_o_avisar(ast):
+    """Genera el IR del programa, o imprime un aviso claro y retorna None si
+    el programa usa una construcción fuera del alcance del generador
+    (clases/POO, matrices) -- ver inveniolang/ir.py."""
+    try:
+        return ir_mod.generar_programa(ast)
+    except ir_mod.NoSoportadoIR as e:
+        print("=== CÓDIGO INTERMEDIO NO DISPONIBLE ===")
+        print(f"  {e}")
+        return None
+
+
+def mostrar_ir(ruta, optimizar=False):
+    """--ir / --ir-opt: genera y muestra el código de tres direcciones (TAC)
+    del programa. Con `optimizar=True` corre además las pasadas de
+    optimización y muestra un resumen de qué cambió cada una."""
+    ast, tabla, em = _compilar_estatico(ruta)
+    if ast is None:
+        return 1
+
+    generado = _generar_ir_o_avisar(ast)
+    if generado is None:
+        return 1
+    subrutinas, globales = generado
+
+    def _mostrar(nombre_titulo, instrucciones):
+        print(f'--- {nombre_titulo} ---')
+        print(ir_mod.formatear(instrucciones) if instrucciones else '  (vacío)')
+
+    print(f"=== CÓDIGO INTERMEDIO (TAC): {os.path.basename(ruta)} ===")
+    _mostrar('variables globales', globales)
+    for nombre, (parametros, instrucciones) in subrutinas.items():
+        firma = f"{nombre}({', '.join(parametros)})"
+        _mostrar(firma, instrucciones)
+
+    if optimizar:
+        opt_globales, resumen_globales = ir_mod.optimizar(globales)
+        opt_subrutinas, resumenes = ir_mod.optimizar_programa(subrutinas)
+        print()
+        print("=== CÓDIGO INTERMEDIO OPTIMIZADO ===")
+        _mostrar('variables globales', opt_globales)
+        if resumen_globales:
+            print('  optimizaciones: ' + ', '.join(f'{n} x{c}' for n, c in resumen_globales))
+        for nombre, (parametros, instrucciones) in opt_subrutinas.items():
+            firma = f"{nombre}({', '.join(parametros)})"
+            _mostrar(firma, instrucciones)
+            resumen = resumenes.get(nombre) or []
+            if resumen:
+                print('  optimizaciones: ' + ', '.join(f'{n} x{c}' for n, c in resumen))
+
+    return 0
+
+
+def mostrar_objetivo(ruta, k_registros=None):
+    """--target (Etapa 12.11): genera y muestra el código objetivo del ISA
+    de juguete (traducido del TAC ya optimizado -- incluye la eliminación
+    de recursión de cola de la Etapa 12.8 si aplica). Ver ir.py, sección
+    "Etapa 12.11" para el ISA completo.
+
+    --target-reg (Etapa 12.12, `k_registros` dado): además, corre
+    liveness + asignación de registros (linear-scan) ANTES de traducir, y
+    muestra un resumen de qué variable/temporal quedó en qué registro (o
+    en memoria por spill) por cada subrutina -- comparar contra la salida
+    de --target deja ver directamente cuántos nombres distintos se
+    redujeron a los `k_registros` disponibles."""
+    ast, tabla, em = _compilar_estatico(ruta)
+    if ast is None:
+        return 1
+
+    generado = _generar_ir_o_avisar(ast)
+    if generado is None:
+        return 1
+    subrutinas, globales = generado
+    subrutinas_opt, _ = ir_mod.optimizar_programa(subrutinas)
+
+    try:
+        objetivo, resumen_registros = ir_mod.generar_objetivo_programa(subrutinas_opt, k_registros)
+    except ir_mod.NoSoportadoObjetivo as e:
+        print("=== CÓDIGO OBJETIVO NO DISPONIBLE ===")
+        print(f"  {e}")
+        return 1
+
+    titulo = "CÓDIGO OBJETIVO CON REGISTROS" if k_registros else "CÓDIGO OBJETIVO (ISA de juguete)"
+    print(f"=== {titulo}: {os.path.basename(ruta)} ===")
+    if k_registros:
+        print(f"  (linear-scan, {k_registros} registros disponibles)")
+    for nombre, (parametros, instrucciones) in objetivo.items():
+        firma = f"{nombre}({', '.join(parametros)})"
+        print(f'--- {firma} ---')
+        print(ir_mod.formatear_objetivo(instrucciones) if instrucciones else '  (vacío)')
+        if nombre in resumen_registros:
+            asignacion, spills = resumen_registros[nombre]
+            registros = {v: r for v, r in asignacion.items() if r.startswith('R')}
+            print('  asignación: ' + ', '.join(f'{v}->{r}' for v, r in registros.items())
+                  if registros else '  asignación: (sin variables con registro)')
+            if spills:
+                print(f'  spill (memoria): {", ".join(spills)}')
+    return 0
+
+
+def ejecutar_con_ir(ruta, entrada_usuario=None, optimizado=False):
+    """--run-ir: ejecuta el programa con MaquinaTAC (el motor del código
+    intermedio) en vez del intérprete de árbol de producción, e imprime la
+    salida con el mismo formato que la ejecución normal."""
+    ast, tabla, em = _compilar_estatico(ruta)
+    if ast is None:
+        return 1
+
+    generado = _generar_ir_o_avisar(ast)
+    if generado is None:
+        return 1
+    subrutinas, globales = generado
+
+    if optimizado:
+        globales, _ = ir_mod.optimizar(globales)
+        subrutinas, _ = ir_mod.optimizar_programa(subrutinas)
+
+    maquina = ir_mod.MaquinaTAC(subrutinas, globales)
+    try:
+        salida = maquina.ejecutar(entrada_usuario)
+    except Exception as e:
+        print(f"Error de ejecución (MaquinaTAC): {e}")
+        return 1
+
+    if salida:
+        sys.stdout.write(''.join(salida))
+    return 0
+
+
 def main():
     """Punto de entrada de la CLI."""
     if len(sys.argv) < 2:
@@ -309,6 +478,12 @@ def main():
         print("  --tokens      Mostrar solo los tokens (análisis léxico)")
         print("  --ast         Mostrar el AST (análisis sintáctico)")
         print("  --tabla       Mostrar la tabla de símbolos")
+        print("  --ir          Mostrar el código intermedio (TAC) sin optimizar")
+        print("  --ir-opt      Mostrar el código intermedio optimizado + resumen de cambios")
+        print("  --run-ir      Ejecutar con la MaquinaTAC (backend de código intermedio)")
+        print("  --run-ir-opt  Igual, pero con el TAC optimizado (incluye TCO, Etapa 12.8)")
+        print("  --target      Mostrar el código objetivo (ISA de juguete, Etapa 12.11)")
+        print("  --target-reg  Igual, con asignación de registros (linear-scan, Etapa 12.12)")
         print("  --help        Mostrar esta ayuda")
         return 1
 
@@ -324,6 +499,26 @@ def main():
         print("  --tokens      Mostrar solo los tokens")
         print("  --ast         Mostrar el AST")
         print("  --tabla       Mostrar la tabla de símbolos")
+        print("  --ir          Mostrar el código de tres direcciones (TAC) sin optimizar")
+        print("  --ir-opt      Mostrar el TAC optimizado (plegado de constantes, código")
+        print("                muerto, peephole) y un resumen de qué cambió cada pasada")
+        print("  --run-ir      Ejecutar con la MaquinaTAC en vez del intérprete de árbol")
+        print("                (subconjunto estructurado: sin clases/POO ni matrices)")
+        print("  --run-ir-opt  Igual que --run-ir, pero sobre el TAC optimizado -- incluye")
+        print("                la eliminación de recursión de cola (Etapa 12.8): una función")
+        print("                escrita con acumulador y llamada de cola directa corre con")
+        print("                profundidad de pila CONSTANTE, a diferencia de --run-ir (sin")
+        print("                optimizar) y del intérprete de árbol (interpreter.py NUNCA")
+        print("                aplica TCO), que siguen limitados por la recursión real.")
+        print("  --target      Mostrar el código objetivo: traduce el TAC optimizado a un")
+        print("                ISA de juguete de pila de operandos (PUSH/LOAD/STORE/ADD/...,")
+        print("                ver ir.py sección Etapa 12.11) -- cierra el pipeline fuente ->")
+        print("                AST -> TAC -> TAC optimizado -> código objetivo. Mismo alcance")
+        print("                que --run-ir, MENOS arreglos y try/catch.")
+        print("  --target-reg  Igual que --target, pero antes corre liveness analysis +")
+        print("                asignación de registros (linear-scan, Etapa 12.12, 4 registros)")
+        print("                sobre el TAC -- muestra qué variable/temporal quedó en qué")
+        print("                registro ('R0'..'R3') o en memoria por spill, por subrutina.")
         print("  --help        Mostrar esta ayuda")
         print("")
         print("Para entrada interactiva, pasar valores después del archivo:")
@@ -337,6 +532,12 @@ def main():
     solo_tokens = '--tokens' in flags
     solo_ast = '--ast' in flags
     solo_tabla = '--tabla' in flags
+    solo_ir = '--ir' in flags
+    solo_ir_opt = '--ir-opt' in flags
+    correr_ir = '--run-ir' in flags
+    correr_ir_opt = '--run-ir-opt' in flags
+    solo_objetivo = '--target' in flags
+    solo_objetivo_reg = '--target-reg' in flags
 
     args_sin_flags = [a for a in sys.argv[1:] if not a.startswith('--')]
     # El valor de --maxpasos no es un archivo ni entrada
@@ -366,6 +567,24 @@ def main():
                 except ValueError:
                     pass
         return trazar_archivo(ruta, max_pasos)
+
+    if solo_ir:
+        return mostrar_ir(ruta, optimizar=False)
+
+    if solo_ir_opt:
+        return mostrar_ir(ruta, optimizar=True)
+
+    if solo_objetivo:
+        return mostrar_objetivo(ruta)
+
+    if solo_objetivo_reg:
+        return mostrar_objetivo(ruta, k_registros=4)
+
+    if correr_ir_opt:
+        return ejecutar_con_ir(ruta, entrada if entrada else None, optimizado=True)
+
+    if correr_ir:
+        return ejecutar_con_ir(ruta, entrada if entrada else None)
 
     codigo, fallo = leer_fuente(ruta)
     if fallo is not None:

@@ -1,0 +1,55 @@
+// patron_strategy.inv - Patron de diseno: Strategy (Etapa 11). Una familia
+// de algoritmos intercambiables (formas de calcular un descuento) se
+// encapsula cada una en su propia clase, todas con la misma interfaz
+// abstracta -- el "contexto" (CarritoCompras) delega el calculo sin saber
+// cual estrategia concreta esta usando, y puede cambiarla en tiempo de
+// ejecucion.
+
+abstracta clase EstrategiaDescuento {
+    publico abstracto real calcular(real total);
+}
+
+clase SinDescuento hereda EstrategiaDescuento {
+    publico real calcular(real total) { return total; }
+}
+
+clase DescuentoPorcentual hereda EstrategiaDescuento {
+    privado real porcentaje;
+    DescuentoPorcentual(real p) { this.porcentaje = p; }
+    publico real calcular(real total) { return total - (total * this.porcentaje / 100.0); }
+}
+
+clase DescuentoFijo hereda EstrategiaDescuento {
+    privado real monto;
+    DescuentoFijo(real m) { this.monto = m; }
+    publico real calcular(real total) {
+        real resultado = total - this.monto;
+        si (resultado < 0.0) { return 0.0; }
+        return resultado;
+    }
+}
+
+clase CarritoCompras {
+    publico real total;
+    publico EstrategiaDescuento estrategia;
+
+    CarritoCompras(real t) { this.total = t; this.estrategia = nuevo SinDescuento(); }
+
+    publico void fijarEstrategia(EstrategiaDescuento e) { this.estrategia = e; }
+
+    publico real totalFinal() {
+        EstrategiaDescuento e = this.estrategia;
+        return e.calcular(this.total);
+    }
+}
+
+void main() {
+    CarritoCompras carrito = nuevo CarritoCompras(100.0);
+    imprimir("sin descuento: "); imprimir(real_a_texto(carrito.totalFinal())); imprimir("\n");
+
+    carrito.fijarEstrategia(nuevo DescuentoPorcentual(20.0));
+    imprimir("20% off: "); imprimir(real_a_texto(carrito.totalFinal())); imprimir("\n");
+
+    carrito.fijarEstrategia(nuevo DescuentoFijo(15.0));
+    imprimir("$15 off: "); imprimir(real_a_texto(carrito.totalFinal())); imprimir("\n");
+}

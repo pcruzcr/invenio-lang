@@ -1,0 +1,76 @@
+// tipos_suma.inv - Etapa 12.9/12.10: tipos suma (enum con carga) + pattern
+// matching (emparejar/match).
+//
+// Contraste deliberado con pruebas/poo_completo.inv, que resuelve el MISMO
+// problema (calcular el area de una figura geometrica) con herencia y
+// despacho virtual: una clase abstracta Figura con area() abstracto, y una
+// subclase por cada figura concreta que la sobrescribe. Aqui, en cambio,
+// las variantes NO son subclases con comportamiento propio -- son datos
+// puros (radio, base y altura, o nada) y el comportamiento entero vive
+// FUERA, en una funcion que discrimina con emparejar/match.
+//
+// Cuando usar cada uno (la pregunta de diseno real que obliga a responder
+// cualquier lenguaje moderno con ambos mecanismos, p.ej. Kotlin
+// `sealed class` o Swift `enum`):
+//   - Herencia + polimorfismo (poo_completo.inv): el conjunto de figuras
+//     puede CRECER despues (un modulo externo agrega una figura nueva sin
+//     tocar el codigo existente), pero el conjunto de OPERACIONES sobre
+//     ellas esta fijo de antemano (area(), describir(), ...) -- agregar
+//     una operacion nueva significa tocar TODAS las clases.
+//   - Tipos suma + pattern matching (este archivo): el conjunto de
+//     variantes esta CERRADO y se conoce de antemano (aqui: Circulo,
+//     Rectangulo, Punto, nada mas), pero el conjunto de OPERACIONES puede
+//     crecer libremente (area, perimetro, describir, ...) -- cada funcion
+//     nueva es un emparejar mas, sin tocar las variantes. Como bono: el
+//     compilador exige EXHAUSTIVIDAD (IL-TIPO-022) -- si se agrega una
+//     variante nueva (p.ej. Triangulo), cada emparejar sin comodin que la
+//     olvide deja de compilar, en vez de fallar en silencio en produccion.
+//
+// Debajo del azucar: enum Forma con al menos una variante con carga se
+// desazucara a EXACTAMENTE el mismo mecanismo de clases/herencia/
+// despacho virtual del primer enfoque (ver semantic.py::
+// _desazucarar_tipos_suma) -- Circulo y Rectangulo terminan siendo clases
+// reales que heredan de una Forma abstracta, "nuevo Circulo(3)" es una
+// instanciacion real. La diferencia es puramente de ESTILO/organizacion
+// del codigo fuente, no de mecanismo de ejecucion.
+
+enum Forma {
+    Circulo(real radio),
+    Rectangulo(real base, real altura),
+    Punto
+}
+
+real area(Forma f) {
+    real resultado = 0.0;
+    emparejar (f) {
+        caso Circulo(r): resultado = 3.14 * r * r;
+        caso Rectangulo(b, h): resultado = b * h;
+        caso Punto: resultado = 0.0;
+    }
+    return resultado;
+}
+
+texto describir(Forma f) {
+    texto resultado = "";
+    emparejar (f) {
+        caso Circulo(r): resultado = "Circulo de radio " + real_a_texto(r);
+        caso Rectangulo(b, h): resultado = "Rectangulo " + real_a_texto(b) + "x" + real_a_texto(h);
+        caso Punto: resultado = "Punto (sin area)";
+    }
+    return resultado;
+}
+
+void main() {
+    const entero N = 3;
+    Forma formas[N];
+    formas[0] = nuevo Circulo(2.0);
+    formas[1] = nuevo Rectangulo(3.0, 4.0);
+    formas[2] = nuevo Punto();
+
+    para (entero i = 0; i < N; i++) {
+        imprimir(describir(formas[i]));
+        imprimir(": area = ");
+        imprimir(area(formas[i]));
+        imprimir("\n");
+    }
+}

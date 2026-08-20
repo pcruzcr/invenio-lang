@@ -1,0 +1,22 @@
+// pila_arreglo.inv - Estructura de Datos: Pila (stack) con arreglo, sin POO
+const int CAP = 5;
+
+void main() {
+    int [CAP] pila;
+    int tope = -1;
+
+    para (int i = 1; i <= 4; i++) {
+        tope++;
+        pila[tope] = i * 10;
+        imprimir("push "); imprimir(pila[tope]); imprimir("\n");
+    }
+
+    imprimir("tope: "); imprimir(pila[tope]); imprimir("\n");
+
+    mientras (tope >= 0) {
+        imprimir("pop "); imprimir(pila[tope]); imprimir("\n");
+        tope--;
+    }
+
+    imprimir("pila vacia: "); imprimir(tope < 0); imprimir("\n");
+}

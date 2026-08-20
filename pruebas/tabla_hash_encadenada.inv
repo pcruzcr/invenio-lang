@@ -1,0 +1,52 @@
+// tabla_hash_encadenada.inv - Estructura de Datos: tabla hash con
+// encadenamiento (POO) -- un NodoHash enlazado por cubeta, alternativa al
+// sondeo lineal de tabla_hash_arreglo.inv (Etapa 8). Igual que en
+// grafo_lista_adyacencia.inv, el arreglo de cubetas es una variable local
+// (arreglo de objetos), no un atributo de clase.
+const int CAP = 7;
+
+clase NodoHash {
+    publico entero clave;
+    publico entero valor;
+    publico NodoHash siguiente;
+    NodoHash(entero c, entero v) { this.clave = c; this.valor = v; }
+}
+
+int funcionHash(int clave) {
+    return clave % CAP;
+}
+
+void main() {
+    NodoHash cubetas[CAP];
+    para (int i = 0; i < CAP; i++) { cubetas[i] = nulo; }
+
+    // 5, 12, 19 y 26 caen todas en la cubeta 5 (colision resuelta con
+    // encadenamiento, a diferencia del sondeo lineal de la version con
+    // arreglos).
+    int [4] claves = {5, 12, 19, 26};
+    int [4] valores = {100, 200, 300, 400};
+
+    para (int i = 0; i < 4; i++) {
+        int indice = funcionHash(claves[i]);
+        NodoHash n = nuevo NodoHash(claves[i], valores[i]);
+        n.siguiente = cubetas[indice];
+        cubetas[indice] = n;
+        imprimir("insertar "); imprimir(claves[i]); imprimir(" -> cubeta "); imprimir(indice); imprimir("\n");
+    }
+
+    para (int i = 0; i < 4; i++) {
+        int indice = funcionHash(claves[i]);
+        NodoHash n = cubetas[indice];
+        mientras (n != nulo && n.clave != claves[i]) { n = n.siguiente; }
+        si (n != nulo) {
+            imprimir("buscar "); imprimir(claves[i]); imprimir(" = "); imprimir(n.valor); imprimir("\n");
+        }
+    }
+
+    int indiceFalso = funcionHash(99);
+    NodoHash actual = cubetas[indiceFalso];
+    mientras (actual != nulo && actual.clave != 99) { actual = actual.siguiente; }
+    si (actual == nulo) {
+        imprimir("buscar 99: no encontrado\n");
+    }
+}

@@ -1,0 +1,54 @@
+// suma_cola.inv - Etapa 12.8: recursion de cola (TCO) en el backend IR
+//
+// Dos formas de sumar 1..n, misma idea, misma respuesta con este n
+// pequeno -- pero solo UNA de las dos se beneficia de la eliminacion de
+// recursion de cola que aplica ir.py (inveniolang/ir.py::
+// eliminar_recursion_cola) al construir el codigo intermedio optimizado.
+// El programa en si corre limpio en cualquier modo (interprete de arbol,
+// --run-ir, --run-ir-opt) -- la diferencia solo se vuelve visible con n
+// grande, ver el experimento sugerido al final de este comentario.
+//
+// sumaCola: la llamada recursiva ES la ultima instruccion (su resultado
+// SE RETORNA directamente, sin ningun computo despues de que regresa) --
+// una llamada de cola en el sentido estricto del termino.
+//
+// sumaNormal: la suma ("n +") ocurre DESPUES de que regresa la llamada
+// recursiva -- no es una llamada de cola, aunque se parezca a simple
+// vista.
+//
+// Experimento (subir n a, digamos, 1000 -- mas alla de MAX_RECURSION=500
+// en interpreter.py):
+//   python main.py --run-ir-opt suma_cola.inv
+//     -> con TCO, sumaCola sigue funcionando igual de bien (profundidad
+//        de pila CONSTANTE: el 'call' recursivo se convirtio en un
+//        'goto' de vuelta al inicio de la funcion, verlo con --ir-opt).
+//        sumaNormal, en cambio, SI falla (RecursionError dentro de
+//        MaquinaTAC) -- confirma que la mejora es especifica de la forma
+//        "de cola", no un cambio de comportamiento general.
+//   python main.py suma_cola.inv   /   python main.py --run-ir suma_cola.inv
+//     -> con n grande, AMBAS formas fallan igual (IL-EJE-040 en el
+//        interprete de arbol; RecursionError en el TAC sin optimizar):
+//        ninguno de los dos aplica TCO.
+
+int sumaCola(int n, int acc) {
+    if (n == 0) {
+        return acc;
+    }
+    return sumaCola(n - 1, acc + n);
+}
+
+int sumaNormal(int n) {
+    if (n == 0) {
+        return 0;
+    }
+    return n + sumaNormal(n - 1);
+}
+
+void main() {
+    imprimir("suma 1..20 (con acumulador, cola): ");
+    imprimir(sumaCola(20, 0));
+    imprimir("\n");
+    imprimir("suma 1..20 (sin acumulador, no es cola): ");
+    imprimir(sumaNormal(20));
+    imprimir("\n");
+}

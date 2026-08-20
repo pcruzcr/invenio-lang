@@ -1,0 +1,35 @@
+// mochila.inv - Algoritmos: programacion dinamica, mochila 0/1 (0/1
+// knapsack, Etapa 11). tabla[i][w] = mejor valor posible usando los
+// primeros i objetos con capacidad w. Para cada objeto, la mejor decision
+// es "no lo incluyo" (tabla[i-1][w]) o, si entra, "lo incluyo"
+// (valor[i] + tabla[i-1][w-peso[i]]) -- se toma el maximo.
+const int N = 4;
+const int CAPACIDAD = 10;
+const int FILAS = 5;   // N + 1
+const int COLS = 11;   // CAPACIDAD + 1
+
+void main() {
+    int [N] peso = {2, 3, 4, 5};
+    int [N] valor = {3, 4, 5, 6};
+
+    int [FILAS][COLS] tabla;
+    para (int w = 0; w <= CAPACIDAD; w++) { tabla[0][w] = 0; }
+
+    para (int i = 1; i <= N; i++) {
+        para (int w = 0; w <= CAPACIDAD; w++) {
+            int pesoItem = peso[i - 1];
+            int valorItem = valor[i - 1];
+            si (pesoItem > w) {
+                tabla[i][w] = tabla[i - 1][w];
+            } sino {
+                int sinIncluir = tabla[i - 1][w];
+                int conIncluir = valorItem + tabla[i - 1][w - pesoItem];
+                si (conIncluir > sinIncluir) { tabla[i][w] = conIncluir; }
+                sino { tabla[i][w] = sinIncluir; }
+            }
+        }
+    }
+
+    imprimir("valor maximo con capacidad "); imprimir(CAPACIDAD);
+    imprimir(": "); imprimir(tabla[N][CAPACIDAD]); imprimir("\n");
+}

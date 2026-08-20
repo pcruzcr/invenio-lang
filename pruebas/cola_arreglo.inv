@@ -1,0 +1,25 @@
+// cola_arreglo.inv - Estructura de Datos: Cola (queue) con arreglo circular, sin POO
+const int CAP = 5;
+
+void main() {
+    int [CAP] cola;
+    int frente = 0;
+    int final = 0;
+    int cantidad = 0;
+
+    para (int i = 1; i <= 4; i++) {
+        int valor = i * 10;
+        cola[final] = valor;
+        final = (final + 1) % CAP;
+        cantidad++;
+        imprimir("encolar "); imprimir(valor); imprimir("\n");
+    }
+
+    mientras (cantidad > 0) {
+        imprimir("desencolar "); imprimir(cola[frente]); imprimir("\n");
+        frente = (frente + 1) % CAP;
+        cantidad--;
+    }
+
+    imprimir("cola vacia: "); imprimir(cantidad == 0); imprimir("\n");
+}

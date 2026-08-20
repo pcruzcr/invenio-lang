@@ -1,0 +1,36 @@
+// bit_a_bit.inv - Operadores bit a bit (Etapa 11): & | ^ ~ << >>. Ejemplo
+// clasico: un conjunto de "banderas" (permisos) empaquetadas en los bits
+// de un solo entero, en vez de una variable bool por permiso.
+const int LEER = 1;      // 001
+const int ESCRIBIR = 2;  // 010
+const int EJECUTAR = 4;  // 100
+
+bool tienePermiso(int permisos, int bandera) {
+    return (permisos & bandera) != 0;
+}
+
+int agregarPermiso(int permisos, int bandera) {
+    return permisos | bandera;
+}
+
+int quitarPermiso(int permisos, int bandera) {
+    return permisos & ~bandera;
+}
+
+void main() {
+    int permisos = LEER | ESCRIBIR;  // 011
+    imprimir("puede leer: "); imprimir(tienePermiso(permisos, LEER)); imprimir("\n");
+    imprimir("puede ejecutar: "); imprimir(tienePermiso(permisos, EJECUTAR)); imprimir("\n");
+
+    permisos = agregarPermiso(permisos, EJECUTAR);
+    imprimir("tras agregar ejecutar: "); imprimir(tienePermiso(permisos, EJECUTAR)); imprimir("\n");
+
+    permisos = quitarPermiso(permisos, ESCRIBIR);
+    imprimir("tras quitar escribir: "); imprimir(tienePermiso(permisos, ESCRIBIR)); imprimir("\n");
+    imprimir("permisos (entero): "); imprimir(permisos); imprimir("\n");
+
+    // Multiplicar/dividir por potencias de 2 con desplazamiento.
+    int n = 5;
+    imprimir("n*8 (n<<3): "); imprimir(n << 3); imprimir("\n");
+    imprimir("n/2 (n>>1): "); imprimir(n >> 1); imprimir("\n");
+}

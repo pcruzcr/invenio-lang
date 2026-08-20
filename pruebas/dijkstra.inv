@@ -1,0 +1,59 @@
+// dijkstra.inv - Algoritmos: camino mas corto en un grafo con pesos
+// (Etapa 11), version O(V^2) con matriz de adyacencia (sin cola de
+// prioridad -- en cada paso se busca a mano el vertice no visitado con
+// menor distancia, mismo nivel que grafo_matriz.inv de la Etapa 8).
+const int N = 6;
+const int INFINITO = 999999;
+
+void dijkstra(int [][] pesos, int origen, int [] dist) {
+    bool [N] visitado;
+    para (int i = 0; i < N; i++) {
+        dist[i] = INFINITO;
+        visitado[i] = false;
+    }
+    dist[origen] = 0;
+
+    para (int iter = 0; iter < N; iter++) {
+        // Elegir el vertice no visitado con menor distancia conocida.
+        int u = -1;
+        int mejor = INFINITO;
+        para (int v = 0; v < N; v++) {
+            si (!visitado[v] && dist[v] < mejor) {
+                mejor = dist[v];
+                u = v;
+            }
+        }
+        si (u == -1) { return; }  // el resto es inalcanzable
+        visitado[u] = true;
+
+        para (int v = 0; v < N; v++) {
+            si (pesos[u][v] < INFINITO && !visitado[v]) {
+                int nuevaDist = dist[u] + pesos[u][v];
+                si (nuevaDist < dist[v]) { dist[v] = nuevaDist; }
+            }
+        }
+    }
+}
+
+void main() {
+    int [N][N] pesos;
+    para (int i = 0; i < N; i++) {
+        para (int j = 0; j < N; j++) { pesos[i][j] = INFINITO; }
+    }
+    // Grafo no dirigido con pesos (0-1:4, 0-2:1, 2-1:2, 1-3:5, 2-3:8, 3-4:3, 4-5:2)
+    pesos[0][1] = 4; pesos[1][0] = 4;
+    pesos[0][2] = 1; pesos[2][0] = 1;
+    pesos[2][1] = 2; pesos[1][2] = 2;
+    pesos[1][3] = 5; pesos[3][1] = 5;
+    pesos[2][3] = 8; pesos[3][2] = 8;
+    pesos[3][4] = 3; pesos[4][3] = 3;
+    pesos[4][5] = 2; pesos[5][4] = 2;
+
+    int [N] dist;
+    dijkstra(pesos, 0, dist);
+
+    imprimir("Distancias desde 0:\n");
+    para (int v = 0; v < N; v++) {
+        imprimir("  a "); imprimir(v); imprimir(": "); imprimir(dist[v]); imprimir("\n");
+    }
+}

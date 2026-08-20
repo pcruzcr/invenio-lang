@@ -1,0 +1,37 @@
+// patron_singleton.inv - Patron de diseno: Singleton (Etapa 11). Garantiza
+// una unica instancia de la clase accesible globalmente, usando un
+// constructor privado (Etapa 11) + un atributo y metodo estaticos
+// (Etapa 7) que crean la instancia la primera vez que se pide.
+
+clase ConfiguracionApp {
+    publico estatico ConfiguracionApp instancia;
+    publico texto nombreApp;
+    publico entero contadorAccesos;
+
+    // Privado: nadie fuera de esta clase puede hacer "nuevo
+    // ConfiguracionApp()" -- la unica forma de obtener una instancia es
+    // obtenerInstancia().
+    privado constructor ConfiguracionApp() {
+        this.nombreApp = "InvenioLang IDE";
+        this.contadorAccesos = 0;
+    }
+
+    publico estatico ConfiguracionApp obtenerInstancia() {
+        si (ConfiguracionApp.instancia == nulo) {
+            ConfiguracionApp.instancia = nuevo ConfiguracionApp();
+        }
+        ConfiguracionApp cfg = ConfiguracionApp.instancia;
+        cfg.contadorAccesos = cfg.contadorAccesos + 1;
+        return ConfiguracionApp.instancia;
+    }
+}
+
+void main() {
+    ConfiguracionApp cfg1 = ConfiguracionApp.obtenerInstancia();
+    ConfiguracionApp cfg2 = ConfiguracionApp.obtenerInstancia();
+    ConfiguracionApp cfg3 = ConfiguracionApp.obtenerInstancia();
+
+    imprimir("nombre: "); imprimir(cfg1.nombreApp); imprimir("\n");
+    imprimir("misma instancia: "); imprimir(cfg1 == cfg2); imprimir("\n");
+    imprimir("accesos: "); imprimir(entero_a_texto(cfg3.contadorAccesos)); imprimir("\n");
+}

@@ -1,0 +1,28 @@
+// ordenamiento_insercion.inv - Algoritmos: ordenamiento por insercion (Etapa 8)
+void imprimirArr(int [] arr, int tam) {
+    imprimir("[ ");
+    para (int i = 0; i < tam; i++) {
+        imprimir(arr[i]);
+        si (i < tam - 1) { imprimir(", "); }
+    }
+    imprimir(" ]\n");
+}
+
+void ordenarInsercion(int [] arr, int n) {
+    para (int i = 1; i < n; i++) {
+        int clave = arr[i];
+        int j = i - 1;
+        mientras (j >= 0 && arr[j] > clave) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = clave;
+    }
+}
+
+void main() {
+    int [7] datos = {64, 25, 12, 22, 11, 90, 38};
+    imprimir("Original:  "); imprimirArr(datos, 7);
+    ordenarInsercion(datos, 7);
+    imprimir("Ordenado:  "); imprimirArr(datos, 7);
+}

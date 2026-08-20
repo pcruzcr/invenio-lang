@@ -1,0 +1,52 @@
+// deque.inv - Estructura de Datos: cola de doble extremo (deque, Etapa
+// 11), version con arreglo circular de tamano fijo -- a diferencia de una
+// pila/cola normal (Etapa 3), permite insertar y quitar tanto por el
+// frente como por el final. "Circular": cuando frente/final llegan al
+// borde del arreglo, dan la vuelta con modulo, para no desperdiciar
+// espacio al remover del frente repetidamente.
+const int CAP = 6;
+
+int [CAP] datos;
+int frente = 0;
+int cantidad = 0;
+
+void insertarFrente(int v) {
+    frente = (frente - 1 + CAP) % CAP;
+    datos[frente] = v;
+    cantidad = cantidad + 1;
+}
+
+void insertarFinal(int v) {
+    int pos = (frente + cantidad) % CAP;
+    datos[pos] = v;
+    cantidad = cantidad + 1;
+}
+
+int quitarFrente() {
+    int v = datos[frente];
+    frente = (frente + 1) % CAP;
+    cantidad = cantidad - 1;
+    return v;
+}
+
+int quitarFinal() {
+    int pos = (frente + cantidad - 1 + CAP) % CAP;
+    cantidad = cantidad - 1;
+    return datos[pos];
+}
+
+void main() {
+    insertarFinal(2);
+    insertarFinal(3);
+    insertarFrente(1);
+    insertarFinal(4);
+    // deque: 1 2 3 4
+
+    imprimir("quitar frente: "); imprimir(quitarFrente()); imprimir("\n");   // 1
+    imprimir("quitar final: "); imprimir(quitarFinal()); imprimir("\n");    // 4
+    insertarFrente(0);
+    imprimir("quitar frente: "); imprimir(quitarFrente()); imprimir("\n");   // 0
+    imprimir("quitar frente: "); imprimir(quitarFrente()); imprimir("\n");   // 2
+    imprimir("quitar frente: "); imprimir(quitarFrente()); imprimir("\n");   // 3
+    imprimir("cantidad restante: "); imprimir(cantidad); imprimir("\n");    // 0
+}

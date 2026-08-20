@@ -1,0 +1,34 @@
+// permutaciones.inv - Algoritmos: backtracking, todas las permutaciones de
+// un arreglo (Etapa 11). En cada nivel se intercambia el elemento actual
+// con cada uno de los restantes, se recurre, y se deshace el intercambio
+// (el paso de "retroceder" que le da nombre a la tecnica).
+const int N = 4;
+
+void intercambiar(int [] arr, int i, int j) {
+    int t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+}
+
+void imprimirArr(int [] arr, int tam) {
+    para (int i = 0; i < tam; i++) { imprimir(arr[i]); imprimir(" "); }
+    imprimir("\n");
+}
+
+int permutar(int [] arr, int inicio) {
+    si (inicio == N) {
+        imprimirArr(arr, N);
+        return 1;
+    }
+    int total = 0;
+    para (int i = inicio; i < N; i++) {
+        intercambiar(arr, inicio, i);
+        total = total + permutar(arr, inicio + 1);
+        intercambiar(arr, inicio, i);  // deshacer (backtrack)
+    }
+    return total;
+}
+
+void main() {
+    int [N] arr = {1, 2, 3, 4};
+    int total = permutar(arr, 0);
+    imprimir("total de permutaciones: "); imprimir(total); imprimir("\n");
+}

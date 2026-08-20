@@ -1,0 +1,25 @@
+// fibonacci_memo.inv - Algoritmos: programacion dinamica, memoizacion
+// (Etapa 11). fibonacci(n) recursivo puro es O(2^n) -- recalcula el mismo
+// subproblema muchas veces. Guardando cada resultado en memo[] la primera
+// vez que se calcula, cada valor se calcula una sola vez: O(n).
+const int MAXN = 40;
+
+int [MAXN] memo;
+bool [MAXN] calculado;
+
+int fib(int n) {
+    si (n <= 1) { return n; }
+    si (calculado[n]) { return memo[n]; }
+    int resultado = fib(n - 1) + fib(n - 2);
+    memo[n] = resultado;
+    calculado[n] = true;
+    return resultado;
+}
+
+void main() {
+    para (int i = 0; i < MAXN; i++) { calculado[i] = false; }
+
+    imprimir("fib(10) = "); imprimir(fib(10)); imprimir("\n");
+    imprimir("fib(20) = "); imprimir(fib(20)); imprimir("\n");
+    imprimir("fib(30) = "); imprimir(fib(30)); imprimir("\n");
+}

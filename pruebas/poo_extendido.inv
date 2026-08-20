@@ -1,0 +1,53 @@
+// poo_extendido.inv - Programa de referencia de la Etapa 10 (cierre de
+// brechas de POO): sobrecarga de constructores y imprimir(objeto)
+// personalizable via aTexto()/toString(). Ver docs/InvenioLang_2.0_POO.md
+// (seccion Etapa 10).
+
+clase Punto {
+    publico entero x;
+    publico entero y;
+
+    // Tres constructores con distinta aridad (Etapa 10: sobrecarga de
+    // constructores, mismo mecanismo que la sobrecarga de metodos).
+    Punto() { this.x = 0; this.y = 0; }
+    Punto(entero v) { this.x = v; this.y = v; }
+    Punto(entero a, entero b) { this.x = a; this.y = b; }
+
+    // aTexto() personaliza imprimir(objeto): en vez del formato
+    // automatico "Punto(x=.., y=..)", se usa esta representacion.
+    publico texto aTexto() {
+        return "(" + entero_a_texto(this.x) + ", " + entero_a_texto(this.y) + ")";
+    }
+}
+
+clase Figura {
+    publico texto aTexto() { return "Figura generica"; }
+}
+
+clase Circulo hereda Figura {
+    privado real radio;
+
+    // padre(...) resuelve la sobrecarga correcta del padre por tipo de
+    // argumento (Punto no tiene padre aqui, pero Circulo hereda de
+    // Figura -- este constructor no llama a padre(...) explicitamente,
+    // asi que se usa el constructor implicito de 0 argumentos de Figura).
+    Circulo(real r) { this.radio = r; }
+
+    // Sobrescribe aTexto() -- despacho virtual: imprimir(f) con f
+    // declarada como Figura pero apuntando a un Circulo usa esta version.
+    publico texto aTexto() {
+        return "Circulo(radio=" + real_a_texto(this.radio) + ")";
+    }
+}
+
+void main() {
+    Punto origen = nuevo Punto();
+    Punto diagonal = nuevo Punto(5);
+    Punto libre = nuevo Punto(2, 7);
+    imprimir(origen); imprimir(" ");
+    imprimir(diagonal); imprimir(" ");
+    imprimir(libre); imprimir("\n");
+
+    Figura f = nuevo Circulo(3.0);
+    imprimir(f); imprimir("\n");
+}

@@ -1,0 +1,42 @@
+// quicksort.inv - Algoritmos: quicksort recursivo, particion de Lomuto
+// (Etapa 8)
+void imprimirArr(int [] arr, int tam) {
+    imprimir("[ ");
+    para (int i = 0; i < tam; i++) {
+        imprimir(arr[i]);
+        si (i < tam - 1) { imprimir(", "); }
+    }
+    imprimir(" ]\n");
+}
+
+void intercambiar(int [] arr, int i, int j) {
+    int t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+}
+
+int particionar(int [] arr, int bajo, int alto) {
+    int pivote = arr[alto];
+    int i = bajo - 1;
+    para (int j = bajo; j < alto; j++) {
+        si (arr[j] < pivote) {
+            i++;
+            intercambiar(arr, i, j);
+        }
+    }
+    intercambiar(arr, i + 1, alto);
+    return i + 1;
+}
+
+void quicksort(int [] arr, int bajo, int alto) {
+    si (bajo < alto) {
+        int p = particionar(arr, bajo, alto);
+        quicksort(arr, bajo, p - 1);
+        quicksort(arr, p + 1, alto);
+    }
+}
+
+void main() {
+    int [7] datos = {64, 25, 12, 22, 11, 90, 38};
+    imprimir("Original:  "); imprimirArr(datos, 7);
+    quicksort(datos, 0, 6);
+    imprimir("Ordenado:  "); imprimirArr(datos, 7);
+}

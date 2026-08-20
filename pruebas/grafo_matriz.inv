@@ -1,0 +1,68 @@
+// grafo_matriz.inv - Estructura de Datos: Grafo con matriz de adyacencia,
+// BFS y DFS con pila/cola basada en arreglo, sin POO (Etapa 8).
+const int N = 6;
+
+void agregarArista(int [][] adj, int a, int b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;
+}
+
+void bfs(int [][] adj, int inicio) {
+    bool [N] visitado;
+    int [N] cola;
+    int frente = 0;
+    int final = 0;
+
+    para (int i = 0; i < N; i++) { visitado[i] = false; }
+
+    cola[final] = inicio; final++;
+    visitado[inicio] = true;
+
+    imprimir("BFS desde "); imprimir(inicio); imprimir(": ");
+    mientras (frente < final) {
+        int actual = cola[frente]; frente++;
+        imprimir(actual); imprimir(" ");
+        para (int v = 0; v < N; v++) {
+            si (adj[actual][v] == 1 && !visitado[v]) {
+                visitado[v] = true;
+                cola[final] = v; final++;
+            }
+        }
+    }
+    imprimir("\n");
+}
+
+void dfsRec(int [][] adj, int actual, bool [] visitado) {
+    visitado[actual] = true;
+    imprimir(actual); imprimir(" ");
+    para (int v = 0; v < N; v++) {
+        si (adj[actual][v] == 1 && !visitado[v]) {
+            dfsRec(adj, v, visitado);
+        }
+    }
+}
+
+void dfs(int [][] adj, int inicio) {
+    bool [N] visitado;
+    para (int i = 0; i < N; i++) { visitado[i] = false; }
+    imprimir("DFS desde "); imprimir(inicio); imprimir(": ");
+    dfsRec(adj, inicio, visitado);
+    imprimir("\n");
+}
+
+void main() {
+    int [N][N] adj;
+    para (int i = 0; i < N; i++) {
+        para (int j = 0; j < N; j++) { adj[i][j] = 0; }
+    }
+
+    agregarArista(adj, 0, 1);
+    agregarArista(adj, 0, 2);
+    agregarArista(adj, 1, 3);
+    agregarArista(adj, 2, 3);
+    agregarArista(adj, 3, 4);
+    agregarArista(adj, 4, 5);
+
+    bfs(adj, 0);
+    dfs(adj, 0);
+}

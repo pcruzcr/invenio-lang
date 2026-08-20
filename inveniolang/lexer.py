@@ -23,6 +23,12 @@ class Lexer:
         # Iteración
         'while': 'KW_WHILE', 'mientras': 'KW_WHILE',
         'for': 'KW_FOR', 'para': 'KW_FOR',
+        # foreach (Etapa 12.1): azúcar sobre un recorrido de arreglo
+        'foreach': 'KW_FOREACH', 'para_cada': 'KW_FOREACH',
+        # Funciones de primera clase (Etapa 12.5/12.6) -- activa las
+        # palabras 'function'/'funcion', reservadas desde la v1.0
+        # (Apéndice A) pero sin uso hasta ahora.
+        'function': 'KW_FUNCION', 'funcion': 'KW_FUNCION',
         # Función. La forma española se admite conforme a §2.5.2 y al
         # Apéndice E.3, que la usan; §16.11, el Apéndice A y §18.3.1 la daban
         # por inexistente en la 1.0 (véase docs/ERRATAS.md).
@@ -46,6 +52,38 @@ class Lexer:
         'continue': 'KW_CONTINUE', 'continuar': 'KW_CONTINUE',
         # Función main
         'main': 'KW_MAIN',
+        # POO (InvenioLang 2.0, docs/InvenioLang_2.0_POO.md)
+        'class': 'KW_CLASS', 'clase': 'KW_CLASS',
+        'extends': 'KW_EXTENDS', 'hereda': 'KW_EXTENDS',
+        # Interfaces (Etapa 12.3): 'implementa' admite VARIAS a la vez,
+        # a diferencia de 'hereda' (siempre un solo padre).
+        'implements': 'KW_IMPLEMENTS', 'implementa': 'KW_IMPLEMENTS',
+        'interface': 'KW_INTERFACE', 'interfaz': 'KW_INTERFACE',
+        'new': 'KW_NEW', 'nuevo': 'KW_NEW',
+        'this': 'KW_THIS', 'este': 'KW_THIS',
+        'super': 'KW_SUPER', 'padre': 'KW_SUPER',
+        'public': 'KW_PUBLIC', 'publico': 'KW_PUBLIC',
+        'private': 'KW_PRIVATE', 'privado': 'KW_PRIVATE',
+        'null': 'KW_NULL', 'nulo': 'KW_NULL',
+        # Estructurado completo (Etapa 6)
+        'switch': 'KW_SWITCH', 'segun': 'KW_SWITCH',
+        'case': 'KW_CASE', 'caso': 'KW_CASE',
+        'default': 'KW_DEFAULT', 'por_defecto': 'KW_DEFAULT',
+        # Pattern matching (Etapa 12.9/12.10): reutiliza KW_CASE/KW_DEFAULT
+        # de switch -- mismo vocabulario, construccion nueva y separada.
+        'match': 'KW_MATCH', 'emparejar': 'KW_MATCH',
+        'do': 'KW_DO', 'hacer': 'KW_DO',
+        'try': 'KW_TRY', 'intentar': 'KW_TRY',
+        'catch': 'KW_CATCH', 'capturar': 'KW_CATCH',
+        # POO completo (Etapa 7)
+        # Concordancia de genero en espanol: "clase abstracta" (femenino)
+        # pero "metodo abstracto" (masculino) -- ambas formas al mismo token.
+        'abstract': 'KW_ABSTRACT', 'abstracta': 'KW_ABSTRACT', 'abstracto': 'KW_ABSTRACT',
+        'static': 'KW_STATIC', 'estatico': 'KW_STATIC',
+        # Cierre de brechas de POO (Etapa 11): 'constructor' es la misma
+        # palabra en ambos idiomas -- una sola entrada, no un par.
+        'constructor': 'KW_CONSTRUCTOR',
+        'enum': 'KW_ENUM', 'enumeracion': 'KW_ENUM',
     }
 
     # Palabras reservadas sin producción propia en la gramática de la 1.0
@@ -53,7 +91,9 @@ class Lexer:
     # pero tampoco participan en ninguna regla sintáctica: al reconocerlas se
     # emite IL-LEX-006 y se entregan al parser como identificadores para no
     # provocar además una cascada de errores sintácticos.
-    reservadas_futuras = {'function', 'funcion', 'procedure', 'procedimiento'}
+    # 'function'/'funcion' se activan en la Etapa 12.5/12.6 (funciones de
+    # primera clase) -- se retiran de este conjunto y pasan a `keywords`.
+    reservadas_futuras = {'procedure', 'procedimiento'}
 
     # Lista de todos los tokens (nombres únicos)
     tokens = [
@@ -66,6 +106,9 @@ class Lexer:
         'OP_MENOR_IGUAL', 'OP_MAYOR_IGUAL',
         # Operadores lógicos
         'OP_AND', 'OP_OR', 'OP_NOT',
+        # Bit a bit (Etapa 11)
+        'OP_BITAND', 'OP_BITOR', 'OP_BITXOR', 'OP_BITNOT',
+        'OP_SHL', 'OP_SHR',
         # Operadores de asignación
         'OP_ASIG', 'OP_ASIG_SUMA', 'OP_ASIG_RESTA',
         'OP_ASIG_MULT', 'OP_ASIG_DIV', 'OP_ASIG_MOD',
@@ -75,7 +118,10 @@ class Lexer:
         'DEL_LLAVE_A', 'DEL_LLAVE_C',
         'DEL_PAREN_A', 'DEL_PAREN_C',
         'DEL_CORCHETE_A', 'DEL_CORCHETE_C',
-        'DEL_PUNTO_COMA', 'DEL_COMA',
+        'DEL_PUNTO_COMA', 'DEL_COMA', 'DEL_PUNTO',
+        'DEL_DOSPUNTOS', 'DEL_INTERROGACION',
+        # Seguridad nula (Etapa 12.2)
+        'OP_ACCESO_SEGURO', 'OP_COALESCENCIA',
     ] + list(set(keywords.values()))
 
     # ---- Reglas de expresión regular para tokens ----
@@ -88,6 +134,8 @@ class Lexer:
     t_DEL_CORCHETE_C = r'\]'
     t_DEL_PUNTO_COMA = r';'
     t_DEL_COMA = r','
+    t_DEL_DOSPUNTOS = r':'
+    t_DEL_INTERROGACION = r'\?'
 
     # Operadores de 2 caracteres (maximal munch: deben ir antes que los de 1)
     t_OP_ASIG_SUMA = r'\+='
@@ -103,6 +151,19 @@ class Lexer:
     t_OP_MAYOR_IGUAL = r'>='
     t_OP_AND = r'&&'
     t_OP_OR = r'\|\|'
+    # Desplazamiento de bits (Etapa 11) -- PLY ordena las reglas de cadena
+    # por longitud de patrón (mayor primero), así que '<<'/'>>' ya ganan
+    # automáticamente sobre '<'/'>' sin importar el orden de declaración
+    # aquí; se colocan junto a <=/>= solo por legibilidad.
+    t_OP_SHL = r'<<'
+    t_OP_SHR = r'>>'
+    # Seguridad nula (Etapa 12.2): '?.' y '??' -- PLY ordena por longitud de
+    # patrón, así que ganan automáticamente sobre '?' (ternario, 1 char) sin
+    # ambigüedad; InvenioLang nunca tiene una expresión que empiece con '.'
+    # bare (todo acceso a miembro exige receptor), así que "? ." nunca debe
+    # leerse como dos tokens separados de un ternario.
+    t_OP_ACCESO_SEGURO = r'\?\.'
+    t_OP_COALESCENCIA = r'\?\?'
 
     # Operadores de 1 carácter
     t_OP_SUMA = r'\+'
@@ -114,6 +175,12 @@ class Lexer:
     t_OP_MENOR = r'<'
     t_OP_MAYOR = r'>'
     t_OP_NOT = r'!'
+    # Bit a bit (Etapa 11): & | ^ ~ -- and/or/xor/not de bits, distintos de
+    # los logicos &&/||/!  que ya existen.
+    t_OP_BITAND = r'&'
+    t_OP_BITOR = r'\|'
+    t_OP_BITXOR = r'\^'
+    t_OP_BITNOT = r'~'
 
     # Caracteres ignorados (espacios en blanco, §2.3): espacio, tabulador
     # horizontal, retorno de carro y tabulador vertical (U+000B).
@@ -321,6 +388,29 @@ class Lexer:
         t.value = int(t.value)
         return t
 
+    def t_DEL_PUNTO(self, t):
+        r'\.'
+        # Debe ser función (no regla de string) para poder interceptar aquí
+        # el caso ".5" -- real mal formado, IL-LEX-009 -- antes de que se
+        # confunda con un punto suelto de acceso a miembro (POO, v2.0).
+        pos = t.lexer.lexpos
+        data = t.lexer.lexdata
+        if pos < len(data) and data[pos].isdigit():
+            col = self._calc_col(t.lexer, t.lexpos)
+            i = pos
+            while i < len(data) and data[i].isdigit():
+                i += 1
+            malformed = data[t.lexpos:i]
+            self.error_manager.error_lexico(
+                'IL-LEX-009',
+                f'Literal real mal formado (falta dígito antes del punto): '
+                f'"{malformed}"',
+                t.lexer.lineno, col
+            )
+            t.lexer.skip(len(malformed) - 1)
+            return
+        return t
+
     def t_IDENTIFICADOR(self, t):
         r'[A-Za-z_][A-Za-z0-9_]*'
         # Verificar si es palabra reservada (case-sensitive)
@@ -367,25 +457,6 @@ class Lexer:
         if char in '"\'':
             n = self._t_error_string(t)
             t.lexer.skip(n)
-        elif char == '.':
-            # IL-LEX-009: Real mal formado .5 (falta digito antes del punto)
-            data = t.lexer.lexdata
-            pos = t.lexer.lexpos  # posición del '.'
-            if pos + 1 < len(data) and data[pos + 1].isdigit():
-                # Es algo como .5
-                i = pos + 1
-                while i < len(data) and data[i].isdigit():
-                    i += 1
-                malformed = data[pos:i]
-                self.error_manager.error_lexico(
-                    'IL-LEX-009',
-                    f'Literal real mal formado (falta dígito antes del punto): '
-                    f'"{malformed}"',
-                    t.lexer.lineno, col
-                )
-                t.lexer.skip(len(malformed) - 1)
-            else:
-                t.lexer.skip(1)
         elif char.isdigit():
             # IL-LEX-004: Identificador inicia con dígito
             resto = t.value[0]

@@ -1,0 +1,56 @@
+// orden_topologico.inv - Algoritmos: orden topologico de un grafo dirigido
+// aciclico (Etapa 11), algoritmo de Kahn -- se procesan primero los
+// vertices sin dependencias pendientes (grado de entrada 0), usando una
+// cola basada en arreglo (mismo patron que cola_arreglo.inv de la Etapa 3).
+const int N = 6;
+
+void main() {
+    // Aristas dirigidas: 5->2, 5->0, 4->0, 4->1, 2->3, 3->1
+    // (representa, p.ej., un orden valido de tareas con dependencias).
+    int [N][N] adj;
+    para (int i = 0; i < N; i++) {
+        para (int j = 0; j < N; j++) { adj[i][j] = 0; }
+    }
+    adj[5][2] = 1; adj[5][0] = 1; adj[4][0] = 1;
+    adj[4][1] = 1; adj[2][3] = 1; adj[3][1] = 1;
+
+    int [N] gradoEntrada;
+    para (int i = 0; i < N; i++) { gradoEntrada[i] = 0; }
+    para (int u = 0; u < N; u++) {
+        para (int v = 0; v < N; v++) {
+            si (adj[u][v] == 1) { gradoEntrada[v] = gradoEntrada[v] + 1; }
+        }
+    }
+
+    int [N] cola;
+    int frente = 0;
+    int final = 0;
+    para (int i = 0; i < N; i++) {
+        si (gradoEntrada[i] == 0) { cola[final] = i; final = final + 1; }
+    }
+
+    imprimir("Orden topologico: ");
+    int procesados = 0;
+    mientras (frente < final) {
+        int u = cola[frente];
+        frente = frente + 1;
+        imprimir(u); imprimir(" ");
+        procesados = procesados + 1;
+
+        para (int v = 0; v < N; v++) {
+            si (adj[u][v] == 1) {
+                gradoEntrada[v] = gradoEntrada[v] - 1;
+                si (gradoEntrada[v] == 0) {
+                    cola[final] = v;
+                    final = final + 1;
+                }
+            }
+        }
+    }
+    imprimir("\n");
+    si (procesados < N) {
+        imprimir("el grafo tiene un ciclo\n");
+    } sino {
+        imprimir("orden valido\n");
+    }
+}
