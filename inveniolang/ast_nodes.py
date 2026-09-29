@@ -1,12 +1,27 @@
 # Módulo de nodos del Árbol de Sintaxis Abstracta (AST) de InvenioLang 1.0
 # Define todas las clases de nodos utilizadas en el AST
+# Patrones aplicados: Composite (jerarquía AST), Visitor (doble despacho),
+# Factory (creación centralizada), Memento (snapshot para debug)
+from __future__ import annotations
+from typing import Any, Optional, Dict, Callable
 
-class ASTNode:
-    """Clase base para todos los nodos del AST."""
+from .patterns import Visitor, Visitable, RegistryFactory
+
+
+class ASTNode(Visitable):
+    """Clase base para todos los nodos del AST. Composite + Visitable."""
 
     def __init__(self, linea=1, columna=1):
         self.linea = linea
         self.columna = columna
+
+    def accept(self, visitor: Visitor) -> Any:
+        """Visitor — doble despacho optimizado (evita isinstance en analizadores)."""
+        return visitor.visit(self)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Memento ligero — serialización para debug/snapshot."""
+        return {"type": self.__class__.__name__, "linea": self.linea, "columna": self.columna}
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
@@ -15,6 +30,7 @@ class ASTNode:
 # ============================================================
 # Nodos del programa
 # ============================================================
+
 
 class Program(ASTNode):
     """Nodo raiz del AST. Representa un programa completo.
@@ -45,6 +61,7 @@ class Program(ASTNode):
 # Nodos de tipos
 # ============================================================
 
+
 class TipoNodo(ASTNode):
     """Representa un tipo de dato."""
 
@@ -59,6 +76,7 @@ class TipoNodo(ASTNode):
 # ============================================================
 # Nodos de declaraciones
 # ============================================================
+
 
 class Declaracion(ASTNode):
     """Clase base para declaraciones."""
@@ -98,8 +116,7 @@ class ArrayDecl(Declaracion):
     inicializacion (IL-SEM-031, mismo codigo que una constante escalar).
     """
 
-    def __init__(self, tipo, tam, nombre, init_exprs=None, linea=1, columna=1,
-                es_constante=False):
+    def __init__(self, tipo, tam, nombre, init_exprs=None, linea=1, columna=1, es_constante=False):
         # `es_constante` va AL FINAL a propósito: p_decl_arreglo/
         # p_decl_arreglo_postfijo/p_decl_arreglo_clase ya construyen
         # ArrayDecl posicionalmente como (tipo, tam, nombre, init_exprs,
@@ -136,6 +153,7 @@ class MatrixDecl(Declaracion):
 # ============================================================
 # Nodos de funciones y procedimientos
 # ============================================================
+
 
 class Parametro(ASTNode):
     """Parametro de funcion o procedimiento."""
@@ -181,7 +199,7 @@ class ProcedureDecl(Subrutina):
         self.nombre = nombre
         self.parametros = parametros
         self.bloque = bloque
-        self.tipo_retorno = 'void'
+        self.tipo_retorno = "void"
 
     def __repr__(self):
         return f"ProcedureDecl({self.nombre}, params={len(self.parametros)})"
@@ -192,10 +210,10 @@ class MainDecl(Subrutina):
 
     def __init__(self, bloque, linea=1, columna=1):
         super().__init__(linea, columna)
-        self.nombre = 'main'
+        self.nombre = "main"
         self.bloque = bloque
         self.parametros = []
-        self.tipo_retorno = 'void'
+        self.tipo_retorno = "void"
 
     def __repr__(self):
         return "MainDecl()"
@@ -204,6 +222,7 @@ class MainDecl(Subrutina):
 # ============================================================
 # Nodos de bloques e instrucciones
 # ============================================================
+
 
 class Bloque(ASTNode):
     """Bloque de codigo: { elemento* }"""
@@ -378,6 +397,7 @@ class CallStmt(Instruccion):
 # Nodos de expresiones
 # ============================================================
 
+
 class Expresion(ASTNode):
     """Clase base para expresiones."""
 
@@ -506,6 +526,7 @@ class FunctionCall(Expresion):
 # Nodos de L-value
 # ============================================================
 
+
 class LValue(ASTNode):
     """Clase base para L-values (lado izquierdo de asignacion)."""
 
@@ -566,12 +587,12 @@ class MemberLValue(LValue):
 # Nodos de POO (InvenioLang 2.0 -- docs/InvenioLang_2.0_POO.md)
 # ============================================================
 
+
 class AttrDecl(ASTNode):
     """Declaracion de atributo dentro de una clase:
     visibilidad [estatico] tipo nombre [= expr]; (estatico: Etapa 7)"""
 
-    def __init__(self, visibilidad, tipo, nombre, init_expr=None,
-                es_estatico=False, linea=1, columna=1):
+    def __init__(self, visibilidad, tipo, nombre, init_expr=None, es_estatico=False, linea=1, columna=1):
         super().__init__(linea, columna)
         self.visibilidad = visibilidad  # 'publico' | 'privado'
         self.tipo = tipo
@@ -580,7 +601,7 @@ class AttrDecl(ASTNode):
         self.es_estatico = es_estatico
 
     def __repr__(self):
-        prefijo = 'estatico ' if self.es_estatico else ''
+        prefijo = "estatico " if self.es_estatico else ""
         return f"AttrDecl({self.visibilidad} {prefijo}{self.nombre}: {self.tipo})"
 
 
@@ -590,8 +611,18 @@ class MethodDecl(ASTNode):
     (entonces la declaracion termina en ';', sin cuerpo). `estatico` y
     `abstracto` son mutuamente excluyentes (Etapa 7)."""
 
-    def __init__(self, visibilidad, tipo_retorno, nombre, parametros, bloque,
-                es_estatico=False, es_abstracto=False, linea=1, columna=1):
+    def __init__(
+        self,
+        visibilidad,
+        tipo_retorno,
+        nombre,
+        parametros,
+        bloque,
+        es_estatico=False,
+        es_abstracto=False,
+        linea=1,
+        columna=1,
+    ):
         super().__init__(linea, columna)
         self.visibilidad = visibilidad
         self.tipo_retorno = tipo_retorno
@@ -602,7 +633,7 @@ class MethodDecl(ASTNode):
         self.es_abstracto = es_abstracto
 
     def __repr__(self):
-        prefijo = 'estatico ' if self.es_estatico else 'abstracto ' if self.es_abstracto else ''
+        prefijo = "estatico " if self.es_estatico else "abstracto " if self.es_abstracto else ""
         return f"MethodDecl({self.visibilidad} {prefijo}{self.nombre}: {self.tipo_retorno})"
 
 
@@ -622,8 +653,7 @@ class ConstructorDecl(ASTNode):
     clase, ver IL-POO-030).
     """
 
-    def __init__(self, nombre, parametros, bloque, visibilidad='publico',
-                linea=1, columna=1):
+    def __init__(self, nombre, parametros, bloque, visibilidad="publico", linea=1, columna=1):
         super().__init__(linea, columna)
         self.nombre = nombre
         self.parametros = parametros
@@ -649,9 +679,20 @@ class ClassDecl(ASTNode):
     acotado, ver docs/InvenioLang_2.0_POO.md.
     """
 
-    def __init__(self, nombre, padre, atributos, metodos, constructores,
-                es_abstracta=False, parametro_tipo=None, linea=1, columna=1,
-                interfaces=None, es_interfaz=False):
+    def __init__(
+        self,
+        nombre,
+        padre,
+        atributos,
+        metodos,
+        constructores,
+        es_abstracta=False,
+        parametro_tipo=None,
+        linea=1,
+        columna=1,
+        interfaces=None,
+        es_interfaz=False,
+    ):
         # `interfaces`/`es_interfaz` van AL FINAL a proposito (Etapa 12.3) --
         # mismo criterio documentado en ArrayDecl.__init__ (symbol_table.py/
         # ir.py): insertar parametros nuevos antes de linea/columna
@@ -668,9 +709,9 @@ class ClassDecl(ASTNode):
         self.es_interfaz = es_interfaz  # Etapa 12.3: 'interfaz X {...}' (alias de "abstracta clase" con todos los metodos abstractos, solo para mensajes mas claros)
 
     def __repr__(self):
-        prefijo = 'interfaz ' if self.es_interfaz else 'abstracta ' if self.es_abstracta else ''
-        generico = f'<{self.parametro_tipo}>' if self.parametro_tipo else ''
-        implementa = f' implementa {",".join(self.interfaces)}' if self.interfaces else ''
+        prefijo = "interfaz " if self.es_interfaz else "abstracta " if self.es_abstracta else ""
+        generico = f"<{self.parametro_tipo}>" if self.parametro_tipo else ""
+        implementa = f' implementa {",".join(self.interfaces)}' if self.interfaces else ""
         return f"ClassDecl({prefijo}{self.nombre}{generico}, hereda={self.padre}{implementa})"
 
 
@@ -785,8 +826,7 @@ class MethodCallExpr(Expresion):
     """Llamada a metodo como expresion: receptor.nombre_metodo(argumentos)
     (o receptor?.nombre_metodo(...), Etapa 12.2)."""
 
-    def __init__(self, receptor, nombre_metodo, argumentos, linea=1, columna=1,
-                es_seguro=False):
+    def __init__(self, receptor, nombre_metodo, argumentos, linea=1, columna=1, es_seguro=False):
         super().__init__(linea, columna)
         self.receptor = receptor
         self.nombre_metodo = nombre_metodo
@@ -801,8 +841,7 @@ class MethodCallStmt(Instruccion):
     """Llamada a metodo como instruccion: receptor.nombre_metodo(argumentos);
     (o receptor?.nombre_metodo(...), Etapa 12.2)."""
 
-    def __init__(self, receptor, nombre_metodo, argumentos, linea=1, columna=1,
-                es_seguro=False):
+    def __init__(self, receptor, nombre_metodo, argumentos, linea=1, columna=1, es_seguro=False):
         super().__init__(linea, columna)
         self.receptor = receptor
         self.nombre_metodo = nombre_metodo
@@ -829,6 +868,7 @@ class SuperCallStmt(Instruccion):
 # ============================================================
 # Nodos de Etapa 6 (lenguaje estructurado completo)
 # ============================================================
+
 
 class Caso(ASTNode):
     """Un case dentro de un switch: case valor: bloque (sin break implicito
@@ -940,7 +980,7 @@ class LambdaExpr(Expresion):
         self.bloque = bloque
 
     def __repr__(self):
-        tipos = ','.join(p.tipo for p in self.parametros)
+        tipos = ",".join(p.tipo for p in self.parametros)
         return f"LambdaExpr(({tipos}) -> {self.tipo_retorno})"
 
 
@@ -958,3 +998,127 @@ class TryStmt(Instruccion):
 
     def __repr__(self):
         return f"TryStmt(catch={self.nombre_catch})"
+
+
+# ============================================================
+# Visitor base para AST — Template para semantic/type_checker/interpreter
+# ============================================================
+
+
+class ASTVisitor(Visitor):
+    """Visitor base optimizado para recorridos AST. Cada visit_* es Strategy
+    intercambiable; agregar nueva operación no modifica nodos (OCP)."""
+
+    def visit_Program(self, node: "Program") -> Any:
+        return self.generic_visit(node)
+
+    def visit_Bloque(self, node: "Bloque") -> Any:
+        return self.generic_visit(node)
+
+    def visit_VarDecl(self, node: "VarDecl") -> Any:
+        return self.generic_visit(node)
+
+    def visit_ConstDecl(self, node: "ConstDecl") -> Any:
+        return self.generic_visit(node)
+
+    def visit_ArrayDecl(self, node: "ArrayDecl") -> Any:
+        return self.generic_visit(node)
+
+    def visit_MatrixDecl(self, node: "MatrixDecl") -> Any:
+        return self.generic_visit(node)
+
+    def visit_FunctionDecl(self, node: "FunctionDecl") -> Any:
+        return self.generic_visit(node)
+
+    def visit_ProcedureDecl(self, node: "ProcedureDecl") -> Any:
+        return self.generic_visit(node)
+
+    def visit_MainDecl(self, node: "MainDecl") -> Any:
+        return self.generic_visit(node)
+
+    def visit_ClassDecl(self, node: "ClassDecl") -> Any:
+        return self.generic_visit(node)
+
+    def visit_EnumDecl(self, node: "EnumDecl") -> Any:
+        return self.generic_visit(node)
+
+
+# ============================================================
+# Factory — Creación centralizada de nodos AST (optimiza validación
+# y permite pooling futuro; evita new disperso en parser)
+# ============================================================
+
+
+class ASTFactory(RegistryFactory):
+    """Factory Registry para nodos AST. Uso:
+    factory = ASTFactory.get_default()
+    node = factory.create('VarDecl', tipo='int', nombre='x', linea=1)
+    """
+
+    _default: Optional["ASTFactory"] = None
+
+    @classmethod
+    def get_default(cls) -> "ASTFactory":
+        if cls._default is None:
+            cls._default = cls()
+            cls._default._register_defaults()
+        return cls._default
+
+    def _register_defaults(self) -> None:
+        self.register("Program", lambda **k: Program(**k))
+        self.register("VarDecl", lambda **k: VarDecl(**k))
+        self.register("ConstDecl", lambda **k: ConstDecl(**k))
+        self.register("ArrayDecl", lambda **k: ArrayDecl(**k))
+        self.register("MatrixDecl", lambda **k: MatrixDecl(**k))
+        self.register("Bloque", lambda **k: Bloque(**k))
+        self.register("IfStmt", lambda **k: IfStmt(**k))
+        self.register("WhileStmt", lambda **k: WhileStmt(**k))
+        self.register("ForStmt", lambda **k: ForStmt(**k))
+        self.register("ReturnStmt", lambda **k: ReturnStmt(**k))
+        self.register("BinaryOp", lambda **k: BinaryOp(**k))
+        self.register("Literal", lambda **k: Literal(**k))
+        self.register("Identifier", lambda **k: Identifier(**k))
+
+
+# ============================================================
+# Composite helper — utilidades para recorrer/optimizar árbol
+# ============================================================
+
+
+class ASTWalker:
+    """Walker genérico optimizado con iteración sin recursión profunda
+    (evita RecursionError en árboles muy profundos)."""
+
+    @staticmethod
+    def walk(node: ASTNode, func: Callable[[ASTNode], None]) -> None:
+        stack = [node]
+        visited = set()
+        while stack:
+            cur = stack.pop()
+            if id(cur) in visited:
+                continue
+            visited.add(id(cur))
+            func(cur)
+            for attr in (
+                "elementos",
+                "bloque",
+                "bloque_then",
+                "bloque_else",
+                "subrutinas",
+                "clases",
+                "enums",
+                "main",
+                "declaraciones_globales",
+                "declaraciones_posteriores",
+            ):
+                val = getattr(cur, attr, None)
+                if isinstance(val, list):
+                    stack.extend(reversed(val))
+                elif isinstance(val, ASTNode):
+                    stack.append(val)
+
+    @staticmethod
+    def count_nodes(node: ASTNode) -> int:
+        c = [0]
+        ASTWalker.walk(node, lambda n: c.__setitem__(0, c[0] + 1))
+        return c[0]

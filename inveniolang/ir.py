@@ -4,6 +4,13 @@
 # v1.0/v2.0 nunca tuvieron (interpreter.py es un intérprete de árbol, nunca
 # genera nada): código de tres direcciones (TAC), optimización sobre ese
 # TAC, y un motor de ejecución separado (MaquinaTAC) que lo interpreta.
+# Patrones aplicados: Factory (Instrucciones TAC), Strategy (pasadas de
+# optimización intercambiables), Builder (construcción TAC), Visitor (recorrido
+# AST → TAC), Decorator (instrumentación), Template Method (pipeline TAC)
+from __future__ import annotations
+from typing import List, Tuple, Optional
+from .patterns import RegistryFactory, Strategy
+
 #
 # ADITIVO Y AISLADO A PROPÓSITO: interpreter.py sigue siendo el motor de
 # ejecución de producción del IDE (depurador, 214 pruebas de conformidad).
@@ -24,8 +31,8 @@
 from .ast_nodes import *
 from . import builtins
 
-_BINOPS = {'+', '-', '*', '/', '%', '==', '!=', '<', '>', '<=', '>='}
-_VALORES_POR_DEFECTO = {'int': 0, 'float': 0.0, 'string': '', 'bool': False}
+_BINOPS = {"+", "-", "*", "/", "%", "==", "!=", "<", ">", "<=", ">="}
+_VALORES_POR_DEFECTO = {"int": 0, "float": 0.0, "string": "", "bool": False}
 
 
 class NoSoportadoIR(Exception):
@@ -43,7 +50,7 @@ class ErrorEjecucionTAC(Exception):
     def __init__(self, codigo, mensaje):
         self.codigo = codigo
         self.mensaje = mensaje
-        super().__init__(f'[{codigo}] {mensaje}')
+        super().__init__(f"[{codigo}] {mensaje}")
 
 
 class Instr:
@@ -55,7 +62,8 @@ class Instr:
     lugar donde un operando es un valor literal "en crudo" es `arg1` de
     `const` (y el tamaño literal de `array_new`).
     """
-    __slots__ = ('op', 'arg1', 'arg2', 'arg3', 'resultado')
+
+    __slots__ = ("op", "arg1", "arg2", "arg3", "resultado")
 
     def __init__(self, op, arg1=None, arg2=None, arg3=None, resultado=None):
         self.op = op
@@ -66,51 +74,74 @@ class Instr:
 
     def __repr__(self):
         op, a1, a2, a3, r = self.op, self.arg1, self.arg2, self.arg3, self.resultado
-        if op == 'label':
-            return f'{a1}:'
-        if op == 'goto':
-            return f'    goto {a1}'
-        if op == 'if_false':
-            return f'    if_false {a1} goto {a2}'
-        if op == 'const':
-            return f'    {r} = const {a1!r}'
-        if op == 'copy':
-            return f'    {r} = {a1}'
-        if op in ('neg', 'not'):
-            simbolo = '-' if op == 'neg' else '!'
-            return f'    {r} = {simbolo}{a1}'
-        if op == 'a_float':
-            return f'    {r} = (float) {a1}'
-        if op == 'param':
-            return f'    param {a1}'
-        if op == 'call':
-            return f'    {r} = call {a1}, {a2}' if r else f'    call {a1}, {a2}'
-        if op == 'return':
-            return f'    return {a1}' if a1 is not None else '    return'
-        if op == 'print':
-            return f'    print {a1}'
-        if op == 'read':
-            return f'    {r} = read({a1})'
-        if op == 'array_new':
-            return f'    {a1} = new_array[{a2}]'
-        if op == 'array_get':
-            return f'    {r} = {a1}[{a2}]'
-        if op == 'array_set':
-            return f'    {a1}[{a2}] = {a3}'
-        if op == 'try_begin':
-            return f'    try_begin catch={a1} var={a2}'
-        if op == 'try_end':
-            return '    try_end'
-        if op == 'pop_manejador':
-            return '    pop_manejador'
+        if op == "label":
+            return f"{a1}:"
+        if op == "goto":
+            return f"    goto {a1}"
+        if op == "if_false":
+            return f"    if_false {a1} goto {a2}"
+        if op == "const":
+            return f"    {r} = const {a1!r}"
+        if op == "copy":
+            return f"    {r} = {a1}"
+        if op in ("neg", "not"):
+            simbolo = "-" if op == "neg" else "!"
+            return f"    {r} = {simbolo}{a1}"
+        if op == "a_float":
+            return f"    {r} = (float) {a1}"
+        if op == "param":
+            return f"    param {a1}"
+        if op == "call":
+            return f"    {r} = call {a1}, {a2}" if r else f"    call {a1}, {a2}"
+        if op == "return":
+            return f"    return {a1}" if a1 is not None else "    return"
+        if op == "print":
+            return f"    print {a1}"
+        if op == "read":
+            return f"    {r} = read({a1})"
+        if op == "array_new":
+            return f"    {a1} = new_array[{a2}]"
+        if op == "array_get":
+            return f"    {r} = {a1}[{a2}]"
+        if op == "array_set":
+            return f"    {a1}[{a2}] = {a3}"
+        if op == "try_begin":
+            return f"    try_begin catch={a1} var={a2}"
+        if op == "try_end":
+            return "    try_end"
+        if op == "pop_manejador":
+            return "    pop_manejador"
         if op in _BINOPS:
-            return f'    {r} = {a1} {op} {a2}'
-        return f'    {op} {a1} {a2} {a3} -> {r}'
+            return f"    {r} = {a1} {op} {a2}"
+        return f"    {op} {a1} {a2} {a3} -> {r}"
+
+
+class InstrFactory(RegistryFactory):
+    """Factory para instrucciones TAC — centraliza creación y permite pooling."""
+
+    _default: Optional["InstrFactory"] = None
+
+    @classmethod
+    def get_default(cls) -> "InstrFactory":
+        if cls._default is None:
+            cls._default = cls()
+        return cls._default
+
+    def create_instr(self, op: str, arg1=None, arg2=None, arg3=None, resultado=None) -> "Instr":
+        return Instr(op, arg1, arg2, arg3, resultado)
+
+
+class OptimizationStrategy(Strategy):
+    """Strategy base para pasadas de optimización TAC."""
+
+    def execute(self, instrucciones: List["Instr"], *args, **kwargs) -> Tuple[List["Instr"], int]:
+        raise NotImplementedError
 
 
 # ============================================================
 # Generación de código intermedio (AST -> TAC)
 # ============================================================
+
 
 class GeneradorIR:
     """Recorre el AST (ya validado por semantic.py/type_checker.py) y
@@ -130,18 +161,18 @@ class GeneradorIR:
         # ver semantic.py); `break` mira ambas.
         self._ctx_ciclo = []
         self._profundidad_try = 0  # try/catch anidados actualmente abiertos
-        self._tipos = {}      # nombre -> tipo declarado (para 'leer')
-        self._tams = {}       # nombre de arreglo -> tam declarado (Etapa 12.1, para_cada)
+        self._tipos = {}  # nombre -> tipo declarado (para 'leer')
+        self._tams = {}  # nombre de arreglo -> tam declarado (Etapa 12.1, para_cada)
 
     # ---- utilidades ----
 
     def _nuevo_temp(self):
         self._temp_n += 1
-        return f't{self._temp_n}'
+        return f"t{self._temp_n}"
 
     def _nueva_etiqueta(self):
         self._label_n += 1
-        return f'L{self._label_n}'
+        return f"L{self._label_n}"
 
     def _emit(self, op, arg1=None, arg2=None, arg3=None, resultado=None):
         self.instrucciones.append(Instr(op, arg1, arg2, arg3, resultado))
@@ -172,30 +203,28 @@ class GeneradorIR:
         self.instrucciones = []
         self._ctx_ciclo = []
         self._profundidad_try = 0
+        self._cols = {}  # nombre matriz -> cols (para row-major)
 
     def _gen_declaracion_global(self, d):
         if isinstance(d, VarDecl):
             self._tipos[d.nombre] = d.tipo
             if d.init_expr is not None:
                 val = self._gen_expr(d.init_expr)
-                if d.tipo == 'float':
+                if d.tipo == "float":
                     val = self._gen_promover_float(val)
-                self._emit('copy', val, resultado=d.nombre)
+                self._emit("copy", val, resultado=d.nombre)
             else:
-                self._emit('const', _VALORES_POR_DEFECTO.get(d.tipo), resultado=d.nombre)
+                self._emit("const", _VALORES_POR_DEFECTO.get(d.tipo), resultado=d.nombre)
         elif isinstance(d, ConstDecl):
             self._tipos[d.nombre] = d.tipo
             val = self._gen_expr(d.init_expr)
-            if d.tipo == 'float':
+            if d.tipo == "float":
                 val = self._gen_promover_float(val)
-            self._emit('copy', val, resultado=d.nombre)
+            self._emit("copy", val, resultado=d.nombre)
         elif isinstance(d, ArrayDecl):
             self._gen_array_decl(d)
         elif isinstance(d, MatrixDecl):
-            raise NoSoportadoIR(
-                'El generador de código intermedio no cubre matrices en '
-                'este incremento (alcance: subconjunto estructurado, sin '
-                'matrices ni POO). Ver docs/InvenioLang_2.0_POO.md.')
+            self._gen_matrix_decl(d)
 
     # ---- instrucciones ----
 
@@ -204,32 +233,33 @@ class GeneradorIR:
             self._tipos[nodo.nombre] = nodo.tipo
             if nodo.init_expr is not None:
                 val = self._gen_expr(nodo.init_expr)
-                if nodo.tipo == 'float':
+                if nodo.tipo == "float":
                     val = self._gen_promover_float(val)
-                self._emit('copy', val, resultado=nodo.nombre)
+                self._emit("copy", val, resultado=nodo.nombre)
         elif isinstance(nodo, ConstDecl):
             self._tipos[nodo.nombre] = nodo.tipo
             val = self._gen_expr(nodo.init_expr)
-            if nodo.tipo == 'float':
+            if nodo.tipo == "float":
                 val = self._gen_promover_float(val)
-            self._emit('copy', val, resultado=nodo.nombre)
+            self._emit("copy", val, resultado=nodo.nombre)
         elif isinstance(nodo, ArrayDecl):
             self._gen_array_decl(nodo)
         elif isinstance(nodo, MatrixDecl):
             raise NoSoportadoIR(
-                'El generador de código intermedio no cubre matrices en '
-                'este incremento (alcance: subconjunto estructurado, sin '
-                'matrices ni POO).')
+                "El generador de código intermedio no cubre matrices en "
+                "este incremento (alcance: subconjunto estructurado, sin "
+                "matrices ni POO)."
+            )
         elif isinstance(nodo, AssignStmt):
             self._gen_asignacion(nodo.lvalue, nodo.operador, nodo.expr)
         elif isinstance(nodo, IncDecStmt):
             self._gen_incdec(nodo.nombre, nodo.operador)
         elif isinstance(nodo, PrintStmt):
             val = self._gen_expr(nodo.expr)
-            self._emit('print', val)
+            self._emit("print", val)
         elif isinstance(nodo, ReadStmt):
-            tipo = self._tipos.get(nodo.nombre, 'string')
-            self._emit('read', tipo, resultado=nodo.nombre)
+            tipo = self._tipos.get(nodo.nombre, "string")
+            self._emit("read", tipo, resultado=nodo.nombre)
         elif isinstance(nodo, IfStmt):
             self._gen_if(nodo)
         elif isinstance(nodo, WhileStmt):
@@ -246,7 +276,7 @@ class GeneradorIR:
             self._gen_try(nodo)
         elif isinstance(nodo, ReturnStmt):
             val = self._gen_expr(nodo.expr) if nodo.expr is not None else None
-            self._emit('return', val)
+            self._emit("return", val)
         elif isinstance(nodo, BreakStmt):
             self._emit_break()
         elif isinstance(nodo, ContinueStmt):
@@ -258,23 +288,36 @@ class GeneradorIR:
         else:
             raise NoSoportadoIR(
                 f'"{type(nodo).__name__}" no está soportado por el generador '
-                f'de código intermedio (alcance: subconjunto estructurado, '
-                f'sin POO). Ver docs/InvenioLang_2.0_POO.md.')
+                f"de código intermedio (alcance: subconjunto estructurado, "
+                f"sin POO). Ver docs/InvenioLang_2.0_POO.md."
+            )
 
     def _gen_array_decl(self, nodo):
         self._tipos[nodo.nombre] = nodo.tipo
         self._tams[nodo.nombre] = len(nodo.init_exprs) if nodo.init_exprs else nodo.tam
         if nodo.init_exprs:
             tam = len(nodo.init_exprs)
-            self._emit('array_new', nodo.nombre, tam)
+            self._emit("array_new", nodo.nombre, tam)
             for i, e in enumerate(nodo.init_exprs):
                 val = self._gen_expr(e)
-                # Nota: interpreter.py NO promueve int->float elemento a
-                # elemento en un inicializador de arreglo (§5.2.1) -- se
-                # replica tal cual, sin promoción aquí.
-                self._emit('array_set', nodo.nombre, i, val)
+                self._emit("array_set", nodo.nombre, i, val)
         else:
-            self._emit('array_new', nodo.nombre, nodo.tam)
+            self._emit("array_new", nodo.nombre, nodo.tam)
+
+    def _gen_matrix_decl(self, nodo):
+        # row-major: flat array de filas*cols
+        self._tipos[nodo.nombre] = nodo.tipo
+        filas = nodo.filas if isinstance(nodo.filas, int) else 10
+        cols = nodo.cols if isinstance(nodo.cols, int) else 10
+        self._cols[nodo.nombre] = cols
+        total = filas * cols if isinstance(filas, int) and isinstance(cols, int) else 100
+        self._emit("array_new", nodo.nombre, total)
+        if nodo.init_filas:
+            for r, fila in enumerate(nodo.init_filas):
+                for c, e in enumerate(fila):
+                    val = self._gen_expr(e)
+                    idx = r * cols + c
+                    self._emit("array_set", nodo.nombre, idx, val)
 
     def _gen_promover_float(self, val):
         """Replica interpreter.py::_promover_si_float: si el valor es un int
@@ -282,15 +325,15 @@ class GeneradorIR:
         solo puede tomarse en tiempo de ejecución, así que se emite como
         instrucción, no se decide aquí)."""
         t = self._nuevo_temp()
-        self._emit('a_float', val, resultado=t)
+        self._emit("a_float", val, resultado=t)
         return t
 
     def _gen_asignacion(self, lvalue, operador, expr):
         val = self._gen_expr(expr)
-        destino_float = isinstance(lvalue, VarLValue) and self._tipos.get(lvalue.nombre) == 'float'
+        destino_float = isinstance(lvalue, VarLValue) and self._tipos.get(lvalue.nombre) == "float"
         if destino_float:
             val = self._gen_promover_float(val)
-        if operador != '=':
+        if operador != "=":
             base = operador[0]  # '+=' -> '+', etc. (todos los compuestos son de 2 chars)
             actual = self._gen_lvalue_read(lvalue)
             t = self._nuevo_temp()
@@ -302,8 +345,8 @@ class GeneradorIR:
 
     def _gen_incdec(self, nombre, operador):
         t = self._nuevo_temp()
-        self._emit('+' if operador == '++' else '-', nombre, 1, resultado=t)
-        self._emit('copy', t, resultado=nombre)
+        self._emit("+" if operador == "++" else "-", nombre, 1, resultado=t)
+        self._emit("copy", t, resultado=nombre)
 
     def _gen_lvalue_read(self, lvalue):
         if isinstance(lvalue, VarLValue):
@@ -311,47 +354,67 @@ class GeneradorIR:
         if isinstance(lvalue, ArrayLValue):
             idx = self._gen_expr(lvalue.indice)
             t = self._nuevo_temp()
-            self._emit('array_get', lvalue.nombre, idx, resultado=t)
+            self._emit("array_get", lvalue.nombre, idx, resultado=t)
+            return t
+        if isinstance(lvalue, MatrixLValue):
+            fila = self._gen_expr(lvalue.fila)
+            col = self._gen_expr(lvalue.columna)
+            cols = self._cols.get(lvalue.nombre, 10)
+            t_mul = self._nuevo_temp()
+            self._emit("*", fila, cols, resultado=t_mul)
+            t_idx = self._nuevo_temp()
+            self._emit("+", t_mul, col, resultado=t_idx)
+            t = self._nuevo_temp()
+            self._emit("array_get", lvalue.nombre, t_idx, resultado=t)
             return t
         raise NoSoportadoIR(f'lvalue "{type(lvalue).__name__}" fuera del subconjunto estructurado')
 
     def _gen_lvalue_write(self, lvalue, valor):
         if isinstance(lvalue, VarLValue):
-            self._emit('copy', valor, resultado=lvalue.nombre)
+            self._emit("copy", valor, resultado=lvalue.nombre)
         elif isinstance(lvalue, ArrayLValue):
             idx = self._gen_expr(lvalue.indice)
-            self._emit('array_set', lvalue.nombre, idx, valor)
+            self._emit("array_set", lvalue.nombre, idx, valor)
+        elif isinstance(lvalue, MatrixLValue):
+            fila = self._gen_expr(lvalue.fila)
+            col = self._gen_expr(lvalue.columna)
+            cols = self._cols.get(lvalue.nombre, 10)
+            t_mul = self._nuevo_temp()
+            self._emit("*", fila, cols, resultado=t_mul)
+            t_idx = self._nuevo_temp()
+            self._emit("+", t_mul, col, resultado=t_idx)
+            self._emit("array_set", lvalue.nombre, t_idx, valor)
         else:
             raise NoSoportadoIR(f'lvalue "{type(lvalue).__name__}" fuera del subconjunto estructurado')
 
     def _gen_if(self, nodo):
         cond = self._gen_expr(nodo.condicion)
         etq_else = self._nueva_etiqueta()
-        self._emit('if_false', cond, etq_else)
+        self._emit("if_false", cond, etq_else)
         for e in nodo.bloque_then.elementos:
             self._gen_stmt(e)
         if nodo.bloque_else is not None:
             etq_fin = self._nueva_etiqueta()
-            self._emit('goto', etq_fin)
-            self._emit('label', etq_else)
+            self._emit("goto", etq_fin)
+            self._emit("label", etq_else)
             for e in nodo.bloque_else.elementos:
                 self._gen_stmt(e)
-            self._emit('label', etq_fin)
+            self._emit("label", etq_fin)
         else:
-            self._emit('label', etq_else)
+            self._emit("label", etq_else)
 
     def _gen_while(self, nodo):
         etq_inicio = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
-        self._emit('label', etq_inicio)
+        self._emit("label", etq_inicio)
         cond = self._gen_expr(nodo.condicion)
-        self._emit('if_false', cond, etq_fin)
-        self._ctx_ciclo.append(('loop', etq_inicio, etq_fin, self._profundidad_try))
+        self._emit("if_false", cond, etq_fin)
+        self._ctx_ciclo.append(("loop", etq_inicio, etq_fin, self._profundidad_try))
         for e in nodo.bloque.elementos:
             self._gen_stmt(e)
         self._ctx_ciclo.pop()
-        self._emit('goto', etq_inicio)
-        self._emit('label', etq_fin)
+        self._emit("goto", etq_inicio)
+        self._emit("label", etq_fin)
 
     def _gen_foreach(self, nodo):
         """TAC de para_cada/foreach (Etapa 12.1): solo soportado sobre un
@@ -365,29 +428,30 @@ class GeneradorIR:
         tam = self._tams.get(nodo.arreglo.nombre) if isinstance(nodo.arreglo, Identifier) else None
         if tam is None:
             raise NoSoportadoIR(
-                'para_cada / foreach solo está soportado por el generador de '
-                'código intermedio sobre un arreglo local de tamaño estático '
-                'conocido (no un parámetro). Ver docs/InvenioLang_2.0_POO.md.')
+                "para_cada / foreach solo está soportado por el generador de "
+                "código intermedio sobre un arreglo local de tamaño estático "
+                "conocido (no un parámetro). Ver docs/InvenioLang_2.0_POO.md."
+            )
         idx = self._nuevo_temp()
-        self._emit('const', 0, resultado=idx)
+        self._emit("const", 0, resultado=idx)
         etq_inicio = self._nueva_etiqueta()
         etq_continuar = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
-        self._emit('label', etq_inicio)
+        self._emit("label", etq_inicio)
         cond = self._nuevo_temp()
-        self._emit('<', idx, tam, resultado=cond)
-        self._emit('if_false', cond, etq_fin)
-        self._emit('array_get', nodo.arreglo.nombre, idx, resultado=nodo.nombre)
-        self._ctx_ciclo.append(('loop', etq_continuar, etq_fin, self._profundidad_try))
+        self._emit("<", idx, tam, resultado=cond)
+        self._emit("if_false", cond, etq_fin)
+        self._emit("array_get", nodo.arreglo.nombre, idx, resultado=nodo.nombre)
+        self._ctx_ciclo.append(("loop", etq_continuar, etq_fin, self._profundidad_try))
         for e in nodo.bloque.elementos:
             self._gen_stmt(e)
         self._ctx_ciclo.pop()
-        self._emit('label', etq_continuar)
+        self._emit("label", etq_continuar)
         t = self._nuevo_temp()
-        self._emit('+', idx, 1, resultado=t)
-        self._emit('copy', t, resultado=idx)
-        self._emit('goto', etq_inicio)
-        self._emit('label', etq_fin)
+        self._emit("+", idx, 1, resultado=t)
+        self._emit("copy", t, resultado=idx)
+        self._emit("goto", etq_inicio)
+        self._emit("label", etq_fin)
 
     def _gen_for(self, nodo):
         if nodo.init_stmt is not None:
@@ -395,19 +459,19 @@ class GeneradorIR:
         etq_inicio = self._nueva_etiqueta()
         etq_continuar = self._nueva_etiqueta()  # 'continue' salta al ACT, no directo a la condicion
         etq_fin = self._nueva_etiqueta()
-        self._emit('label', etq_inicio)
+        self._emit("label", etq_inicio)
         if nodo.cond_expr is not None:
             cond = self._gen_expr(nodo.cond_expr)
-            self._emit('if_false', cond, etq_fin)
-        self._ctx_ciclo.append(('loop', etq_continuar, etq_fin, self._profundidad_try))
+            self._emit("if_false", cond, etq_fin)
+        self._ctx_ciclo.append(("loop", etq_continuar, etq_fin, self._profundidad_try))
         for e in nodo.bloque.elementos:
             self._gen_stmt(e)
         self._ctx_ciclo.pop()
-        self._emit('label', etq_continuar)
+        self._emit("label", etq_continuar)
         if nodo.act_stmt is not None:
             self._gen_for_init_act(nodo.act_stmt)
-        self._emit('goto', etq_inicio)
-        self._emit('label', etq_fin)
+        self._emit("goto", etq_inicio)
+        self._emit("label", etq_fin)
 
     def _gen_do_while(self, nodo):
         """do/hacer ... while/mientras (Etapa 6): el cuerpo corre al menos
@@ -416,16 +480,16 @@ class GeneradorIR:
         etq_inicio = self._nueva_etiqueta()
         etq_continuar = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
-        self._emit('label', etq_inicio)
-        self._ctx_ciclo.append(('loop', etq_continuar, etq_fin, self._profundidad_try))
+        self._emit("label", etq_inicio)
+        self._ctx_ciclo.append(("loop", etq_continuar, etq_fin, self._profundidad_try))
         for e in nodo.bloque.elementos:
             self._gen_stmt(e)
         self._ctx_ciclo.pop()
-        self._emit('label', etq_continuar)
+        self._emit("label", etq_continuar)
         cond = self._gen_expr(nodo.condicion)
-        self._emit('if_false', cond, etq_fin)
-        self._emit('goto', etq_inicio)
-        self._emit('label', etq_fin)
+        self._emit("if_false", cond, etq_fin)
+        self._emit("goto", etq_inicio)
+        self._emit("label", etq_fin)
 
     def _gen_switch(self, nodo):
         """switch/segun (Etapa 6): cadena de comparaciones (no una tabla de
@@ -441,25 +505,25 @@ class GeneradorIR:
 
         for etq, caso in zip(etq_casos, nodo.casos):
             t_const = self._nuevo_temp()
-            self._emit('const', caso.valor.valor, resultado=t_const)
+            self._emit("const", caso.valor.valor, resultado=t_const)
             t_neq = self._nuevo_temp()
-            self._emit('!=', valor, t_const, resultado=t_neq)
+            self._emit("!=", valor, t_const, resultado=t_neq)
             # t_neq es False exactamente cuando valor == const -> if_false
             # salta a la etiqueta del case, sin necesitar un "if_true".
-            self._emit('if_false', t_neq, etq)
-        self._emit('goto', etq_default)
+            self._emit("if_false", t_neq, etq)
+        self._emit("goto", etq_default)
 
-        self._ctx_ciclo.append(('switch', etq_fin, self._profundidad_try))
+        self._ctx_ciclo.append(("switch", etq_fin, self._profundidad_try))
         for etq, caso in zip(etq_casos, nodo.casos):
-            self._emit('label', etq)
+            self._emit("label", etq)
             for e in caso.bloque.elementos:
                 self._gen_stmt(e)
         if nodo.bloque_default is not None:
-            self._emit('label', etq_default)
+            self._emit("label", etq_default)
             for e in nodo.bloque_default.elementos:
                 self._gen_stmt(e)
         self._ctx_ciclo.pop()
-        self._emit('label', etq_fin)
+        self._emit("label", etq_fin)
 
     def _gen_try(self, nodo):
         """try/intentar ... catch/capturar genérico (Etapa 6): `try_begin`
@@ -472,55 +536,55 @@ class GeneradorIR:
         manejador deja escritas."""
         etq_catch = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
-        self._emit('try_begin', etq_catch, nodo.nombre_catch)
+        self._emit("try_begin", etq_catch, nodo.nombre_catch)
         self._profundidad_try += 1
         for e in nodo.bloque_try.elementos:
             self._gen_stmt(e)
         self._profundidad_try -= 1
-        self._emit('try_end')
-        self._emit('goto', etq_fin)
-        self._emit('label', etq_catch)
+        self._emit("try_end")
+        self._emit("goto", etq_fin)
+        self._emit("label", etq_catch)
         for e in nodo.bloque_catch.elementos:
             self._gen_stmt(e)
-        self._emit('label', etq_fin)
+        self._emit("label", etq_fin)
 
     def _emit_pops_manejadores(self, profundidad_objetivo):
         """Antes de un break/continue que salta fuera de uno o más try
         activos, cierra esos manejadores (si no, quedarían "colgados" y
         podrían capturar por error algo que ocurra después del ciclo)."""
         for _ in range(self._profundidad_try - profundidad_objetivo):
-            self._emit('pop_manejador')
+            self._emit("pop_manejador")
 
     def _emit_break(self):
         for entrada in reversed(self._ctx_ciclo):
-            if entrada[0] == 'loop':
+            if entrada[0] == "loop":
                 _, _, etq_break, prof = entrada
-            elif entrada[0] == 'switch':
+            elif entrada[0] == "switch":
                 _, etq_break, prof = entrada
             else:
                 continue
             self._emit_pops_manejadores(prof)
-            self._emit('goto', etq_break)
+            self._emit("goto", etq_break)
             return
-        raise NoSoportadoIR('break fuera de un ciclo o switch (no debería pasar el semántico)')
+        raise NoSoportadoIR("break fuera de un ciclo o switch (no debería pasar el semántico)")
 
     def _emit_continue(self):
         for entrada in reversed(self._ctx_ciclo):
-            if entrada[0] == 'loop':
+            if entrada[0] == "loop":
                 _, etq_continuar, _, prof = entrada
                 self._emit_pops_manejadores(prof)
-                self._emit('goto', etq_continuar)
+                self._emit("goto", etq_continuar)
                 return
-        raise NoSoportadoIR('continue fuera de un ciclo (no debería pasar el semántico)')
+        raise NoSoportadoIR("continue fuera de un ciclo (no debería pasar el semántico)")
 
     def _gen_for_init_act(self, nodo):
         if isinstance(nodo, ForInitVar):
             self._tipos[nodo.nombre] = nodo.tipo
             if nodo.init_expr is not None:
                 val = self._gen_expr(nodo.init_expr)
-                if nodo.tipo == 'float':
+                if nodo.tipo == "float":
                     val = self._gen_promover_float(val)
-                self._emit('copy', val, resultado=nodo.nombre)
+                self._emit("copy", val, resultado=nodo.nombre)
         elif isinstance(nodo, ForInitAsig):
             self._gen_asignacion(nodo.lvalue, nodo.operador, nodo.expr)
         elif isinstance(nodo, ForInitIncDec):
@@ -537,17 +601,18 @@ class GeneradorIR:
         # rechazarse limpiamente en tiempo de generación (mismo criterio
         # que la exclusión de POO/matrices: NoSoportadoIR aquí mismo, antes
         # de emitir nada).
-        if self._tipos.get(nombre, '').startswith('funcion('):
+        if self._tipos.get(nombre, "").startswith("funcion("):
             raise NoSoportadoIR(
-                'El generador de código intermedio no soporta llamar a través '
-                'de una variable de tipo función (closures, Etapa 12.6) -- '
-                'alcance: subconjunto estructurado, sin funciones de primera '
-                'clase. Ver docs/InvenioLang_2.0_POO.md.')
+                "El generador de código intermedio no soporta llamar a través "
+                "de una variable de tipo función (closures, Etapa 12.6) -- "
+                "alcance: subconjunto estructurado, sin funciones de primera "
+                "clase. Ver docs/InvenioLang_2.0_POO.md."
+            )
         for arg in argumentos:
             val = self._gen_expr(arg)
-            self._emit('param', val)
+            self._emit("param", val)
         t = self._nuevo_temp() if quiere_valor else None
-        self._emit('call', nombre, len(argumentos), resultado=t)
+        self._emit("call", nombre, len(argumentos), resultado=t)
         return t
 
     # ---- expresiones ----
@@ -557,7 +622,7 @@ class GeneradorIR:
         temporal) que contiene su valor."""
         if isinstance(nodo, Literal):
             t = self._nuevo_temp()
-            self._emit('const', nodo.valor, resultado=t)
+            self._emit("const", nodo.valor, resultado=t)
             return t
         if isinstance(nodo, Identifier):
             if nodo.nombre not in self._tipos:
@@ -569,21 +634,33 @@ class GeneradorIR:
                 # (`operar = sumar;`) -- fuera de alcance de este generador,
                 # mismo criterio que _gen_llamada de arriba.
                 raise NoSoportadoIR(
-                    'El generador de código intermedio no soporta pasar una '
-                    'función por nombre como valor (funciones de primera '
-                    'clase, Etapa 12.6). Ver docs/InvenioLang_2.0_POO.md.')
+                    "El generador de código intermedio no soporta pasar una "
+                    "función por nombre como valor (funciones de primera "
+                    "clase, Etapa 12.6). Ver docs/InvenioLang_2.0_POO.md."
+                )
             return nodo.nombre
         if isinstance(nodo, ArrayAccess):
             idx = self._gen_expr(nodo.indice)
             t = self._nuevo_temp()
-            self._emit('array_get', nodo.nombre, idx, resultado=t)
+            self._emit("array_get", nodo.nombre, idx, resultado=t)
+            return t
+        if isinstance(nodo, MatrixAccess):
+            fila = self._gen_expr(nodo.fila)
+            col = self._gen_expr(nodo.columna)
+            cols = self._cols.get(nodo.nombre, 10)
+            t_mul = self._nuevo_temp()
+            self._emit("*", fila, cols, resultado=t_mul)
+            t_idx = self._nuevo_temp()
+            self._emit("+", t_mul, col, resultado=t_idx)
+            t = self._nuevo_temp()
+            self._emit("array_get", nodo.nombre, t_idx, resultado=t)
             return t
         if isinstance(nodo, FunctionCall):
             return self._gen_llamada(nodo.nombre, nodo.argumentos, quiere_valor=True)
         if isinstance(nodo, BinaryOp):
-            if nodo.operador == '&&':
+            if nodo.operador == "&&":
                 return self._gen_and(nodo)
-            if nodo.operador == '||':
+            if nodo.operador == "||":
                 return self._gen_or(nodo)
             izq = self._gen_expr(nodo.izquierda)
             der = self._gen_expr(nodo.derecha)
@@ -591,24 +668,28 @@ class GeneradorIR:
             self._emit(nodo.operador, izq, der, resultado=t)
             return t
         if isinstance(nodo, UnaryOp):
-            if nodo.operador in ('++', '--'):
+            if nodo.operador in ("++", "--"):
                 return self._gen_incdec_expr(nodo)
             val = self._gen_expr(nodo.operando)
             t = self._nuevo_temp()
-            self._emit('neg' if nodo.operador == '-' else 'not', val, resultado=t)
+            self._emit("neg" if nodo.operador == "-" else "not", val, resultado=t)
             return t
         if isinstance(nodo, TernaryExpr):
             return self._gen_ternario(nodo)
-        if (isinstance(nodo, MemberAccess) and isinstance(nodo.receptor, Identifier)
-                and nodo.nombre_miembro in ('codigo', 'mensaje')):
+        if (
+            isinstance(nodo, MemberAccess)
+            and isinstance(nodo.receptor, Identifier)
+            and nodo.nombre_miembro in ("codigo", "mensaje")
+        ):
             # Caso especial acotado (Etapa 6, NO soporte general de POO):
             # `e.codigo`/`e.mensaje` dentro de un catch -- el manejador de
             # MaquinaTAC ya dejó el valor en esta variable sintética (ver
             # _gen_try / MaquinaTAC._ejecutar_lista, op 'try_begin').
-            return f'{nodo.receptor.nombre}.{nodo.nombre_miembro}'
+            return f"{nodo.receptor.nombre}.{nodo.nombre_miembro}"
         raise NoSoportadoIR(
             f'"{type(nodo).__name__}" no está soportado por el generador de '
-            f'código intermedio (alcance: subconjunto estructurado, sin POO).')
+            f"código intermedio (alcance: subconjunto estructurado, sin POO)."
+        )
 
     def _gen_ternario(self, nodo):
         """cond ? si_verdadero : si_falso (Etapa 6) -- solo se genera código
@@ -618,27 +699,27 @@ class GeneradorIR:
         etq_falso = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
         cond = self._gen_expr(nodo.condicion)
-        self._emit('if_false', cond, etq_falso)
+        self._emit("if_false", cond, etq_falso)
         val_v = self._gen_expr(nodo.si_verdadero)
-        self._emit('copy', val_v, resultado=t)
-        self._emit('goto', etq_fin)
-        self._emit('label', etq_falso)
+        self._emit("copy", val_v, resultado=t)
+        self._emit("goto", etq_fin)
+        self._emit("label", etq_falso)
         val_f = self._gen_expr(nodo.si_falso)
-        self._emit('copy', val_f, resultado=t)
-        self._emit('label', etq_fin)
+        self._emit("copy", val_f, resultado=t)
+        self._emit("label", etq_fin)
         return t
 
     def _gen_incdec_expr(self, nodo):
         # el operando siempre es un Identifier simple (garantizado por la gramatica)
         nombre = nodo.operando.nombre
         t_nuevo = self._nuevo_temp()
-        self._emit('+' if nodo.operador == '++' else '-', nombre, 1, resultado=t_nuevo)
+        self._emit("+" if nodo.operador == "++" else "-", nombre, 1, resultado=t_nuevo)
         if nodo.es_prefijo:
-            self._emit('copy', t_nuevo, resultado=nombre)
+            self._emit("copy", t_nuevo, resultado=nombre)
             return nombre
         t_viejo = self._nuevo_temp()
-        self._emit('copy', nombre, resultado=t_viejo)  # valor ANTES de sobreescribir
-        self._emit('copy', t_nuevo, resultado=nombre)
+        self._emit("copy", nombre, resultado=t_viejo)  # valor ANTES de sobreescribir
+        self._emit("copy", t_nuevo, resultado=nombre)
         return t_viejo
 
     def _gen_and(self, nodo):
@@ -648,13 +729,13 @@ class GeneradorIR:
         etq_falso = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
         izq = self._gen_expr(nodo.izquierda)
-        self._emit('if_false', izq, etq_falso)
+        self._emit("if_false", izq, etq_falso)
         der = self._gen_expr(nodo.derecha)
-        self._emit('copy', der, resultado=t)
-        self._emit('goto', etq_fin)
-        self._emit('label', etq_falso)
-        self._emit('const', False, resultado=t)
-        self._emit('label', etq_fin)
+        self._emit("copy", der, resultado=t)
+        self._emit("goto", etq_fin)
+        self._emit("label", etq_falso)
+        self._emit("const", False, resultado=t)
+        self._emit("label", etq_fin)
         return t
 
     def _gen_or(self, nodo):
@@ -662,13 +743,13 @@ class GeneradorIR:
         etq_seguir = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
         izq = self._gen_expr(nodo.izquierda)
-        self._emit('if_false', izq, etq_seguir)
-        self._emit('const', True, resultado=t)
-        self._emit('goto', etq_fin)
-        self._emit('label', etq_seguir)
+        self._emit("if_false", izq, etq_seguir)
+        self._emit("const", True, resultado=t)
+        self._emit("goto", etq_fin)
+        self._emit("label", etq_seguir)
         der = self._gen_expr(nodo.derecha)
-        self._emit('copy', der, resultado=t)
-        self._emit('label', etq_fin)
+        self._emit("copy", der, resultado=t)
+        self._emit("label", etq_fin)
         return t
 
 
@@ -678,14 +759,15 @@ def generar_programa(ast):
     e incluye 'main'. Lanza NoSoportadoIR si el programa usa clases/POO."""
     if ast.clases:
         raise NoSoportadoIR(
-            'El generador de código intermedio no cubre clases/POO en este '
-            'incremento (alcance: subconjunto estructurado de la v1.0). '
-            'Ver docs/InvenioLang_2.0_POO.md.')
+            "El generador de código intermedio no cubre clases/POO en este "
+            "incremento (alcance: subconjunto estructurado de la v1.0). "
+            "Ver docs/InvenioLang_2.0_POO.md."
+        )
     gen = GeneradorIR()
     ir_globales = gen.generar_globales(ast)
     subrutinas = {}
     if ast.main is not None:
-        subrutinas['main'] = gen.generar_subrutina([], ast.main.bloque)
+        subrutinas["main"] = gen.generar_subrutina([], ast.main.bloque)
     for sub in ast.subrutinas:
         subrutinas[sub.nombre] = gen.generar_subrutina(sub.parametros, sub.bloque)
     return subrutinas, ir_globales
@@ -693,46 +775,47 @@ def generar_programa(ast):
 
 def formatear(instrucciones):
     """Texto legible de una lista de instrucciones, una por línea."""
-    return '\n'.join(repr(ins) for ins in instrucciones)
+    return "\n".join(repr(ins) for ins in instrucciones)
 
 
 # ============================================================
 # Optimización (pasadas sobre el TAC)
 # ============================================================
 
+
 def _calcular_binop(op, a, b):
     """Misma aritmética que interpreter.py (división/módulo truncados hacia
     cero, §4.2.2) para que el plegado de constantes y MaquinaTAC calculen
     exactamente lo mismo que el intérprete de árbol."""
-    if op == '==':
+    if op == "==":
         return a == b
-    if op == '!=':
+    if op == "!=":
         return a != b
-    if op == '<':
+    if op == "<":
         return a < b
-    if op == '>':
+    if op == ">":
         return a > b
-    if op == '<=':
+    if op == "<=":
         return a <= b
-    if op == '>=':
+    if op == ">=":
         return a >= b
-    if op == '+':
+    if op == "+":
         return a + b
-    if op == '-':
+    if op == "-":
         return a - b
-    if op == '*':
+    if op == "*":
         return a * b
-    if op == '/':
+    if op == "/":
         if _es_entero(a) and _es_entero(b):
             q = abs(a) // abs(b)
             return -q if (a < 0) != (b < 0) else q
         return a / b
-    if op == '%':
+    if op == "%":
         if _es_entero(a) and _es_entero(b):
             r = abs(a) % abs(b)
             return -r if a < 0 else r
         return a % b
-    raise ValueError(f'operador no soportado: {op}')
+    raise ValueError(f"operador no soportado: {op}")
 
 
 def _es_entero(v):
@@ -754,41 +837,57 @@ def plegado_constantes(instrucciones):
     nuevas = []
     cambios = 0
     for ins in instrucciones:
-        if ins.op == 'label':
+        if ins.op == "label":
             constantes.clear()
             nuevas.append(ins)
             continue
-        if ins.op == 'const':
+        if ins.op == "const":
             constantes[ins.resultado] = ins.arg1
             nuevas.append(ins)
             continue
-        if ins.op == 'copy' and isinstance(ins.arg1, str) and ins.arg1 in constantes:
+        if ins.op == "copy" and isinstance(ins.arg1, str) and ins.arg1 in constantes:
             valor = constantes[ins.arg1]
-            nuevas.append(Instr('const', valor, resultado=ins.resultado))
+            nuevas.append(Instr("const", valor, resultado=ins.resultado))
             constantes[ins.resultado] = valor
             cambios += 1
             continue
-        if ins.op in _BINOPS and isinstance(ins.arg1, str) and isinstance(ins.arg2, str) \
-                and ins.arg1 in constantes and ins.arg2 in constantes:
-            try:
-                valor = _calcular_binop(ins.op, constantes[ins.arg1], constantes[ins.arg2])
-            except (ValueError, ZeroDivisionError):
-                valor = None
-            if valor is not None:
-                nuevas.append(Instr('const', valor, resultado=ins.resultado))
-                constantes[ins.resultado] = valor
-                cambios += 1
-                continue
-        if ins.op in ('neg', 'not') and isinstance(ins.arg1, str) and ins.arg1 in constantes:
-            valor = (-constantes[ins.arg1]) if ins.op == 'neg' else (not constantes[ins.arg1])
-            nuevas.append(Instr('const', valor, resultado=ins.resultado))
+        if (
+            ins.op in _BINOPS
+            and isinstance(ins.arg1, str)
+            and isinstance(ins.arg2, str)
+            and ins.arg1 in constantes
+            and ins.arg2 in constantes
+        ):
+            # No plegar división/módulo por cero: debe preservarse para que
+            # MaquinaTAC/interpreter produzca IL-EJE-002/006 en tiempo de
+            # ejecución, no un 'inf' o una excepción de Python. Para floats,
+            # Python no lanza ZeroDivisionError sino que produce inf.
+            if ins.op in ("/", "%") and constantes[ins.arg2] == 0:
+                pass  # conservar la operación original
+            else:
+                try:
+                    valor = _calcular_binop(ins.op, constantes[ins.arg1], constantes[ins.arg2])
+                except (ValueError, ZeroDivisionError):
+                    valor = None
+                if valor is not None:
+                    # Evitar plegar 0.0/0.0 -> nan o inf; preservar semántica de error
+                    if isinstance(valor, float) and (valor != valor or valor in (float("inf"), float("-inf"))):
+                        pass
+                    else:
+                        nuevas.append(Instr("const", valor, resultado=ins.resultado))
+                        constantes[ins.resultado] = valor
+                        cambios += 1
+                        continue
+        if ins.op in ("neg", "not") and isinstance(ins.arg1, str) and ins.arg1 in constantes:
+            valor = (-constantes[ins.arg1]) if ins.op == "neg" else (not constantes[ins.arg1])
+            nuevas.append(Instr("const", valor, resultado=ins.resultado))
             constantes[ins.resultado] = valor
             cambios += 1
             continue
-        if ins.op == 'a_float' and isinstance(ins.arg1, str) and ins.arg1 in constantes:
+        if ins.op == "a_float" and isinstance(ins.arg1, str) and ins.arg1 in constantes:
             v = constantes[ins.arg1]
             valor = float(v) if _es_entero(v) else v
-            nuevas.append(Instr('const', valor, resultado=ins.resultado))
+            nuevas.append(Instr("const", valor, resultado=ins.resultado))
             constantes[ins.resultado] = valor
             cambios += 1
             continue
@@ -807,13 +906,11 @@ def eliminar_codigo_muerto(instrucciones):
         for campo in (ins.arg1, ins.arg2, ins.arg3):
             if isinstance(campo, str):
                 usados.add(campo)
-    puras = _BINOPS | {'const', 'copy', 'neg', 'not', 'a_float', 'array_get'}
+    puras = _BINOPS | {"const", "copy", "neg", "not", "a_float", "array_get"}
     nuevas = []
     cambios = 0
     for ins in instrucciones:
-        es_temp_no_usado = (ins.resultado is not None
-                            and ins.resultado.startswith('t')
-                            and ins.resultado not in usados)
+        es_temp_no_usado = ins.resultado is not None and ins.resultado.startswith("t") and ins.resultado not in usados
         if ins.op in puras and es_temp_no_usado:
             cambios += 1
             continue
@@ -828,7 +925,7 @@ def eliminar_inalcanzable(instrucciones):
     cambios = 0
     muerto = False
     for ins in instrucciones:
-        if ins.op == 'label':
+        if ins.op == "label":
             muerto = False
             nuevas.append(ins)
             continue
@@ -836,7 +933,7 @@ def eliminar_inalcanzable(instrucciones):
             cambios += 1
             continue
         nuevas.append(ins)
-        if ins.op in ('goto', 'return'):
+        if ins.op in ("goto", "return"):
             muerto = True
     return nuevas, cambios
 
@@ -848,8 +945,12 @@ def peephole_saltos_redundantes(instrucciones):
     cambios = 0
     n = len(instrucciones)
     for i, ins in enumerate(instrucciones):
-        if (ins.op == 'goto' and i + 1 < n and instrucciones[i + 1].op == 'label'
-                and instrucciones[i + 1].arg1 == ins.arg1):
+        if (
+            ins.op == "goto"
+            and i + 1 < n
+            and instrucciones[i + 1].op == "label"
+            and instrucciones[i + 1].arg1 == ins.arg1
+        ):
             cambios += 1
             continue
         nuevas.append(ins)
@@ -878,16 +979,20 @@ def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
     propia subrutina, así que se aplica por separado en
     `optimizar_programa`, no dentro de `_PASADAS` (que son todas
     agnósticas del nombre)."""
-    etq_inicio = f'__tco_{nombre_funcion}_inicio'
-    nuevas = [Instr('label', etq_inicio)]
+    etq_inicio = f"__tco_{nombre_funcion}_inicio"
+    nuevas = [Instr("label", etq_inicio)]
     cambios = 0
     i = 0
     n = len(instrucciones)
     while i < n:
         ins = instrucciones[i]
-        if (ins.op == 'call' and ins.arg1 == nombre_funcion
-                and i + 1 < n and instrucciones[i + 1].op == 'return'
-                and instrucciones[i + 1].arg1 == ins.resultado):
+        if (
+            ins.op == "call"
+            and ins.arg1 == nombre_funcion
+            and i + 1 < n
+            and instrucciones[i + 1].op == "return"
+            and instrucciones[i + 1].arg1 == ins.resultado
+        ):
             num_args = ins.arg2
             # Los `num_args` 'param' que alimentan este 'call' NO son
             # necesariamente contiguos en `nuevas`: `_gen_llamada` emite,
@@ -899,7 +1004,7 @@ def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
             indices_param = []
             j = len(nuevas) - 1
             while j >= 0 and len(indices_param) < num_args:
-                if nuevas[j].op == 'param':
+                if nuevas[j].op == "param":
                     indices_param.append(j)
                 j -= 1
             if len(indices_param) == num_args:
@@ -912,8 +1017,8 @@ def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
                 # vuelven temporales muertos que `eliminar_codigo_muerto`
                 # (la pasada siguiente en optimizar_programa) limpia solo.
                 for nombre_param, val in zip(nombres_parametros, valores):
-                    nuevas.append(Instr('copy', val, resultado=nombre_param))
-                nuevas.append(Instr('goto', etq_inicio))
+                    nuevas.append(Instr("copy", val, resultado=nombre_param))
+                nuevas.append(Instr("goto", etq_inicio))
                 cambios += 1
                 i += 2  # el 'call' y el 'return' que lo sigue, ya reemplazados
                 continue
@@ -925,10 +1030,10 @@ def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
 
 
 _PASADAS = (
-    ('plegado de constantes', plegado_constantes),
-    ('eliminación de código inalcanzable', eliminar_inalcanzable),
-    ('eliminación de código muerto', eliminar_codigo_muerto),
-    ('peephole (saltos redundantes)', peephole_saltos_redundantes),
+    ("plegado de constantes", plegado_constantes),
+    ("eliminación de código inalcanzable", eliminar_inalcanzable),
+    ("eliminación de código muerto", eliminar_codigo_muerto),
+    ("peephole (saltos redundantes)", peephole_saltos_redundantes),
 )
 
 
@@ -969,7 +1074,7 @@ def optimizar_programa(subrutinas):
         tras_tco, cambios_tco = eliminar_recursion_cola(nombre, parametros, instrucciones)
         nuevas, resumen = optimizar(tras_tco)
         if cambios_tco:
-            resumen = [('eliminación de recursión de cola', cambios_tco)] + resumen
+            resumen = [("eliminación de recursión de cola", cambios_tco)] + resumen
         optimizadas[nombre] = (parametros, nuevas)
         resumenes[nombre] = resumen
     return optimizadas, resumenes
@@ -981,6 +1086,7 @@ def optimizar_programa(subrutinas):
 # agrega además un bytecode de más bajo nivel, para mantener el alcance
 # manejable (queda anotado como candidato futuro en la hoja de ruta).
 # ============================================================
+
 
 class MaquinaTAC:
     """Intérprete lineal de TAC. Modelo de ámbitos deliberadamente simple
@@ -1004,7 +1110,7 @@ class MaquinaTAC:
         self.salida = []
         self.globales = {}
         self._ejecutar_lista(self.ir_globales, self.globales)
-        self._llamar('main', [])
+        self._llamar("main", [])
         return self.salida
 
     def _llamar(self, nombre, argumentos):
@@ -1019,7 +1125,7 @@ class MaquinaTAC:
         parametros, instrucciones = entrada_sub
         marco = dict(zip(parametros, argumentos))
         tipo, valor = self._ejecutar_lista(instrucciones, marco)
-        return valor if tipo == 'return' else None
+        return valor if tipo == "return" else None
 
     def _contenedor(self, nombre, marco):
         return marco if nombre in marco else self.globales
@@ -1039,9 +1145,8 @@ class MaquinaTAC:
         cont = marco if nombre in marco else (self.globales if nombre in self.globales else marco)
         cont[nombre] = valor
 
-
     def _ejecutar_lista(self, instrucciones, marco):
-        etiquetas = {ins.arg1: i for i, ins in enumerate(instrucciones) if ins.op == 'label'}
+        etiquetas = {ins.arg1: i for i, ins in enumerate(instrucciones) if ins.op == "label"}
         pila_params = []
         # Manejadores de try/catch activos (Etapa 6): pila de
         # (etiqueta_catch, nombre_variable_catch). Ver 'try_begin' abajo.
@@ -1052,11 +1157,11 @@ class MaquinaTAC:
             ins = instrucciones[i]
             op = ins.op
             try:
-                if op == 'label':
+                if op == "label":
                     pass
-                elif op == 'const':
+                elif op == "const":
                     self._escribir_var(ins.resultado, ins.arg1, marco)
-                elif op == 'copy':
+                elif op == "copy":
                     self._escribir_var(ins.resultado, self._leer_var(ins.arg1, marco), marco)
                 elif op in _BINOPS:
                     a = self._leer_var(ins.arg1, marco)
@@ -1067,74 +1172,74 @@ class MaquinaTAC:
                         # Misma distinción que interpreter.py::_error_division_cero:
                         # '/' entre reales -> IL-EJE-002, entre enteros -> IL-EJE-006;
                         # '%' (siempre entero) es IL-EJE-006 en cualquier caso.
-                        if op == '/' and (_es_real(a) or _es_real(b)):
+                        if op == "/" and (_es_real(a) or _es_real(b)):
                             raise ErrorEjecucionTAC(
-                                'IL-EJE-002',
-                                'Operación de punto flotante inválida: división entre 0.0')
+                                "IL-EJE-002", "Operación de punto flotante inválida: división entre 0.0"
+                            )
                         raise ErrorEjecucionTAC(
-                            'IL-EJE-006',
-                            'División por cero' if op == '/' else 'División por cero en módulo')
+                            "IL-EJE-006", "División por cero" if op == "/" else "División por cero en módulo"
+                        )
                     self._escribir_var(ins.resultado, resultado, marco)
-                elif op == 'neg':
+                elif op == "neg":
                     self._escribir_var(ins.resultado, -self._leer_var(ins.arg1, marco), marco)
-                elif op == 'not':
+                elif op == "not":
                     self._escribir_var(ins.resultado, not self._leer_var(ins.arg1, marco), marco)
-                elif op == 'a_float':
+                elif op == "a_float":
                     v = self._leer_var(ins.arg1, marco)
                     self._escribir_var(ins.resultado, float(v) if _es_entero(v) else v, marco)
-                elif op == 'goto':
+                elif op == "goto":
                     i = etiquetas[ins.arg1]
                     continue
-                elif op == 'if_false':
+                elif op == "if_false":
                     if not self._leer_var(ins.arg1, marco):
                         i = etiquetas[ins.arg2]
                         continue
-                elif op == 'param':
+                elif op == "param":
                     pila_params.append(self._leer_var(ins.arg1, marco))
-                elif op == 'call':
+                elif op == "call":
                     nombre_f, nargs = ins.arg1, ins.arg2
-                    args = pila_params[len(pila_params) - nargs:] if nargs else []
-                    del pila_params[len(pila_params) - nargs:]
+                    args = pila_params[len(pila_params) - nargs :] if nargs else []
+                    del pila_params[len(pila_params) - nargs :]
                     valor = self._llamar(nombre_f, args)
                     if ins.resultado is not None:
                         self._escribir_var(ins.resultado, valor, marco)
-                elif op == 'return':
+                elif op == "return":
                     valor = self._leer_var(ins.arg1, marco) if ins.arg1 is not None else None
-                    return ('return', valor)
-                elif op == 'print':
+                    return ("return", valor)
+                elif op == "print":
                     self._escribir_salida(self._leer_var(ins.arg1, marco))
-                elif op == 'read':
+                elif op == "read":
                     self._escribir_var(ins.resultado, self._leer_entrada(ins.arg1), marco)
-                elif op == 'array_new':
+                elif op == "array_new":
                     marco[ins.arg1] = [None] * self._leer_var(ins.arg2, marco)
-                elif op == 'array_get':
+                elif op == "array_get":
                     arr = self._contenedor(ins.arg1, marco)[ins.arg1]
                     idx = self._leer_var(ins.arg2, marco)
                     if idx < 0 or idx >= len(arr):
-                        raise ErrorEjecucionTAC('IL-EJE-050', f'Índice {idx} fuera de rango')
+                        raise ErrorEjecucionTAC("IL-EJE-050", f"Índice {idx} fuera de rango")
                     self._escribir_var(ins.resultado, arr[idx], marco)
-                elif op == 'array_set':
+                elif op == "array_set":
                     arr = self._contenedor(ins.arg1, marco)[ins.arg1]
                     idx = self._leer_var(ins.arg2, marco)
                     if idx < 0 or idx >= len(arr):
-                        raise ErrorEjecucionTAC('IL-EJE-050', f'Índice {idx} fuera de rango')
+                        raise ErrorEjecucionTAC("IL-EJE-050", f"Índice {idx} fuera de rango")
                     arr[idx] = self._leer_var(ins.arg3, marco)
-                elif op == 'try_begin':
+                elif op == "try_begin":
                     pila_manejadores.append((ins.arg1, ins.arg2))
-                elif op == 'try_end':
+                elif op == "try_end":
                     if pila_manejadores:
                         pila_manejadores.pop()
-                elif op == 'pop_manejador':
+                elif op == "pop_manejador":
                     if pila_manejadores:
                         pila_manejadores.pop()
                 else:
-                    raise RuntimeError(f'operación de IR no soportada: {op}')
+                    raise RuntimeError(f"operación de IR no soportada: {op}")
             except ErrorEjecucionTAC as err:
                 if not pila_manejadores:
                     raise
                 etq_catch, nombre_catch = pila_manejadores.pop()
-                marco[f'{nombre_catch}.codigo'] = err.codigo
-                marco[f'{nombre_catch}.mensaje'] = err.mensaje
+                marco[f"{nombre_catch}.codigo"] = err.codigo
+                marco[f"{nombre_catch}.mensaje"] = err.mensaje
                 i = etiquetas[etq_catch]
                 continue
             i += 1
@@ -1142,11 +1247,11 @@ class MaquinaTAC:
 
     def _escribir_salida(self, valor):
         if isinstance(valor, bool):
-            s = 'true' if valor else 'false'
+            s = "true" if valor else "false"
         elif isinstance(valor, float):
             s = str(valor)
         elif valor is None:
-            s = 'void'
+            s = "void"
         else:
             s = str(valor)
         self.salida.append(s)
@@ -1158,15 +1263,15 @@ class MaquinaTAC:
             try:
                 crudo = input()
             except EOFError:
-                crudo = ''
+                crudo = ""
         crudo = crudo.strip()
-        if tipo == 'int':
+        if tipo == "int":
             return int(crudo)
-        if tipo == 'float':
+        if tipo == "float":
             return float(crudo)
-        if tipo == 'bool':
+        if tipo == "bool":
             v = crudo.lower()
-            return v in ('true', 'verdadero', '1')
+            return v in ("true", "verdadero", "1")
         return crudo
 
 
@@ -1221,6 +1326,7 @@ class MaquinaTAC:
 # para esos, fuera del alcance "de una página" de este incremento -- mismo
 # criterio de exclusión documentada que ya usa `NoSoportadoIR` para POO).
 
+
 class NoSoportadoObjetivo(Exception):
     """El programa usa una construcción fuera del subconjunto que cubre el
     generador de código objetivo (arreglos, try/catch, lectura de entrada)."""
@@ -1229,7 +1335,7 @@ class NoSoportadoObjetivo(Exception):
 class InstrObjetivo:
     """Una instrucción del ISA de juguete."""
 
-    __slots__ = ('op', 'arg1', 'arg2')
+    __slots__ = ("op", "arg1", "arg2")
 
     def __init__(self, op, arg1=None, arg2=None):
         self.op = op
@@ -1238,28 +1344,41 @@ class InstrObjetivo:
 
     def __repr__(self):
         op, a1, a2 = self.op, self.arg1, self.arg2
-        if op == 'LABEL':
-            return f'{a1}:'
-        if op in ('JMP', 'JZ'):
-            return f'    {op} {a1}'
-        if op == 'PUSH':
-            return f'    PUSH {a1!r}'
-        if op in ('LOAD', 'STORE'):
-            return f'    {op} {a1}'
-        if op in ('CALL', 'CALLV'):
-            return f'    {op} {a1}, {a2}'
-        return f'    {op}'
+        if op == "LABEL":
+            return f"{a1}:"
+        if op in ("JMP", "JZ"):
+            return f"    {op} {a1}"
+        if op == "PUSH":
+            return f"    PUSH {a1!r}"
+        if op in ("LOAD", "STORE"):
+            return f"    {op} {a1}"
+        if op in ("CALL", "CALLV"):
+            return f"    {op} {a1}, {a2}"
+        return f"    {op}"
 
 
 _MAPA_BINOP_OBJETIVO = {
-    '+': 'ADD', '-': 'SUB', '*': 'MUL', '/': 'DIV', '%': 'MOD',
-    '==': 'CMPEQ', '!=': 'CMPNE', '<': 'CMPLT', '<=': 'CMPLE',
-    '>': 'CMPGT', '>=': 'CMPGE',
+    "+": "ADD",
+    "-": "SUB",
+    "*": "MUL",
+    "/": "DIV",
+    "%": "MOD",
+    "==": "CMPEQ",
+    "!=": "CMPNE",
+    "<": "CMPLT",
+    "<=": "CMPLE",
+    ">": "CMPGT",
+    ">=": "CMPGE",
 }
 
 _NO_SOPORTADOS_OBJETIVO = {
-    'array_new', 'array_get', 'array_set',
-    'try_begin', 'try_end', 'pop_manejador', 'read',
+    "array_new",
+    "array_get",
+    "array_set",
+    "try_begin",
+    "try_end",
+    "pop_manejador",
+    "read",
 }
 
 
@@ -1295,23 +1414,25 @@ _NO_SOPORTADOS_OBJETIVO = {
 # fin MÁS LEJANO (si termina después que el nuevo rango) -- la heurística
 # "spill furthest", que minimiza spills totales en el caso simple.
 
+
 def _usos_defs_instr(ins):
     """USE/DEF de una sola instrucción TAC (ver comentario de sección)."""
+
     def _s(x):
         return {x} if isinstance(x, str) else set()
 
     op = ins.op
-    if op in ('label', 'goto'):
+    if op in ("label", "goto"):
         return set(), set()
-    if op == 'const':
+    if op == "const":
         return set(), _s(ins.resultado)
-    if op in ('copy', 'neg', 'not', 'a_float'):
+    if op in ("copy", "neg", "not", "a_float"):
         return _s(ins.arg1), _s(ins.resultado)
     if op in _BINOPS:
         return _s(ins.arg1) | _s(ins.arg2), _s(ins.resultado)
-    if op in ('if_false', 'param', 'return', 'print'):
+    if op in ("if_false", "param", "return", "print"):
         return _s(ins.arg1), set()
-    if op in ('call', 'read'):
+    if op in ("call", "read"):
         return set(), _s(ins.resultado)
     # array_*/try_*: fuera del alcance real de generar_objetivo (Etapa
     # 12.11) -- se cubren aquí de forma conservadora (cualquier argumento
@@ -1328,18 +1449,18 @@ def calcular_liveness(instrucciones):
     sección). Retorna (vivo_in, vivo_out): dos listas de sets[str], una
     entrada por instrucción, en el mismo orden que `instrucciones`."""
     n = len(instrucciones)
-    etiquetas = {ins.arg1: i for i, ins in enumerate(instrucciones) if ins.op == 'label'}
+    etiquetas = {ins.arg1: i for i, ins in enumerate(instrucciones) if ins.op == "label"}
 
     sucesores = []
     for i, ins in enumerate(instrucciones):
-        if ins.op == 'goto':
+        if ins.op == "goto":
             sucesores.append([etiquetas[ins.arg1]])
-        elif ins.op == 'if_false':
+        elif ins.op == "if_false":
             s = [etiquetas[ins.arg2]]
             if i + 1 < n:
                 s.append(i + 1)
             sucesores.append(s)
-        elif ins.op == 'return':
+        elif ins.op == "return":
             sucesores.append([])
         else:
             sucesores.append([i + 1] if i + 1 < n else [])
@@ -1374,7 +1495,7 @@ def calcular_rangos_vida(instrucciones, vivo_in, vivo_out):
     `vivo_out`). Retorna dict nombre -> (inicio, fin)."""
     rangos = {}
     for i in range(len(instrucciones)):
-        for v in (vivo_in[i] | vivo_out[i]):
+        for v in vivo_in[i] | vivo_out[i]:
             if v not in rangos:
                 rangos[v] = [i, i]
             else:
@@ -1394,7 +1515,7 @@ def asignar_registros(rangos, k=4):
       spills: list[str] de los nombres que terminaron en memoria, en el
               orden en que se decidió el spill (para reportar/verificar)."""
     orden = sorted(rangos.items(), key=lambda par: par[1][0])
-    libres = [f'R{i}' for i in range(k)]
+    libres = [f"R{i}" for i in range(k)]
     activos = []  # lista de (fin, nombre, registro)
     asignacion = {}
     spills = []
@@ -1449,6 +1570,7 @@ def generar_objetivo_subrutina(instrucciones, asignacion=None):
     juguete no distingue "registro" de "memoria" en tiempo de ejecución,
     solo en el NOMBRE -- ver MaquinaObjetivo, que usa un dict plano para
     ambos por igual)."""
+
     def _ren(nombre):
         if asignacion is None or nombre is None:
             return nombre
@@ -1460,59 +1582,59 @@ def generar_objetivo_subrutina(instrucciones, asignacion=None):
         if op in _NO_SOPORTADOS_OBJETIVO:
             raise NoSoportadoObjetivo(
                 f'"{op}" no está soportado por el generador de código '
-                f'objetivo (alcance: subconjunto estructurado sin arreglos '
-                f'ni try/catch). Ver ir.py, sección "Etapa 12.11".')
-        if op == 'label':
-            salida.append(InstrObjetivo('LABEL', ins.arg1))
-        elif op == 'const':
-            salida.append(InstrObjetivo('PUSH', ins.arg1))
-            salida.append(InstrObjetivo('STORE', _ren(ins.resultado)))
-        elif op == 'copy':
-            salida.append(InstrObjetivo('LOAD', _ren(ins.arg1)))
-            salida.append(InstrObjetivo('STORE', _ren(ins.resultado)))
+                f"objetivo (alcance: subconjunto estructurado sin arreglos "
+                f'ni try/catch). Ver ir.py, sección "Etapa 12.11".'
+            )
+        if op == "label":
+            salida.append(InstrObjetivo("LABEL", ins.arg1))
+        elif op == "const":
+            salida.append(InstrObjetivo("PUSH", ins.arg1))
+            salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
+        elif op == "copy":
+            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
         elif op in _BINOPS:
-            salida.append(InstrObjetivo('LOAD', _ren(ins.arg1)))
-            salida.append(InstrObjetivo('LOAD', _ren(ins.arg2)))
+            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(InstrObjetivo("LOAD", _ren(ins.arg2)))
             salida.append(InstrObjetivo(_MAPA_BINOP_OBJETIVO[op]))
-            salida.append(InstrObjetivo('STORE', _ren(ins.resultado)))
-        elif op == 'neg':
-            salida.append(InstrObjetivo('LOAD', _ren(ins.arg1)))
-            salida.append(InstrObjetivo('NEG'))
-            salida.append(InstrObjetivo('STORE', _ren(ins.resultado)))
-        elif op == 'not':
-            salida.append(InstrObjetivo('LOAD', _ren(ins.arg1)))
-            salida.append(InstrObjetivo('NOT'))
-            salida.append(InstrObjetivo('STORE', _ren(ins.resultado)))
-        elif op == 'a_float':
-            salida.append(InstrObjetivo('LOAD', _ren(ins.arg1)))
-            salida.append(InstrObjetivo('CVTF'))
-            salida.append(InstrObjetivo('STORE', _ren(ins.resultado)))
-        elif op == 'goto':
-            salida.append(InstrObjetivo('JMP', ins.arg1))
-        elif op == 'if_false':
-            salida.append(InstrObjetivo('LOAD', _ren(ins.arg1)))
-            salida.append(InstrObjetivo('JZ', ins.arg2))
-        elif op == 'param':
-            salida.append(InstrObjetivo('LOAD', _ren(ins.arg1)))
-            salida.append(InstrObjetivo('PUSHPARAM'))
-        elif op == 'call':
+            salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
+        elif op == "neg":
+            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(InstrObjetivo("NEG"))
+            salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
+        elif op == "not":
+            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(InstrObjetivo("NOT"))
+            salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
+        elif op == "a_float":
+            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(InstrObjetivo("CVTF"))
+            salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
+        elif op == "goto":
+            salida.append(InstrObjetivo("JMP", ins.arg1))
+        elif op == "if_false":
+            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(InstrObjetivo("JZ", ins.arg2))
+        elif op == "param":
+            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(InstrObjetivo("PUSHPARAM"))
+        elif op == "call":
             if ins.resultado is not None:
-                salida.append(InstrObjetivo('CALL', ins.arg1, ins.arg2))
-                salida.append(InstrObjetivo('STORE', _ren(ins.resultado)))
+                salida.append(InstrObjetivo("CALL", ins.arg1, ins.arg2))
+                salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
             else:
-                salida.append(InstrObjetivo('CALLV', ins.arg1, ins.arg2))
-        elif op == 'return':
+                salida.append(InstrObjetivo("CALLV", ins.arg1, ins.arg2))
+        elif op == "return":
             if ins.arg1 is not None:
-                salida.append(InstrObjetivo('LOAD', _ren(ins.arg1)))
-                salida.append(InstrObjetivo('RETV'))
+                salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+                salida.append(InstrObjetivo("RETV"))
             else:
-                salida.append(InstrObjetivo('RET'))
-        elif op == 'print':
-            salida.append(InstrObjetivo('LOAD', _ren(ins.arg1)))
-            salida.append(InstrObjetivo('PRINT'))
+                salida.append(InstrObjetivo("RET"))
+        elif op == "print":
+            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(InstrObjetivo("PRINT"))
         else:
-            raise NoSoportadoObjetivo(
-                f'"{op}" no está soportado por el generador de código objetivo.')
+            raise NoSoportadoObjetivo(f'"{op}" no está soportado por el generador de código objetivo.')
     return salida
 
 
@@ -1547,7 +1669,7 @@ def generar_objetivo_programa(subrutinas, k_registros=None):
 
 def formatear_objetivo(instrucciones):
     """Texto legible de una lista de InstrObjetivo, una por línea."""
-    return '\n'.join(repr(ins) for ins in instrucciones)
+    return "\n".join(repr(ins) for ins in instrucciones)
 
 
 class MaquinaObjetivo:
@@ -1574,7 +1696,7 @@ class MaquinaObjetivo:
         # ellas, solo 'const'/'copy'/binops), reutilizada aquí sin duplicar
         # código.
         MaquinaTAC({}, self.ir_globales)._ejecutar_lista(self.ir_globales, self.globales)
-        self._llamar('main', [])
+        self._llamar("main", [])
         return self.salida
 
     def _llamar(self, nombre, argumentos):
@@ -1601,78 +1723,77 @@ class MaquinaObjetivo:
         cont[nombre] = valor
 
     def _ejecutar_lista(self, instrucciones, marco):
-        etiquetas = {ins.arg1: i for i, ins in enumerate(instrucciones) if ins.op == 'LABEL'}
-        pila = []            # pila de operandos
-        pila_params = []     # argumentos pendientes (PUSHPARAM), como MaquinaTAC
+        etiquetas = {ins.arg1: i for i, ins in enumerate(instrucciones) if ins.op == "LABEL"}
+        pila = []  # pila de operandos
+        pila_params = []  # argumentos pendientes (PUSHPARAM), como MaquinaTAC
         i = 0
         n = len(instrucciones)
         while i < n:
             ins = instrucciones[i]
             op = ins.op
-            if op == 'LABEL':
+            if op == "LABEL":
                 pass
-            elif op == 'PUSH':
+            elif op == "PUSH":
                 pila.append(ins.arg1)
-            elif op == 'LOAD':
+            elif op == "LOAD":
                 pila.append(self._leer_var(ins.arg1, marco))
-            elif op == 'STORE':
+            elif op == "STORE":
                 self._escribir_var(ins.arg1, pila.pop(), marco)
-            elif op in ('ADD', 'SUB', 'MUL', 'DIV', 'MOD',
-                       'CMPEQ', 'CMPNE', 'CMPLT', 'CMPLE', 'CMPGT', 'CMPGE'):
+            elif op in ("ADD", "SUB", "MUL", "DIV", "MOD", "CMPEQ", "CMPNE", "CMPLT", "CMPLE", "CMPGT", "CMPGE"):
                 b = pila.pop()
                 a = pila.pop()
                 simbolo = {v: k for k, v in _MAPA_BINOP_OBJETIVO.items()}[op]
                 try:
                     pila.append(_calcular_binop(simbolo, a, b))
                 except ZeroDivisionError:
-                    if simbolo == '/' and (_es_real(a) or _es_real(b)):
+                    if simbolo == "/" and (_es_real(a) or _es_real(b)):
                         raise ErrorEjecucionTAC(
-                            'IL-EJE-002',
-                            'Operación de punto flotante inválida: división entre 0.0')
+                            "IL-EJE-002", "Operación de punto flotante inválida: división entre 0.0"
+                        )
                     raise ErrorEjecucionTAC(
-                        'IL-EJE-006',
-                        'División por cero' if simbolo == '/' else 'División por cero en módulo')
-            elif op == 'NEG':
+                        "IL-EJE-006", "División por cero" if simbolo == "/" else "División por cero en módulo"
+                    )
+            elif op == "NEG":
                 pila.append(-pila.pop())
-            elif op == 'NOT':
+            elif op == "NOT":
                 pila.append(not pila.pop())
-            elif op == 'CVTF':
+            elif op == "CVTF":
                 v = pila.pop()
                 pila.append(float(v) if _es_entero(v) else v)
-            elif op == 'JMP':
+            elif op == "JMP":
                 i = etiquetas[ins.arg1]
                 continue
-            elif op == 'JZ':
+            elif op == "JZ":
                 if not pila.pop():
                     i = etiquetas[ins.arg1]
                     continue
-            elif op == 'PUSHPARAM':
+            elif op == "PUSHPARAM":
                 pila_params.append(pila.pop())
-            elif op in ('CALL', 'CALLV'):
+            elif op in ("CALL", "CALLV"):
                 nombre_f, nargs = ins.arg1, ins.arg2
-                args = pila_params[len(pila_params) - nargs:] if nargs else []
-                del pila_params[len(pila_params) - nargs:]
+                args = pila_params[len(pila_params) - nargs :] if nargs else []
+                del pila_params[len(pila_params) - nargs :]
                 valor = self._llamar(nombre_f, args)
-                if op == 'CALL':
+                if op == "CALL":
                     pila.append(valor)
-            elif op == 'RETV':
+            elif op == "RETV":
                 return pila.pop()
-            elif op == 'RET':
+            elif op == "RET":
                 return None
-            elif op == 'PRINT':
+            elif op == "PRINT":
                 self._escribir_salida(pila.pop())
             else:
-                raise RuntimeError(f'operación de código objetivo no soportada: {op}')
+                raise RuntimeError(f"operación de código objetivo no soportada: {op}")
             i += 1
         return None
 
     def _escribir_salida(self, valor):
         if isinstance(valor, bool):
-            s = 'true' if valor else 'false'
+            s = "true" if valor else "false"
         elif isinstance(valor, float):
             s = str(valor)
         elif valor is None:
-            s = 'void'
+            s = "void"
         else:
             s = str(valor)
         self.salida.append(s)

@@ -1,4 +1,6 @@
 # Constructor de diagramas de flujo de InvenioLang (Etapa 13, Fase 1/Fase 2)
+# Patrones: Builder (diagrama → código), Factory (bloques), Command (insertar/mover/eliminar),
+# Observer (validación viva), Strategy (generación de texto)
 #
 # Cierra el hueco identificado al revisar el cierre de Fase 1/Fase 2:
 # `flowchart.py` ya genera un diagrama de flujo A PARTIR de código ya
@@ -48,6 +50,7 @@
 # romper/continuar, múltiples funciones/procedimientos por diagrama,
 # clases/POO/arreglos dentro del diagrama.
 
+from __future__ import annotations
 from .lexer import Lexer
 from .parser import Parser
 from .semantic import SemanticAnalyzer
@@ -59,13 +62,13 @@ from . import flowchart as fc
 # ---- Formas de la paleta (vocabulario propio de este módulo -- INICIO/FIN
 # no aplican, siempre hay exactamente uno de cada uno al principio/final
 # del diagrama y el estudiante no los inserta) ----
-PROCESO = 'proceso'
-ENTRADA = 'entrada'
-SALIDA = 'salida'
-DECISION = 'decision'
-MIENTRAS = 'mientras'
-HACER_MIENTRAS = 'hacer_mientras'
-PARA = 'para'
+PROCESO = "proceso"
+ENTRADA = "entrada"
+SALIDA = "salida"
+DECISION = "decision"
+MIENTRAS = "mientras"
+HACER_MIENTRAS = "hacer_mientras"
+PARA = "para"
 
 FORMAS_PALETA = (PROCESO, ENTRADA, SALIDA, DECISION, MIENTRAS, HACER_MIENTRAS, PARA)
 
@@ -75,7 +78,7 @@ def _error_local(mensaje):
     instrucción"), NO del catálogo oficial IL-* (§18.1: ese catálogo es
     estable entre versiones) -- código con prefijo distinto a propósito,
     para que nunca se confunda con un diagnóstico real del compilador."""
-    return InvenioLangError('DIAG-001', mensaje, 1, 1, 'diagrama')
+    return InvenioLangError("DIAG-001", mensaje, 1, 1, "diagrama")
 
 
 def _parsear_programa(codigo):
@@ -85,11 +88,11 @@ def _parsear_programa(codigo):
     si errores no está vacío."""
     em = ErrorManager()
     lx = Lexer(em)
-    lx.tokenizar(codigo, 'diagrama.inv')
+    lx.tokenizar(codigo, "diagrama.inv")
     if em.hay_errores():
         return None, list(em.errores)
     p = Parser(lx, em)
-    ast, em = p.analizar(codigo, 'diagrama.inv')
+    ast, em = p.analizar(codigo, "diagrama.inv")
     if ast is None or em.hay_errores():
         return None, list(em.errores)
     return ast, []
@@ -99,14 +102,15 @@ def _parsear_programa(codigo):
 # Validación + construcción de cada forma de la paleta
 # ============================================================
 
+
 def _asegurar_punto_coma(texto):
     """Le agrega ";" al final si el estudiante no lo escribió -- el resto
     de las formas (Entrada/Salida/condiciones) nunca le piden el ";" al
     estudiante (va implícito en la plantilla que las envuelve), así que
     Proceso tampoco debería exigírselo."""
     texto = texto.strip()
-    if texto and not texto.endswith((';', '}')):
-        texto += ';'
+    if texto and not texto.endswith((";", "}")):
+        texto += ";"
     return texto
 
 
@@ -115,14 +119,14 @@ def crear_proceso(texto):
     (asignación, incremento/decremento, llamada, declaración de variable/
     constante, ...). No hace falta escribir el ";" final. Retorna
     (nodo, errores)."""
-    ast, errores = _parsear_programa(f'void main() {{ {_asegurar_punto_coma(texto)} }}')
+    ast, errores = _parsear_programa(f"void main() {{ {_asegurar_punto_coma(texto)} }}")
     if errores:
         return None, errores
     elementos = ast.main.bloque.elementos
     if len(elementos) != 1:
-        return None, [_error_local(
-            'Un bloque de "Proceso" debe contener exactamente una '
-            'instrucción o declaración.')]
+        return None, [
+            _error_local('Un bloque de "Proceso" debe contener exactamente una ' "instrucción o declaración.")
+        ]
     return elementos[0], []
 
 
@@ -130,7 +134,7 @@ def crear_entrada(texto):
     """`texto` debe ser un identificador simple (variable ya declarada
     antes en el diagrama -- eso se comprueba al validar el diagrama
     completo, no aquí). Retorna (ReadStmt, errores)."""
-    ast, errores = _parsear_programa(f'void main() {{ leer({texto}); }}')
+    ast, errores = _parsear_programa(f"void main() {{ leer({texto}); }}")
     if errores:
         return None, errores
     return ast.main.bloque.elementos[0], []
@@ -139,7 +143,7 @@ def crear_entrada(texto):
 def crear_salida(texto):
     """`texto` es cualquier expresión InvenioLang válida. Retorna
     (PrintStmt, errores)."""
-    ast, errores = _parsear_programa(f'void main() {{ imprimir({texto}); }}')
+    ast, errores = _parsear_programa(f"void main() {{ imprimir({texto}); }}")
     if errores:
         return None, errores
     return ast.main.bloque.elementos[0], []
@@ -147,7 +151,7 @@ def crear_salida(texto):
 
 def crear_decision(texto_condicion):
     """Retorna (IfStmt con ramas vacías, errores)."""
-    ast, errores = _parsear_programa(f'void main() {{ si ({texto_condicion}) {{ }} }}')
+    ast, errores = _parsear_programa(f"void main() {{ si ({texto_condicion}) {{ }} }}")
     if errores:
         return None, errores
     condicion = ast.main.bloque.elementos[0].condicion
@@ -156,7 +160,7 @@ def crear_decision(texto_condicion):
 
 def crear_mientras(texto_condicion):
     """Retorna (WhileStmt con cuerpo vacío, errores)."""
-    ast, errores = _parsear_programa(f'void main() {{ mientras ({texto_condicion}) {{ }} }}')
+    ast, errores = _parsear_programa(f"void main() {{ mientras ({texto_condicion}) {{ }} }}")
     if errores:
         return None, errores
     condicion = ast.main.bloque.elementos[0].condicion
@@ -165,7 +169,7 @@ def crear_mientras(texto_condicion):
 
 def crear_hacer_mientras(texto_condicion):
     """Retorna (DoWhileStmt con cuerpo vacío, errores)."""
-    ast, errores = _parsear_programa(f'void main() {{ hacer {{ }} mientras ({texto_condicion}); }}')
+    ast, errores = _parsear_programa(f"void main() {{ hacer {{ }} mientras ({texto_condicion}); }}")
     if errores:
         return None, errores
     condicion = ast.main.bloque.elementos[0].condicion
@@ -175,8 +179,7 @@ def crear_hacer_mientras(texto_condicion):
 def crear_para(texto_init, texto_cond, texto_paso):
     """Los tres campos se ensamblan tal cual en la cabecera real de un
     `para (init; cond; paso)`. Retorna (ForStmt con cuerpo vacío, errores)."""
-    ast, errores = _parsear_programa(
-        f'void main() {{ para ({texto_init}; {texto_cond}; {texto_paso}) {{ }} }}')
+    ast, errores = _parsear_programa(f"void main() {{ para ({texto_init}; {texto_cond}; {texto_paso}) {{ }} }}")
     if errores:
         return None, errores
     nodo = ast.main.bloque.elementos[0]
@@ -189,6 +192,7 @@ def crear_para(texto_init, texto_cond, texto_paso):
 # DoWhileStmt.bloque/ForStmt.bloque YA son la estructura de árbol, no hace
 # falta una clase nueva.
 # ============================================================
+
 
 def insertar(bloque, indice, nodo):
     bloque.elementos.insert(indice, nodo)
@@ -234,8 +238,9 @@ def quitar_rama_else(if_stmt):
 # Generación de texto InvenioLang desde el Bloque construido
 # ============================================================
 
+
 def _sangria(nivel):
-    return '    ' * nivel
+    return "    " * nivel
 
 
 def _registrar(nodo, lineas, mapa_lineas):
@@ -254,34 +259,34 @@ def _emitir_instruccion(nodo, nivel, lineas, mapa_lineas):
     ind = _sangria(nivel)
     if isinstance(nodo, IfStmt):
         _registrar(nodo, lineas, mapa_lineas)
-        lineas.append(f'{ind}si ({fc._texto_expr(nodo.condicion)}) {{')
+        lineas.append(f"{ind}si ({fc._texto_expr(nodo.condicion)}) {{")
         _emitir_bloque(nodo.bloque_then, nivel + 1, lineas, mapa_lineas)
         if nodo.bloque_else is not None:
-            lineas.append(f'{ind}}} sino {{')
+            lineas.append(f"{ind}}} sino {{")
             _emitir_bloque(nodo.bloque_else, nivel + 1, lineas, mapa_lineas)
-        lineas.append(f'{ind}}}')
+        lineas.append(f"{ind}}}")
     elif isinstance(nodo, WhileStmt):
         _registrar(nodo, lineas, mapa_lineas)
-        lineas.append(f'{ind}mientras ({fc._texto_expr(nodo.condicion)}) {{')
+        lineas.append(f"{ind}mientras ({fc._texto_expr(nodo.condicion)}) {{")
         _emitir_bloque(nodo.bloque, nivel + 1, lineas, mapa_lineas)
-        lineas.append(f'{ind}}}')
+        lineas.append(f"{ind}}}")
     elif isinstance(nodo, DoWhileStmt):
         _registrar(nodo, lineas, mapa_lineas)
-        lineas.append(f'{ind}hacer {{')
+        lineas.append(f"{ind}hacer {{")
         _emitir_bloque(nodo.bloque, nivel + 1, lineas, mapa_lineas)
-        lineas.append(f'{ind}}} mientras ({fc._texto_expr(nodo.condicion)});')
+        lineas.append(f"{ind}}} mientras ({fc._texto_expr(nodo.condicion)});")
     elif isinstance(nodo, ForStmt):
         _registrar(nodo, lineas, mapa_lineas)
         init_txt = fc._texto_for_init_act(nodo.init_stmt)
         act_txt = fc._texto_for_init_act(nodo.act_stmt)
         cond_txt = fc._texto_expr(nodo.cond_expr)
-        lineas.append(f'{ind}para ({init_txt}; {cond_txt}; {act_txt}) {{')
+        lineas.append(f"{ind}para ({init_txt}; {cond_txt}; {act_txt}) {{")
         _emitir_bloque(nodo.bloque, nivel + 1, lineas, mapa_lineas)
-        lineas.append(f'{ind}}}')
+        lineas.append(f"{ind}}}")
     else:
         texto = fc._texto_instruccion(nodo)
         _registrar(nodo, lineas, mapa_lineas)
-        lineas.append(f'{ind}{texto};' if texto is not None else f'{ind}/* forma no soportada */')
+        lineas.append(f"{ind}{texto};" if texto is not None else f"{ind}/* forma no soportada */")
 
 
 def generar_texto_main(bloque):
@@ -290,11 +295,11 @@ def generar_texto_main(bloque):
     mapa_lineas) -- mapa_lineas: dict[id(nodo) -> línea 1-indexada],
     usado por `validar_diagrama` para reasignar cada error a la caja que
     lo originó."""
-    lineas = ['void main() {']
+    lineas = ["void main() {"]
     mapa_lineas = {}
     _emitir_bloque(bloque, 1, lineas, mapa_lineas)
-    lineas.append('}')
-    return '\n'.join(lineas) + '\n', mapa_lineas
+    lineas.append("}")
+    return "\n".join(lineas) + "\n", mapa_lineas
 
 
 def validar_diagrama(bloque):
@@ -311,11 +316,11 @@ def validar_diagrama(bloque):
 
     em = ErrorManager()
     lx = Lexer(em)
-    lx.tokenizar(texto, 'diagrama.inv')
+    lx.tokenizar(texto, "diagrama.inv")
     ast = None
     if not em.hay_errores():
         p = Parser(lx, em)
-        ast, em = p.analizar(texto, 'diagrama.inv')
+        ast, em = p.analizar(texto, "diagrama.inv")
         if ast is not None and not em.hay_errores():
             sem = SemanticAnalyzer(em)
             tabla = sem.analizar(ast)

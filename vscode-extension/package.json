@@ -1,0 +1,9 @@
+{
+  "name": "inveniolang-vscode",
+  "displayName": "InvenioLang",
+  "description": "LSP para InvenioLang — reusando lexer.py + semantic.py",
+  "version": "0.1.0",
+  "engines": {"vscode": "^1.80.0"},
+  "contributes": {"languages": [{"id":"inveniolang","extensions":[".inv"]}]},
+  "activationEvents": ["onLanguage:inveniolang"]
+}

@@ -30,6 +30,11 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QCompleter, QDialog,
                                QVBoxLayout, QWidget)
 
 from . import flowchart as fc
+try:
+    from .ds_visualizer import attach_to_interpreter as _attach_vis
+    from .ds_visualizer import VisualizerObserver
+except Exception:
+    _attach_vis = None
 from . import flowchart_builder as fb
 from . import ir as ir_mod
 from . import builtins as _builtins_mod
@@ -43,43 +48,47 @@ from .type_checker import TypeChecker
 from .interpreter import DebugStopped, ExecutionCancelled, Interpreter
 from .docstrings import (EJEMPLOS, _DOC_ATAJOS, _DOC_ERRORES, _DOC_FUNCIONES,
                          _DOC_GUIA, _DOC_REFERENCIA)
+# Accesibilidad profesional (WCAG 2.1 AA) — ver accessibility.py / ACCESSIBILITY.md
+try:
+    from . import accessibility as _acc
+except Exception:
+    _acc = None
 
-# Temas (Etapa 5: panel de configuración). `COLORES` es SIEMPRE el mismo
-# objeto dict -- cambiar de tema muta su contenido in-place (clear+update)
-# en vez de reasignar el nombre, para que todo el código existente que ya
-# hace `COLORES['clave']` en tiempo de pintado (el gutter, por ejemplo, ya
-# relee COLORES en cada paintEvent) se entere solo, sin tocar cada sitio.
-TEMA_OSCURO = {
-    'fondo': '#1e1e1e', 'panel': '#252526', 'gutter': '#252526',
-    'gutter_borde': '#3c3c3c', 'gutter_linea': '#858585',
-    'texto': '#d4d4d4', 'keyword': '#569cd6', 'type': '#4ec9b0',
-    'string': '#ce9178', 'comment': '#6a9955', 'number': '#b5cea8',
-    'builtin': '#dcdcaa', 'operator': '#d4d4d4',
-    'error_sub': '#f48771', 'error_fondo': '#3a2020',
-    'warn_sub': '#dcdcaa', 'warn_fondo': '#413f23',
-    'linea_activa': '#2a2d2e', 'flash': '#264f78',
-    'breakpoint': '#e51400',
-    'dfd_inicio_fin': '#264f78', 'dfd_proceso': '#2d2d30',
-    'dfd_decision': '#3a3d21', 'dfd_es': '#2d3d3d',
-    'dfd_borde': '#9cdcfe', 'dfd_flecha': '#c8c8c8', 'dfd_texto': '#d4d4d4',
-}
-
-TEMA_CLARO = {
-    'fondo': '#ffffff', 'panel': '#f3f3f3', 'gutter': '#f3f3f3',
-    'gutter_borde': '#d4d4d4', 'gutter_linea': '#237893',
-    'texto': '#000000', 'keyword': '#0000ff', 'type': '#267f99',
-    'string': '#a31515', 'comment': '#008000', 'number': '#098658',
-    'builtin': '#795e26', 'operator': '#000000',
-    'error_sub': '#e51400', 'error_fondo': '#fde7e9',
-    'warn_sub': '#b89500', 'warn_fondo': '#fff8e1',
-    'linea_activa': '#f0f0f0', 'flash': '#add6ff',
-    'breakpoint': '#e51400',
-    'dfd_inicio_fin': '#add6ff', 'dfd_proceso': '#f3f3f3',
-    'dfd_decision': '#fff2b3', 'dfd_es': '#d6f5e3',
-    'dfd_borde': '#0066cc', 'dfd_flecha': '#333333', 'dfd_texto': '#000000',
-}
-
-COLORES = dict(TEMA_OSCURO)
+# Temas — extraídos a gui/theme.py (hexagonal, Sprint 0). Import real, no duplicado.
+try:
+    from .gui.theme import TEMA_OSCURO, TEMA_CLARO, TEMA_ALTO_CONTRASTE, COLORES
+except Exception:
+    # Fallback si gui.theme no disponible (CI sin Qt)
+    TEMA_OSCURO = {
+        'fondo': '#1e1e1e', 'panel': '#252526', 'gutter': '#252526',
+        'gutter_borde': '#3c3c3c', 'gutter_linea': '#858585',
+        'texto': '#d4d4d4', 'keyword': '#569cd6', 'type': '#4ec9b0',
+        'string': '#ce9178', 'comment': '#6a9955', 'number': '#b5cea8',
+        'builtin': '#dcdcaa', 'operator': '#d4d4d4',
+        'error_sub': '#f48771', 'error_fondo': '#3a2020',
+        'warn_sub': '#dcdcaa', 'warn_fondo': '#413f23',
+        'linea_activa': '#2a2d2e', 'flash': '#264f78',
+        'breakpoint': '#e51400',
+        'dfd_inicio_fin': '#264f78', 'dfd_proceso': '#2d2d30',
+        'dfd_decision': '#3a3d21', 'dfd_es': '#2d3d3d',
+        'dfd_borde': '#9cdcfe', 'dfd_flecha': '#c8c8c8', 'dfd_texto': '#d4d4d4',
+    }
+    TEMA_CLARO = {
+        'fondo': '#ffffff', 'panel': '#f3f3f3', 'gutter': '#f3f3f3',
+        'gutter_borde': '#d4d4d4', 'gutter_linea': '#237893',
+        'texto': '#000000', 'keyword': '#0000ff', 'type': '#267f99',
+        'string': '#a31515', 'comment': '#008000', 'number': '#098658',
+        'builtin': '#795e26', 'operator': '#000000',
+        'error_sub': '#e51400', 'error_fondo': '#fde7e9',
+        'warn_sub': '#b89500', 'warn_fondo': '#fff8e1',
+        'linea_activa': '#f0f0f0', 'flash': '#add6ff',
+        'breakpoint': '#e51400',
+        'dfd_inicio_fin': '#add6ff', 'dfd_proceso': '#f3f3f3',
+        'dfd_decision': '#fff2b3', 'dfd_es': '#d6f5e3',
+        'dfd_borde': '#0066cc', 'dfd_flecha': '#333333', 'dfd_texto': '#000000',
+    }
+    COLORES = dict(TEMA_OSCURO)
+    TEMA_ALTO_CONTRASTE = _acc.TEMA_ALTO_CONTRASTE if _acc else TEMA_OSCURO
 
 KEYWORDS = {
     'if', 'si', 'else', 'sino', 'while', 'mientras', 'for', 'para',
@@ -157,6 +166,9 @@ class MiniMapArea(QWidget):
         self._editor = editor
         self.setFixedWidth(self.ANCHO)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setAccessibleName("Minimapa")
+        self.setAccessibleDescription("Vista miniatura navegable con teclado y mouse")
 
     def sizeHint(self):
         from PySide6.QtCore import QSize
@@ -177,6 +189,21 @@ class MiniMapArea(QWidget):
     def mouseMoveEvent(self, event):
         if event.buttons() & Qt.MouseButton.LeftButton:
             self._editor._saltar_desde_minimapa(self._linea_para_y(event.position().y()))
+
+    def keyPressEvent(self, event):
+        from PySide6.QtCore import Qt
+        if event.key() == Qt.Key.Key_Up:
+            self._editor._saltar_desde_minimapa(max(1, self._editor.textCursor().blockNumber()))
+            return
+        if event.key() == Qt.Key.Key_Down:
+            self._editor._saltar_desde_minimapa(self._editor.textCursor().blockNumber()+2)
+            return
+        super().keyPressEvent(event)
+
+    def focusInEvent(self, e):
+        self.setAccessibleName("Minimapa")
+        self.setAccessibleDescription("Vista miniatura navegable con teclado Up/Down, clic y arrastre")
+        super().focusInEvent(e)
 
 
 class InvenioHighlighter(QSyntaxHighlighter):
@@ -637,6 +664,12 @@ class _HiloEjecucion(QThread):
         if depurar:
             self.interp.debug = True
             self.interp.debug_breakpoints = set(breakpoints or ())
+            # H1.2 cableado ds_visualizer via Observer
+            if _attach_vis and depurar:
+                try:
+                    self._visualizer = _attach_vis(self.interp)
+                except Exception:
+                    pass
             self.interp.debug_on_statement = self._on_debug_statement
             self.interp.debug_wait = self._on_debug_wait
 

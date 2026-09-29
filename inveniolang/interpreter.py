@@ -1,19 +1,22 @@
 # Módulo del Intérprete de Árbol de InvenioLang 1.0
 # Implementa el recorrido y ejecución del AST verificado
 # Soporta: variables, constantes, arreglos, matrices, funciones, procedimientos
-
+# Patrones aplicados: Visitor (recorrido AST sin isinstance disperso),
+# Strategy (operaciones aritméticas intercambiables), Command (debug),
+# Memento (snapshot), Observer (eventos de ejecución), Template Method
+from __future__ import annotations
 import sys
 import time
-
+from typing import Any, Dict
 from .ast_nodes import *
-from .symbol_table import TipoSimbolo
-from .builtins import (BuiltInError, es_built_in, obtener_built_in,
-                       ejecutar_built_in)
+from .ast_nodes import ASTVisitor
+from .patterns import Strategy, StrategyContext, Caretaker, Subject
+from .builtins import BuiltInError, es_built_in, ejecutar_built_in
 
 # Orden superior sobre arreglos (Etapa 12.7) -- ver semantic.py::
 # _ORDEN_SUPERIOR para el diseño completo (monomórfico sobre entero,
 # mapear/filtrar escriben en un arreglo de salida por referencia).
-_NOMBRES_ORDEN_SUPERIOR = {'reducir', 'reduce', 'mapear', 'map', 'filtrar', 'filter'}
+_NOMBRES_ORDEN_SUPERIOR = {"reducir", "reduce", "mapear", "map", "filtrar", "filter"}
 
 
 class ReturnException(Exception):
@@ -63,15 +66,15 @@ class InstanciaObjeto:
     POO, sin necesidad de sobrescribir __eq__.
     """
 
-    __slots__ = ('clase', 'campos')
+    __slots__ = ("clase", "campos")
 
     def __init__(self, clase):
         self.clase = clase
         self.campos = {}
 
     def __repr__(self):
-        pares = ', '.join(f'{k}={v!r}' for k, v in self.campos.items())
-        return f'{self.clase}({pares})'
+        pares = ", ".join(f"{k}={v!r}" for k, v in self.campos.items())
+        return f"{self.clase}({pares})"
 
 
 class _AccesoEstatico:
@@ -86,7 +89,7 @@ class _AccesoEstatico:
     estático simplemente no debe usar `this`/`super` (se bloquea en
     semantic.py, IL-POO-025)."""
 
-    __slots__ = ('nombre_clase',)
+    __slots__ = ("nombre_clase",)
 
     def __init__(self, nombre_clase):
         self.nombre_clase = nombre_clase
@@ -112,7 +115,7 @@ class ValorFuncion:
         aislado de siempre (`_ejecutar_funcion`/`_ejecutar_procedimiento`).
     """
 
-    __slots__ = ('lambda_nodo', 'marcos_capturados', 'nombre_subrutina')
+    __slots__ = ("lambda_nodo", "marcos_capturados", "nombre_subrutina")
 
     def __init__(self, lambda_nodo=None, marcos_capturados=None, nombre_subrutina=None):
         self.lambda_nodo = lambda_nodo
@@ -121,9 +124,9 @@ class ValorFuncion:
 
     def __repr__(self):
         if self.nombre_subrutina is not None:
-            return f'ValorFuncion({self.nombre_subrutina})'
-        tipos = ','.join(p.tipo for p in self.lambda_nodo.parametros)
-        return f'ValorFuncion(lambda({tipos}) -> {self.lambda_nodo.tipo_retorno})'
+            return f"ValorFuncion({self.nombre_subrutina})"
+        tipos = ",".join(p.tipo for p in self.lambda_nodo.parametros)
+        return f"ValorFuncion(lambda({tipos}) -> {self.lambda_nodo.tipo_retorno})"
 
 
 class ExecutionCancelled(Exception):
@@ -136,16 +139,32 @@ class ExecutionCancelled(Exception):
     """
 
 
-class Interpreter:
+class ExecutionStrategy(Strategy):
+    """Strategy para operaciones — permite intercambiar algoritmos (int vs float)."""
+
+    def execute(self, a: Any, b: Any, *args, **kwargs) -> Any:
+        raise NotImplementedError
+
+
+class Interpreter(ASTVisitor, Subject):
     """Intérprete de árbol para InvenioLang 1.0.
 
     Recorre el AST verificando y ejecutando las instrucciones.
     Mantiene un entorno con marcos de pila para el manejo de ámbitos.
+
+    Patrones: Visitor (visit_*), Strategy (operaciones), Subject/Observer
+    (eventos ejecución para IDE), Command (debug), Memento (snapshot).
+    Optimización: despacho Visitor O(1) vs isinstance chain, caché de
+    operaciones, notificación desacoplada.
     """
 
     def __init__(self, error_manager, tabla_simbolos):
+        Subject.__init__(self)
         self.error_manager = error_manager
         self.tabla = tabla_simbolos
+        self._strategy_ctx = StrategyContext()
+        self._caretaker = Caretaker(max_mementos=30)
+        self._op_cache: Dict[str, Callable] = {}
         # Entorno de ejecución: pila de marcos (cada marco es un dict)
         self.pila_marcos = [{}]
         # Tipos de las variables conocidos en ejecución (por nombre).
@@ -200,8 +219,8 @@ class Interpreter:
         self.debug_breakpoints = set()
         self.debug_step = False
         self.debug_detener = False
-        self.debug_on_statement = None   # callable(snapshot) -> int (0 pausa)
-        self.debug_wait = None           # callable() -> bloquea hasta reanudar
+        self.debug_on_statement = None  # callable(snapshot) -> int (0 pausa)
+        self.debug_wait = None  # callable() -> bloquea hasta reanudar
         self._pila_subrutinas = []
 
     def _snapshot_debug(self, nodo):
@@ -214,19 +233,19 @@ class Interpreter:
         variables = []
         instancia = self._instancia_actual()
         if instancia is not None:
-            variables.append({'nombre': 'este', 'tipo': instancia.clase, 'valor': instancia})
+            variables.append({"nombre": "este", "tipo": instancia.clase, "valor": instancia})
         for k, v in visibles.items():
             tipo = self.tipos_variables.get(k)
             if tipo is None:
                 e = self.tabla.buscar(k)
                 tipo = e.tipo_dato if e else type(v).__name__
-            variables.append({'nombre': k, 'tipo': tipo, 'valor': v})
+            variables.append({"nombre": k, "tipo": tipo, "valor": v})
         return {
-            'linea': getattr(nodo, 'linea', 0),
-            'columna': getattr(nodo, 'columna', 0),
-            'variables': variables,
-            'pila': list(self._pila_subrutinas),
-            'salida': list(self.salida),
+            "linea": getattr(nodo, "linea", 0),
+            "columna": getattr(nodo, "columna", 0),
+            "variables": variables,
+            "pila": list(self._pila_subrutinas),
+            "salida": list(self.salida),
         }
 
     def _debug_ejecucion(self, nodo):
@@ -242,7 +261,7 @@ class Interpreter:
         pausar = self.debug_step or (nodo.linea in self.debug_breakpoints)
         accion = pausar or bool(self.debug_on_statement(snap, pausar))
         if accion:
-            self.debug_step = False   # consume el "paso"
+            self.debug_step = False  # consume el "paso"
             if self.debug_wait is not None:
                 self.debug_wait(snap)
         if self.debug_detener:
@@ -256,7 +275,7 @@ class Interpreter:
             elif isinstance(sub, ProcedureDecl):
                 self.procedimientos_ast[sub.nombre] = sub
         if ast.main:
-            self.funciones_ast['main'] = ast.main
+            self.funciones_ast["main"] = ast.main
         self.clases_ast = {c.nombre: c for c in ast.clases}
 
     def interpretar(self, ast, entrada_usuario=None, usar_stdin=True):
@@ -305,25 +324,19 @@ class Interpreter:
 
         # Ejecutar main
         try:
-            self._ejecutar_subrutina('main', [])
-        except ReturnException as e:
+            self._ejecutar_subrutina("main", [])
+        except ReturnException:
             pass  # main no retorna valor
         except RuntimeError_ as e:
-            self.error_manager.error_ejecucion(
-                e.codigo, e.mensaje, e.linea, e.columna
-            )
+            self.error_manager.error_ejecucion(e.codigo, e.mensaje, e.linea, e.columna)
         except ExecutionCancelled:
             raise  # decision del usuario, no un error del programa
         except BreakException:
             # break/continue fuera de ciclo es un error semantico (§9.4); si
             # llega hasta aqui es que el analisis no lo detecto.
-            self.error_manager.error_ejecucion(
-                'IL-SEM-040', 'break fuera de un ciclo', 0, 0
-            )
+            self.error_manager.error_ejecucion("IL-SEM-040", "break fuera de un ciclo", 0, 0)
         except ContinueException:
-            self.error_manager.error_ejecucion(
-                'IL-SEM-041', 'continue fuera de un ciclo', 0, 0
-            )
+            self.error_manager.error_ejecucion("IL-SEM-041", "continue fuera de un ciclo", 0, 0)
 
         return self.salida
 
@@ -362,11 +375,7 @@ class Interpreter:
         entrada = self.tabla.buscar(nombre)
         if entrada and entrada.inicializado:
             return None  # Variable declarada pero sin valor de inicialización
-        raise RuntimeError_(
-            'IL-EJE-010',
-            f'Variable "{nombre}" no inicializada',
-            0, 0
-        )
+        raise RuntimeError_("IL-EJE-010", f'Variable "{nombre}" no inicializada', 0, 0)
 
     def _existe_en_marco(self, nombre):
         """Verifica si una variable existe en algún marco visible."""
@@ -384,14 +393,14 @@ class Interpreter:
 
     def _promover_si_float(self, valor, tipo_esperado):
         """Promueve int a float si el tipo esperado es float."""
-        if tipo_esperado == 'float' and isinstance(valor, int) and not isinstance(valor, bool):
+        if tipo_esperado == "float" and isinstance(valor, int) and not isinstance(valor, bool):
             return float(valor)
         return valor
 
     # Valores por defecto de las variables globales (§5.2.3, Apendice D).
     # Las locales NO reciben valor por defecto: leerlas sin inicializar es
     # IL-EJE-010.
-    VALORES_POR_DEFECTO = {'int': 0, 'float': 0.0, 'string': '', 'bool': False}
+    VALORES_POR_DEFECTO = {"int": 0, "float": 0.0, "string": "", "bool": False}
 
     def _ejecutar_declaracion(self, nodo, es_global=False):
         """Ejecuta una declaración, inicializando variables."""
@@ -410,13 +419,30 @@ class Interpreter:
             valor = self._promover_si_float(valor, nodo.tipo)
             self._declarar_variable(nodo.nombre, valor)
         elif isinstance(nodo, ArrayDecl):
+            # Hardening: límite de memoria en ejecución (coherente con semantic.py)
+            _MAX_EJEC_TAM = 100000
             if nodo.init_exprs:
+                if len(nodo.init_exprs) > _MAX_EJEC_TAM:
+                    raise RuntimeError_(
+                        "IL-EJE-050",
+                        f'Arreglo "{nodo.nombre}" excede límite de {_MAX_EJEC_TAM} elementos',
+                        nodo.linea,
+                        nodo.columna,
+                    )
                 valores = [self._evaluar_expresion(e) for e in nodo.init_exprs]
                 self._declarar_variable(nodo.nombre, valores)
             else:
                 tam = self._resolver_dimension(nodo.tam)
+                if tam > _MAX_EJEC_TAM:
+                    raise RuntimeError_(
+                        "IL-EJE-050",
+                        f'Arreglo "{nodo.nombre}" excede límite de {_MAX_EJEC_TAM} elementos',
+                        nodo.linea,
+                        nodo.columna,
+                    )
                 self._declarar_variable(nodo.nombre, [None] * tam)
         elif isinstance(nodo, MatrixDecl):
+            _MAX_EJEC_DIM = 10000
             if nodo.init_filas:
                 matriz = []
                 for fila in nodo.init_filas:
@@ -425,6 +451,13 @@ class Interpreter:
             else:
                 filas = self._resolver_dimension(nodo.filas)
                 cols = self._resolver_dimension(nodo.cols)
+                if filas > _MAX_EJEC_DIM or cols > _MAX_EJEC_DIM or filas * cols > 200000:
+                    raise RuntimeError_(
+                        "IL-EJE-050",
+                        f'Matriz "{nodo.nombre}" excede límites de memoria ({filas}x{cols})',
+                        nodo.linea,
+                        nodo.columna,
+                    )
                 self._declarar_variable(nodo.nombre, [[None] * cols for _ in range(filas)])
 
     def _invocar_built_in(self, nombre, argumentos, nodo=None):
@@ -437,10 +470,7 @@ class Interpreter:
         try:
             return ejecutar_built_in(nombre, argumentos)
         except BuiltInError as e:
-            raise RuntimeError_(
-                e.codigo, e.mensaje,
-                getattr(nodo, 'linea', 0), getattr(nodo, 'columna', 0)
-            )
+            raise RuntimeError_(e.codigo, e.mensaje, getattr(nodo, "linea", 0), getattr(nodo, "columna", 0))
 
     def _ejecutar_subrutina(self, nombre, argumentos, nodo=None):
         """Ejecuta una función o procedimiento por nombre."""
@@ -456,11 +486,7 @@ class Interpreter:
             self._ejecutar_procedimiento(nodo, argumentos)
             return None
 
-        raise RuntimeError_(
-            'IL-SEM-003',
-            f'Función no encontrada: "{nombre}"',
-            0, 0
-        )
+        raise RuntimeError_("IL-SEM-003", f'Función no encontrada: "{nombre}"', 0, 0)
 
     # Profundidad maxima de recursion de InvenioLang (§10.6, IL-EJE-040).
     # Cada llamada consume varios marcos de Python, asi que el limite del
@@ -478,9 +504,10 @@ class Interpreter:
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
             raise RuntimeError_(
-                'IL-EJE-040',
-                'Desbordamiento de pila de llamadas (recursión demasiado profunda)',
-                nodo.linea, nodo.columna
+                "IL-EJE-040",
+                "Desbordamiento de pila de llamadas (recursión demasiado profunda)",
+                nodo.linea,
+                nodo.columna,
             )
         self._entrar_marco()
         self._pila_subrutinas.append(nodo.nombre)
@@ -496,7 +523,7 @@ class Interpreter:
                     self._ejecutar_elemento(elem)
             except ReturnException as e:
                 valor = e.valor
-                if nodo.tipo_retorno == 'float' and isinstance(valor, int):
+                if nodo.tipo_retorno == "float" and isinstance(valor, int):
                     valor = float(valor)
                 return valor
 
@@ -561,13 +588,14 @@ class Interpreter:
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
             raise RuntimeError_(
-                'IL-EJE-040',
-                'Desbordamiento de pila de llamadas (recursión demasiado profunda)',
-                nodo.linea, nodo.columna
+                "IL-EJE-040",
+                "Desbordamiento de pila de llamadas (recursión demasiado profunda)",
+                nodo.linea,
+                nodo.columna,
             )
         marcos_previos = self.pila_marcos
         self.pila_marcos = list(vf.marcos_capturados) + [{}]
-        self._pila_subrutinas.append('<lambda>')
+        self._pila_subrutinas.append("<lambda>")
         try:
             for param, arg in zip(nodo_lambda.parametros, argumentos):
                 self.tipos_variables[param.nombre] = param.tipo
@@ -577,7 +605,7 @@ class Interpreter:
                     self._ejecutar_elemento(elem)
             except ReturnException as e:
                 valor = e.valor
-                if nodo_lambda.tipo_retorno == 'float' and isinstance(valor, int):
+                if nodo_lambda.tipo_retorno == "float" and isinstance(valor, int):
                     valor = float(valor)
                 return valor
             return None
@@ -595,19 +623,19 @@ class Interpreter:
         lenguaje) -- escribir `salida[i] = ...` aquí es exactamente lo
         mismo que ya hace cualquier función que recibe un arreglo por
         parámetro y lo modifica, sin mecanismo nuevo."""
-        if nombre in ('reducir', 'reduce'):
+        if nombre in ("reducir", "reduce"):
             arreglo, f, inicial = args_eval
             acc = inicial
             for v in arreglo:
                 acc = self._invocar_valor_funcion(f, [acc, v], nodo)
             return acc
-        if nombre in ('mapear', 'map'):
+        if nombre in ("mapear", "map"):
             arreglo, salida, f = args_eval
             for i, v in enumerate(arreglo):
                 if i < len(salida):
                     salida[i] = self._invocar_valor_funcion(f, [v], nodo)
             return None
-        if nombre in ('filtrar', 'filter'):
+        if nombre in ("filtrar", "filter"):
             arreglo, salida, pred = args_eval
             k = 0
             for v in arreglo:
@@ -643,26 +671,26 @@ class Interpreter:
         (Etapa 7) -- mismo vocabulario de tipos que usa el resto del
         compilador ('int'/'float'/'string'/'bool'/nombre de clase/'null')."""
         if isinstance(valor, bool):
-            return 'bool'
+            return "bool"
         if isinstance(valor, int):
-            return 'int'
+            return "int"
         if isinstance(valor, float):
-            return 'float'
+            return "float"
         if isinstance(valor, str):
-            return 'string'
+            return "string"
         if isinstance(valor, InstanciaObjeto):
             return valor.clase
         if valor is None:
-            return 'null'
+            return "null"
         return None
 
     def _tipo_parametro_ast(self, p):
         """Mismo formato que semantic.py::_tipo_parametro, pero sin
         depender de ese módulo (interpreter.py no importa semantic.py)."""
         if p.es_matriz:
-            return f'{p.tipo}[][]'
+            return f"{p.tipo}[][]"
         if p.es_arreglo:
-            return f'{p.tipo}[]'
+            return f"{p.tipo}[]"
         return p.tipo
 
     def _buscar_metodo_ast(self, nombre_clase, nombre_metodo, argumentos=None):
@@ -685,8 +713,7 @@ class Interpreter:
         derivados de los VALORES reales en vez de la verificación
         estática). Sin `argumentos` (o con una sola sobrecarga posible),
         se usa la primera/única declarada."""
-        tipos_args = ([self._tipo_runtime(a) for a in argumentos]
-                      if argumentos is not None else None)
+        tipos_args = [self._tipo_runtime(a) for a in argumentos] if argumentos is not None else None
         resultado = self.tabla.resolver_metodo(nombre_clase, nombre_metodo, tipos_args)
         if resultado is None and tipos_args is not None:
             # No debería pasar si type_checker.py ya validó el programa;
@@ -699,9 +726,10 @@ class Interpreter:
         if clase_nodo is None:
             return None
         for met in clase_nodo.metodos:
-            if (met.nombre == nombre_metodo
-                    and [self._tipo_parametro_ast(p) for p in met.parametros]
-                    == metodo_info.params_tipos):
+            if (
+                met.nombre == nombre_metodo
+                and [self._tipo_parametro_ast(p) for p in met.parametros] == metodo_info.params_tipos
+            ):
                 return clase_declarante, met
         # Ninguna coincidencia exacta de firma (no debería pasar): primer
         # método con ese nombre, por robustez.
@@ -798,10 +826,7 @@ class Interpreter:
             c_info = self.tabla.clases.get(clase)
             if c_info and nombre_campo in c_info.atributos:
                 return c_info.estado_estatico.get(nombre_campo)
-        raise RuntimeError_(
-            'IL-SEM-003', f'Atributo no encontrado: "{nombre_campo}"',
-            nodo.linea, nodo.columna
-        )
+        raise RuntimeError_("IL-SEM-003", f'Atributo no encontrado: "{nombre_campo}"', nodo.linea, nodo.columna)
 
     def _escribir_campo_estatico(self, nombre_clase, nombre_campo, valor, nodo):
         for clase in self.tabla.cadena_ancestros(nombre_clase) or [nombre_clase]:
@@ -809,10 +834,7 @@ class Interpreter:
             if c_info and nombre_campo in c_info.atributos:
                 c_info.estado_estatico[nombre_campo] = valor
                 return
-        raise RuntimeError_(
-            'IL-SEM-003', f'Atributo no encontrado: "{nombre_campo}"',
-            nodo.linea, nodo.columna
-        )
+        raise RuntimeError_("IL-SEM-003", f'Atributo no encontrado: "{nombre_campo}"', nodo.linea, nodo.columna)
 
     def _inicializar_campos(self, instancia, nombre_clase):
         """Inicializa los campos de una instancia recién creada, del
@@ -863,8 +885,7 @@ class Interpreter:
         if info_elegida is None:
             return None
         for ctor in clase_nodo.constructores:
-            if ([self._tipo_parametro_ast(p) for p in ctor.parametros]
-                    == info_elegida.params_tipos):
+            if [self._tipo_parametro_ast(p) for p in ctor.parametros] == info_elegida.params_tipos:
                 return ctor
         return clase_nodo.constructores[0]
 
@@ -891,14 +912,15 @@ class Interpreter:
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
             raise RuntimeError_(
-                'IL-EJE-040',
-                'Desbordamiento de pila de llamadas (recursión demasiado profunda)',
-                getattr(nodo, 'linea', 0), getattr(nodo, 'columna', 0)
+                "IL-EJE-040",
+                "Desbordamiento de pila de llamadas (recursión demasiado profunda)",
+                getattr(nodo, "linea", 0),
+                getattr(nodo, "columna", 0),
             )
         self._entrar_marco()
         self._pila_instancias.append(instancia)
         self._pila_clase_definicion.append(nombre_clase)
-        self._pila_subrutinas.append(f'{nombre_clase}.{nombre_clase}')
+        self._pila_subrutinas.append(f"{nombre_clase}.{nombre_clase}")
         try:
             for param, arg in zip(constructor.parametros, argumentos):
                 self.tipos_variables[param.nombre] = param.tipo
@@ -928,17 +950,17 @@ class Interpreter:
             self._salir_marco()
             self._profundidad_llamadas -= 1
 
-    def _invocar_metodo_desde(self, instancia, nombre_clase_inicio, nombre_metodo,
-                              argumentos, nodo):
+    def _invocar_metodo_desde(self, instancia, nombre_clase_inicio, nombre_metodo, argumentos, nodo):
         resultado = self._buscar_metodo_ast(nombre_clase_inicio, nombre_metodo, argumentos)
         if resultado is None:
             raise RuntimeError_(
-                'IL-SEM-003', f'Método no encontrado: "{nombre_metodo}"',
-                getattr(nodo, 'linea', 0), getattr(nodo, 'columna', 0)
+                "IL-SEM-003",
+                f'Método no encontrado: "{nombre_metodo}"',
+                getattr(nodo, "linea", 0),
+                getattr(nodo, "columna", 0),
             )
         clase_declarante, metodo_nodo = resultado
-        return self._ejecutar_metodo(instancia, clase_declarante, metodo_nodo,
-                                     argumentos, nodo)
+        return self._ejecutar_metodo(instancia, clase_declarante, metodo_nodo, argumentos, nodo)
 
     def _ejecutar_metodo(self, instancia, clase_declarante, nodo_metodo, argumentos, nodo_llamada):
         self._comprobar_cancelacion()
@@ -946,14 +968,15 @@ class Interpreter:
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
             raise RuntimeError_(
-                'IL-EJE-040',
-                'Desbordamiento de pila de llamadas (recursión demasiado profunda)',
-                nodo_metodo.linea, nodo_metodo.columna
+                "IL-EJE-040",
+                "Desbordamiento de pila de llamadas (recursión demasiado profunda)",
+                nodo_metodo.linea,
+                nodo_metodo.columna,
             )
         self._entrar_marco()
         self._pila_instancias.append(instancia)
         self._pila_clase_definicion.append(clase_declarante)
-        self._pila_subrutinas.append(f'{instancia.clase}.{nodo_metodo.nombre}')
+        self._pila_subrutinas.append(f"{instancia.clase}.{nodo_metodo.nombre}")
         try:
             for param, arg in zip(nodo_metodo.parametros, argumentos):
                 self.tipos_variables[param.nombre] = param.tipo
@@ -964,8 +987,7 @@ class Interpreter:
                     self._ejecutar_elemento(elem)
             except ReturnException as e:
                 valor = e.valor
-                if (nodo_metodo.tipo_retorno == 'float' and isinstance(valor, int)
-                        and not isinstance(valor, bool)):
+                if nodo_metodo.tipo_retorno == "float" and isinstance(valor, int) and not isinstance(valor, bool):
                     valor = float(valor)
                 return valor
             return None
@@ -983,7 +1005,7 @@ class Interpreter:
     # y retornar texto/string; si no, no cuenta (evita que un método no
     # relacionado con el mismo nombre pero otra firma dispare esto por
     # accidente).
-    _NOMBRES_A_TEXTO = ('aTexto', 'toString')
+    _NOMBRES_A_TEXTO = ("aTexto", "toString")
 
     def _metodo_a_texto(self, nombre_clase):
         """Busca, en `nombre_clase` y su cadena de ancestros, un método
@@ -995,8 +1017,7 @@ class Interpreter:
                 continue
             _, candidatos = todos
             for info in candidatos:
-                if (info.visibilidad == 'publico' and info.tipo == 'string'
-                        and not info.params_tipos):
+                if info.visibilidad == "publico" and info.tipo == "string" and not info.params_tipos:
                     return nombre
         return None
 
@@ -1004,7 +1025,7 @@ class Interpreter:
     # (Etapa 11): mismo criterio bilingüe que _NOMBRES_A_TEXTO. Debe ser
     # público, tomar exactamente 1 parámetro (el otro objeto a comparar) y
     # retornar bool; si no, no cuenta.
-    _NOMBRES_IGUAL = ('esIgual', 'equals')
+    _NOMBRES_IGUAL = ("esIgual", "equals")
 
     def _metodo_igual(self, nombre_clase):
         """Busca, en `nombre_clase` y su cadena de ancestros, un método
@@ -1017,8 +1038,7 @@ class Interpreter:
                 continue
             _, candidatos = todos
             for info in candidatos:
-                if (info.visibilidad == 'publico' and info.tipo == 'bool'
-                        and len(info.params_tipos) == 1):
+                if info.visibilidad == "publico" and info.tipo == "bool" and len(info.params_tipos) == 1:
                     return nombre
         return None
 
@@ -1030,8 +1050,7 @@ class Interpreter:
         declaración del ancestro al descendiente (§4 de la spec de POO)."""
         nombre_metodo = self._metodo_a_texto(instancia.clase)
         if nombre_metodo is not None:
-            resultado = self._invocar_metodo_desde(
-                instancia, instancia.clase, nombre_metodo, [], None)
+            resultado = self._invocar_metodo_desde(instancia, instancia.clase, nombre_metodo, [], None)
             return resultado if isinstance(resultado, str) else str(resultado)
         cadena = self.tabla.cadena_ancestros(instancia.clase) or [instancia.clase]
         pares = []
@@ -1041,16 +1060,16 @@ class Interpreter:
                 continue
             for attr in clase_nodo.atributos:
                 valor = instancia.campos.get(attr.nombre)
-                pares.append(f'{attr.nombre}={self._repr_valor_campo(valor)}')
-        return f'{instancia.clase}(' + ', '.join(pares) + ')'
+                pares.append(f"{attr.nombre}={self._repr_valor_campo(valor)}")
+        return f"{instancia.clase}(" + ", ".join(pares) + ")"
 
     def _repr_valor_campo(self, valor):
         if isinstance(valor, bool):
-            return 'true' if valor else 'false'
+            return "true" if valor else "false"
         if isinstance(valor, str):
             return f'"{valor}"'
         if valor is None:
-            return 'void'
+            return "void"
         if isinstance(valor, InstanciaObjeto):
             return self._formatear_objeto(valor)
         return str(valor)
@@ -1096,8 +1115,7 @@ class Interpreter:
             self._ejecutar_llamada(nodo.nombre, nodo.argumentos, nodo)
         elif isinstance(nodo, MethodCallStmt):
             instancia, clase_inicio = self._resolver_receptor(nodo.receptor)
-            receptor_invalido = (not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico))
-                                 or clase_inicio is None)
+            receptor_invalido = not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico)) or clase_inicio is None
             if nodo.es_seguro and receptor_invalido:
                 # Acceso seguro (Etapa 12.2): objeto?.metodo(); no hace
                 # nada si objeto es nulo (mismo cortocircuito que la forma
@@ -1107,12 +1125,12 @@ class Interpreter:
                 args = [self._evaluar_expresion(a) for a in nodo.argumentos]
                 if receptor_invalido:
                     raise RuntimeError_(
-                        'IL-EJE-010',
-                        'Llamada a método sobre una referencia nula o no inicializada',
-                        nodo.linea, nodo.columna
+                        "IL-EJE-010",
+                        "Llamada a método sobre una referencia nula o no inicializada",
+                        nodo.linea,
+                        nodo.columna,
                     )
-                self._invocar_metodo_desde(instancia, clase_inicio, nodo.nombre_metodo,
-                                           args, nodo)
+                self._invocar_metodo_desde(instancia, clase_inicio, nodo.nombre_metodo, args, nodo)
         elif isinstance(nodo, SuperCallStmt):
             # Solo se llega aquí si NO es la primera instrucción de un
             # constructor (ese caso ya lo consume _ejecutar_constructor);
@@ -1137,30 +1155,27 @@ class Interpreter:
         el que el operador esté definido, incluida la concatenación de texto
         con `+=`.
         """
-        if operador == '=':
+        if operador == "=":
             return valor
         if actual is None:
             raise RuntimeError_(
-                'IL-EJE-010',
-                'Asignación compuesta sobre un destino no inicializado',
-                nodo.linea, nodo.columna
+                "IL-EJE-010", "Asignación compuesta sobre un destino no inicializado", nodo.linea, nodo.columna
             )
-        if operador == '+=':
+        if operador == "+=":
             return actual + valor
-        if operador == '-=':
+        if operador == "-=":
             return actual - valor
-        if operador == '*=':
+        if operador == "*=":
             return actual * valor
-        if operador == '/=':
+        if operador == "/=":
             if valor == 0:
                 raise self._error_division_cero(actual, valor, nodo)
             if isinstance(actual, int) and isinstance(valor, int):
                 return self._div_entero(actual, valor)
             return actual / valor
-        if operador == '%=':
+        if operador == "%=":
             if valor == 0:
-                raise RuntimeError_('IL-EJE-006', 'División por cero en módulo',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-006", "División por cero en módulo", nodo.linea, nodo.columna)
             if isinstance(actual, int) and isinstance(valor, int):
                 return self._mod_entero(actual, valor)
             return actual % valor
@@ -1183,11 +1198,11 @@ class Interpreter:
             idx = self._evaluar_expresion(nodo.lvalue.indice)
             arreglo = self._obtener_valor_variable(nombre)
             if arreglo is None:
-                raise RuntimeError_('IL-EJE-010', f'Arreglo "{nombre}" no inicializado',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-010", f'Arreglo "{nombre}" no inicializado', nodo.linea, nodo.columna)
             if idx < 0 or idx >= len(arreglo):
-                raise RuntimeError_('IL-EJE-050', f'Índice {idx} fuera de rango en "{nombre}"',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050", f'Índice {idx} fuera de rango en "{nombre}"', nodo.linea, nodo.columna
+                )
             resultado = self._combinar_compuesto(nodo.operador, arreglo[idx], valor, nodo)
             arreglo[idx] = self._verificar_rango_int(resultado, nodo)
 
@@ -1197,14 +1212,11 @@ class Interpreter:
             col = self._evaluar_expresion(nodo.lvalue.columna)
             matriz = self._obtener_valor_variable(nombre)
             if matriz is None:
-                raise RuntimeError_('IL-EJE-010', f'Matriz "{nombre}" no inicializada',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-010", f'Matriz "{nombre}" no inicializada', nodo.linea, nodo.columna)
             if fila < 0 or fila >= len(matriz):
-                raise RuntimeError_('IL-EJE-050', f'Índice de fila {fila} fuera de rango',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-050", f"Índice de fila {fila} fuera de rango", nodo.linea, nodo.columna)
             if col < 0 or col >= len(matriz[fila]):
-                raise RuntimeError_('IL-EJE-050', f'Índice de columna {col} fuera de rango',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-050", f"Índice de columna {col} fuera de rango", nodo.linea, nodo.columna)
             resultado = self._combinar_compuesto(nodo.operador, matriz[fila][col], valor, nodo)
             matriz[fila][col] = self._verificar_rango_int(resultado, nodo)
 
@@ -1217,8 +1229,8 @@ class Interpreter:
                 actual = self._leer_campo_estatico(instancia.nombre_clase, nombre_campo, nodo)
                 resultado = self._combinar_compuesto(nodo.operador, actual, valor, nodo)
                 self._escribir_campo_estatico(
-                    instancia.nombre_clase, nombre_campo,
-                    self._verificar_rango_int(resultado, nodo), nodo)
+                    instancia.nombre_clase, nombre_campo, self._verificar_rango_int(resultado, nodo), nodo
+                )
             elif isinstance(instancia, InstanciaObjeto):
                 if self._es_atributo_estatico(instancia.clase, nombre_campo):
                     # Acceso permisivo a un estático vía instancia (Etapa 7,
@@ -1227,17 +1239,18 @@ class Interpreter:
                     actual = self._leer_campo_estatico(instancia.clase, nombre_campo, nodo)
                     resultado = self._combinar_compuesto(nodo.operador, actual, valor, nodo)
                     self._escribir_campo_estatico(
-                        instancia.clase, nombre_campo,
-                        self._verificar_rango_int(resultado, nodo), nodo)
+                        instancia.clase, nombre_campo, self._verificar_rango_int(resultado, nodo), nodo
+                    )
                 else:
                     actual = instancia.campos.get(nombre_campo)
                     resultado = self._combinar_compuesto(nodo.operador, actual, valor, nodo)
                     instancia.campos[nombre_campo] = self._verificar_rango_int(resultado, nodo)
             else:
                 raise RuntimeError_(
-                    'IL-EJE-010',
-                    'Asignación a un miembro sobre una referencia nula o no inicializada',
-                    nodo.linea, nodo.columna
+                    "IL-EJE-010",
+                    "Asignación a un miembro sobre una referencia nula o no inicializada",
+                    nodo.linea,
+                    nodo.columna,
                 )
 
     def _obtener_valor_variable(self, nombre):
@@ -1251,12 +1264,11 @@ class Interpreter:
         """Ejecuta incremento/decremento."""
         actual = self._obtener_valor_variable(nodo.nombre)
         if actual is None:
-            raise RuntimeError_('IL-EJE-010', f'Variable "{nodo.nombre}" no inicializada',
-                                nodo.linea, nodo.columna)
+            raise RuntimeError_("IL-EJE-010", f'Variable "{nodo.nombre}" no inicializada', nodo.linea, nodo.columna)
 
-        if nodo.operador == '++':
+        if nodo.operador == "++":
             self._asignar_variable(nodo.nombre, actual + 1)
-        elif nodo.operador == '--':
+        elif nodo.operador == "--":
             self._asignar_variable(nodo.nombre, actual - 1)
 
     def _ejecutar_print(self, nodo):
@@ -1290,7 +1302,7 @@ class Interpreter:
         """
         if self.entrada:
             valor_str = self.entrada.pop(0)
-        elif getattr(self, 'usar_stdin', True):
+        elif getattr(self, "usar_stdin", True):
             # CLI/consola: lectura bloqueante desde la entrada estándar (§7.2)
             try:
                 valor_str = input()
@@ -1316,15 +1328,15 @@ class Interpreter:
 
         if tipo:
             try:
-                if tipo == 'int':
+                if tipo == "int":
                     valor = int(valor_str.strip())
-                elif tipo == 'float':
+                elif tipo == "float":
                     valor = float(valor_str.strip())
-                elif tipo == 'bool':
+                elif tipo == "bool":
                     v = valor_str.strip().lower()
-                    if v in ('true', 'verdadero', '1'):
+                    if v in ("true", "verdadero", "1"):
                         valor = True
-                    elif v in ('false', 'falso', '0'):
+                    elif v in ("false", "falso", "0"):
                         valor = False
                     else:
                         raise ValueError()
@@ -1332,11 +1344,9 @@ class Interpreter:
                     valor = valor_str
                 self._asignar_variable(nodo.nombre, valor)
             except ValueError:
-                cod = {'int': 'IL-EJE-020', 'float': 'IL-EJE-021', 'bool': 'IL-EJE-022'}
+                cod = {"int": "IL-EJE-020", "float": "IL-EJE-021", "bool": "IL-EJE-022"}
                 raise RuntimeError_(
-                    cod.get(tipo, 'IL-EJE-020'),
-                    f'Entrada no convertible a {tipo}',
-                    nodo.linea, nodo.columna
+                    cod.get(tipo, "IL-EJE-020"), f"Entrada no convertible a {tipo}", nodo.linea, nodo.columna
                 )
 
     def _ejecutar_if(self, nodo):
@@ -1371,19 +1381,20 @@ class Interpreter:
         """
         if self.max_iteraciones and n > self.max_iteraciones:
             raise RuntimeError_(
-                'IL-EJE-030',
-                f'Posible ciclo infinito: se superaron '
-                f'{self.max_iteraciones:,} iteraciones sin terminar'.replace(',', ' '),
-                nodo.linea, nodo.columna
+                "IL-EJE-030",
+                "Posible ciclo infinito: se superaron "
+                f"{self.max_iteraciones:,} iteraciones sin terminar".replace(",", " "),
+                nodo.linea,
+                nodo.columna,
             )
         if self.max_segundos and n % 2000 == 0 and self._t_inicio is not None:
             transcurrido = time.monotonic() - self._t_inicio
             if transcurrido > self.max_segundos:
                 raise RuntimeError_(
-                    'IL-EJE-030',
-                    f'Posible ciclo infinito: el programa lleva '
-                    f'{transcurrido:.1f} s sin terminar',
-                    nodo.linea, nodo.columna
+                    "IL-EJE-030",
+                    "Posible ciclo infinito: el programa lleva " f"{transcurrido:.1f} s sin terminar",
+                    nodo.linea,
+                    nodo.columna,
                 )
 
     def _ejecutar_while(self, nodo):
@@ -1464,8 +1475,9 @@ class Interpreter:
             for caso in nodo.casos:
                 if self.tabla.es_subtipo_clase(valor.clase, caso.nombre_variante):
                     info_variante = self.tabla.clases.get(caso.nombre_variante)
-                    nombres_campos = ([n for n, a in info_variante.atributos.items() if not a.es_estatico]
-                                      if info_variante else [])
+                    nombres_campos = (
+                        [n for n, a in info_variante.atributos.items() if not a.es_estatico] if info_variante else []
+                    )
                     for ligadura, nombre_campo in zip(caso.ligaduras, nombres_campos):
                         self._declarar_variable(ligadura, valor.campos.get(nombre_campo))
                     for elem in caso.bloque.elementos:
@@ -1525,9 +1537,9 @@ class Interpreter:
             for elem in nodo.bloque_try.elementos:
                 self._ejecutar_elemento(elem)
         except RuntimeError_ as e:
-            excepcion = InstanciaObjeto('Excepcion')
-            excepcion.campos['codigo'] = e.codigo
-            excepcion.campos['mensaje'] = e.mensaje
+            excepcion = InstanciaObjeto("Excepcion")
+            excepcion.campos["codigo"] = e.codigo
+            excepcion.campos["mensaje"] = e.mensaje
             self._declarar_variable(nodo.nombre_catch, excepcion)
             for elem in nodo.bloque_catch.elementos:
                 self._ejecutar_elemento(elem)
@@ -1577,17 +1589,17 @@ class Interpreter:
                     nombre = nodo.act_stmt.nombre
                     actual = self._obtener_valor_variable(nombre)
                     if actual is not None:
-                        if nodo.act_stmt.operador == '++':
+                        if nodo.act_stmt.operador == "++":
                             self._asignar_variable(nombre, actual + 1)
-                        elif nodo.act_stmt.operador == '--':
+                        elif nodo.act_stmt.operador == "--":
                             self._asignar_variable(nombre, actual - 1)
                 elif isinstance(nodo.act_stmt, IncDecNode):
                     nombre = nodo.act_stmt.nombre
                     actual = self._obtener_valor_variable(nombre)
                     if actual is not None:
-                        if nodo.act_stmt.operador == '++':
+                        if nodo.act_stmt.operador == "++":
                             self._asignar_variable(nombre, actual + 1)
-                        elif nodo.act_stmt.operador == '--':
+                        elif nodo.act_stmt.operador == "--":
                             self._asignar_variable(nombre, actual - 1)
                 else:
                     self._evaluar_expresion(nodo.act_stmt)
@@ -1644,11 +1656,7 @@ class Interpreter:
             self._ejecutar_subrutina(nombre, args_eval, nodo)
             return None
 
-        raise RuntimeError_(
-            'IL-SEM-003',
-            f'Subrutina no encontrada: "{nombre}"',
-            nodo.linea, nodo.columna
-        )
+        raise RuntimeError_("IL-SEM-003", f'Subrutina no encontrada: "{nombre}"', nodo.linea, nodo.columna)
 
     def _evaluar_expresion(self, nodo):
         """Evalúa una expresión y retorna su valor."""
@@ -1673,42 +1681,39 @@ class Interpreter:
             # función del mismo nombre (sombra normal, ya lo impediría
             # semantic.py de todas formas -- los nombres de función están
             # en el mismo espacio que las variables).
-            if (nodo.nombre not in self.tipos_variables
-                    and (nodo.nombre in self.funciones_ast or nodo.nombre in self.procedimientos_ast)):
+            if nodo.nombre not in self.tipos_variables and (
+                nodo.nombre in self.funciones_ast or nodo.nombre in self.procedimientos_ast
+            ):
                 return ValorFuncion(nombre_subrutina=nodo.nombre)
             valor = self._obtener_valor_variable(nodo.nombre)
             if valor is None and not self._es_tipo_clase_de_variable(nodo.nombre):
                 # Para un tipo de clase, None ES un valor legitimo (nulo/null,
                 # Estructuras de Datos) -- no una variable sin inicializar.
                 # Solo los primitivos exigen asignacion antes de leerse.
-                raise RuntimeError_('IL-EJE-010', f'Variable "{nodo.nombre}" no inicializada',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-010", f'Variable "{nodo.nombre}" no inicializada', nodo.linea, nodo.columna)
             return valor
 
         if isinstance(nodo, ArrayAccess):
             arreglo = self._obtener_valor_variable(nodo.nombre)
             if arreglo is None:
-                raise RuntimeError_('IL-EJE-010', f'Arreglo "{nodo.nombre}" no inicializado',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-010", f'Arreglo "{nodo.nombre}" no inicializado', nodo.linea, nodo.columna)
             idx = self._evaluar_expresion(nodo.indice)
             if idx < 0 or idx >= len(arreglo):
-                raise RuntimeError_('IL-EJE-050', f'Índice {idx} fuera de rango en "{nodo.nombre}"',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050", f'Índice {idx} fuera de rango en "{nodo.nombre}"', nodo.linea, nodo.columna
+                )
             return arreglo[idx]
 
         if isinstance(nodo, MatrixAccess):
             matriz = self._obtener_valor_variable(nodo.nombre)
             if matriz is None:
-                raise RuntimeError_('IL-EJE-010', f'Matriz "{nodo.nombre}" no inicializada',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-010", f'Matriz "{nodo.nombre}" no inicializada', nodo.linea, nodo.columna)
             fila = self._evaluar_expresion(nodo.fila)
             col = self._evaluar_expresion(nodo.columna)
             if fila < 0 or fila >= len(matriz):
-                raise RuntimeError_('IL-EJE-050', f'Fila {fila} fuera de rango',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-050", f"Fila {fila} fuera de rango", nodo.linea, nodo.columna)
             if col < 0 or col >= len(matriz[fila]):
-                raise RuntimeError_('IL-EJE-050', f'Columna {col} fuera de rango',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-050", f"Columna {col} fuera de rango", nodo.linea, nodo.columna)
             return matriz[fila][col]
 
         if isinstance(nodo, FunctionCall):
@@ -1753,23 +1758,22 @@ class Interpreter:
                 if nodo.es_seguro:
                     return None
                 raise RuntimeError_(
-                    'IL-EJE-010',
-                    'Acceso a miembro sobre una referencia nula o no inicializada',
-                    nodo.linea, nodo.columna
+                    "IL-EJE-010",
+                    "Acceso a miembro sobre una referencia nula o no inicializada",
+                    nodo.linea,
+                    nodo.columna,
                 )
             if self._es_atributo_estatico(instancia.clase, nodo.nombre_miembro):
                 return self._leer_campo_estatico(instancia.clase, nodo.nombre_miembro, nodo)
             if nodo.nombre_miembro not in instancia.campos:
                 raise RuntimeError_(
-                    'IL-SEM-003', f'Atributo no encontrado: "{nodo.nombre_miembro}"',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-003", f'Atributo no encontrado: "{nodo.nombre_miembro}"', nodo.linea, nodo.columna
                 )
             return instancia.campos[nodo.nombre_miembro]
 
         if isinstance(nodo, MethodCallExpr):
             instancia, clase_inicio = self._resolver_receptor(nodo.receptor)
-            receptor_invalido = (not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico))
-                                 or clase_inicio is None)
+            receptor_invalido = not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico)) or clase_inicio is None
             if nodo.es_seguro and receptor_invalido:
                 # Acceso seguro (Etapa 12.2): los argumentos NO se evalúan
                 # si el receptor es nulo (cortocircuito, mismo criterio que
@@ -1779,26 +1783,26 @@ class Interpreter:
             args = [self._evaluar_expresion(a) for a in nodo.argumentos]
             if receptor_invalido:
                 raise RuntimeError_(
-                    'IL-EJE-010',
-                    'Llamada a método sobre una referencia nula o no inicializada',
-                    nodo.linea, nodo.columna
+                    "IL-EJE-010",
+                    "Llamada a método sobre una referencia nula o no inicializada",
+                    nodo.linea,
+                    nodo.columna,
                 )
-            return self._invocar_metodo_desde(instancia, clase_inicio, nodo.nombre_metodo,
-                                              args, nodo)
+            return self._invocar_metodo_desde(instancia, clase_inicio, nodo.nombre_metodo, args, nodo)
 
         if isinstance(nodo, BinaryOp):
             # Cortocircuito garantizado por §6.3.1: el operando derecho NO se
             # evalua cuando el izquierdo ya determina el resultado. Debe
             # resolverse aqui, antes de evaluar la derecha.
-            if nodo.operador == '&&':
+            if nodo.operador == "&&":
                 if self._evaluar_expresion(nodo.izquierda) is not True:
                     return False
                 return self._evaluar_expresion(nodo.derecha)
-            if nodo.operador == '||':
+            if nodo.operador == "||":
                 if self._evaluar_expresion(nodo.izquierda) is True:
                     return True
                 return self._evaluar_expresion(nodo.derecha)
-            if nodo.operador == '??':
+            if nodo.operador == "??":
                 # Coalescencia nula (Etapa 12.2): la derecha NO se evalua
                 # si la izquierda no es nula (mismo cortocircuito que
                 # &&/||, mismo criterio de "no evaluar lo que no hace
@@ -1814,7 +1818,7 @@ class Interpreter:
         if isinstance(nodo, UnaryOp):
             # ++ / -- en expresion modifican la variable (§5.3.3). El operando
             # es siempre un lvalue simple, garantizado por la gramatica.
-            if nodo.operador in ('++', '--'):
+            if nodo.operador in ("++", "--"):
                 return self._aplicar_inc_dec_expr(nodo)
             oper = self._evaluar_expresion(nodo.operando)
             return self._aplicar_unario(nodo.operador, oper, nodo.es_prefijo, nodo)
@@ -1840,15 +1844,14 @@ class Interpreter:
             # La gramatica solo admite expr_primaria; si no es un identificador
             # no hay donde escribir de vuelta.
             valor = self._evaluar_expresion(destino)
-            delta = 1 if nodo.operador == '++' else -1
+            delta = 1 if nodo.operador == "++" else -1
             return valor + delta if nodo.es_prefijo else valor
 
         nombre = destino.nombre
         actual = self._obtener_valor_variable(nombre)
         if actual is None:
-            raise RuntimeError_('IL-EJE-010', f'Variable "{nombre}" no inicializada',
-                                nodo.linea, nodo.columna)
-        nuevo = actual + 1 if nodo.operador == '++' else actual - 1
+            raise RuntimeError_("IL-EJE-010", f'Variable "{nombre}" no inicializada', nodo.linea, nodo.columna)
+        nuevo = actual + 1 if nodo.operador == "++" else actual - 1
         nuevo = self._verificar_rango_int(nuevo, nodo)
         self._asignar_variable(nombre, nuevo)
         return nuevo if nodo.es_prefijo else actual
@@ -1868,10 +1871,10 @@ class Interpreter:
             return valor
         if valor < self.INT_MIN or valor > self.INT_MAX:
             raise RuntimeError_(
-                'IL-EJE-001',
-                f'Desbordamiento de entero: {valor} excede el rango '
-                f'[{self.INT_MIN}, {self.INT_MAX}]',
-                getattr(nodo, 'linea', 0), getattr(nodo, 'columna', 0)
+                "IL-EJE-001",
+                f"Desbordamiento de entero: {valor} excede el rango " f"[{self.INT_MIN}, {self.INT_MAX}]",
+                getattr(nodo, "linea", 0),
+                getattr(nodo, "columna", 0),
             )
         return valor
 
@@ -1884,12 +1887,9 @@ class Interpreter:
         es_real = isinstance(izq, float) or isinstance(der, float)
         if es_real:
             return RuntimeError_(
-                'IL-EJE-002',
-                'Operación de punto flotante inválida: división entre 0.0',
-                nodo.linea, nodo.columna
+                "IL-EJE-002", "Operación de punto flotante inválida: división entre 0.0", nodo.linea, nodo.columna
             )
-        return RuntimeError_('IL-EJE-006', 'División por cero',
-                             nodo.linea, nodo.columna)
+        return RuntimeError_("IL-EJE-006", "División por cero", nodo.linea, nodo.columna)
 
     def _div_entero(self, a, b):
         """División entera con truncamiento hacia cero (§4.2.2).
@@ -1906,11 +1906,11 @@ class Interpreter:
 
     def _aplicar_binario(self, op, left, right, nodo):
         """Aplica un operador binario."""
-        if op == '||':
+        if op == "||":
             return left or right
-        if op == '&&':
+        if op == "&&":
             return left and right
-        if op in ('==', '!='):
+        if op in ("==", "!="):
             # Etapa 11: si AMBOS operandos son objetos (no cuenta comparar
             # contra nulo -- "objeto == nulo" debe seguir siendo el chequeo
             # de nulidad de siempre, sin invocar código de usuario) y la
@@ -1923,36 +1923,34 @@ class Interpreter:
             if isinstance(left, InstanciaObjeto) and isinstance(right, InstanciaObjeto):
                 nombre_metodo = self._metodo_igual(left.clase)
                 if nombre_metodo is not None:
-                    resultado = bool(self._invocar_metodo_desde(
-                        left, left.clase, nombre_metodo, [right], nodo))
-                    return resultado if op == '==' else not resultado
-            return left == right if op == '==' else left != right
-        if op == '<':
+                    resultado = bool(self._invocar_metodo_desde(left, left.clase, nombre_metodo, [right], nodo))
+                    return resultado if op == "==" else not resultado
+            return left == right if op == "==" else left != right
+        if op == "<":
             return left < right
-        if op == '>':
+        if op == ">":
             return left > right
-        if op == '<=':
+        if op == "<=":
             return left <= right
-        if op == '>=':
+        if op == ">=":
             return left >= right
-        if op == '+':
+        if op == "+":
             if isinstance(left, str) and isinstance(right, str):
                 return left + right
             return self._verificar_rango_int(left + right, nodo)
-        if op == '-':
+        if op == "-":
             return self._verificar_rango_int(left - right, nodo)
-        if op == '*':
+        if op == "*":
             return self._verificar_rango_int(left * right, nodo)
-        if op == '/':
+        if op == "/":
             if right == 0:
                 raise self._error_division_cero(left, right, nodo)
             if isinstance(left, int) and isinstance(right, int):
                 return self._div_entero(left, right)  # Trunca hacia cero (§4.2.2)
             return left / right
-        if op == '%':
+        if op == "%":
             if right == 0:
-                raise RuntimeError_('IL-EJE-006', 'División por cero en módulo',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-006", "División por cero en módulo", nodo.linea, nodo.columna)
             if isinstance(left, int) and isinstance(right, int):
                 return self._mod_entero(left, right)
             return left % right
@@ -1960,45 +1958,42 @@ class Interpreter:
         # type_checker.py). Se pasa por _verificar_rango_int igual que +/-/*
         # -- un desplazamiento grande puede salirse de los 32 bits de int
         # (§4.1) tanto como una suma.
-        if op == '&':
+        if op == "&":
             return self._verificar_rango_int(left & right, nodo)
-        if op == '|':
+        if op == "|":
             return self._verificar_rango_int(left | right, nodo)
-        if op == '^':
+        if op == "^":
             return self._verificar_rango_int(left ^ right, nodo)
-        if op == '<<':
+        if op == "<<":
             if right < 0:
-                raise RuntimeError_('IL-EJE-001', 'Desplazamiento con exponente negativo',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-001", "Desplazamiento con exponente negativo", nodo.linea, nodo.columna)
             return self._verificar_rango_int(left << right, nodo)
-        if op == '>>':
+        if op == ">>":
             if right < 0:
-                raise RuntimeError_('IL-EJE-001', 'Desplazamiento con exponente negativo',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_("IL-EJE-001", "Desplazamiento con exponente negativo", nodo.linea, nodo.columna)
             return left >> right
-        raise RuntimeError_('IL-EJE-001', f'Operador desconocido: {op}',
-                            nodo.linea, nodo.columna)
+        raise RuntimeError_("IL-EJE-001", f"Operador desconocido: {op}", nodo.linea, nodo.columna)
 
     def _aplicar_unario(self, op, oper, es_prefijo, nodo):
         """Aplica un operador unario."""
-        if op == '-':
+        if op == "-":
             return -oper
-        if op == '!':
+        if op == "!":
             return not oper
-        if op == '~':
+        if op == "~":
             # Negación de bits (Etapa 11): complemento a uno (~x = -x-1).
             # Para cualquier int valido de 32 bits el resultado tambien
             # cae dentro del rango (nunca desborda), pero se pasa por
             # _verificar_rango_int por consistencia con el resto de las
             # operaciones aritmeticas/bit a bit.
             return self._verificar_rango_int(~oper, nodo)
-        if op == '++':
+        if op == "++":
             # En expresiones, el valor retornado depende de si es prefijo o postfijo
             # Para simplificar: retornamos el valor y el efecto se aplica en la instrucción
             if es_prefijo:
                 return oper + 1
             return oper  # Postfijo retorna el valor original
-        if op == '--':
+        if op == "--":
             if es_prefijo:
                 return oper - 1
             return oper

@@ -1,4 +1,4 @@
-# InvenioLang 1.0 - Dependencias
+# InvenioLang 2.0 - Dependencias
 # Curso: TIIT2002.2 Lenguajes Formales II
 # Universidad Invenio
 #
@@ -17,3 +17,7 @@
 
 ply>=3.11
 PySide6>=6.6
+
+# Desarrollo (opcional, ver pyproject.toml [project.optional-dependencies]):
+#   pip install -e ".[dev]"
+#   - pytest, pytest-cov, mypy, ruff, black, pre-commit

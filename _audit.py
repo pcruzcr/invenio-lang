@@ -372,7 +372,8 @@ print("\n[13] ESTRUCTURA DEL PROYECTO")
 archivos_esperados = [
     'inveniolang/__init__.py', 'inveniolang/ast_nodes.py',
     'inveniolang/builtins.py', 'inveniolang/cli.py',
-    'inveniolang/errors.py', 'inveniolang/gui.py',
+    'inveniolang/errors.py', 'inveniolang/gui_qt.py',
+    'inveniolang/gui_tk.py', 'inveniolang/gui/__init__.py',
     'inveniolang/interpreter.py', 'inveniolang/lexer.py',
     'inveniolang/parser.py', 'inveniolang/semantic.py',
     'inveniolang/symbol_table.py', 'inveniolang/type_checker.py',

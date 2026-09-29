@@ -1,0 +1,1 @@
+void inc(int[] a){ a[0]=a[0]+1; } void main(){ int[2] a={5,6}; inc(a); imprimir(a[0]); }

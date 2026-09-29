@@ -1,0 +1,1 @@
+int suma(int a,int b){ retornar a+b; } void main(){ imprimir(suma(2,3)); }

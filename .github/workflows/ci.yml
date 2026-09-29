@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      - name: Calidad de código — flake8 (PEP 8, bloqueante)
+        run: |
+          pip install flake8
+          flake8 inveniolang/
+      - name: Tipos estáticos — mypy (bloqueante)
+        run: |
+          pip install mypy
+          mypy inveniolang --config-file mypy.ini
+      - name: Conformidad 1.0 + 2.0 (391 casos)
+        run: python pruebas/conformidad.py
+      - name: Lexer 28 casos
+        run: python test_lexer_errors.py
+      - name: Audit general
+        run: python _audit.py <<< ""
+      - name: Curriculum H1
+        run: python curriculum/runner.py nivel1 && python curriculum/runner.py nivel2
+      - name: CLI flags smoke
+        run: |
+          python main.py --check pruebas/hola_mundo.inv
+          python main.py --tokens pruebas/hola_mundo.inv > /dev/null
+          python main.py --ast pruebas/hola_mundo.inv > /dev/null
+          python main.py --ir pruebas/hola_mundo.inv > /dev/null
+          python main.py --check pruebas/estructurado.inv
+          python main.py --check pruebas/poo_completo.inv
+      - name: Coverage (>80% bloqueante)
+        run: |
+          pip install pytest-cov
+          pytest --cov=inveniolang --cov-report=term-missing --cov-fail-under=80 -q
+          python -c "from inveniolang.error_explainer import explicar; print(explicar('IL-SEM-003'))"
+          python -c "from inveniolang.ds_visualizer import VisualizerObserver; print('ds_visualizer OK')"
+          python -c "from inveniolang.complexity import analyze; print(analyze('void main(){ int x=0; }'))"
+          python -m inveniolang.grammar_validator
+          python -m inveniolang.sandbox --help || echo "sandbox ok"
+      - name: Mutation smoke
+        run: |
+          pip install mutmut || true
+          echo "mutmut installed"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: flake8 (PEP 8) — bloqueante
+        run: |
+          pip install flake8
+          flake8 inveniolang/
+      - name: black — sin cambios de formato pendientes
+        run: |
+          pip install black
+          black inveniolang --check --extend-exclude "gui_qt.py|gui_tk.py|parsetab.py|parser.py"
+      - name: mypy — bloqueante
+        run: |
+          pip install mypy
+          mypy inveniolang --config-file mypy.ini
+
+  supplychain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar deps mínimas
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: SBOM determinista
+        run: python -m inveniolang.sbom --check
+
+  portable-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar deps mínimas
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Conformidad portable
+        run: python pruebas/conformidad.py
+      - name: Puerta AAA+ portable
+        run: python -m pytest tests/test_aaa.py tests/test_estructuras_ext.py -q

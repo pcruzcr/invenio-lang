@@ -1,0 +1,56 @@
+// trie.inv - Trie alfabetico minusculas con matriz hijos, O(L) por op.
+const int MAXN = 20;
+const int ALF = 26;
+
+int [MAXN][ALF] hijos;
+int [MAXN] esFin;
+int nodos = 1;
+
+int idxLetra(texto c) {
+    return indice_de("abcdefghijklmnopqrstuvwxyz", c);
+}
+
+void initTrie() {
+    para (int i = 0; i < MAXN; i++) {
+        esFin[i] = 0;
+        para (int j = 0; j < ALF; j++) { hijos[i][j] = -1; }
+    }
+    nodos = 1;
+}
+
+void insertar(texto w) {
+    int nodo = 0;
+    int n = longitud_texto(w);
+    para (int i = 0; i < n; i++) {
+        int id = idxLetra(caracter_en(w, i));
+        si (hijos[nodo][id] == -1) {
+            hijos[nodo][id] = nodos;
+            nodos = nodos + 1;
+        }
+        nodo = hijos[nodo][id];
+    }
+    esFin[nodo] = 1;
+}
+
+bool buscar(texto w) {
+    int nodo = 0;
+    int n = longitud_texto(w);
+    para (int i = 0; i < n; i++) {
+        int id = idxLetra(caracter_en(w, i));
+        si (hijos[nodo][id] == -1) { return falso; }
+        nodo = hijos[nodo][id];
+    }
+    return esFin[nodo] == 1;
+}
+
+void main() {
+    initTrie();
+    insertar("hola");
+    insertar("mundo");
+    insertar("holanda");
+    imprimir("hola="); imprimir(buscar("hola")); imprimir("\n");
+    imprimir("holanda="); imprimir(buscar("holanda")); imprimir("\n");
+    imprimir("ho="); imprimir(buscar("ho")); imprimir("\n");
+    imprimir("mundo="); imprimir(buscar("mundo")); imprimir("\n");
+    imprimir("zz="); imprimir(buscar("zz")); imprimir("\n");
+}

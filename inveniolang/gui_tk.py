@@ -1,3 +1,6 @@
+# GUI Tkinter de respaldo — Patrones: Observer (errores vivos), Command
+# (ejecutar/guardar), Singleton (ventana), Strategy (temas), Factory (widgets)
+from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog
 import os
@@ -8,6 +11,7 @@ from .parser import Parser
 from .errors import ErrorManager
 from .semantic import SemanticAnalyzer
 from .type_checker import TypeChecker
+from .patterns import Observer, Subject, Command, CommandInvoker, SingletonMeta
 from .interpreter import Interpreter
 
 
@@ -41,23 +45,39 @@ class InvenioLangGUI:
         'flash': '#264f78',
     }
 
+    # Sincronizado con lexer.py::keywords (81 formas) + TIPOS. La GUI Tk es
+    # respaldo si PySide6 no está; no debe quedarse atrás en palabras nuevas.
     KEYWORDS = {
         'if', 'si', 'else', 'sino', 'while', 'mientras', 'for', 'para',
-        'return', 'break', 'romper', 'continue', 'continuar',
+        'return', 'retornar', 'break', 'romper', 'continue', 'continuar', 'main',
+        'true', 'verdadero', 'false', 'falso', 'const', 'constante',
+        'print', 'imprimir', 'read', 'leer',
         'int', 'entero', 'float', 'real', 'string', 'texto', 'bool', 'logico',
-        'void', 'vacio', 'const', 'constante', 'main',
-        'true', 'verdadero', 'false', 'falso',
+        'void', 'vacio',
+        # POO 2.0
+        'class', 'clase', 'extends', 'hereda', 'new', 'nuevo',
+        'this', 'este', 'super', 'padre', 'public', 'publico',
+        'private', 'privado', 'null', 'nulo',
+        # Estructurado completo Etapa 6
+        'switch', 'segun', 'case', 'caso', 'default', 'por_defecto',
+        'do', 'hacer', 'try', 'intentar', 'catch', 'capturar',
+        # POO completo Etapa 7
+        'abstract', 'abstracta', 'abstracto', 'static', 'estatico',
+        # Etapa 11
+        'constructor', 'enum', 'enumeracion',
+        # Etapa 12
+        'foreach', 'para_cada', 'implements', 'implementa', 'interface', 'interfaz',
+        'function', 'funcion', 'match', 'emparejar',
     }
 
-    BUILTINS = {
-        'imprimir', 'print', 'leer', 'read',
-        'int_a_float', 'float_a_int', 'int_a_texto', 'float_a_texto',
-        'texto_a_int', 'texto_a_float', 'bool_a_texto', 'texto_a_bool',
-    }
+    # Derivado dinámicamente en __init__ desde builtins.FUNCIONES_BUILT_IN
+    # para no desincronizarse (ver _sincronizar_builtins).
+    BUILTINS = set()
 
     def __init__(self, root):
+        self._sincronizar_builtins()
         self.root = root
-        self.root.title("InvenioLang 1.0 - Compilador Educativo")
+        self.root.title("InvenioLang 2.0 - Compilador Educativo")
         self.root.geometry("1000x700")
         self.root.minsize(800, 600)
 
@@ -80,6 +100,16 @@ class InvenioLangGUI:
         self.root.bind('<Shift-F8>', lambda e: self._siguiente_error(-1))
         self.root.bind('<F1>', lambda e: self._abrir_documentacion())
         self.texto_errores.bind('<ButtonRelease-1>', self._al_hacer_click_error)
+
+    @classmethod
+    def _sincronizar_builtins(cls):
+        """Sincroniza BUILTINS con builtins.py para que el resaltado no se
+        desincronice al agregar funciones nuevas (Etapa 6/10)."""
+        try:
+            from . import builtins as _b
+            cls.BUILTINS = set(_b.FUNCIONES_BUILT_IN.keys()) | {'print', 'imprimir', 'read', 'leer'}
+        except Exception:
+            pass
 
     def _crear_menu(self):
         menubar = tk.Menu(self.root)

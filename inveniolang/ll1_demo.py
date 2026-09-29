@@ -76,6 +76,7 @@
 # porque la propia estructura de la gramática de arriba ya codifica la
 # precedencia: T por encima de F asegura que * se agrupe antes que +).
 
+
 class ErrorSintacticoLL1(Exception):
     """Error de análisis sintáctico del parser LL(1) de esta demo --
     catálogo propio, deliberadamente separado de IL-SIN-*/IL-LEX-* (este
@@ -85,7 +86,7 @@ class ErrorSintacticoLL1(Exception):
 class NodoLL1:
     """AST minimo: ('num', valor) o (operador, izquierda, derecha)."""
 
-    __slots__ = ('op', 'izq', 'der', 'valor')
+    __slots__ = ("op", "izq", "der", "valor")
 
     def __init__(self, op, izq=None, der=None, valor=None):
         self.op = op
@@ -94,15 +95,16 @@ class NodoLL1:
         self.valor = valor
 
     def __repr__(self):
-        if self.op == 'num':
+        if self.op == "num":
             return repr(self.valor)
-        if self.op == 'neg':
-            return f'(-{self.izq!r})'
-        return f'({self.izq!r} {self.op} {self.der!r})'
+        if self.op == "neg":
+            return f"(-{self.izq!r})"
+        return f"({self.izq!r} {self.op} {self.der!r})"
 
 
 # ---- Tokenizador (deliberadamente simple: solo lo que la subgramática
 # necesita -- enteros, + - * / ( )) ----
+
 
 def _tokenizar(texto):
     tokens = []
@@ -117,15 +119,15 @@ def _tokenizar(texto):
             j = i
             while j < n and texto[j].isdigit():
                 j += 1
-            tokens.append(('NUM', int(texto[i:j])))
+            tokens.append(("NUM", int(texto[i:j])))
             i = j
             continue
-        if c in '+-*/()':
+        if c in "+-*/()":
             tokens.append((c, c))
             i += 1
             continue
-        raise ErrorSintacticoLL1(f'carácter inesperado: {c!r} en la posición {i}')
-    tokens.append(('$', '$'))
+        raise ErrorSintacticoLL1(f"carácter inesperado: {c!r} en la posición {i}")
+    tokens.append(("$", "$"))
     return tokens
 
 
@@ -145,14 +147,13 @@ class ParserLL1:
     def _consumir(self, tipo_esperado):
         tipo, valor = self._actual()
         if tipo != tipo_esperado:
-            raise ErrorSintacticoLL1(
-                f'se esperaba {tipo_esperado!r}, se encontró {tipo!r} ({valor!r})')
+            raise ErrorSintacticoLL1(f"se esperaba {tipo_esperado!r}, se encontró {tipo!r} ({valor!r})")
         self.pos += 1
         return valor
 
     def parsear(self):
         nodo = self._E()
-        self._consumir('$')
+        self._consumir("$")
         return nodo
 
     def _E(self):
@@ -166,14 +167,14 @@ class ParserLL1:
         los dos, se toma la alternativa ε (que aquí es "no hay más que
         hacer, retornar `izq` tal cual")."""
         tipo, _ = self._actual()
-        if tipo == '+':
-            self._consumir('+')
+        if tipo == "+":
+            self._consumir("+")
             der = self._T()
-            return self._Eprima(NodoLL1('+', izq, der))
-        if tipo == '-':
-            self._consumir('-')
+            return self._Eprima(NodoLL1("+", izq, der))
+        if tipo == "-":
+            self._consumir("-")
             der = self._T()
-            return self._Eprima(NodoLL1('-', izq, der))
+            return self._Eprima(NodoLL1("-", izq, der))
         return izq  # ε: tipo actual no esta en FIRST(E') -- debe estar en FOLLOW(E')
 
     def _T(self):
@@ -184,31 +185,31 @@ class ParserLL1:
     def _Tprima(self, izq):
         """T' -> * F T' | / F T' | ε"""
         tipo, _ = self._actual()
-        if tipo == '*':
-            self._consumir('*')
+        if tipo == "*":
+            self._consumir("*")
             der = self._F()
-            return self._Tprima(NodoLL1('*', izq, der))
-        if tipo == '/':
-            self._consumir('/')
+            return self._Tprima(NodoLL1("*", izq, der))
+        if tipo == "/":
+            self._consumir("/")
             der = self._F()
-            return self._Tprima(NodoLL1('/', izq, der))
+            return self._Tprima(NodoLL1("/", izq, der))
         return izq
 
     def _F(self):
         """F -> ( E ) | NUM | - F -- FIRST disjuntos: {(}, {NUM}, {-}."""
         tipo, valor = self._actual()
-        if tipo == '(':
-            self._consumir('(')
+        if tipo == "(":
+            self._consumir("(")
             nodo = self._E()
-            self._consumir(')')
+            self._consumir(")")
             return nodo
-        if tipo == 'NUM':
-            self._consumir('NUM')
-            return NodoLL1('num', valor=valor)
-        if tipo == '-':
-            self._consumir('-')
-            return NodoLL1('neg', self._F())
-        raise ErrorSintacticoLL1(f'token inesperado: {tipo!r} ({valor!r})')
+        if tipo == "NUM":
+            self._consumir("NUM")
+            return NodoLL1("num", valor=valor)
+        if tipo == "-":
+            self._consumir("-")
+            return NodoLL1("neg", self._F())
+        raise ErrorSintacticoLL1(f"token inesperado: {tipo!r} ({valor!r})")
 
 
 def parsear(texto):
@@ -221,23 +222,23 @@ def evaluar(nodo):
     entera truncada hacia cero de interpreter.py/ir.py para que / y %
     coincidan exactamente si el resultado se compara contra el pipeline
     real (ver `_evaluar_lalr` en las pruebas de este módulo)."""
-    if nodo.op == 'num':
+    if nodo.op == "num":
         return nodo.valor
-    if nodo.op == 'neg':
+    if nodo.op == "neg":
         return -evaluar(nodo.izq)
     a, b = evaluar(nodo.izq), evaluar(nodo.der)
-    if nodo.op == '+':
+    if nodo.op == "+":
         return a + b
-    if nodo.op == '-':
+    if nodo.op == "-":
         return a - b
-    if nodo.op == '*':
+    if nodo.op == "*":
         return a * b
-    if nodo.op == '/':
+    if nodo.op == "/":
         if isinstance(a, int) and isinstance(b, int):
             q = abs(a) // abs(b)
             return -q if (a < 0) != (b < 0) else q
         return a / b
-    raise ErrorSintacticoLL1(f'operador desconocido: {nodo.op!r}')
+    raise ErrorSintacticoLL1(f"operador desconocido: {nodo.op!r}")
 
 
 # ============================================================
@@ -251,18 +252,18 @@ def evaluar(nodo):
 # ll1_demo.py desacoplado del compilador, y a la vez permite comparar.
 
 _EXPRESIONES_PRUEBA = [
-    '2 + 3',
-    '2 + 3 * 4',
-    '(2 + 3) * 4',
-    '10 - 2 - 3',            # asociatividad izquierda: (10-2)-3 = 5, no 10-(2-3)=11
-    '2 * 3 + 4 * 5',
-    '-5 + 3',
-    '-(5 + 3)',
-    '20 / 3',                # división entera truncada hacia cero
-    '-20 / 3',
-    '2 * (3 + (4 - 1)) / 2',
-    '100',
-    '((((1))))',
+    "2 + 3",
+    "2 + 3 * 4",
+    "(2 + 3) * 4",
+    "10 - 2 - 3",  # asociatividad izquierda: (10-2)-3 = 5, no 10-(2-3)=11
+    "2 * 3 + 4 * 5",
+    "-5 + 3",
+    "-(5 + 3)",
+    "20 / 3",  # división entera truncada hacia cero
+    "-20 / 3",
+    "2 * (3 + (4 - 1)) / 2",
+    "100",
+    "((((1))))",
 ]
 
 
@@ -283,24 +284,23 @@ def _evaluar_lalr(expresion):
     from .type_checker import TypeChecker
     from .errors import ErrorManager
 
-    codigo = f'void main() {{ imprimir({expresion}); }}\n'
+    codigo = f"void main() {{ imprimir({expresion}); }}\n"
     em = ErrorManager()
     lx = Lexer(em)
-    lx.tokenizar(codigo, 'll1_demo.inv')
+    lx.tokenizar(codigo, "ll1_demo.inv")
     p = Parser(lx, em)
-    ast, em = p.analizar(codigo, 'll1_demo.inv')
+    ast, em = p.analizar(codigo, "ll1_demo.inv")
     if ast is not None and not em.hay_errores():
         sem = SemanticAnalyzer(em)
         tabla = sem.analizar(ast)
         if not em.hay_errores():
             TypeChecker(em, tabla).verificar(ast)
     if em.hay_errores():
-        raise RuntimeError(f'pipeline LALR(1) rechazó {expresion!r}: '
-                           f'{[e.codigo for e in em.errores]}')
+        raise RuntimeError(f"pipeline LALR(1) rechazó {expresion!r}: " f"{[e.codigo for e in em.errores]}")
     interp = Interpreter(em, tabla)
     salida = interp.interpretar(ast, [], usar_stdin=False)
-    texto = ''.join(salida)
-    return float(texto) if '.' in texto else int(texto)
+    texto = "".join(salida)
+    return float(texto) if "." in texto else int(texto)
 
 
 def verificar_contra_lalr(verboso=False):
@@ -312,13 +312,13 @@ def verificar_contra_lalr(verboso=False):
         try:
             resultado_ll1 = evaluar(parsear(expr))
         except Exception as e:
-            detalles.append((expr, 'ERROR_LL1', str(e)))
+            detalles.append((expr, "ERROR_LL1", str(e)))
             ok = False
             continue
         try:
             resultado_lalr = _evaluar_lalr(expr)
         except Exception as e:
-            detalles.append((expr, 'ERROR_LALR', str(e)))
+            detalles.append((expr, "ERROR_LALR", str(e)))
             ok = False
             continue
         coincide = resultado_ll1 == resultado_lalr
@@ -326,11 +326,13 @@ def verificar_contra_lalr(verboso=False):
         if not coincide:
             ok = False
         if verboso:
-            print(f'  {"ok  " if coincide else "FALLA"} {expr!r} '
-                  f'-> LL(1)={resultado_ll1!r} LALR(1)={resultado_lalr!r}')
+            print(
+                f'  {"ok  " if coincide else "FALLA"} {expr!r} '
+                f"-> LL(1)={resultado_ll1!r} LALR(1)={resultado_lalr!r}"
+            )
     return ok, detalles
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ok, _ = verificar_contra_lalr(verboso=True)
-    print('TODO OK' if ok else 'HAY DIVERGENCIAS')
+    print("TODO OK" if ok else "HAY DIVERGENCIAS")

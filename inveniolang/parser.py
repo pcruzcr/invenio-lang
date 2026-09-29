@@ -1,11 +1,16 @@
 # Módulo del Analizador Sintáctico (Parser) de InvenioLang 1.0
 # Implementado con PLY - Secciones 3, 16 de la especificación
 # Construye el AST a partir de la secuencia de tokens
-
+# Patrones: Builder (construcción AST paso a paso), Factory (nodos),
+# Strategy (manejo de errores), Template Method (fases parse)
+from __future__ import annotations
 import ply.yacc as yacc
+from typing import Optional, Any
 from .lexer import Lexer
 from .errors import ErrorManager
 from .ast_nodes import *
+from .ast_nodes import ASTFactory
+from .patterns import Builder, RegistryFactory, Strategy
 
 
 class Parser:
@@ -29,7 +34,11 @@ class Parser:
         self.parser_obj = yacc.yacc(module=self, **kwargs)
 
     # ---- Precedencia de operadores (de menor a mayor) ----
-    # Codifica la jerarquía de la Sección 16.7
+    # Codifica la jerarquía de la Sección 16.7 para operadores con reglas
+    # ambiguas en PLY. Los niveles bit a bit (OP_BITOR/BITXOR/BITAND/SHL/SHR)
+    # y BITNOT no figuran aquí a propósito: ya están codificados
+    # estructuralmente en p_expr_bitor/p_expr_bitxor/p_expr_bitand/
+    # p_expr_shift/p_expr_unaria, sin ambigüedad LALR.
     precedence = (
         ('left', 'OP_OR'),
         ('left', 'OP_AND'),

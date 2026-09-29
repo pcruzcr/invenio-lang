@@ -1,0 +1,1 @@
+# InvenioLang VS Code 3.0`n`nMarketplace: `vsce publish` (requiere `vscode-extension/package.json:1` 0.1.0).`nServer: `python -m inveniolang.lsp` stdio JSON-RPC (diagnostics_for).`nInstalacion aula: `code --install-extension inveniolang-vscode-0.1.0.vsix``n`nFeatures: diagnostics IL-XXX con fix (`error_explainer.py`), hover, completion (reusa `lexer.py:9`).`n

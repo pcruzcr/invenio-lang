@@ -1,0 +1,1 @@
+int fact(int n){ si(n<=1){ retornar 1; } retornar n*fact(n-1); } void main(){ imprimir(fact(4)); }

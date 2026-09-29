@@ -1,0 +1,63 @@
+(* InvenioLang 3.0 — Gramática EBNF verificable LALR(1) *)
+(* Extraída de parser.py y docs/InvenioLang_GramaticaFormal.md, máquina-verificable *)
+
+programa        ::= { elemento_programa } ;
+elemento_programa ::= decl_global | def_funcion | def_procedimiento | def_main | class_decl | enum_decl | interface_decl ;
+decl_global     ::= decl_variable | decl_constante | decl_arreglo | decl_matriz ;
+decl_variable   ::= tipo IDENTIFICADOR [ "=" expresion ] ";" ;
+decl_constante  ::= "const" tipo IDENTIFICADOR "=" expresion ";" ;
+decl_arreglo    ::= tipo "[" tam "]" IDENTIFICADOR [ "=" "{" lista_expr_init "}" ] ";" 
+                  | tipo IDENTIFICADOR "[" tam "]" [ "=" "{" lista_expr_init "}" ] ";" (* postfija, IL-WARN-040 *) ;
+decl_matriz     ::= tipo "[" tam "]" "[" tam "]" IDENTIFICADOR [ "=" "{" lista_filas_init "}" ] ";" ;
+tam             ::= ENTERO_LIT | IDENTIFICADOR ;
+tipo            ::= "int" | "entero" | "float" | "real" | "string" | "texto" | "bool" | "logico" ;
+(* void solo como retorno, §16.5 *)
+
+def_funcion     ::= tipo IDENTIFICADOR "(" [ lista_params ] ")" bloque ;
+def_procedimiento ::= "void" IDENTIFICADOR "(" [ lista_params ] ")" bloque ;
+def_main        ::= "void" "main" "(" ")" bloque ;
+lista_params    ::= param { "," param } ;
+param           ::= tipo IDENTIFICADOR | tipo "[" "]" IDENTIFICADOR | tipo "[" "]" "[" "]" IDENTIFICADOR ;
+
+bloque          ::= "{" { elem_bloque } "}" ;
+elem_bloque     ::= decl_local | instruccion | def_funcion | def_procedimiento (* IL-SIN-050 si dentro *) ;
+instruccion     ::= lvalue op_asig expresion ";" | inc_dec_stmt | print_stmt | read_stmt 
+                  | if_stmt | while_stmt | for_stmt | foreach_stmt | do_while_stmt 
+                  | switch_stmt | match_stmt | try_stmt | return_stmt | break_stmt | continue_stmt | call_stmt ;
+lvalue          ::= IDENTIFICADOR | IDENTIFICADOR "[" expresion "]" | IDENTIFICADOR "[" expresion "]" "[" expresion "]" | receptor "." IDENTIFICADOR ;
+
+if_stmt         ::= "if" "(" expresion ")" bloque [ "else" bloque ] ;
+while_stmt      ::= "while" "(" expresion ")" bloque ;
+for_stmt        ::= "for" "(" [ for_init ] ";" [ expresion ] ";" [ for_act ] ")" bloque ;
+for_init        ::= tipo IDENTIFICADOR [ "=" expresion ] | lvalue op_asig expresion ;
+for_act         ::= lvalue op_asig expresion | IDENTIFICADOR ("++" | "--") | ("++" | "--") IDENTIFICADOR ;
+foreach_stmt    ::= "foreach" "(" tipo IDENTIFICADOR ":" expresion ")" bloque ; (* Etapa 12.1 *)
+do_while_stmt   ::= "do" bloque "while" "(" expresion ")" ";" ;
+switch_stmt     ::= "switch" "(" expresion ")" "{" { caso } [ "default" ":" { elem_bloque } ] "}" ;
+caso            ::= "case" literal_caso ":" { elem_bloque } ;
+match_stmt      ::= "match" "(" expresion ")" "{" { caso_match } [ "default" ":" { elem_bloque } ] "}" ;
+try_stmt        ::= "try" bloque "catch" "(" IDENTIFICADOR ")" bloque ;
+
+expresion       ::= expr_coalesce [ "?" expresion ":" expresion ] ; (* ternario derecha *)
+expr_coalesce   ::= expr_or { "??" expr_or } ;
+expr_or         ::= expr_and { "||" expr_and } ;
+expr_and        ::= expr_bitor { "&&" expr_bitor } ;
+expr_bitor      ::= expr_bitxor { "|" expr_bitxor } ;
+expr_bitxor     ::= expr_bitand { "^" expr_bitand } ;
+expr_bitand     ::= expr_igual { "&" expr_igual } ;
+expr_igual      ::= expr_rel { ("==" | "!=") expr_rel } ;
+expr_rel        ::= expr_shift { ("<" | ">" | "<=" | ">=") expr_shift } ;
+expr_shift      ::= expr_sum { ("<<" | ">>") expr_sum } ;
+expr_sum        ::= expr_mul { ("+" | "-") expr_mul } ;
+expr_mul        ::= expr_unaria { ("*" | "/" | "%") expr_unaria } ;
+expr_unaria     ::= ("-" | "!" | "~" | "++" | "--") expr_unaria | expr_primaria [ ("++"|"--") ] ;
+expr_primaria   ::= ENTERO_LIT | REAL_LIT | TEXTO_LIT | "true" | "false" | IDENTIFICADOR 
+                  | IDENTIFICADOR "[" expresion "]" | IDENTIFICADOR "[" expresion "]" "[" expresion "]"
+                  | IDENTIFICADOR "(" [ lista_args ] ")" | "(" expresion ")" 
+                  | "new" IDENTIFICADOR "(" [ lista_args ] ")" | receptor "." IDENTIFICADOR 
+                  | receptor "." IDENTIFICADOR "(" [ lista_args ] ")" | receptor "?." IDENTIFICADOR ;
+
+(* POO 2.0 *)
+class_decl      ::= [ "abstract" ] "class" IDENTIFICADOR [ "<" IDENTIFICADOR ">" ] [ "extends" IDENTIFICADOR ] [ "implements" lista_ids ] "{" { miembro_clase } "}" ;
+interface_decl  ::= "interface" IDENTIFICADOR "{" { miembro_clase } "}" ;
+miembro_clase   ::= attr_decl | method_decl | constructor_decl ;

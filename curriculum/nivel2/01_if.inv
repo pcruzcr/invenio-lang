@@ -1,0 +1,1 @@
+void main(){ int x=5; si (x>3){ imprimir(1);} sino { imprimir(0);} }

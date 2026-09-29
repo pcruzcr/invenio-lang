@@ -1,0 +1,101 @@
+// arbol_b.inv - Arbol B t=2 (max 3 claves/nodo), insertar/buscar/in-order.
+const int MAXNOD = 10;
+
+int [MAXNOD] cnt;
+int [MAXNOD] esHoja;
+int [MAXNOD][3] claves;
+int [MAXNOD][4] hijos;
+int raiz = 0;
+int total = 0;
+
+int crearNodo(int hoja) {
+    int id = total;
+    total = total + 1;
+    cnt[id] = 0;
+    esHoja[id] = hoja;
+    para (int i = 0; i < 3; i++) { claves[id][i] = 0; }
+    para (int i = 0; i < 4; i++) { hijos[id][i] = -1; }
+    return id;
+}
+
+void splitHijo(int np, int i) {
+    int y = hijos[np][i];
+    int z = crearNodo(esHoja[y]);
+    cnt[z] = 1;
+    claves[z][0] = claves[y][2];
+    si (esHoja[y] == 0) {
+        hijos[z][0] = hijos[y][2];
+        hijos[z][1] = hijos[y][3];
+    }
+    cnt[y] = 1;
+    int j = cnt[np];
+    mientras (j > i) {
+        claves[np][j] = claves[np][j - 1];
+        hijos[np][j + 1] = hijos[np][j];
+        j = j - 1;
+    }
+    claves[np][i] = claves[y][1];
+    hijos[np][i + 1] = z;
+    cnt[np] = cnt[np] + 1;
+}
+
+void insertarNoLleno(int id, int k) {
+    int i = cnt[id] - 1;
+    si (esHoja[id] == 1) {
+        mientras (i >= 0 && claves[id][i] > k) {
+            claves[id][i + 1] = claves[id][i];
+            i = i - 1;
+        }
+        claves[id][i + 1] = k;
+        cnt[id] = cnt[id] + 1;
+    } sino {
+        mientras (i >= 0 && claves[id][i] > k) { i = i - 1; }
+        i = i + 1;
+        si (cnt[hijos[id][i]] == 3) {
+            splitHijo(id, i);
+            si (k > claves[id][i]) { i = i + 1; }
+        }
+        insertarNoLleno(hijos[id][i], k);
+    }
+}
+
+void insertar(int k) {
+    si (cnt[raiz] == 3) {
+        int s = crearNodo(0);
+        hijos[s][0] = raiz;
+        raiz = s;
+        splitHijo(s, 0);
+        insertarNoLleno(s, k);
+    } sino {
+        insertarNoLleno(raiz, k);
+    }
+}
+
+bool buscarEn(int id, int k) {
+    int i = 0;
+    mientras (i < cnt[id] && k > claves[id][i]) { i = i + 1; }
+    si (i < cnt[id] && k == claves[id][i]) { return verdadero; }
+    si (esHoja[id] == 1) { return falso; }
+    return buscarEn(hijos[id][i], k);
+}
+
+void inorder(int id) {
+    si (esHoja[id] == 1) {
+        para (int i = 0; i < cnt[id]; i++) { imprimir(claves[id][i]); imprimir(" "); }
+    } sino {
+        para (int i = 0; i < cnt[id]; i++) {
+            inorder(hijos[id][i]);
+            imprimir(claves[id][i]); imprimir(" ");
+        }
+        inorder(hijos[id][cnt[id]]);
+    }
+}
+
+void main() {
+    raiz = crearNodo(1);
+    insertar(10); insertar(20); insertar(5); insertar(6);
+    insertar(12); insertar(30); insertar(7); insertar(17);
+    imprimir("inorder: "); inorder(raiz); imprimir("\n");
+    imprimir("buscar12="); imprimir(buscarEn(raiz, 12)); imprimir("\n");
+    imprimir("buscar99="); imprimir(buscarEn(raiz, 99)); imprimir("\n");
+}

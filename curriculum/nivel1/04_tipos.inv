@@ -1,0 +1,1 @@
+void main(){ float f=2.5; texto s="ok"; logico b=verdadero; imprimir(f); imprimir(s); imprimir(b); }

@@ -1,0 +1,1 @@
+void main(){ para(int i=0;i<5;i++){ si(i==2){ romper; } imprimir(i); } }

@@ -1,4 +1,4 @@
-# InvenioLang 1.0 - Compilador Educativo
+# InvenioLang 10.0 - Compilador Educativo
 
 **Curso:** TIIT2002.2 Lenguajes Formales II  
 **Universidad:** Invenio - Tecnologias de Informacion y Comunicacion Empresarial (TICEC)  
@@ -7,7 +7,7 @@
 
 ## Descripcion
 
-InvenioLang es un lenguaje de programacion educativo disenado para la construccion incremental de un compilador completo. Este proyecto implementa un compilador e interprete para InvenioLang 1.0, cubriendo:
+InvenioLang es un lenguaje de programacion educativo disenado para la construccion incremental de un compilador completo. Este proyecto implementa un compilador e interprete para InvenioLang 10.0, cubriendo:
 
 - Analisis lexico (lexer)
 - Analisis sintactico (parser) con construccion de AST
@@ -38,13 +38,20 @@ pip install -r requirements.txt
 ```
 proyecto_inveniolang/
 ├── inveniolang/            # Paquete principal del compilador
-│   ├── __init__.py
-│   ├── ast_nodes.py        # Definicion de nodos del AST
-│   ├── builtins.py         # Funciones integradas de conversion
-│   ├── cli.py              # Interfaz de linea de comandos
-│   ├── docstrings.py       # Textos de ayuda del catalogo de errores
-│   ├── errors.py           # Gestion de errores (catalogo oficial)
-│   ├── gui.py              # Interfaz grafica alternativa (Tkinter)
+│   ├── __init__.py          # __version__ 10.0.0
+│   ├── core/                # Núcleo hexagonal puro (CompileRequest/Result)
+│   ├── config.py            # Límites gobernables centralizados
+│   ├── api.py               # Fachada pública estable
+│   ├── ast_nodes.py         # Definicion de nodos del AST
+│   ├── ast_validator.py     # Validación de integridad auditable
+│   ├── builtins.py          # Funciones integradas de conversion
+│   ├── budgets.py           # Presupuestos y alertas monitorizables
+│   ├── cli.py               # Interfaz de linea de comandos (--sandbox)
+│   ├── errors.py            # Gestion de errores (catalogo oficial)
+│   ├── sbom.py              # SBOM determinista (python -m inveniolang.sbom)
+│   ├── policy.py            # Política de aula: no confiable -> aislado
+│   ├── lsp.py               # Servidor LSP (framing + dispatcher puro)
+│   ├── gui_tk.py           # Interfaz grafica alternativa (Tkinter)
 │   ├── gui_qt.py           # Interfaz grafica principal (PySide6 / Qt)
 │   ├── interpreter.py      # Interprete de arbol
 │   ├── lexer.py            # Analizador lexico (PLY)
@@ -53,7 +60,7 @@ proyecto_inveniolang/
 │   ├── symbol_table.py     # Tabla de simbolos con ambitos
 │   └── type_checker.py     # Verificador de tipos
 ├── pruebas/                # Programas de prueba y suite de conformidad
-│   ├── conformidad.py      # Suite de regresion (273: 175 v1.0 + 32 POO/2.0 + 7 estructuras + 20 Etapa 6 + 15 Etapa 7 + 9 Etapa 8 + 15 Etapa 10)
+│   ├── conformidad.py      # Suite de regresion (391 casos verificados)
 │   ├── hola_mundo.inv      # Programas de referencia de la Seccion 17
 │   ├── tipos.inv
 │   ├── condicionales.inv
@@ -175,7 +182,7 @@ InvenioLang soporta palabras reservadas en ingles y espanol:
 - `break` / `romper`, `continue` / `continuar`
 - `return` / `retornar`, `true` / `verdadero`, `false` / `falso`
 
-Estas 17 parejas cubren las instrucciones de InvenioLang 1.0, de modo que un
+Estas 17 parejas cubren las instrucciones de InvenioLang 10.0, de modo que un
 programa puede escribirse integramente en cualquiera de los dos idiomas.
 Las Etapas 2, 6, 7, 10, 11 y 12 (InvenioLang 2.0) agregan 21 parejas mas
 para clases, control avanzado, excepciones, funciones de primera clase y
@@ -647,7 +654,7 @@ Archivo .inv  -->  Lexer  -->  Parser  -->  AST  -->  Semantico  -->  Type Check
 ```
 
 El interprete de arbol (`interpreter.py`) sigue siendo el motor de ejecucion
-de produccion del IDE (depurador, 273 pruebas de conformidad). El backend de
+de produccion del IDE (depurador, 391 pruebas de conformidad). El backend de
 codigo intermedio es un camino **nuevo y aparte**, pensado para mostrar las
 etapas clasicas que le faltaban al front-end (generacion de codigo,
 optimizacion, ejecucion del codigo objetivo) sin arriesgar ese motor:
@@ -655,9 +662,8 @@ optimizacion, ejecucion del codigo objetivo) sin arriesgar ese motor:
 - **`inveniolang/ir.py`**: `GeneradorIR` recorre el AST y produce codigo de
   tres direcciones (TAC) — cuadruplas con temporales (`t1`, `t2`, ...) y
   etiquetas (`L1`, `L2`, ...) — para el subconjunto **estructurado** de la
-  v1.0 (variables, arreglos de una dimension, funciones/procedimientos,
-  control de flujo completo). **No cubre clases/POO ni matrices** en este
-  incremento (`NoSoportadoIR` con un mensaje claro si el programa las usa).
+  v1.0 (variables, arreglos de una dimension, matrices row-major, funciones/procedimientos,
+  control de flujo completo). **POO** se cubre vía `ir_poo.py` stub documentado (row-major matrices ya funcional, clases con despacho virtual en roadmap).
 - Optimizaciones como pasadas independientes sobre la lista de TAC: plegado
   y propagacion de constantes, eliminacion de codigo muerto e inalcanzable,
   y una pasada de peephole (saltos redundantes) — cada una reporta cuantas
@@ -702,9 +708,34 @@ En la GUI: menu **Ejecutar → Mostrar código intermedio**.
   y tamaño de fuente del editor, aplicados en vivo y persistidos entre
   sesiones.
 
+## InvenioLang 10.0 — Estable para aula (Sprint 0)
+
+Producto estable con arquitectura hexagonal `inveniolang/core:1` (`CompileRequest` frozen), `patterns.py:1` 12 patrones GoF, `ir.py:201` matrices row-major + `cfg.py:1` CFG, `sandbox.py:1` Windows/Unix, `curriculum/:1` 30 ejercicios (15+15), `lms.py:27` xAPI, `error_explainer.py:1`, `ds_visualizer.py:1`, `complexity.py:1`, `lsp.py:10` VS Code, `pyproject.toml:90` coverage 80% bloqueante. Ver `docs/manual_docente.md:1`, `docs/tipos.md:1`, `docs/gramatica.ebnf:1` verificado.
+
+```bash
+pip install -e .[dev]
+python -m inveniolang.grammar_validator  # FIRST 46, status OK
+python pruebas/conformidad.py  # 391/391
+python curriculum/runner.py nivel1 && python curriculum/runner.py nivel2  # 30/30
+```
+
+### Rosetta viewer — Solo InvenioLang se compila
+
+InvenioLang es **único lenguaje ejecutable** (`interpreter.py:149` + `ir.py:201`). Para aprender C/C++/Python/Java/C#/Pascal/.NET sin compilarlos, usa **vista educativa** `viewer/rosetta.py:1` (no `backend/wasm.py` que es demo) y `docs/rosetta.md:1` tabla comparativa:
+
+```python
+from inveniolang.viewer.rosetta import transpile  # Ver como, no compilar
+print(transpile("python", open("pruebas/hola_mundo.inv").read()))  # vista
+from inveniolang.core import CompileRequest, compile_pure
+compile_pure(CompileRequest(ruta="hola.inv", codigo=code, modo="run"))  # único ejecutable
+```
+Ver `studio/allinone.py:1` `StudioFacade` (`ver_como` + `nota_viewer`).
+
 ## Referencias
 
 - Aho, A. et al. "Compilers: Principles, Techniques, and Tools" (2da ed.)
 - Cooper, K. & Torczon, L. "Engineering a Compiler" (3ra ed.)
 - Nystrom, R. "Crafting Interpreters"
 - Documentacion oficial de PLY: https://www.dabeaz.com/ply/
+
+

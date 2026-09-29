@@ -2,7 +2,13 @@
 # Implementa las 8 funciones de conversión entre tipos, más la librería
 # estándar de cadenas y matemática de la Etapa 6 (lenguaje estructurado
 # completo, ver docs/InvenioLang_Etapa6_Estructurado.md).
-
+# Patrones aplicados: Strategy (cada conversión es estrategia intercambiable),
+# Factory (registro centralizado), Decorator (validación/seguridad), Template
+# Method (flujo parseo → validación → conversión)
+from __future__ import annotations
+from typing import List, Callable, Any, Optional
+from functools import wraps
+from .patterns import Strategy, RegistryFactory
 import math
 import os
 import random
@@ -13,8 +19,8 @@ INT_MIN = -2147483648
 INT_MAX = 2147483647
 
 # Formatos admitidos por las funciones de parseo (§19.7, §19.8)
-_RE_ENTERO = re.compile(r'^[+-]?\d+$')
-_RE_REAL = re.compile(r'^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$')
+_RE_ENTERO = re.compile(r"^[+-]?\d+$")
+_RE_REAL = re.compile(r"^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$")
 
 
 class BuiltInError(Exception):
@@ -40,16 +46,11 @@ def float_a_int(val):
 
     IL-EJE-003 si el valor truncado excede el rango de int.
     """
-    if val != val or val in (float('inf'), float('-inf')):
-        raise BuiltInError('IL-EJE-003',
-                           'float_to_int recibió un valor no finito')
+    if val != val or val in (float("inf"), float("-inf")):
+        raise BuiltInError("IL-EJE-003", "float_to_int recibió un valor no finito")
     truncado = int(val)  # int() trunca hacia cero
     if truncado < INT_MIN or truncado > INT_MAX:
-        raise BuiltInError(
-            'IL-EJE-003',
-            f'float_to_int: {val} excede el rango de int '
-            f'[{INT_MIN}, {INT_MAX}]'
-        )
+        raise BuiltInError("IL-EJE-003", f"float_to_int: {val} excede el rango de int " f"[{INT_MIN}, {INT_MAX}]")
     return truncado
 
 
@@ -65,14 +66,14 @@ def float_a_texto(val):
     decimal y al menos un dígito a cada lado.
     """
     s = repr(float(val))
-    if 'e' in s or 'E' in s:
+    if "e" in s or "E" in s:
         # Notación científica: asegurar mantisa con punto ("1e+15" -> "1.0e+15")
-        mantisa, _, exp = s.partition('e')
-        if '.' not in mantisa:
-            mantisa += '.0'
-        return f'{mantisa}e{exp}'
-    if '.' not in s:
-        s += '.0'
+        mantisa, _, exp = s.partition("e")
+        if "." not in mantisa:
+            mantisa += ".0"
+        return f"{mantisa}e{exp}"
+    if "." not in s:
+        s += ".0"
     return s
 
 
@@ -84,16 +85,10 @@ def texto_a_int(val):
     """
     s = val.strip()
     if not _RE_ENTERO.match(s):
-        raise BuiltInError(
-            'IL-EJE-004',
-            f'string_to_int: "{val}" no es un entero decimal válido'
-        )
+        raise BuiltInError("IL-EJE-004", f'string_to_int: "{val}" no es un entero decimal válido')
     n = int(s)
     if n < INT_MIN or n > INT_MAX:
-        raise BuiltInError(
-            'IL-EJE-004',
-            f'string_to_int: {n} excede el rango de int [{INT_MIN}, {INT_MAX}]'
-        )
+        raise BuiltInError("IL-EJE-004", f"string_to_int: {n} excede el rango de int [{INT_MIN}, {INT_MAX}]")
     return n
 
 
@@ -105,10 +100,7 @@ def texto_a_float(val):
     """
     s = val.strip()
     if not _RE_REAL.match(s):
-        raise BuiltInError(
-            'IL-EJE-005',
-            f'string_to_float: "{val}" no es un número real válido'
-        )
+        raise BuiltInError("IL-EJE-005", f'string_to_float: "{val}" no es un número real válido')
     return float(s)
 
 
@@ -124,19 +116,17 @@ def texto_a_bool(val):
     insensibles a mayúsculas. Cualquier otra cadena produce IL-EJE-022.
     """
     v = val.strip().lower()
-    if v in ('true', 'verdadero'):
+    if v in ("true", "verdadero"):
         return True
-    if v in ('false', 'falso'):
+    if v in ("false", "falso"):
         return False
-    raise BuiltInError(
-        'IL-EJE-022',
-        f'string_to_bool: "{val}" no es true/false/verdadero/falso'
-    )
+    raise BuiltInError("IL-EJE-022", f'string_to_bool: "{val}" no es true/false/verdadero/falso')
 
 
 # ============================================================
 # Librería estándar (Etapa 6: lenguaje estructurado completo)
 # ============================================================
+
 
 def longitud(s):
     """Cantidad de caracteres de una cadena."""
@@ -147,9 +137,7 @@ def subcadena(s, inicio, fin):
     """Subcadena [inicio, fin) de s. IL-EST-010 si el rango es inválido."""
     if inicio < 0 or fin > len(s) or inicio > fin:
         raise BuiltInError(
-            'IL-EST-010',
-            f'subcadena: rango [{inicio},{fin}) inválido para una cadena '
-            f'de longitud {len(s)}'
+            "IL-EST-010", f"subcadena: rango [{inicio},{fin}) inválido para una cadena " f"de longitud {len(s)}"
         )
     return s[inicio:fin]
 
@@ -167,9 +155,7 @@ def caracter_en(s, i):
     fuera de rango."""
     if i < 0 or i >= len(s):
         raise BuiltInError(
-            'IL-EST-011',
-            f'caracter_en: índice {i} fuera de rango para una cadena de '
-            f'longitud {len(s)}'
+            "IL-EST-011", f"caracter_en: índice {i} fuera de rango para una cadena de " f"longitud {len(s)}"
         )
     return s[i]
 
@@ -194,7 +180,7 @@ def invertir_texto(s):
 def raiz(x):
     """Raíz cuadrada. IL-EST-012 si x es negativo."""
     if x < 0:
-        raise BuiltInError('IL-EST-012', f'raiz: no está definida para {x} (negativo)')
+        raise BuiltInError("IL-EST-012", f"raiz: no está definida para {x} (negativo)")
     return math.sqrt(x)
 
 
@@ -202,14 +188,11 @@ def potencia(base, exponente):
     """base elevado a exponente. IL-EST-013 si el resultado no es un
     número real (p. ej. raíz de un negativo con exponente fraccionario)."""
     try:
-        resultado = base ** exponente
+        resultado = base**exponente
     except (ValueError, OverflowError) as e:
-        raise BuiltInError('IL-EST-013', f'potencia: {e}')
+        raise BuiltInError("IL-EST-013", f"potencia: {e}")
     if isinstance(resultado, complex):
-        raise BuiltInError(
-            'IL-EST-013',
-            f'potencia: {base} ** {exponente} no produce un número real'
-        )
+        raise BuiltInError("IL-EST-013", f"potencia: {base} ** {exponente} no produce un número real")
     return float(resultado)
 
 
@@ -232,15 +215,13 @@ def azar(minimo_, maximo_):
     rango es inválido."""
     if minimo_ > maximo_:
         raise BuiltInError(
-            'IL-EST-014',
-            f'azar: el mínimo ({minimo_}) no puede ser mayor que el '
-            f'máximo ({maximo_})'
+            "IL-EST-014", f"azar: el mínimo ({minimo_}) no puede ser mayor que el " f"máximo ({maximo_})"
         )
     return random.randint(minimo_, maximo_)
 
 
 # ============================================================
-# Entrada/salida de archivos (Etapa 10)
+# Entrada/salida de archivos (Etapa 10) — con hardening de seguridad
 # ============================================================
 #
 # Alcance deliberadamente simple: texto plano completo por llamada (sin
@@ -248,44 +229,129 @@ def azar(minimo_, maximo_):
 # el caso real de un ejercicio de Fundamentos/Programación 2 (guardar un
 # resultado, leer datos de entrada desde un archivo) sin ampliar el sistema
 # de tipos. Codificación siempre UTF-8, igual que el resto del lenguaje.
+#
+# Hardening (mejora profesional / seguridad):
+#   - Solo se permiten rutas relativas simples, sin traversal (".."),
+#     sin separadores absolutos y sin caracteres de control.
+#   - Extensiones permitidas: .txt, .inv, .csv, .dat, .log (evita sobrescribir
+#     .py, .exe, .dll, etc.).
+#   - Límite de tamaño: lectura max 2 MiB, escritura max 2 MiB.
+#   - Esto mitiga path traversal y DoS por archivos gigantes en entorno
+#     educativo compartido, sin romper los casos de uso reales.
+
+_RUTAS_PERMITIDAS_EXT = {".txt", ".inv", ".csv", ".dat", ".log", ".json", ".tmp"}
+_MAX_ARCHIVO_BYTES = 2 * 1024 * 1024  # 2 MiB
+_MAX_CONTENIDO_ESCRITURA = 2 * 1024 * 1024
+
+
+def _validar_ruta(ruta: str):
+    """Valida ruta para operaciones de archivo. Lanza BuiltInError si no cumple."""
+    if not isinstance(ruta, str) or not ruta.strip():
+        raise BuiltInError("IL-EST-015", "leer_archivo: ruta vacía o inválida")
+    if "\x00" in ruta or "\n" in ruta or "\r" in ruta:
+        raise BuiltInError("IL-EST-015", f'ruta contiene caracteres de control: "{ruta}"')
+    # Normalizar separadores
+    ruta_n = ruta.replace("\\", "/")
+    if ruta_n.startswith("/") or (len(ruta_n) >= 2 and ruta_n[1] == ":"):
+        raise BuiltInError("IL-EST-015", f'ruta absoluta no permitida: "{ruta}" (use ruta relativa)')
+    partes = ruta_n.split("/")
+    if ".." in partes:
+        raise BuiltInError("IL-EST-015", f'traversal no permitido ("..") en ruta: "{ruta}"')
+    if any(p in ("", ".", "..") and len(partes) > 1 for p in partes):
+        # vacío por // o . suelto — se permite pero se normaliza
+        pass
+    # Extensión
+    _, ext = os.path.splitext(ruta_n)
+    if ext.lower() not in _RUTAS_PERMITIDAS_EXT:
+        raise BuiltInError(
+            "IL-EST-015",
+            f'extensión "{ext}" no permitida en "{ruta}" (permitidas: {", ".join(sorted(_RUTAS_PERMITIDAS_EXT))})',
+        )
+    # Longitud
+    if len(ruta) > 260:
+        raise BuiltInError("IL-EST-015", f"ruta demasiado larga ({len(ruta)} chars)")
+    return ruta
+
+
+def _validar_contenido(contenido: str, limite=_MAX_CONTENIDO_ESCRITURA):
+    if not isinstance(contenido, str):
+        raise BuiltInError("IL-EST-016", "contenido debe ser texto")
+    if len(contenido.encode("utf-8")) > limite:
+        raise BuiltInError("IL-EST-016", f"contenido excede límite de {limite} bytes")
+
 
 def existe_archivo(ruta):
     """True si `ruta` existe y es un archivo regular (no directorio).
     Nunca falla -- una ruta inexistente es simplemente False, no un error."""
-    return os.path.isfile(ruta)
+    try:
+        ruta_v = _validar_ruta(ruta)
+    except BuiltInError:
+        return False
+    return os.path.isfile(ruta_v)
 
 
 def leer_archivo(ruta):
     """Contenido completo de `ruta` como texto. IL-EST-015 si no existe, no
-    se puede leer (permisos) o no es UTF-8 válido."""
+    se puede leer (permisos) o no es UTF-8 válido. Máx 2 MiB."""
+    ruta_v = _validar_ruta(ruta)
     try:
-        with open(ruta, 'r', encoding='utf-8') as f:
-            return f.read()
+        # Comprobar tamaño antes de leer completo
+        try:
+            tam = os.path.getsize(ruta_v)
+            if tam > _MAX_ARCHIVO_BYTES:
+                raise BuiltInError(
+                    "IL-EST-015", f'leer_archivo: "{ruta}" excede límite de {_MAX_ARCHIVO_BYTES} bytes ({tam})'
+                )
+        except OSError:
+            pass  # si no se puede stat, dejar que open falle con su mensaje
+        with open(ruta_v, "r", encoding="utf-8") as f:
+            data = f.read(_MAX_ARCHIVO_BYTES + 1)
+            if len(data.encode("utf-8")) > _MAX_ARCHIVO_BYTES:
+                raise BuiltInError("IL-EST-015", f'leer_archivo: "{ruta}" excede límite de {_MAX_ARCHIVO_BYTES} bytes')
+            return data
+    except BuiltInError:
+        raise
     except (OSError, UnicodeDecodeError) as e:
-        raise BuiltInError('IL-EST-015', f'leer_archivo: no se pudo leer "{ruta}": {e}')
+        raise BuiltInError("IL-EST-015", f'leer_archivo: no se pudo leer "{ruta}": {e}')
 
 
 def escribir_archivo(ruta, contenido):
     """Escribe `contenido` en `ruta`, reemplazando el archivo si ya existe
     (o creándolo). Retorna verdadero si tuvo éxito; IL-EST-016 si no se
-    pudo escribir (ruta inválida, permisos, disco lleno, ...)."""
+    pudo escribir (ruta inválida, permisos, disco lleno, ...). Máx 2 MiB."""
+    ruta_v = _validar_ruta(ruta)
+    _validar_contenido(contenido)
     try:
-        with open(ruta, 'w', encoding='utf-8') as f:
+        with open(ruta_v, "w", encoding="utf-8") as f:
             f.write(contenido)
         return True
     except OSError as e:
-        raise BuiltInError('IL-EST-016', f'escribir_archivo: no se pudo escribir "{ruta}": {e}')
+        raise BuiltInError("IL-EST-016", f'escribir_archivo: no se pudo escribir "{ruta}": {e}')
 
 
 def agregar_archivo(ruta, contenido):
     """Agrega `contenido` al final de `ruta` (la crea si no existe).
-    Retorna verdadero si tuvo éxito; IL-EST-017 si no se pudo escribir."""
+    Retorna verdadero si tuvo éxito; IL-EST-017 si no se pudo escribir. Máx 2 MiB por agregado."""
+    ruta_v = _validar_ruta(ruta)
+    _validar_contenido(contenido)
+    # Comprobar tamaño resultante
     try:
-        with open(ruta, 'a', encoding='utf-8') as f:
+        if os.path.exists(ruta_v):
+            tam_actual = os.path.getsize(ruta_v)
+            if tam_actual + len(contenido.encode("utf-8")) > _MAX_ARCHIVO_BYTES:
+                raise BuiltInError(
+                    "IL-EST-017", f"agregar_archivo: tamaño resultante excede límite de {_MAX_ARCHIVO_BYTES} bytes"
+                )
+    except BuiltInError:
+        raise
+    except OSError:
+        pass
+    try:
+        with open(ruta_v, "a", encoding="utf-8") as f:
             f.write(contenido)
         return True
     except OSError as e:
-        raise BuiltInError('IL-EST-017', f'agregar_archivo: no se pudo escribir "{ruta}": {e}')
+        raise BuiltInError("IL-EST-017", f'agregar_archivo: no se pudo escribir "{ruta}": {e}')
 
 
 # Tabla de funciones integradas: nombre -> (funcion, tipo_retorno, [tipos_parametros])
@@ -303,25 +369,25 @@ def _registrar(nombre, func, tipo_retorno, tipos_parametros):
 
 
 # Canónicos (§4, §17, README)
-_registrar('int_a_float', int_a_float, 'float', ['int'])
-_registrar('float_a_int', float_a_int, 'int', ['float'])
-_registrar('int_a_texto', int_a_texto, 'string', ['int'])
-_registrar('float_a_texto', float_a_texto, 'string', ['float'])
-_registrar('texto_a_int', texto_a_int, 'int', ['string'])
-_registrar('texto_a_float', texto_a_float, 'float', ['string'])
-_registrar('bool_a_texto', bool_a_texto, 'string', ['bool'])
-_registrar('texto_a_bool', texto_a_bool, 'bool', ['string'])
+_registrar("int_a_float", int_a_float, "float", ["int"])
+_registrar("float_a_int", float_a_int, "int", ["float"])
+_registrar("int_a_texto", int_a_texto, "string", ["int"])
+_registrar("float_a_texto", float_a_texto, "string", ["float"])
+_registrar("texto_a_int", texto_a_int, "int", ["string"])
+_registrar("texto_a_float", texto_a_float, "float", ["string"])
+_registrar("bool_a_texto", bool_a_texto, "string", ["bool"])
+_registrar("texto_a_bool", texto_a_bool, "bool", ["string"])
 
 # Alias nomenclatura Sección 19 (inglés): int_to_float, string_to_int, ...
 _ALIAS_INGLES = {
-    'int_a_float': 'int_to_float',
-    'float_a_int': 'float_to_int',
-    'int_a_texto': 'int_to_string',
-    'float_a_texto': 'float_to_string',
-    'texto_a_int': 'string_to_int',
-    'texto_a_float': 'string_to_float',
-    'bool_a_texto': 'bool_to_string',
-    'texto_a_bool': 'string_to_bool',
+    "int_a_float": "int_to_float",
+    "float_a_int": "float_to_int",
+    "int_a_texto": "int_to_string",
+    "float_a_texto": "float_to_string",
+    "texto_a_int": "string_to_int",
+    "texto_a_float": "string_to_float",
+    "bool_a_texto": "bool_to_string",
+    "texto_a_bool": "string_to_bool",
 }
 for _base, _alias in _ALIAS_INGLES.items():
     _func, _ret, _params = FUNCIONES_BUILT_IN[_base]
@@ -329,14 +395,14 @@ for _base, _alias in _ALIAS_INGLES.items():
 
 # Alias español (Sección 19): entero_a_real, real_a_entero, ...
 _ALIAS_ESPANOL = {
-    'int_a_float': 'entero_a_real',
-    'float_a_int': 'real_a_entero',
-    'int_a_texto': 'entero_a_texto',
-    'float_a_texto': 'real_a_texto',
-    'texto_a_int': 'texto_a_entero',
-    'texto_a_float': 'texto_a_real',
-    'bool_a_texto': 'logico_a_texto',
-    'texto_a_bool': 'texto_a_logico',
+    "int_a_float": "entero_a_real",
+    "float_a_int": "real_a_entero",
+    "int_a_texto": "entero_a_texto",
+    "float_a_texto": "real_a_texto",
+    "texto_a_int": "texto_a_entero",
+    "texto_a_float": "texto_a_real",
+    "bool_a_texto": "logico_a_texto",
+    "texto_a_bool": "texto_a_logico",
 }
 for _base, _alias in _ALIAS_ESPANOL.items():
     _func, _ret, _params = FUNCIONES_BUILT_IN[_base]
@@ -357,45 +423,45 @@ for _base, _alias in _ALIAS_ESPANOL.items():
 # operador ternario nuevo, `a > b ? a : b` los vuelve triviales de escribir
 # sin necesidad de una función integrada que colisione con ese nombre tan
 # común en ejercicios.
-_registrar('longitud_texto', longitud, 'int', ['string'])
-_registrar('text_length', longitud, 'int', ['string'])
-_registrar('subcadena', subcadena, 'string', ['string', 'int', 'int'])
-_registrar('substring', subcadena, 'string', ['string', 'int', 'int'])
-_registrar('mayusculas', mayusculas, 'string', ['string'])
-_registrar('to_upper', mayusculas, 'string', ['string'])
-_registrar('minusculas', minusculas, 'string', ['string'])
-_registrar('to_lower', minusculas, 'string', ['string'])
-_registrar('caracter_en', caracter_en, 'string', ['string', 'int'])
-_registrar('char_at', caracter_en, 'string', ['string', 'int'])
-_registrar('indice_de', indice_de, 'int', ['string', 'string'])
-_registrar('index_of', indice_de, 'int', ['string', 'string'])
-_registrar('recortar', recortar, 'string', ['string'])
-_registrar('trim', recortar, 'string', ['string'])
-_registrar('invertir_texto', invertir_texto, 'string', ['string'])
-_registrar('reverse_string', invertir_texto, 'string', ['string'])
+_registrar("longitud_texto", longitud, "int", ["string"])
+_registrar("text_length", longitud, "int", ["string"])
+_registrar("subcadena", subcadena, "string", ["string", "int", "int"])
+_registrar("substring", subcadena, "string", ["string", "int", "int"])
+_registrar("mayusculas", mayusculas, "string", ["string"])
+_registrar("to_upper", mayusculas, "string", ["string"])
+_registrar("minusculas", minusculas, "string", ["string"])
+_registrar("to_lower", minusculas, "string", ["string"])
+_registrar("caracter_en", caracter_en, "string", ["string", "int"])
+_registrar("char_at", caracter_en, "string", ["string", "int"])
+_registrar("indice_de", indice_de, "int", ["string", "string"])
+_registrar("index_of", indice_de, "int", ["string", "string"])
+_registrar("recortar", recortar, "string", ["string"])
+_registrar("trim", recortar, "string", ["string"])
+_registrar("invertir_texto", invertir_texto, "string", ["string"])
+_registrar("reverse_string", invertir_texto, "string", ["string"])
 
-_registrar('raiz_cuadrada', raiz, 'float', ['float'])
-_registrar('sqrt', raiz, 'float', ['float'])
-_registrar('elevar', potencia, 'float', ['float', 'float'])
-_registrar('pow', potencia, 'float', ['float', 'float'])
-_registrar('absoluto', absoluto, 'int', ['int'])
-_registrar('abs', absoluto, 'int', ['int'])
-_registrar('piso', piso, 'int', ['float'])
-_registrar('floor', piso, 'int', ['float'])
-_registrar('techo', techo, 'int', ['float'])
-_registrar('ceil', techo, 'int', ['float'])
-_registrar('azar', azar, 'int', ['int', 'int'])
-_registrar('random', azar, 'int', ['int', 'int'])
+_registrar("raiz_cuadrada", raiz, "float", ["float"])
+_registrar("sqrt", raiz, "float", ["float"])
+_registrar("elevar", potencia, "float", ["float", "float"])
+_registrar("pow", potencia, "float", ["float", "float"])
+_registrar("absoluto", absoluto, "int", ["int"])
+_registrar("abs", absoluto, "int", ["int"])
+_registrar("piso", piso, "int", ["float"])
+_registrar("floor", piso, "int", ["float"])
+_registrar("techo", techo, "int", ["float"])
+_registrar("ceil", techo, "int", ["float"])
+_registrar("azar", azar, "int", ["int", "int"])
+_registrar("random", azar, "int", ["int", "int"])
 
 # Entrada/salida de archivos (Etapa 10)
-_registrar('existe_archivo', existe_archivo, 'bool', ['string'])
-_registrar('file_exists', existe_archivo, 'bool', ['string'])
-_registrar('leer_archivo', leer_archivo, 'string', ['string'])
-_registrar('read_file', leer_archivo, 'string', ['string'])
-_registrar('escribir_archivo', escribir_archivo, 'bool', ['string', 'string'])
-_registrar('write_file', escribir_archivo, 'bool', ['string', 'string'])
-_registrar('agregar_archivo', agregar_archivo, 'bool', ['string', 'string'])
-_registrar('append_file', agregar_archivo, 'bool', ['string', 'string'])
+_registrar("existe_archivo", existe_archivo, "bool", ["string"])
+_registrar("file_exists", existe_archivo, "bool", ["string"])
+_registrar("leer_archivo", leer_archivo, "string", ["string"])
+_registrar("read_file", leer_archivo, "string", ["string"])
+_registrar("escribir_archivo", escribir_archivo, "bool", ["string", "string"])
+_registrar("write_file", escribir_archivo, "bool", ["string", "string"])
+_registrar("agregar_archivo", agregar_archivo, "bool", ["string", "string"])
+_registrar("append_file", agregar_archivo, "bool", ["string", "string"])
 
 
 def es_built_in(nombre):
@@ -409,8 +475,63 @@ def obtener_built_in(nombre):
 
 
 def ejecutar_built_in(nombre, argumentos):
-    """Ejecuta una función integrada y retorna su resultado."""
+    """Ejecuta una función integrada y retorna su resultado. Facade + Strategy."""
     if nombre not in FUNCIONES_BUILT_IN:
         raise ValueError(f"Función integrada desconocida: {nombre}")
     func, _, _ = FUNCIONES_BUILT_IN[nombre]
     return func(*argumentos)
+
+
+# ============================================================
+# Strategy Registry — Cada conversión es una estrategia
+# ============================================================
+
+
+class ConversionStrategy(Strategy):
+    """Strategy base para conversiones de tipo."""
+
+    def execute(self, valor: Any, *args, **kwargs) -> Any:
+        raise NotImplementedError
+
+
+class IntAFloatStrategy(ConversionStrategy):
+    def execute(self, valor: int, *args, **kwargs) -> float:
+        return float(valor)
+
+
+class FloatAIntStrategy(ConversionStrategy):
+    def execute(self, valor: float, *args, **kwargs) -> int:
+        return float_a_int(valor)
+
+
+class BuiltInFactory(RegistryFactory):
+    """Factory para built-ins — centraliza creación y validación."""
+
+    _instance: Optional["BuiltInFactory"] = None
+
+    @classmethod
+    def get_instance(cls) -> "BuiltInFactory":
+        if cls._instance is None:
+            cls._instance = cls()
+            cls._instance._init_defaults()
+        return cls._instance
+
+    def _init_defaults(self) -> None:
+        for nombre, (func, ret, params) in FUNCIONES_BUILT_IN.items():
+            self.register(nombre, lambda f=func: f)
+
+
+# Decorator para validación de built-ins (cross-cutting)
+def validar_argumentos_built_in(func: Callable) -> Callable:
+    @wraps(func)
+    def wrapper(nombre: str, argumentos: List[Any]) -> Any:
+        info = FUNCIONES_BUILT_IN.get(nombre)
+        if info:
+            _, _, tipos_esperados = info
+            if len(argumentos) != len(tipos_esperados):
+                raise BuiltInError(
+                    "IL-SEM-052", f"Built-in {nombre} espera {len(tipos_esperados)} args, recibió {len(argumentos)}"
+                )
+        return func(nombre, argumentos)
+
+    return wrapper

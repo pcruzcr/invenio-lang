@@ -1,0 +1,53 @@
+// conjunto.inv - Estructura: conjunto (set) con arreglo, O(n) por op.
+// Operaciones: contiene, agregar (sin duplicados), union, interseccion.
+const int CAP = 20;
+
+bool contiene(int [] c, int n, int v) {
+    para (int i = 0; i < n; i++) {
+        si (c[i] == v) { return verdadero; }
+    }
+    return falso;
+}
+
+int agregar(int [] c, int n, int v) {
+    si (contiene(c, n, v)) { return n; }
+    c[n] = v;
+    return n + 1;
+}
+
+void imprimirC(int [] c, int n) {
+    imprimir("{");
+    para (int i = 0; i < n; i++) {
+        imprimir(c[i]);
+        si (i < n - 1) { imprimir(","); }
+    }
+    imprimir("}");
+}
+
+void main() {
+    int [CAP] a;
+    int [CAP] b;
+    int [CAP] u;
+    int [CAP] inter;
+    int na = 0;
+    int nb = 0;
+    na = agregar(a, na, 1);
+    na = agregar(a, na, 2);
+    na = agregar(a, na, 3);
+    na = agregar(a, na, 2);
+    nb = agregar(b, nb, 3);
+    nb = agregar(b, nb, 4);
+    nb = agregar(b, nb, 5);
+    imprimir("A="); imprimirC(a, na); imprimir("\n");
+    imprimir("B="); imprimirC(b, nb); imprimir("\n");
+    int nu = 0;
+    para (int i = 0; i < na; i++) { nu = agregar(u, nu, a[i]); }
+    para (int i = 0; i < nb; i++) { nu = agregar(u, nu, b[i]); }
+    imprimir("union="); imprimirC(u, nu); imprimir("\n");
+    int ni = 0;
+    para (int i = 0; i < na; i++) {
+        si (contiene(b, nb, a[i])) { ni = agregar(inter, ni, a[i]); }
+    }
+    imprimir("inter="); imprimirC(inter, ni); imprimir("\n");
+    imprimir("tamA="); imprimir(na); imprimir("\n");
+}

@@ -1,0 +1,1 @@
+void main(){ int i=0; hacer { imprimir(i); i=i+1; } mientras(i<2); }
