@@ -90,7 +90,7 @@ proyecto_inveniolang/
 ## Pruebas
 
 ```bash
-# Suite de conformidad con la especificacion (311 casos)
+# Suite de conformidad con la especificacion (391 casos)
 python pruebas/conformidad.py
 
 # Solo un grupo: catalogo | expresiones | ejecucion | codificacion
@@ -546,7 +546,7 @@ la Etapa 11 no era de contenido de asignaturas (ya cubierto) sino de
 **paradigma**: sin funciones de primera clase, sin tipos suma/*pattern
 matching*, y un backend de compilador que se quedaba corto del tramo que
 un curso de Lenguajes Formales/Compiladores mas quiere mostrar. Cierre
-final: **372/372** en `pruebas/conformidad.py`.
+final: **391/391** en `pruebas/conformidad.py`.
 
 - **`para_cada`/`foreach`**: recorrido de arreglos sin indice explicito,
   respeta `romper`/`continuar`.
