@@ -51,3 +51,10 @@ def test_arbol_b():
     assert "inorder: 5 6 7 10 12 17 20 30" in s
     assert "buscar12=true" in s
     assert "buscar99=false" in s
+
+
+def test_prim():
+    """Prim calcula el mismo MST que Kruskal en el grafo de prueba."""
+    s = _ejecutar_archivo("prim.inv")
+    assert "peso total MST: 16" in s
+    assert "arista 0-1 peso 2" in s

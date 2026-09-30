@@ -1,0 +1,24 @@
+// patron_bridge.inv - Bridge: abstraccion separada de implementacion.
+clase ImplA {
+    publico texto dibujar() { return "bridge-A"; }
+}
+clase ImplB {
+    publico texto dibujar() { return "bridge-B"; }
+}
+clase Control {
+    privado ImplA a;
+    privado ImplB b;
+    Control() {
+        this.a = nuevo ImplA();
+        this.b = nuevo ImplB();
+    }
+    publico texto operar() {
+        ImplA x = this.a;
+        ImplB y = this.b;
+        return x.dibujar() + " " + y.dibujar();
+    }
+}
+void main() {
+    Control c = nuevo Control();
+    imprimir(c.operar());
+}

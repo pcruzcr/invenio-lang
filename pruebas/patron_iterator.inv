@@ -1,0 +1,19 @@
+// patron_iterator.inv - Iterator sobre arreglo global.
+const int NIT = 3;
+int [NIT] datosIt;
+clase Iterador {
+    privado entero i;
+    Iterador() { this.i = 0; }
+    publico bool tiene() { return this.i < NIT; }
+    publico entero siguiente() {
+        int v = datosIt[this.i];
+        this.i = this.i + 1;
+        return v;
+    }
+}
+void main() {
+    datosIt[0] = 1; datosIt[1] = 2; datosIt[2] = 3;
+    Iterador it = nuevo Iterador();
+    imprimir("it:");
+    mientras (it.tiene()) { imprimir(" "); imprimir(it.siguiente()); }
+}

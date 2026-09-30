@@ -1,0 +1,11 @@
+// patron_prototype.inv - Prototype clona el valor.
+clase Proto {
+    publico entero v;
+    Proto(entero x) { this.v = x; }
+    publico Proto clonar() { return nuevo Proto(this.v); }
+}
+void main() {
+    Proto a = nuevo Proto(5);
+    Proto b = a.clonar();
+    imprimir("proto:"); imprimir(a.v); imprimir(" "); imprimir(b.v);
+}

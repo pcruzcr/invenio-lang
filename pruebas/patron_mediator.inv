@@ -1,0 +1,22 @@
+// patron_mediator.inv - Mediator entre dos colegas.
+clase Colega {
+    publico texto nombre;
+    Colega(texto n) { this.nombre = n; }
+}
+clase Mediador {
+    privado Colega a;
+    privado Colega b;
+    Mediador(texto x, texto y) {
+        this.a = nuevo Colega(x);
+        this.b = nuevo Colega(y);
+    }
+    publico texto hablar() {
+        Colega x = this.a;
+        Colega y = this.b;
+        return "med:" + x.nombre + "+" + y.nombre;
+    }
+}
+void main() {
+    Mediador m = nuevo Mediador("a", "b");
+    imprimir(m.hablar());
+}

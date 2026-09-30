@@ -1,0 +1,25 @@
+// patron_state.inv - State con cambio de estado por upcasting.
+clase Estado {
+    publico texto nombre() { return "base"; }
+}
+clase EstadoA hereda Estado {
+    publico texto nombre() { return "A"; }
+}
+clase EstadoB hereda Estado {
+    publico texto nombre() { return "B"; }
+}
+clase Contexto {
+    privado Estado e;
+    Contexto() { this.e = nuevo EstadoA(); }
+    publico void cambiar(Estado x) { this.e = x; }
+    publico texto ver() {
+        Estado y = this.e;
+        return "state:" + y.nombre();
+    }
+}
+void main() {
+    Contexto c = nuevo Contexto();
+    imprimir(c.ver()); imprimir(" ");
+    c.cambiar(nuevo EstadoB());
+    imprimir(c.ver());
+}

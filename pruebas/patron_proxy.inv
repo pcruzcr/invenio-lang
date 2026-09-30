@@ -1,0 +1,24 @@
+// patron_proxy.inv - Proxy con control de acceso.
+clase Servicio {
+    publico texto pedir() { return "ok"; }
+}
+clase Proxy {
+    privado Servicio s;
+    privado bool permitido;
+    Proxy(bool p) {
+        this.s = nuevo Servicio();
+        this.permitido = p;
+    }
+    publico texto pedir() {
+        si (this.permitido) {
+            Servicio x = this.s;
+            return "proxy:" + x.pedir();
+        }
+        return "proxy:denegado";
+    }
+}
+void main() {
+    Proxy a = nuevo Proxy(verdadero);
+    Proxy b = nuevo Proxy(falso);
+    imprimir(a.pedir()); imprimir(" "); imprimir(b.pedir());
+}

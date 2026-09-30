@@ -24,6 +24,13 @@ from inveniolang.core import CompileRequest, compile_pure
 compile_pure(CompileRequest(ruta="hola.inv", codigo=code, modo="run"))
 ```
 
+## Fidelidad del viewer (subconjunto estructurado)
+Variables, asignación, `imprimir`, `if`, `while`, `for` (Pascal desazucarado a
+`while`), funciones/procedimientos, `return`/`break`/`continue`, llamadas y
+expresiones se traducen de verdad (`tests/test_rosetta.py:1`). POO, arreglos,
+`switch`/`try`/`foreach`/`match` se degradan a comentario. C elige
+`printf` `%s/%d/%g` por literal; resto es vista, no toolchain.
+
 ## Por qué no compilar otros
 Compilar C/Java/C# exigiría `gcc`/`javac`/`dotnet` + `sandbox.py:7` por lenguaje + 6×391 tests. Para aprender, basta ver correspondencia + ejecutar InvenioLang. Ver `studio/allinone.py:1` `StudioFacade` (`ver_como`).
 

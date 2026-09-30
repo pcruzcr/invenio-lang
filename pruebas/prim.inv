@@ -1,0 +1,42 @@
+// prim.inv - MST con Prim O(V^2), matriz de adyacencia.
+const int N = 5;
+const int INF = 999;
+
+void main() {
+    int [N][N] w;
+    para (int i = 0; i < N; i++) {
+        para (int j = 0; j < N; j++) {
+            si (i == j) { w[i][j] = 0; } sino { w[i][j] = INF; }
+        }
+    }
+    w[0][1] = 2; w[1][0] = 2;
+    w[0][3] = 6; w[3][0] = 6;
+    w[1][2] = 3; w[2][1] = 3;
+    w[1][4] = 5; w[4][1] = 5;
+    w[2][4] = 7; w[4][2] = 7;
+    w[3][4] = 9; w[4][3] = 9;
+    int [N] minD;
+    bool [N] vis;
+    int [N] pap;
+    para (int i = 0; i < N; i++) { minD[i] = INF; vis[i] = falso; pap[i] = -1; }
+    minD[0] = 0;
+    int total = 0;
+    para (int it = 0; it < N; it++) {
+        int u = -1;
+        int mejor = INF;
+        para (int v = 0; v < N; v++) {
+            si (!vis[v] && minD[v] < mejor) { mejor = minD[v]; u = v; }
+        }
+        si (u == -1) { romper; }
+        vis[u] = verdadero;
+        total = total + minD[u];
+        si (pap[u] != -1) {
+            imprimir("arista "); imprimir(pap[u]); imprimir("-"); imprimir(u);
+            imprimir(" peso "); imprimir(minD[u]); imprimir("\n");
+        }
+        para (int v = 0; v < N; v++) {
+            si (!vis[v] && w[u][v] < minD[v]) { minD[v] = w[u][v]; pap[v] = u; }
+        }
+    }
+    imprimir("peso total MST: "); imprimir(total); imprimir("\n");
+}

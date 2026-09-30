@@ -1,0 +1,13 @@
+// patron_builder.inv - Builder acumula partes.
+clase Constructor {
+    privado texto partes;
+    Constructor() { this.partes = ""; }
+    publico void agregar(texto p) { this.partes = this.partes + p + "+"; }
+    publico texto obtener() { return "builder:" + this.partes; }
+}
+void main() {
+    Constructor b = nuevo Constructor();
+    b.agregar("pan");
+    b.agregar("leche");
+    imprimir(b.obtener());
+}
