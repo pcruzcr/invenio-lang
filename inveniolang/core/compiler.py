@@ -3,18 +3,21 @@
 # Auditoría v10.1: métricas por fase (PipelineMetrics) inyectadas opcionalmente
 # — el núcleo sigue siendo puro: si metrics=None, el comportamiento es idéntico.
 from __future__ import annotations
-from typing import Optional
-from . import CompileRequest, CompileResult
-from ..lexer import Lexer
-from ..parser import Parser
+
+from contextlib import contextmanager
+
 from ..errors import ErrorManager
+from ..interpreter import Interpreter
+from ..lexer import Lexer
+from ..observability import PipelineMetrics, new_run_id, set_current_run
+from ..parser import Parser
 from ..semantic import SemanticAnalyzer
 from ..type_checker import TypeChecker
-from ..interpreter import Interpreter
-from ..observability import PipelineMetrics, set_current_run, new_run_id
+from . import CompileRequest, CompileResult
 
 
-def compile_pure(req: CompileRequest, metrics: Optional[PipelineMetrics] = None) -> CompileResult:
+def compile_pure(req: CompileRequest, metrics: PipelineMetrics | None = None) -> CompileResult:
+    """Compila de forma pura, sin IO."""
     run_id = new_run_id()
     set_current_run(run_id, ruta=req.ruta, modo=req.modo)
     mide = metrics.mide if metrics else _mida_nula
@@ -46,13 +49,12 @@ def compile_pure(req: CompileRequest, metrics: Optional[PipelineMetrics] = None)
         return CompileResult(ok=True, salida=tuple(str(t) for t in toks), version=req.version)
     with mide("ejecucion"):
         interp = Interpreter(em, tabla)
-        salida = interp.interpretar(ast, list(req.entrada) if req.entrada else None, usar_stdin=False)
+        salida = interp.interpretar(
+            ast, list(req.entrada) if req.entrada else None, usar_stdin=False
+        )
     if em.hay_errores():
         return CompileResult(ok=False, errores=tuple(em.obtener_reportes()), version=req.version)
     return CompileResult(ok=True, salida=tuple(salida), version=req.version)
-
-
-from contextlib import contextmanager
 
 
 @contextmanager

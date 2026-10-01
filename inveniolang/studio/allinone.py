@@ -2,18 +2,21 @@
 # Integra: algoritmos, estructuras, viewer/rosetta (solo vista), UML, flowchart, LSP, visual
 # Solo InvenioLang se compila/ejecuta; el resto es Rosetta viewer para aprender (no compila)
 from __future__ import annotations
-from typing import Dict, Any
-from ..patterns import Facade
+
+from typing import Any
+
+from ..complexity import analyze
 from ..core import CompileRequest, compile_pure
+from ..patterns import Facade
 from ..viewer.rosetta import transpile as ver_como
 from ..visual.uml import to_plantuml
-from ..complexity import analyze
 
 
 class StudioFacade(Facade):
     """All-in-one: un punto para aprender todo (InvenioLang ejecutable + Rosetta viewer)."""
 
-    def execute(self, codigo: str, target: str = "python", *a, **kw) -> Dict[str, Any]:
+    def execute(self, codigo: str, target: str = "python", *a, **kw) -> dict[str, Any]:
+        """Ejecuta la operación."""
         # 1. Compila solo InvenioLang (único ejecutable)
         req = CompileRequest(ruta="<studio>", codigo=codigo, modo="run")
         res = compile_pure(req)
@@ -22,9 +25,9 @@ class StudioFacade(Facade):
         # 3. UML si hay clases
         uml = ""
         try:
+            from ..errors import ErrorManager
             from ..lexer import Lexer
             from ..parser import Parser
-            from ..errors import ErrorManager
 
             em = ErrorManager()
             lx = Lexer(em)
@@ -49,6 +52,7 @@ class StudioFacade(Facade):
         }
 
 
-def demo_allinone() -> Dict[str, Any]:
+def demo_allinone() -> dict[str, Any]:
+    """Demuestra el estudio todo-en-uno."""
     code = "clase Nodo { publico int valor; publico Nodo siguiente; } void main(){ imprimir(1); }"
     return StudioFacade().execute(code, target="java")

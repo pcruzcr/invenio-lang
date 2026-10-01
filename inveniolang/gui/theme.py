@@ -1,14 +1,13 @@
 # theme.py — Strategy para temas (extraído de gui_qt.py:52)
 # Patrón Strategy + Singleton
 from __future__ import annotations
-from typing import Dict
 
 try:
     from ..accessibility import TEMA_ALTO_CONTRASTE as ACC_TEMA
 except Exception:
     ACC_TEMA = None
 
-TEMA_OSCURO: Dict[str, str] = {
+TEMA_OSCURO: dict[str, str] = {
     "fondo": "#1e1e1e",
     "panel": "#252526",
     "gutter": "#252526",
@@ -37,7 +36,7 @@ TEMA_OSCURO: Dict[str, str] = {
     "dfd_flecha": "#c8c8c8",
     "dfd_texto": "#d4d4d4",
 }
-TEMA_CLARO: Dict[str, str] = {
+TEMA_CLARO: dict[str, str] = {
     "fondo": "#ffffff",
     "panel": "#f3f3f3",
     "gutter": "#f3f3f3",
@@ -66,7 +65,7 @@ TEMA_CLARO: Dict[str, str] = {
     "dfd_flecha": "#333333",
     "dfd_texto": "#000000",
 }
-TEMA_ALTO_CONTRASTE: Dict[str, str] = (
+TEMA_ALTO_CONTRASTE: dict[str, str] = (
     ACC_TEMA
     if ACC_TEMA
     else {
@@ -99,11 +98,14 @@ TEMA_ALTO_CONTRASTE: Dict[str, str] = (
         "dfd_texto": "#ffffff",
     }
 )
-COLORES: Dict[str, str] = dict(TEMA_OSCURO)
+COLORES: dict[str, str] = dict(TEMA_OSCURO)
 
 
 class ThemeStrategy:
+    """Estrategia theme."""
+
     def apply(self, nombre: str):
+        """Aplica el tema."""
         mapa = {"oscuro": TEMA_OSCURO, "claro": TEMA_CLARO, "alto": TEMA_ALTO_CONTRASTE}
         COLORES.clear()
         COLORES.update(mapa.get(nombre, TEMA_OSCURO))

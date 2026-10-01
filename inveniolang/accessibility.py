@@ -49,7 +49,12 @@ TAMANO_FUENTE_MIN = 9
 TAMANO_FUENTE_MAX = 24
 
 # Fuente dislexia-friendly (si está instalada, se usa; si no, cae a monospace)
-FUENTE_DISLEXIA_CANDIDATAS = ["OpenDyslexicMono", "Atkinson Hyperlegible Mono", "Consolas", "Courier New"]
+FUENTE_DISLEXIA_CANDIDATAS = [
+    "OpenDyslexicMono",
+    "Atkinson Hyperlegible Mono",
+    "Consolas",
+    "Courier New",
+]
 
 
 def describir_widget(widget, nombre: str, descripcion: str = "", atajo: str = ""):
@@ -63,10 +68,12 @@ def describir_widget(widget, nombre: str, descripcion: str = "", atajo: str = ""
         if descripcion:
             widget.setAccessibleDescription(descripcion + (f" Atajo: {atajo}" if atajo else ""))
         if atajo:
-            widget.setToolTip(f"{nombre} ({atajo}) — {descripcion}" if descripcion else f"{nombre} ({atajo})")
+            widget.setToolTip(
+                f"{nombre} ({atajo}) — {descripcion}" if descripcion else f"{nombre} ({atajo})"
+            )
         elif descripcion:
             widget.setToolTip(descripcion)
-    except Exception:
+    except Exception:  # noqa: S110 - accesibilidad best-effort sin Qt completo
         pass
 
 
@@ -74,9 +81,11 @@ def contraste_ratio(c1: str, c2: str) -> float:
     """Calcula ratio de contraste WCAG entre dos colores hex (#rrggbb)."""
 
     def lum(hexcol):
+        """Calcula la luminancia relativa."""
         r, g, b = int(hexcol[1:3], 16) / 255, int(hexcol[3:5], 16) / 255, int(hexcol[5:7], 16) / 255
 
         def lin(c):
+            """Linealiza un canal sRGB."""
             return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
 
         return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)

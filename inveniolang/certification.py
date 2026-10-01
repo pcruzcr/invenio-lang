@@ -1,15 +1,22 @@
 # certification.py — H3.9 Micro-credencial con rúbrica automatizada
 # Patrones: Strategy (rúbricas), Factory (certificados), Observer (progreso), Template
 from __future__ import annotations
-import json, hashlib, time, pathlib
-from typing import Dict, List, Any
-from dataclasses import dataclass, asdict
-from .patterns import Strategy
+
+import hashlib
+import json
+import pathlib
+import time
+from dataclasses import asdict, dataclass
+from typing import Any
+
 from .cli import CompilerFacade
+from .patterns import Strategy
 
 
 @dataclass
 class RubricaItem:
+    """Ítem de rúbrica con peso."""
+
     id: str
     peso: float
     descripcion: str
@@ -18,23 +25,34 @@ class RubricaItem:
 
 
 class RubricaStrategy(Strategy):
+    """Estrategia rubrica."""
+
     def execute(self, *args, **kwargs) -> RubricaItem:
+        """Ejecuta la operación."""
         raise NotImplementedError
 
 
 class CompilaStrategy(RubricaStrategy):
+    """Estrategia compila."""
+
     def execute(self, ruta: str, *args, **kwargs) -> RubricaItem:
+        """Ejecuta la operación."""
         fac = CompilerFacade()
         r = fac.execute(ruta)
         ok = r.get("ok", False)
-        return RubricaItem("compila", 0.2, "Compila sin errores", ok, "" if ok else str(r.get("errores")))
+        return RubricaItem(
+            "compila", 0.2, "Compila sin errores", ok, "" if ok else str(r.get("errores"))
+        )
 
 
 class TestOcultoStrategy(RubricaStrategy):
-    def __init__(self, casos: List[Dict[str, Any]]):
+    """Estrategia test oculto."""
+
+    def __init__(self, casos: list[dict[str, Any]]):
         self.casos = casos
 
     def execute(self, ruta: str, *args, **kwargs) -> RubricaItem:
+        """Ejecuta la operación."""
         fac = CompilerFacade()
         passed = 0
         for c in self.casos:
@@ -46,25 +64,37 @@ class TestOcultoStrategy(RubricaStrategy):
                 passed += 1
         ok = passed == len(self.casos)
         return RubricaItem(
-            "tests_ocultos", 0.5, f"Tests ocultos {passed}/{len(self.casos)}", ok, f"{passed}/{len(self.casos)}"
+            "tests_ocultos",
+            0.5,
+            f"Tests ocultos {passed}/{len(self.casos)}",
+            ok,
+            f"{passed}/{len(self.casos)}",
         )
 
 
 class ComplejidadStrategy(RubricaStrategy):
+    """Estrategia complejidad."""
+
     def execute(self, ruta: str, *args, **kwargs) -> RubricaItem:
+        """Ejecuta la operación."""
         try:
             from .complexity import analyze
 
             text = pathlib.Path(ruta).read_text(encoding="utf-8")
             r = analyze(text)
             ok = r.get("max_depth", 0) <= 2  # exige O(n2) max para micro-credencial basica
-            return RubricaItem("complejidad", 0.15, f"Complejidad {r.get('estimado')} <= O(n2)", ok, str(r))
+            return RubricaItem(
+                "complejidad", 0.15, f"Complejidad {r.get('estimado')} <= O(n2)", ok, str(r)
+            )
         except Exception as e:
             return RubricaItem("complejidad", 0.15, "Complejidad", False, str(e))
 
 
 class EstiloStrategy(RubricaStrategy):
+    """Estrategia estilo."""
+
     def execute(self, ruta: str, *args, **kwargs) -> RubricaItem:
+        """Ejecuta la operación."""
         text = pathlib.Path(ruta).read_text(encoding="utf-8")
         issues = []
         if "    " not in text:
@@ -75,11 +105,17 @@ class EstiloStrategy(RubricaStrategy):
         return RubricaItem("estilo", 0.15, "Estilo básico", ok, ",".join(issues))
 
 
-def certificar(ruta: str, casos_ocultos: List[Dict[str, Any]] = None) -> Dict[str, Any]:
+def certificar(ruta: str, casos_ocultos: list[dict[str, Any]] = None) -> dict[str, Any]:
+    """Emite el certificado del programa."""
     casos_ocultos = casos_ocultos or []
     # registra estrategias
-    strategies = [CompilaStrategy(), TestOcultoStrategy(casos_ocultos), ComplejidadStrategy(), EstiloStrategy()]
-    items: List[RubricaItem] = [s.execute(ruta) for s in strategies]
+    strategies = [
+        CompilaStrategy(),
+        TestOcultoStrategy(casos_ocultos),
+        ComplejidadStrategy(),
+        EstiloStrategy(),
+    ]
+    items: list[RubricaItem] = [s.execute(ruta) for s in strategies]
     nota = sum(it.peso for it in items if it.passed) / sum(it.peso for it in items) * 10
     passed = nota >= 6 and all(it.passed for it in items if it.id == "compila")
     cert = {
@@ -100,8 +136,10 @@ def emitir_pdf(ruta: str, out: str = "certificado.pdf") -> str:
         from reportlab.pdfgen import canvas
 
         c = canvas.Canvas(out)
-        c.drawString(50, 800, f"Certificado InvenioLang 3.0 — {cert["ruta"]}")
-        c.drawString(50, 780, f"Nota: {cert["nota"]} Aprobado: {cert["aprobado"]} Hash: {cert["hash"]}")
+        c.drawString(50, 800, f"Certificado InvenioLang 3.0 — {cert['ruta']}")
+        c.drawString(
+            50, 780, f"Nota: {cert['nota']} Aprobado: {cert['aprobado']} Hash: {cert['hash']}"
+        )
         c.drawString(50, 760, "Firma docente: ___________________")
         c.save()
         return out
@@ -111,6 +149,7 @@ def emitir_pdf(ruta: str, out: str = "certificado.pdf") -> str:
 
 
 def emitir_json(ruta: str, out: str = None) -> str:
+    """Emite el certificado en JSON."""
     cert = certificar(ruta)
     js = json.dumps(cert, indent=2, ensure_ascii=False)
     if out:

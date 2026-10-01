@@ -15,13 +15,15 @@
 # contaminar la salida estándar del compilador (contrato §7 E/S).
 
 from __future__ import annotations
+
 import json
 import logging
 import sys
 import time
 import uuid
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Iterator, Optional
+from typing import Any
 
 from .patterns import Observer
 
@@ -73,7 +75,8 @@ class JsonFormatter(logging.Formatter):
     """Formatea registros como una línea JSON (parseable por ELK/Loki)."""
 
     def format(self, record: logging.LogRecord) -> str:
-        payload: Dict[str, Any] = {
+        """Formatea el código."""
+        payload: dict[str, Any] = {
             "ts": round(record.created, 3),
             "level": record.levelname,
             "logger": record.name,
@@ -91,13 +94,19 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload, ensure_ascii=False)
 
 
-def configure_observability(level: int = logging.INFO, json_output: bool = True, stream: Any = None) -> logging.Logger:
+def configure_observability(
+    level: int = logging.INFO, json_output: bool = True, stream: Any = None
+) -> logging.Logger:
     """Idempotente: configura el handler del paquete una única vez."""
     global _configured
     if _configured:
         return _LOG
     handler = logging.StreamHandler(stream or sys.stderr)
-    handler.setFormatter(JsonFormatter() if json_output else logging.Formatter("[%(levelname)s] %(name)s: %(message)s"))
+    handler.setFormatter(
+        JsonFormatter()
+        if json_output
+        else logging.Formatter("[%(levelname)s] %(name)s: %(message)s")
+    )
     _LOG.addHandler(handler)
     _LOG.setLevel(level)
     _LOG.propagate = False  # nunca invadir el root del host
@@ -105,7 +114,7 @@ def configure_observability(level: int = logging.INFO, json_output: bool = True,
     return _LOG
 
 
-def get_logger(name: Optional[str] = None) -> logging.Logger:
+def get_logger(name: str | None = None) -> logging.Logger:
     """Logger hijo de 'inveniolang'. Configura bajo demanda."""
     if not _configured:
         configure_observability()
@@ -118,32 +127,38 @@ def emit_structured(level: int, event: str, **fields: Any) -> None:
 
 
 # ————— Correlación por run-id —————
-_current_run: Dict[str, Any] = {}
+_current_run: dict[str, Any] = {}
 
 
 def new_run_id() -> str:
+    """Genera un id de corrida."""
     return uuid.uuid4().hex[:12]
 
 
 def set_current_run(run_id: str, **context: Any) -> None:
+    """Fija la corrida actual."""
     _current_run["run_id"] = run_id
     _current_run.update(context)
 
 
-def get_current_run() -> Dict[str, Any]:
+def get_current_run() -> dict[str, Any]:
+    """Retorna la corrida actual."""
     return dict(_current_run)
 
 
 # ————— Métricas de pipeline (trazabilidad por fase) —————
 class PipelineMetrics:
-    """Registra duración y resultado por fase: lexer, parser, semantico,
-    tipos, ejecucion. Serializable a dict/JSON para CI y panel docente."""
+    """Registra duración y resultado por fase: lexer, parser, semantico, tipos, ejecucion.
+
+    Serializable a dict/JSON para CI y panel docente.
+    """
 
     def __init__(self) -> None:
-        self.fases: list[Dict[str, Any]] = []
+        self.fases: list[dict[str, Any]] = []
 
     @contextmanager
-    def mide(self, fase: str, **meta: Any) -> Iterator[Dict[str, Any]]:
+    def mide(self, fase: str, **meta: Any) -> Iterator[dict[str, Any]]:
+        """Mide una fase del pipeline."""
         entrada = {"fase": fase, "inicio": time.perf_counter(), **meta}
         self.fases.append(entrada)
         try:
@@ -154,39 +169,49 @@ class PipelineMetrics:
         finally:
             entrada["ms"] = round((time.perf_counter() - entrada.pop("inicio")) * 1000, 2)
             get_logger("metrics").info(
-                "fase_completada", extra={"fase": entrada["fase"], "ms": entrada["ms"], "error": entrada.get("error")}
+                "fase_completada",
+                extra={"fase": entrada["fase"], "ms": entrada["ms"], "error": entrada.get("error")},
             )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
+        """Serializa a diccionario."""
         return {
             "fases": [{k: v for k, v in f.items() if k != "inicio"} for f in self.fases],
             "total_ms": self.total_ms(),
         }
 
     def total_ms(self) -> float:
+        """Milisegundos totales."""
         return round(sum(f.get("ms", 0.0) for f in self.fases), 2)
 
 
 # ————— Decorador de trazado —————
-def traced(fase: Optional[str] = None) -> Callable:
+def traced(fase: str | None = None) -> Callable:
     """Decorador: loguea duración en ms; en fallo registra tipo de error."""
 
     def deco(fn: Callable) -> Callable:
+        """Decorador interno."""
         nombre = fase or fn.__qualname__
         log = get_logger("trace")
 
         def wrapper(*args: Any, **kwargs: Any) -> Any:
+            """Envuelve la función con traza."""
             t0 = time.perf_counter()
             try:
                 resultado = fn(*args, **kwargs)
-                log.debug("%s ok", nombre, extra={"ms": round((time.perf_counter() - t0) * 1000, 2)})
+                log.debug(
+                    "%s ok", nombre, extra={"ms": round((time.perf_counter() - t0) * 1000, 2)}
+                )
                 return resultado
             except Exception as exc:
                 log.error(
                     "%s fallo: %s",
                     nombre,
                     exc,
-                    extra={"ms": round((time.perf_counter() - t0) * 1000, 2), "error_type": type(exc).__name__},
+                    extra={
+                        "ms": round((time.perf_counter() - t0) * 1000, 2),
+                        "error_type": type(exc).__name__,
+                    },
                 )
                 raise
 
@@ -200,15 +225,18 @@ def traced(fase: Optional[str] = None) -> Callable:
 
 # ————— Observer de métricas (se conecta a ErrorManager) —————
 class MetricsObserver(Observer):
-    """Suscribir a ErrorManager para llevar contadores de errores/warnings
-    sin acoplar el compilador a la capa de observabilidad (Observer)."""
+    """Suscribir a ErrorManager para llevar contadores de errores/warnings.
+
+    sin acoplar el compilador a la capa de observabilidad (Observer).
+    """
 
     def __init__(self) -> None:
         self.errores = 0
         self.advertencias = 0
-        self.por_codigo: Dict[str, int] = {}
+        self.por_codigo: dict[str, int] = {}
 
     def update(self, event: str, data: Any) -> None:
+        """Recibe un evento del Subject."""
         if event in ("error", "error_ejecucion") and data is not None:
             self.errores += 1
             codigo = getattr(data, "codigo", "?")

@@ -2,14 +2,19 @@
 # Auditoría v10.1: JSON seguro (JSONDecodeError controlado), validación de
 # nombre con security.validar_ruta_relativa, escritura atómica (temp + rename).
 from __future__ import annotations
-import pathlib, json, hashlib, time, os, re
-from typing import List, Optional
+
+import hashlib
+import json
+import os
+import pathlib
+import re
+import time
 
 PKG_FILE = "invenio.json"
 _NOMBRE_OK = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]*$")
 
 
-def _cargar_pkg() -> Optional[dict]:
+def _cargar_pkg() -> dict | None:
     """Carga invenio.json con manejo robusto (corrupto → None, no crash)."""
     p = pathlib.Path(PKG_FILE)
     if not p.exists():
@@ -31,7 +36,8 @@ def _escribir_atomico(data: dict) -> None:
     os.replace(tmp, p)
 
 
-def init_pkg(name: str, version: str = "0.1.0", deps: Optional[List[str]] = None):
+def init_pkg(name: str, version: str = "0.1.0", deps: list[str] | None = None):
+    """Inicializa el paquete."""
     if not _NOMBRE_OK.match(name or ""):
         raise ValueError(f"nombre de paquete inválido: {name!r}")
     if not re.match(r"^\d+\.\d+\.\d+$", version or ""):
@@ -50,6 +56,7 @@ def init_pkg(name: str, version: str = "0.1.0", deps: Optional[List[str]] = None
 
 
 def add_dep(dep: str):
+    """Agrega una dependencia."""
     if not _NOMBRE_OK.match(dep or ""):
         raise ValueError(f"nombre de dependencia inválido: {dep!r}")
     data = _cargar_pkg()
@@ -63,22 +70,29 @@ def add_dep(dep: str):
     return deps
 
 
-def resolve_deps() -> List[str]:
+def resolve_deps() -> list[str]:
+    """Resuelve dependencias."""
     data = _cargar_pkg()
     return list(data.get("deps", [])) if data else []
 
 
 def pkg_hash() -> str:
+    """Hash del paquete."""
     p = pathlib.Path(PKG_FILE)
     if not p.exists():
         return ""
     return hashlib.sha256(p.read_bytes()).hexdigest()[:12]
 
 
-def install_deps(dry_run: bool = False) -> List[str]:
+def install_deps(dry_run: bool = False) -> list[str]:
+    """Instala dependencias."""
     deps = resolve_deps()
     if dry_run:
         return deps
     # En v10, deps son otros paquetes .inv locales; verifica existen
-    missing = [d for d in deps if not pathlib.Path(d).exists() and not pathlib.Path(f"pruebas/{d}.inv").exists()]
+    missing = [
+        d
+        for d in deps
+        if not pathlib.Path(d).exists() and not pathlib.Path(f"pruebas/{d}.inv").exists()
+    ]
     return missing

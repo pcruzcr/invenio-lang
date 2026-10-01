@@ -4,12 +4,56 @@
 # Patrones: Visitor (recorrido AST), Strategy (operaciones binarias/unarias
 # y compatibilidad), Template Method (fases)
 from __future__ import annotations
-from typing import Optional
-from .ast_nodes import *
-from .ast_nodes import ASTVisitor
-from .symbol_table import TipoSimbolo
-from .patterns import Strategy, StrategyContext
+
+from .ast_nodes import (
+    ArrayAccess,
+    ArrayDecl,
+    ArrayLValue,
+    AssignStmt,
+    ASTVisitor,
+    BinaryOp,
+    CallStmt,
+    ConstDecl,
+    DoWhileStmt,
+    ForEachStmt,
+    ForInitAsig,
+    ForInitVar,
+    ForStmt,
+    FunctionCall,
+    FunctionDecl,
+    Identifier,
+    IfStmt,
+    IncDecStmt,
+    LambdaExpr,
+    Literal,
+    MatchStmt,
+    MatrixAccess,
+    MatrixDecl,
+    MatrixLValue,
+    MemberAccess,
+    MemberLValue,
+    MethodCallExpr,
+    MethodCallStmt,
+    NewExpr,
+    NullExpr,
+    PrintStmt,
+    ProcedureDecl,
+    ReadStmt,
+    ReturnStmt,
+    SuperCallStmt,
+    SuperExpr,
+    SwitchStmt,
+    TernaryExpr,
+    ThisExpr,
+    TryStmt,
+    UnaryOp,
+    VarDecl,
+    VarLValue,
+    WhileStmt,
+)
 from .builtins import es_built_in
+from .patterns import Strategy, StrategyContext
+from .symbol_table import TipoSimbolo
 
 # Orden superior sobre arreglos (Etapa 12.7): tipo de retorno fijo de cada
 # nombre reconocido -- ver semantic.py::_ORDEN_SUPERIOR para el porqué del
@@ -22,7 +66,8 @@ _ORDEN_SUPERIOR_TIPO = {"reducir": "int", "reduce": "int", "filtrar": "int", "fi
 class BinaryOpStrategy(Strategy):
     """Strategy para operaciones binarias — intercambiable por tipo."""
 
-    def execute(self, t_left: str, t_right: str, op: str, *args, **kwargs) -> Optional[str]:
+    def execute(self, t_left: str, t_right: str, op: str, *args, **kwargs) -> str | None:
+        """Ejecuta la operación."""
         raise NotImplementedError
 
 
@@ -124,8 +169,10 @@ class TypeChecker(ASTVisitor):
     # ============================================================
 
     def _declarar_parametro_tc(self, p):
-        """Re-declara un parametro en el ambito del type checker (mismo
-        patron que ya usa `_visitar_funcion` para funciones normales)."""
+        """Re-declara un parametro en el ambito del type checker (mismo.
+
+        patron que ya usa `_visitar_funcion` para funciones normales).
+        """
         ts = TipoSimbolo.PARAMETRO
         if p.es_matriz:
             ts = TipoSimbolo.PARAM_MATRIZ
@@ -136,9 +183,11 @@ class TypeChecker(ASTVisitor):
             entrada.inicializado = True
 
     def _visitar_clase(self, nodo):
-        """Visita los constructores y los metodos de una clase, verificando
+        """Visita los constructores y los metodos de una clase, verificando.
+
         tipos en sus cuerpos (mismo patron que `_visitar_funcion`). Etapa
-        10: una clase puede declarar varios constructores (sobrecarga)."""
+        10: una clase puede declarar varios constructores (sobrecarga).
+        """
         self.clase_actual = nodo.nombre
         for ctor in nodo.constructores:
             self.tabla.entrar_ambito()
@@ -161,13 +210,15 @@ class TypeChecker(ASTVisitor):
         self.clase_actual = None
 
     def _validar_sobrescrituras(self, clases):
-        """IL-POO-014/015: un metodo que sobrescribe uno heredado debe
+        """IL-POO-014/015: un metodo que sobrescribe uno heredado debe.
+
         conservar el mismo tipo de retorno y los mismos tipos de
         parametros. Con sobrecarga (Etapa 7) hay que revisar cada
         sobrecarga por separado: una firma que EXISTE (exacta o
         compatible) en el padre es una sobrescritura y debe conservar el
         tipo de retorno; una firma que no coincide con ninguna del padre es
-        simplemente una sobrecarga nueva, no una sobrescritura."""
+        simplemente una sobrecarga nueva, no una sobrescritura.
+        """
         for c in clases:
             info = self.tabla.clases.get(c.nombre)
             if info is None or info.padre is None:
@@ -201,11 +252,13 @@ class TypeChecker(ASTVisitor):
             )
 
     def _tipo_receptor(self, receptor):
-        """Tipo estático (nombre de clase) del receptor de un acceso a
+        """Tipo estático (nombre de clase) del receptor de un acceso a.
+
         miembro, o None si no se puede resolver. No re-reporta errores de
         existencia/contexto: semantic.py ya los emitió (IL-SEM-003,
         IL-POO-006/011/012); aquí solo interesa el tipo para seguir
-        verificando, en silencio si algo ya estaba roto."""
+        verificando, en silencio si algo ya estaba roto.
+        """
         if isinstance(receptor, ThisExpr):
             return self.clase_actual
         if isinstance(receptor, SuperExpr):
@@ -229,9 +282,13 @@ class TypeChecker(ASTVisitor):
         return None
 
     def _verificar_args(self, nombre, argumentos, tipos_esperados, nodo, codigo_error):
-        """Verifica la compatibilidad de tipo de cada argumento emparejado
-        con su parámetro esperado (la aridad ya la valida semantic.py)."""
-        for i, (arg, tipo_esp) in enumerate(zip(argumentos, tipos_esperados)):
+        """Verifica la compatibilidad de tipo de cada argumento emparejado.
+
+        con su parámetro esperado (la aridad ya la valida semantic.py).
+        """
+        for i, (arg, tipo_esp) in enumerate(
+            zip(argumentos, tipos_esperados)  # noqa: B905 - extras se visitan aparte abajo
+        ):
             tipo_arg = self._obtener_tipo(arg)
             if tipo_arg and not self._compatible(tipo_esp, tipo_arg):
                 self.error_manager.error_poo(
@@ -245,13 +302,15 @@ class TypeChecker(ASTVisitor):
             self._obtener_tipo(arg)
 
     def _verificar_visibilidad_constructor(self, nombre_clase, info_ctor, nodo):
-        """IL-POO-030 (Etapa 11): un constructor privado solo puede
+        """IL-POO-030 (Etapa 11): un constructor privado solo puede.
+
         invocarse desde DENTRO de la misma clase (p.ej. un metodo/
         constructor estatico de fabrica, patron Singleton) -- ni desde
         afuera, ni siquiera desde una subclase via padre(...) (mismo
         criterio que un constructor privado en Java/C#: no se hereda el
         acceso). No se distingue "misma clase por padre(...)" de "misma
-        clase por nuevo directo": ambos exigen `clase_actual == nombre_clase`."""
+        clase por nuevo directo": ambos exigen `clase_actual == nombre_clase`.
+        """
         if info_ctor.visibilidad == "privado" and self.clase_actual != nombre_clase:
             self.error_manager.error_poo(
                 "IL-POO-030",
@@ -262,13 +321,15 @@ class TypeChecker(ASTVisitor):
             )
 
     def _verificar_llamada_constructor(self, nombre_clase, argumentos, nodo):
-        """Etapa 10 (sobrecarga de constructores): mismo patrón que
+        """Etapa 10 (sobrecarga de constructores): mismo patrón que.
+
         `_tipo_llamada_metodo` -- con 0 o 1 constructor declarado, se
         comporta EXACTO que antes (IL-POO-008 por argumento). Con varias
         sobrecargas, recién ahí hace falta el tipo de cada argumento para
         elegir cuál -- IL-POO-029 si ninguna coincide. Etapa 11: además
         valida visibilidad (IL-POO-030) sobre el constructor finalmente
-        resuelto."""
+        resuelto.
+        """
         if not self.tabla.es_clase(nombre_clase):
             for a in argumentos:
                 self._obtener_tipo(a)
@@ -276,7 +337,9 @@ class TypeChecker(ASTVisitor):
         candidatos = self.tabla.resolver_constructor_todos(nombre_clase)
         if len(candidatos) <= 1:
             tipos_esperados = candidatos[0].params_tipos if candidatos else []
-            self._verificar_args(f"nuevo {nombre_clase}", argumentos, tipos_esperados, nodo, "IL-POO-008")
+            self._verificar_args(
+                f"nuevo {nombre_clase}", argumentos, tipos_esperados, nodo, "IL-POO-008"
+            )
             if candidatos:
                 self._verificar_visibilidad_constructor(nombre_clase, candidatos[0], nodo)
             return
@@ -289,7 +352,7 @@ class TypeChecker(ASTVisitor):
             self.error_manager.error_poo(
                 "IL-POO-029",
                 f'Ninguna sobrecarga del constructor de "{nombre_clase}" '
-                f'coincide con los tipos de argumento ({", ".join(tipos_args)})',
+                f"coincide con los tipos de argumento ({', '.join(tipos_args)})",
                 nodo.linea,
                 nodo.columna,
             )
@@ -297,11 +360,13 @@ class TypeChecker(ASTVisitor):
         self._verificar_visibilidad_constructor(nombre_clase, elegido, nodo)
 
     def _tipo_llamada_metodo(self, receptor, nombre_metodo, argumentos, nodo):
-        """Etapa 7 (sobrecarga): si `nombre_metodo` tiene una sola firma
+        """Etapa 7 (sobrecarga): si `nombre_metodo` tiene una sola firma.
+
         declarada, se comporta EXACTO que antes (IL-POO-018 por argumento,
         sin evaluar los tipos dos veces). Si tiene varias (sobrecarga real),
         recién ahí hace falta el tipo de cada argumento para elegir cuál --
-        IL-POO-027 si ninguna coincide."""
+        IL-POO-027 si ninguna coincide.
+        """
         tipo_receptor = self._tipo_receptor(receptor)
         if tipo_receptor is None:
             for a in argumentos:
@@ -326,7 +391,7 @@ class TypeChecker(ASTVisitor):
             self.error_manager.error_poo(
                 "IL-POO-027",
                 f'Ninguna sobrecarga de "{nombre_metodo}" en "{tipo_receptor}" '
-                f'coincide con los tipos de argumento ({", ".join(tipos_args)})',
+                f"coincide con los tipos de argumento ({', '.join(tipos_args)})",
                 nodo.linea,
                 nodo.columna,
             )
@@ -347,7 +412,9 @@ class TypeChecker(ASTVisitor):
     def _visitar_declaracion(self, nodo):
         """Verifica tipos en declaraciones."""
         if isinstance(nodo, VarDecl):
-            self.tabla.declarar(nodo.nombre, TipoSimbolo.VARIABLE, nodo.tipo, nodo.linea, nodo.columna)
+            self.tabla.declarar(
+                nodo.nombre, TipoSimbolo.VARIABLE, nodo.tipo, nodo.linea, nodo.columna
+            )
             if nodo.init_expr:
                 tipo_expr = self._obtener_tipo(nodo.init_expr)
                 if tipo_expr and not self._compatible(nodo.tipo, tipo_expr):
@@ -359,7 +426,9 @@ class TypeChecker(ASTVisitor):
                         nodo.columna,
                     )
         elif isinstance(nodo, ConstDecl):
-            self.tabla.declarar(nodo.nombre, TipoSimbolo.CONSTANTE, nodo.tipo, nodo.linea, nodo.columna)
+            self.tabla.declarar(
+                nodo.nombre, TipoSimbolo.CONSTANTE, nodo.tipo, nodo.linea, nodo.columna
+            )
             tipo_expr = self._obtener_tipo(nodo.init_expr)
             if tipo_expr and not self._compatible(nodo.tipo, tipo_expr):
                 self.error_manager.error_tipo(
@@ -370,7 +439,9 @@ class TypeChecker(ASTVisitor):
                     nodo.columna,
                 )
         elif isinstance(nodo, ArrayDecl):
-            entry = self.tabla.declarar(nodo.nombre, TipoSimbolo.ARREGLO, nodo.tipo, nodo.linea, nodo.columna)
+            entry = self.tabla.declarar(
+                nodo.nombre, TipoSimbolo.ARREGLO, nodo.tipo, nodo.linea, nodo.columna
+            )
             if entry and isinstance(nodo.tam, int):
                 entry.tam_arreglo = nodo.tam
             for e in nodo.init_exprs:
@@ -378,12 +449,14 @@ class TypeChecker(ASTVisitor):
                 if tipo_e and not self._compatible(nodo.tipo, tipo_e):
                     self.error_manager.error_tipo(
                         "IL-TIPO-001",
-                        "Tipo incompatible en inicializador de arreglo " f'"{nodo.nombre}"',
+                        f'Tipo incompatible en inicializador de arreglo "{nodo.nombre}"',
                         e.linea,
                         e.columna,
                     )
         elif isinstance(nodo, MatrixDecl):
-            entry = self.tabla.declarar(nodo.nombre, TipoSimbolo.MATRIZ, nodo.tipo, nodo.linea, nodo.columna)
+            entry = self.tabla.declarar(
+                nodo.nombre, TipoSimbolo.MATRIZ, nodo.tipo, nodo.linea, nodo.columna
+            )
             if entry:
                 if isinstance(nodo.filas, int):
                     entry.filas_matriz = nodo.filas
@@ -395,7 +468,7 @@ class TypeChecker(ASTVisitor):
                     if tipo_e and not self._compatible(nodo.tipo, tipo_e):
                         self.error_manager.error_tipo(
                             "IL-TIPO-001",
-                            "Tipo incompatible en inicializador de matriz " f'"{nodo.nombre}"',
+                            f'Tipo incompatible en inicializador de matriz "{nodo.nombre}"',
                             e.linea,
                             e.columna,
                         )
@@ -428,7 +501,10 @@ class TypeChecker(ASTVisitor):
                 tipo_ex = self._obtener_tipo(nodo.act_stmt.expr)
                 if tipo_lv and tipo_ex and not self._compatible(tipo_lv, tipo_ex):
                     self.error_manager.error_tipo(
-                        "IL-TIPO-001", "Tipo incompatible en acción de for", nodo.linea, nodo.columna
+                        "IL-TIPO-001",
+                        "Tipo incompatible en acción de for",
+                        nodo.linea,
+                        nodo.columna,
                     )
             self._visitar_bloque(nodo.bloque)
         elif isinstance(nodo, ForEachStmt):
@@ -442,7 +518,9 @@ class TypeChecker(ASTVisitor):
             self._verificar_match(nodo)
         elif isinstance(nodo, TryStmt):
             self._visitar_bloque(nodo.bloque_try)
-            self.tabla.declarar(nodo.nombre_catch, TipoSimbolo.VARIABLE, "Excepcion", nodo.linea, nodo.columna)
+            self.tabla.declarar(
+                nodo.nombre_catch, TipoSimbolo.VARIABLE, "Excepcion", nodo.linea, nodo.columna
+            )
             self._visitar_bloque(nodo.bloque_catch)
         elif isinstance(nodo, ReturnStmt):
             if nodo.expr:
@@ -475,7 +553,9 @@ class TypeChecker(ASTVisitor):
                 candidatos = padre_info.constructores
                 if len(candidatos) <= 1:
                     tipos_esperados = candidatos[0].params_tipos if candidatos else []
-                    self._verificar_args("padre(...)", nodo.argumentos, tipos_esperados, nodo, "IL-POO-008")
+                    self._verificar_args(
+                        "padre(...)", nodo.argumentos, tipos_esperados, nodo, "IL-POO-008"
+                    )
                     if candidatos:
                         self._verificar_visibilidad_constructor(info.padre, candidatos[0], nodo)
                 else:
@@ -487,7 +567,7 @@ class TypeChecker(ASTVisitor):
                                 "IL-POO-029",
                                 "padre(...): ninguna sobrecarga del constructor "
                                 f'de "{info.padre}" coincide con los tipos de '
-                                f'argumento ({", ".join(tipos_args)})',
+                                f"argumento ({', '.join(tipos_args)})",
                                 nodo.linea,
                                 nodo.columna,
                             )
@@ -514,7 +594,8 @@ class TypeChecker(ASTVisitor):
         if not self._compatible(tipo_lvalue, tipo_expr):
             self.error_manager.error_tipo(
                 self._codigo_incompatibilidad(tipo_lvalue, tipo_expr),
-                f"Tipo incompatible en asignación: se esperaba {tipo_lvalue}, " f"se encontró {tipo_expr}",
+                f"Tipo incompatible en asignación: se esperaba {tipo_lvalue}, "
+                f"se encontró {tipo_expr}",
                 nodo.linea,
                 nodo.columna,
             )
@@ -531,21 +612,30 @@ class TypeChecker(ASTVisitor):
         if operador == "%=":
             if "float" in tipos:
                 self.error_manager.error_tipo(
-                    "IL-TIPO-010", "El operador %= no está definido para float", nodo.linea, nodo.columna
+                    "IL-TIPO-010",
+                    "El operador %= no está definido para float",
+                    nodo.linea,
+                    nodo.columna,
                 )
                 return False
 
         # -=, *=, /=, %= no aplicables a string (IL-TIPO-011)
         if operador in ("-=", "*=", "/=", "%=") and "string" in tipos:
             self.error_manager.error_tipo(
-                "IL-TIPO-011", f"El operador {operador} no está definido para string", nodo.linea, nodo.columna
+                "IL-TIPO-011",
+                f"El operador {operador} no está definido para string",
+                nodo.linea,
+                nodo.columna,
             )
             return False
 
         # Ningún operador compuesto es aplicable a bool (IL-TIPO-013)
         if "bool" in tipos:
             self.error_manager.error_tipo(
-                "IL-TIPO-013", f"El operador {operador} no está definido para bool", nodo.linea, nodo.columna
+                "IL-TIPO-013",
+                f"El operador {operador} no está definido para bool",
+                nodo.linea,
+                nodo.columna,
             )
             return False
 
@@ -553,7 +643,10 @@ class TypeChecker(ASTVisitor):
         # clase (evita que el intérprete intente sumar/restar instancias).
         if any(self.tabla.es_clase(t) for t in tipos):
             self.error_manager.error_poo(
-                "IL-POO-013", f"El operador {operador} no está definido para tipos de clase", nodo.linea, nodo.columna
+                "IL-POO-013",
+                f"El operador {operador} no está definido para tipos de clase",
+                nodo.linea,
+                nodo.columna,
             )
             return False
 
@@ -598,7 +691,10 @@ class TypeChecker(ASTVisitor):
         tipo = self._obtener_tipo(nodo.expr)
         if tipo == "void":
             self.error_manager.error_tipo(
-                "IL-TIPO-020", "print/imprimir no acepta argumento de tipo void", nodo.linea, nodo.columna
+                "IL-TIPO-020",
+                "print/imprimir no acepta argumento de tipo void",
+                nodo.linea,
+                nodo.columna,
             )
 
     def _verificar_read(self, nodo):
@@ -610,14 +706,16 @@ class TypeChecker(ASTVisitor):
             )
 
     def _verificar_switch(self, nodo):
-        """Verifica switch/segun (Etapa 6): la expresión debe ser int,
+        """Verifica switch/segun.
+
         string o bool (dispatch por valor exacto, no tiene sentido con
-        float); cada case debe coincidir con ese tipo exactamente."""
+        float); cada case debe coincidir con ese tipo exactamente.
+        """
         tipo_expr = self._obtener_tipo(nodo.expr)
         if tipo_expr and tipo_expr not in ("int", "string", "bool"):
             self.error_manager.error_estructurado(
                 "IL-EST-001",
-                f"switch/segun no admite expresiones de tipo {tipo_expr} " "(solo int, string o bool)",
+                f"switch/segun no admite expresiones de tipo {tipo_expr} (solo int, string o bool)",
                 nodo.linea,
                 nodo.columna,
             )
@@ -636,7 +734,8 @@ class TypeChecker(ASTVisitor):
             self._visitar_bloque(nodo.bloque_default)
 
     def _verificar_match(self, nodo):
-        """Verifica emparejar/match (Etapa 12.9/12.10): la expresión debe
+        """Verifica emparejar/match (Etapa 12.9/12.10): la expresión debe.
+
         ser de un tipo enum -- puro (Etapa 11.8, sin cambios) o tipo suma
         con carga (Etapa 12.10, desazucarado a clases reales por
         semantic.py::_desazucarar_tipos_suma antes de llegar aquí, así que
@@ -644,14 +743,15 @@ class TypeChecker(ASTVisitor):
         `tipo_expr in self.tabla.clases`). Reutiliza `es_subtipo_clase`
         (ya extendido en la Etapa 12.3 para interfaces) para reconocer que
         `caso NombreVariante(...)` corresponde a esta enumeración -- cero
-        mecanismo nuevo de resolución de tipos."""
+        mecanismo nuevo de resolución de tipos.
+        """
         tipo_expr = self._obtener_tipo(nodo.expr)
         info_enum = self.tabla.clases.get(tipo_expr) if tipo_expr else None
         if info_enum is None:
             if tipo_expr:
                 self.error_manager.error_tipo(
                     "IL-TIPO-022",
-                    "emparejar/match requiere una expresión de tipo enum, " f'"{tipo_expr}" no lo es',
+                    f'emparejar/match requiere una expresión de tipo enum, "{tipo_expr}" no lo es',
                     nodo.linea,
                     nodo.columna,
                 )
@@ -670,7 +770,8 @@ class TypeChecker(ASTVisitor):
                 if caso.nombre_variante not in info_enum.atributos:
                     self.error_manager.error_tipo(
                         "IL-TIPO-022",
-                        f'"{caso.nombre_variante}" no es un miembro de la ' f'enumeración "{tipo_expr}"',
+                        f'"{caso.nombre_variante}" no es un miembro de la '
+                        f'enumeración "{tipo_expr}"',
                         caso.linea,
                         caso.columna,
                     )
@@ -678,7 +779,8 @@ class TypeChecker(ASTVisitor):
                 elif caso.ligaduras:
                     self.error_manager.error_tipo(
                         "IL-TIPO-022",
-                        f'El miembro "{caso.nombre_variante}" de "{tipo_expr}" ' "no tiene campos que ligar",
+                        f'El miembro "{caso.nombre_variante}" de "{tipo_expr}" '
+                        "no tiene campos que ligar",
                         caso.linea,
                         caso.columna,
                     )
@@ -720,8 +822,10 @@ class TypeChecker(ASTVisitor):
                 continue
 
             self.tabla.entrar_ambito()
-            for ligadura, attr in zip(caso.ligaduras, campos):
-                self.tabla.declarar(ligadura, TipoSimbolo.VARIABLE, attr.tipo, caso.linea, caso.columna)
+            for ligadura, attr in zip(caso.ligaduras, campos, strict=True):
+                self.tabla.declarar(
+                    ligadura, TipoSimbolo.VARIABLE, attr.tipo, caso.linea, caso.columna
+                )
             self._visitar_bloque(caso.bloque)
             self.tabla.salir_ambito()
             cubiertas.add(caso.nombre_variante)
@@ -749,7 +853,7 @@ class TypeChecker(ASTVisitor):
                 self.error_manager.error_tipo(
                     "IL-TIPO-022",
                     f'emparejar/match no exhaustivo sobre "{tipo_expr}": '
-                    f'falta(n) {", ".join(sorted(faltantes))} (o agregue un caso default)',
+                    f"falta(n) {', '.join(sorted(faltantes))} (o agregue un caso default)",
                     nodo.linea,
                     nodo.columna,
                 )
@@ -758,19 +862,26 @@ class TypeChecker(ASTVisitor):
         """Verifica que la condición sea bool (IL-TIPO-019)."""
         tipo = self._obtener_tipo(expr)
         if tipo and tipo != "bool":
-            self.error_manager.error_tipo("IL-TIPO-019", "La condición debe ser de tipo bool", linea, columna)
+            self.error_manager.error_tipo(
+                "IL-TIPO-019", "La condición debe ser de tipo bool", linea, columna
+            )
 
     def _verificar_foreach(self, nodo):
-        """Verifica para_cada/foreach (Etapa 12.1): `nodo.arreglo` debe
+        """Verifica para_cada/foreach (Etapa 12.1): `nodo.arreglo` debe.
+
         resolver a un arreglo (variable o parámetro), y el tipo declarado
         de la variable de recorrido debe ser compatible con el tipo de
         elemento del arreglo -- mismo criterio de `_compatible` que ya usa
         cualquier otra asignación/paso de argumento (promoción int->float,
-        upcasting de clases incluido)."""
+        upcasting de clases incluido).
+        """
         entrada_arr = None
         if isinstance(nodo.arreglo, Identifier):
             entrada_arr = self.tabla.buscar(nodo.arreglo.nombre)
-        if entrada_arr is None or entrada_arr.tipo_simbolo not in (TipoSimbolo.ARREGLO, TipoSimbolo.PARAM_ARREGLO):
+        if entrada_arr is None or entrada_arr.tipo_simbolo not in (
+            TipoSimbolo.ARREGLO,
+            TipoSimbolo.PARAM_ARREGLO,
+        ):
             self.error_manager.error_tipo(
                 "IL-TIPO-001",
                 "para_cada / foreach solo puede recorrer un arreglo de una dimensión",
@@ -792,7 +903,11 @@ class TypeChecker(ASTVisitor):
         entrada = self.tabla.buscar_funcion(nombre)
         es_builtin = es_built_in(nombre)
         if entrada and entrada.params:
-            for i, (arg, param_tipo) in enumerate(zip(argumentos, entrada.params)):
+            for i, (arg, param_tipo) in enumerate(
+                zip(  # noqa: B905 - extras se ignoran, aridad la reporta semantic
+                    argumentos, entrada.params
+                )
+            ):
                 tipo_arg = self._obtener_tipo(arg)
                 # Paso por referencia de arreglos/matrices (§12.2.1, §13.2.1):
                 # al parámetro '[]'/'[][]' se le pasa el identificador del arreglo/matriz.
@@ -818,7 +933,7 @@ class TypeChecker(ASTVisitor):
                     else:
                         self.error_manager.error_tipo(
                             "IL-TIPO-001",
-                            f'Tipo incompatible en argumento {i+1} de "{nombre}": '
+                            f'Tipo incompatible en argumento {i + 1} de "{nombre}": '
                             f"se esperaba {param_tipo}, se encontró {tipo_arg}",
                             arg.linea if hasattr(arg, "linea") else nodo.linea,
                             arg.columna if hasattr(arg, "columna") else nodo.columna,
@@ -847,7 +962,9 @@ class TypeChecker(ASTVisitor):
                 # "funcion(tipos_param)->retorno", no `entrada.tipo_dato`
                 # (que guarda el tipo de retorno solo, para cuando SÍ se
                 # llama).
-                tipo_ret = entrada.tipo_dato if entrada.tipo_simbolo == TipoSimbolo.FUNCION else "void"
+                tipo_ret = (
+                    entrada.tipo_dato if entrada.tipo_simbolo == TipoSimbolo.FUNCION else "void"
+                )
                 return self._tipo_funcion_str(entrada.params or [], tipo_ret)
             return entrada.tipo_dato
 
@@ -966,7 +1083,9 @@ class TypeChecker(ASTVisitor):
             return resultado[1].tipo if resultado else None
 
         if isinstance(nodo, MethodCallExpr):
-            return self._tipo_llamada_metodo(nodo.receptor, nodo.nombre_metodo, nodo.argumentos, nodo)
+            return self._tipo_llamada_metodo(
+                nodo.receptor, nodo.nombre_metodo, nodo.argumentos, nodo
+            )
 
         if isinstance(nodo, NewExpr):
             self._verificar_llamada_constructor(nodo.nombre_clase, nodo.argumentos, nodo)
@@ -981,21 +1100,25 @@ class TypeChecker(ASTVisitor):
         return None
 
     def _tipo_funcion_str(self, tipos_param, tipo_retorno):
-        """Construye la misma cadena canónica que
+        """Construye la misma cadena canónica que.
+
         parser.py::_tipo_funcion_str (Etapa 12.6) -- "funcion(t1,t2)->tr".
         Comparar dos tipos función es comparar estas cadenas: es la única
         excepción deliberada a que InvenioLang es de tipado nominal en
         todo lo demás (dos valores función son "del mismo tipo" si
         coinciden en tipos de parámetro y de retorno, no por nombre de
-        declaración -- no existe tal nombre)."""
-        return f'funcion({",".join(tipos_param)})->{tipo_retorno}'
+        declaración -- no existe tal nombre).
+        """
+        return f"funcion({','.join(tipos_param)})->{tipo_retorno}"
 
     def _tipo_lambda(self, nodo):
-        """Verifica el cuerpo de un lambda y retorna su tipo función
+        """Verifica el cuerpo de un lambda y retorna su tipo función.
+
         (Etapa 12.6). Mismo patrón que _visitar_funcion: ámbito nuevo,
         parámetros re-declarados, cuerpo visitado -- ver semantic.py::
         _visitar_lambda para por qué el ámbito se anida sobre el vigente
-        en vez de resetear (captura léxica)."""
+        en vez de resetear (captura léxica).
+        """
         self.tabla.entrar_ambito()
         for p in nodo.parametros:
             self._declarar_parametro_tc(p)
@@ -1008,11 +1131,13 @@ class TypeChecker(ASTVisitor):
         return self._tipo_funcion_str(tipos_param, nodo.tipo_retorno)
 
     def _tipo_ternario(self, nodo):
-        """Determina el tipo resultante de cond ? si_verdadero : si_falso
+        """Determina el tipo resultante de cond ? si_verdadero : si_falso.
+
         (Etapa 6): la condición debe ser bool, y las dos ramas deben ser del
         mismo tipo o compatibles entre sí (misma regla de _compatible() que
         ya usan asignaciones/argumentos: promoción int->float, upcasting de
-        clases, nulo)."""
+        clases, nulo).
+        """
         self._verificar_condicion(nodo.condicion, nodo.linea, nodo.columna)
         tipo_v = self._obtener_tipo(nodo.si_verdadero)
         tipo_f = self._obtener_tipo(nodo.si_falso)
@@ -1026,7 +1151,7 @@ class TypeChecker(ASTVisitor):
             return tipo_f
         self.error_manager.error_estructurado(
             "IL-EST-004",
-            "Las ramas del operador ternario tienen tipos incompatibles: " f"{tipo_v} y {tipo_f}",
+            f"Las ramas del operador ternario tienen tipos incompatibles: {tipo_v} y {tipo_f}",
             nodo.linea,
             nodo.columna,
         )
@@ -1054,7 +1179,10 @@ class TypeChecker(ASTVisitor):
             # detras de un "?." nunca son nulos en InvenioLang (§5.2.3,
             # siempre tienen valor por defecto), asi que "??" sobre ellos
             # no aporta nada y se rechaza.
-            es_seguro_izq = isinstance(nodo.izquierda, (MemberAccess, MethodCallExpr)) and nodo.izquierda.es_seguro
+            es_seguro_izq = (
+                isinstance(nodo.izquierda, (MemberAccess, MethodCallExpr))
+                and nodo.izquierda.es_seguro
+            )
             if t_left != "null" and not self.tabla.es_clase(t_left) and not es_seguro_izq:
                 self.error_manager.error_tipo(
                     "IL-TIPO-001",
@@ -1069,7 +1197,10 @@ class TypeChecker(ASTVisitor):
             if self._compatible(t_right, t_left):
                 return t_right
             self.error_manager.error_tipo(
-                "IL-TIPO-001", f'Tipos incompatibles en "??": "{t_left}" y "{t_right}"', nodo.linea, nodo.columna
+                "IL-TIPO-001",
+                f'Tipos incompatibles en "??": "{t_left}" y "{t_right}"',
+                nodo.linea,
+                nodo.columna,
             )
             return None
 
@@ -1083,7 +1214,10 @@ class TypeChecker(ASTVisitor):
         if op in ("&&", "||"):
             if t_left != "bool" or t_right != "bool":
                 self.error_manager.error_tipo(
-                    "IL-TIPO-018", f"Operador {op} requiere operandos bool", nodo.linea, nodo.columna
+                    "IL-TIPO-018",
+                    f"Operador {op} requiere operandos bool",
+                    nodo.linea,
+                    nodo.columna,
                 )
             return "bool"
 
@@ -1105,7 +1239,10 @@ class TypeChecker(ASTVisitor):
                 and not es_nulo_vs_clase
             ):
                 self.error_manager.error_tipo(
-                    "IL-TIPO-012", f"Tipos incomparables: {t_left} y {t_right}", nodo.linea, nodo.columna
+                    "IL-TIPO-012",
+                    f"Tipos incomparables: {t_left} y {t_right}",
+                    nodo.linea,
+                    nodo.columna,
                 )
             return "bool"
 
@@ -1113,7 +1250,10 @@ class TypeChecker(ASTVisitor):
             # Solo int y float (IL-TIPO-012)
             if t_left not in ("int", "float") or t_right not in ("int", "float"):
                 self.error_manager.error_tipo(
-                    "IL-TIPO-012", f"Operador {op} no aplicable a {t_left} y {t_right}", nodo.linea, nodo.columna
+                    "IL-TIPO-012",
+                    f"Operador {op} no aplicable a {t_left} y {t_right}",
+                    nodo.linea,
+                    nodo.columna,
                 )
             return "bool"
 
@@ -1122,7 +1262,10 @@ class TypeChecker(ASTVisitor):
             # IL-TIPO-013: aritmética sobre bool
             if t_left == "bool" or t_right == "bool":
                 self.error_manager.error_tipo(
-                    "IL-TIPO-013", "Operador + no aplicable a operandos de tipo bool", nodo.linea, nodo.columna
+                    "IL-TIPO-013",
+                    "Operador + no aplicable a operandos de tipo bool",
+                    nodo.linea,
+                    nodo.columna,
                 )
                 return None
             # Suma: int+int= int, float+float=float, int+float=float,
@@ -1134,14 +1277,20 @@ class TypeChecker(ASTVisitor):
                     return "float"
                 return "int"
             self.error_manager.error_tipo(
-                "IL-TIPO-011", f"Operador + no aplicable a {t_left} y {t_right}", nodo.linea, nodo.columna
+                "IL-TIPO-011",
+                f"Operador + no aplicable a {t_left} y {t_right}",
+                nodo.linea,
+                nodo.columna,
             )
             return None
 
         if op in ("-", "*", "/"):
             if t_left == "bool" or t_right == "bool":
                 self.error_manager.error_tipo(
-                    "IL-TIPO-013", f"Operador {op} no aplicable a operandos de tipo bool", nodo.linea, nodo.columna
+                    "IL-TIPO-013",
+                    f"Operador {op} no aplicable a operandos de tipo bool",
+                    nodo.linea,
+                    nodo.columna,
                 )
                 return None
             if t_left in ("int", "float") and t_right in ("int", "float"):
@@ -1149,7 +1298,10 @@ class TypeChecker(ASTVisitor):
                     return "float"
                 return "int"
             self.error_manager.error_tipo(
-                "IL-TIPO-011", f"Operador {op} no aplicable a {t_left} y {t_right}", nodo.linea, nodo.columna
+                "IL-TIPO-011",
+                f"Operador {op} no aplicable a {t_left} y {t_right}",
+                nodo.linea,
+                nodo.columna,
             )
             return None
 
@@ -1157,7 +1309,10 @@ class TypeChecker(ASTVisitor):
             # IL-TIPO-013: aritmética sobre bool
             if t_left == "bool" or t_right == "bool":
                 self.error_manager.error_tipo(
-                    "IL-TIPO-013", "Operador % no aplicable a operandos de tipo bool", nodo.linea, nodo.columna
+                    "IL-TIPO-013",
+                    "Operador % no aplicable a operandos de tipo bool",
+                    nodo.linea,
+                    nodo.columna,
                 )
                 return None
             # Módulo: solo int (IL-TIPO-010)
@@ -1169,7 +1324,10 @@ class TypeChecker(ASTVisitor):
                 )
             else:
                 self.error_manager.error_tipo(
-                    "IL-TIPO-011", f"Operador % no aplicable a {t_left} y {t_right}", nodo.linea, nodo.columna
+                    "IL-TIPO-011",
+                    f"Operador % no aplicable a {t_left} y {t_right}",
+                    nodo.linea,
+                    nodo.columna,
                 )
             return None
 
@@ -1181,7 +1339,8 @@ class TypeChecker(ASTVisitor):
                 return "int"
             self.error_manager.error_tipo(
                 "IL-TIPO-010",
-                f"Operador {op} solo es aplicable entre operandos int " f"(se encontró {t_left} y {t_right})",
+                f"Operador {op} solo es aplicable entre operandos int "
+                f"(se encontró {t_left} y {t_right})",
                 nodo.linea,
                 nodo.columna,
             )
@@ -1201,7 +1360,10 @@ class TypeChecker(ASTVisitor):
             # Negación aritmética: solo int/float (IL-TIPO-017)
             if t_oper not in ("int", "float"):
                 self.error_manager.error_tipo(
-                    "IL-TIPO-017", f"Negación aritmética no aplicable a {t_oper}", nodo.linea, nodo.columna
+                    "IL-TIPO-017",
+                    f"Negación aritmética no aplicable a {t_oper}",
+                    nodo.linea,
+                    nodo.columna,
                 )
             return t_oper
 
@@ -1209,7 +1371,10 @@ class TypeChecker(ASTVisitor):
             # Negación lógica: solo bool (IL-TIPO-017)
             if t_oper != "bool":
                 self.error_manager.error_tipo(
-                    "IL-TIPO-017", f"Negación lógica no aplicable a {t_oper}", nodo.linea, nodo.columna
+                    "IL-TIPO-017",
+                    f"Negación lógica no aplicable a {t_oper}",
+                    nodo.linea,
+                    nodo.columna,
                 )
             return "bool"
 
@@ -1217,7 +1382,10 @@ class TypeChecker(ASTVisitor):
             # Inc/dec: solo int (IL-TIPO-016)
             if t_oper != "int":
                 self.error_manager.error_tipo(
-                    "IL-TIPO-016", f"Operador {op} no aplicable a {t_oper}", nodo.linea, nodo.columna
+                    "IL-TIPO-016",
+                    f"Operador {op} no aplicable a {t_oper}",
+                    nodo.linea,
+                    nodo.columna,
                 )
             return "int"
 

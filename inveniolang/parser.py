@@ -4,13 +4,71 @@
 # Patrones: Builder (construcción AST paso a paso), Factory (nodos),
 # Strategy (manejo de errores), Template Method (fases parse)
 from __future__ import annotations
+
 import ply.yacc as yacc
-from typing import Optional, Any
-from .lexer import Lexer
+
+from .ast_nodes import (
+    ArrayAccess,
+    ArrayDecl,
+    ArrayLValue,
+    AssignStmt,
+    AttrDecl,
+    BinaryOp,
+    Bloque,
+    BreakStmt,
+    CallStmt,
+    Caso,
+    CasoMatch,
+    ClassDecl,
+    ConstDecl,
+    ConstructorDecl,
+    ContinueStmt,
+    DoWhileStmt,
+    EnumDecl,
+    EnumMiembro,
+    ForEachStmt,
+    ForInitAsig,
+    ForInitIncDec,
+    ForInitVar,
+    ForStmt,
+    FunctionCall,
+    FunctionDecl,
+    Identifier,
+    IfStmt,
+    IncDecStmt,
+    LambdaExpr,
+    Literal,
+    MainDecl,
+    MatchStmt,
+    MatrixAccess,
+    MatrixDecl,
+    MatrixLValue,
+    MemberAccess,
+    MemberLValue,
+    MethodCallExpr,
+    MethodCallStmt,
+    MethodDecl,
+    NewExpr,
+    NullExpr,
+    Parametro,
+    PrintStmt,
+    ProcedureDecl,
+    Program,
+    ReadStmt,
+    ReturnStmt,
+    SuperCallStmt,
+    SuperExpr,
+    SwitchStmt,
+    TernaryExpr,
+    ThisExpr,
+    TryStmt,
+    UnaryOp,
+    VarDecl,
+    VarLValue,
+    WhileStmt,
+)
 from .errors import ErrorManager
-from .ast_nodes import *
-from .ast_nodes import ASTFactory
-from .patterns import Builder, RegistryFactory, Strategy
+from .lexer import Lexer
 
 
 class Parser:
@@ -31,6 +89,7 @@ class Parser:
         self._elems_tras_if = 0
 
     def build(self, **kwargs):
+        """Construye el parser LALR con PLY."""
         self.parser_obj = yacc.yacc(module=self, **kwargs)
 
     # ---- Precedencia de operadores (de menor a mayor) ----

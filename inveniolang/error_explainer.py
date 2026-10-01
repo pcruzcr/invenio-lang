@@ -4,13 +4,17 @@
 # Reusa ErrorManager Observer para inyección automática en IDE.
 
 from __future__ import annotations
-from typing import Dict, Optional, Any
+
 from dataclasses import dataclass
-from .patterns import Strategy, RegistryFactory
+from typing import Any
+
+from .patterns import Observer, RegistryFactory, Strategy
 
 
 @dataclass(frozen=True)
 class Explicacion:
+    """Explicación de un error del catálogo."""
+
     codigo: str
     titulo: str
     por_que: str
@@ -21,12 +25,15 @@ class Explicacion:
 
 
 class BaseExplainer(Strategy):
-    def execute(self, *args, **kwargs) -> Optional[Explicacion]:
+    """BaseExplainer como estrategia intercambiable."""
+
+    def execute(self, *args, **kwargs) -> Explicacion | None:
+        """Ejecuta la operación."""
         raise NotImplementedError
 
 
 # Catálogo — Strategy por código. Fábrica centraliza.
-_CATALOGO: Dict[str, Explicacion] = {
+_CATALOGO: dict[str, Explicacion] = {
     "IL-LEX-002": Explicacion(
         "IL-LEX-002",
         "Carácter inválido",
@@ -193,39 +200,85 @@ _CATALOGO: Dict[str, Explicacion] = {
 
 
 class ErrorExplainerFactory(RegistryFactory):
-    _default: Optional["ErrorExplainerFactory"] = None
+    """Factoría error explainer."""
+
+    _default: ErrorExplainerFactory | None = None
 
     @classmethod
-    def get_default(cls) -> "ErrorExplainerFactory":
+    def get_default(cls) -> ErrorExplainerFactory:
+        """Retorna la instancia compartida."""
         if cls._default is None:
             cls._default = cls()
             for cod, exp in _CATALOGO.items():
                 cls._default.register(cod, lambda e=exp: e)
         return cls._default
 
-    def explicar(self, codigo: str) -> Optional[Explicacion]:
+    def explicar(self, codigo: str) -> Explicacion | None:
+        """Explica un código de error."""
         try:
             return self.create(codigo)
         except ValueError:
             prefix = codigo.split("-")[1] if "-" in codigo else ""
             fallback = {
-                "LEX": Explicacion(codigo, "Error léxico", "Revisa sintaxis básica.", "", "", "Revisa léxico.", "L1"),
-                "SIN": Explicacion(codigo, "Error sintáctico", "Revisa gramática.", "", "", "Revisa sintaxis.", "L2"),
-                "SEM": Explicacion(
-                    codigo, "Error semántico", "Revisa declaraciones/alcance.", "", "", "Revisa semántica.", "L3"
+                "LEX": Explicacion(
+                    codigo,
+                    "Error léxico",
+                    "Revisa sintaxis básica.",
+                    "",
+                    "",
+                    "Revisa léxico.",
+                    "L1",
                 ),
-                "TIPO": Explicacion(codigo, "Error de tipos", "Revisa compatibilidad.", "", "", "Revisa tipos.", "L3"),
-                "EJE": Explicacion(codigo, "Error en ejecución", "Fallo runtime.", "", "", "Revisa ejecución.", "L3"),
-                "POO": Explicacion(codigo, "Error POO", "Revisa clases/herencia.", "", "", "Revisa POO.", "L4"),
+                "SIN": Explicacion(
+                    codigo,
+                    "Error sintáctico",
+                    "Revisa gramática.",
+                    "",
+                    "",
+                    "Revisa sintaxis.",
+                    "L2",
+                ),
+                "SEM": Explicacion(
+                    codigo,
+                    "Error semántico",
+                    "Revisa declaraciones/alcance.",
+                    "",
+                    "",
+                    "Revisa semántica.",
+                    "L3",
+                ),
+                "TIPO": Explicacion(
+                    codigo,
+                    "Error de tipos",
+                    "Revisa compatibilidad.",
+                    "",
+                    "",
+                    "Revisa tipos.",
+                    "L3",
+                ),
+                "EJE": Explicacion(
+                    codigo,
+                    "Error en ejecución",
+                    "Fallo runtime.",
+                    "",
+                    "",
+                    "Revisa ejecución.",
+                    "L3",
+                ),
+                "POO": Explicacion(
+                    codigo, "Error POO", "Revisa clases/herencia.", "", "", "Revisa POO.", "L4"
+                ),
             }
             return fallback.get(prefix)
 
 
-def explicar(codigo: str) -> Optional[Explicacion]:
+def explicar(codigo: str) -> Explicacion | None:
+    """Explica un código de error."""
     return ErrorExplainerFactory.get_default().explicar(codigo)
 
 
 def explicar_mensaje(codigo: str, mensaje: str, linea: int, col: int) -> str:
+    """Explica un error con su posición."""
     exp = explicar(codigo)
     if not exp:
         return f"[{codigo}] {mensaje} (L{linea}:C{col})"
@@ -240,11 +293,13 @@ def explicar_mensaje(codigo: str, mensaje: str, linea: int, col: int) -> str:
 
 
 # Para IDE: Observer que inyecta explicación en tooltip
-from .patterns import Observer
 
 
 class ExplainerObserver(Observer):
+    """Observador explainer."""
+
     def update(self, event: str, data: Any) -> None:
+        """Recibe un evento del Subject."""
         if event in ("error", "error_ejecucion") and hasattr(data, "codigo"):
             exp = explicar(data.codigo)
             if exp:

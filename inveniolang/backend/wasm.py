@@ -1,7 +1,8 @@
-# backend/wasm.py — v9 WASM backend DEMO (no pipeline estable) — solo InvenioLang se ejecuta vía interpreter.py
+# backend/wasm.py — v9 WASM backend DEMO (no pipeline estable) — solo InvenioLang se ejecuta vía
+# interpreter.py
 # Para aprender, ver viewer/rosetta.py. Este backend es demo didáctico, no producción.
 from __future__ import annotations
-from typing import List
+
 from ..ir import Instr
 
 _WAT_BINOP = {
@@ -37,8 +38,13 @@ _RV_BINOP = {
 }
 
 
-def tac_to_wat(instrs: List[Instr]) -> str:
-    lines = ["(module", '  (import "env" "print" (func $print (param i32)))', "  (func $main (result i32)"]
+def tac_to_wat(instrs: list[Instr]) -> str:
+    """Traduce TAC a WAT (demo)."""
+    lines = [
+        "(module",
+        '  (import "env" "print" (func $print (param i32)))',
+        "  (func $main (result i32)",
+    ]
     for ins in instrs:
         op = ins.op
         if op == "const":
@@ -79,19 +85,27 @@ def tac_to_wat(instrs: List[Instr]) -> str:
             lines.append(f"    ;; {op} (exception)")
         else:
             lines.append(f"    ;; unhandled {op}")
-    lines += ["    i32.const 0", "  )", '  (export "main" (func $main))', '  (export "_start" (func $main))', ")"]
+    lines += [
+        "    i32.const 0",
+        "  )",
+        '  (export "main" (func $main))',
+        '  (export "_start" (func $main))',
+        ")",
+    ]
     return "\n".join(lines)
 
 
-def tac_to_riscv(instrs: List[Instr]) -> str:
+def tac_to_riscv(instrs: list[Instr]) -> str:
+    """Traduce TAC a RISC-V (demo)."""
     lines = [".text", ".globl main", "main:", "  addi sp, sp, -128  # frame"]
     reg_map = {}
     next_reg = 0
 
     def reg(name):
+        """Asigna un registro RISC-V al temporal."""
         nonlocal next_reg
         if name not in reg_map:
-            r = f"t{next_reg%7}" if next_reg < 7 else f"s{next_reg-7}"
+            r = f"t{next_reg % 7}" if next_reg < 7 else f"s{next_reg - 7}"
             reg_map[name] = r
             next_reg += 1
         return reg_map[name]
@@ -104,7 +118,9 @@ def tac_to_riscv(instrs: List[Instr]) -> str:
             elif isinstance(ins.arg1, float):
                 lines.append(f"  li {reg(ins.resultado)}, {int(ins.arg1)}  # float truncated")
         elif op in _RV_BINOP:
-            lines.append(f"  {_RV_BINOP[op]} {reg(ins.resultado)}, {reg(ins.arg1)}, {reg(ins.arg2)}")
+            lines.append(
+                f"  {_RV_BINOP[op]} {reg(ins.resultado)}, {reg(ins.arg1)}, {reg(ins.arg2)}"
+            )
         elif op == "copy":
             lines.append(f"  mv {reg(ins.resultado)}, {reg(ins.arg1)}")
         elif op == "label":

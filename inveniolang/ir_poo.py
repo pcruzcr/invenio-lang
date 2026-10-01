@@ -1,10 +1,17 @@
 # ir_poo.py — H2.6 IR completo POO/matrices (extensión de ir.py:1)
 # Patrones: Strategy (codegen por tipo nodo), Visitor (recorrido POO), Decorator
-# Estado: parcial profesional — cubre matrices 2D y clases básicas (sin herencia múltiple/genéricos).
+# Estado: parcial profesional — cubre matrices 2D y clases básicas (sin herencia
+# múltiple/genéricos).
 # Para herencia completa, reutilizar interpreter.py despacho virtual como referencia.
 from __future__ import annotations
-from typing import List, Any
-from .ast_nodes import *
+
+from typing import Any
+
+from .ast_nodes import (
+    MatrixDecl,
+    MemberAccess,
+    NewExpr,
+)
 from .ir import Instr, InstrFactory
 from .patterns import Strategy
 
@@ -12,9 +19,10 @@ from .patterns import Strategy
 class MatrixStrategy(Strategy):
     """Strategy para matrices bidimensionales — mapea a arreglo lineal row-major. 100% funcional."""
 
-    def execute(self, mat: MatrixDecl, gen: Any, *args, **kwargs) -> List[Instr]:
+    def execute(self, mat: MatrixDecl, gen: Any, *args, **kwargs) -> list[Instr]:
+        """Ejecuta la operación."""
         factory = InstrFactory.get_default()
-        out: List[Instr] = []
+        out: list[Instr] = []
         # Soporte total: filas*cols con row-major, inicialización si existe
         filas = mat.filas if isinstance(mat.filas, int) else 10
         cols = mat.cols if isinstance(mat.cols, int) else 10
@@ -26,18 +34,20 @@ class MatrixStrategy(Strategy):
                     # idx = r*cols + c
                     tmp_mul = f"_t_mat_{r}_{c}_mul"
                     out.append(factory.create_instr("*", r, cols, resultado=tmp_mul))
-                    # En TAC real, r y cols son valores, no literales r; simplificado para demo 100% funcional
+                    # En TAC real, r y cols son valores, no literales r; simplificado para demo
+                    # 100% funcional
                     # Para ejecución real, ir.py ya maneja MatrixAccess/Member con row-major
                     out.append(factory.create_instr("array_set", mat.nombre, r * cols + c, expr))
         return out
 
 
 class POOStubStrategy(Strategy):
-    """POO — genera TAC para new/this/member como objetos heap. 100% funcional para clases simples."""
+    """POO: TAC para new/this/member en heap."""
 
-    def execute(self, node: Any, gen: Any, *args, **kwargs) -> List[Instr]:
+    def execute(self, node: Any, gen: Any, *args, **kwargs) -> list[Instr]:
+        """Ejecuta la operación."""
         factory = InstrFactory.get_default()
-        out: List[Instr] = []
+        out: list[Instr] = []
         if isinstance(node, NewExpr):
             # HEAP_ALLOC + CALL constructor (despacho virtual simplificado)
             tmp = gen._nuevo_temp() if hasattr(gen, "_nuevo_temp") else "_t_poo_new"
@@ -45,14 +55,20 @@ class POOStubStrategy(Strategy):
             for arg in node.argumentos:
                 val = gen._gen_expr(arg) if hasattr(gen, "_gen_expr") else str(arg)
                 out.append(factory.create_instr("param", val))
-            out.append(factory.create_instr("call", f"{node.nombre_clase}.ctor", len(node.argumentos), resultado=tmp))
+            out.append(
+                factory.create_instr(
+                    "call", f"{node.nombre_clase}.ctor", len(node.argumentos), resultado=tmp
+                )
+            )
             # Retorna tmp como valor new
             out.append(factory.create_instr("copy", tmp, resultado=tmp))
             return out
         if isinstance(node, MemberAccess):
             # LOAD_FIELD
             t = gen._nuevo_temp() if hasattr(gen, "_nuevo_temp") else "_t_field"
-            out.append(factory.create_instr("field_get", node.receptor, node.nombre_miembro, resultado=t))
+            out.append(
+                factory.create_instr("field_get", node.receptor, node.nombre_miembro, resultado=t)
+            )
             return out
         # Fallback genérico: no soportado pero no lanza, retorna copy
         out.append(factory.create_instr("copy", str(node), resultado="_t_poo_fallback"))
@@ -61,10 +77,12 @@ class POOStubStrategy(Strategy):
 
 # Facade para CLI: intenta ir_poo, si no soportado cae a ir.py NoSoportadoIR
 def generar_poo_o_matriz(ast) -> bool:
+    """Genera poo o matriz."""
     has_poo = bool(getattr(ast, "clases", []))
     has_matriz = any(
         isinstance(d, MatrixDecl)
-        for d in getattr(ast, "declaraciones_globales", []) + getattr(ast, "declaraciones_posteriores", [])
+        for d in getattr(ast, "declaraciones_globales", [])
+        + getattr(ast, "declaraciones_posteriores", [])
     )
     # por ahora reporta qué falta
     if has_poo:
@@ -76,6 +94,7 @@ def generar_poo_o_matriz(ast) -> bool:
 
 
 def nota_h2_6() -> str:
+    """Nota de la sección H2.6."""
     return (
         "H2.6 — IR POO/matrices: Estado parcial (matrices row-major esbozado, POO stub).\n"
         "Para cierre total, implementar GeneradorIRPOO(Visitor) que mapee:\n"

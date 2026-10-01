@@ -4,8 +4,10 @@
 # Patrones aplicados: Observer (notificación desacoplada), Strategy (formateo),
 # Singleton (instancia global opcional), Chain of Responsibility (filtros)
 from __future__ import annotations
-from typing import List, Dict, Any
-from .patterns import Subject, Observer, Strategy, StrategyContext
+
+from typing import Any
+
+from .patterns import Observer, Strategy, StrategyContext, Subject
 
 
 class InvenioLangError(Exception):
@@ -30,12 +32,16 @@ class InvenioLangError(Exception):
 class ErrorFormatterStrategy(Strategy):
     """Strategy para formateo de errores — intercambiable (texto, JSON, HTML)."""
 
-    def execute(self, error: "InvenioLangError", *args, **kwargs) -> str:
+    def execute(self, error: InvenioLangError, *args, **kwargs) -> str:
+        """Ejecuta la operación."""
         return error.formato_oficial()
 
 
 class JsonFormatterStrategy(Strategy):
-    def execute(self, error: "InvenioLangError", *args, **kwargs) -> Dict[str, Any]:
+    """Estrategia json formatter."""
+
+    def execute(self, error: InvenioLangError, *args, **kwargs) -> dict[str, Any]:
+        """Ejecuta la operación."""
         return {
             "codigo": error.codigo,
             "mensaje": error.mensaje,
@@ -50,11 +56,13 @@ class ErrorObserver(Observer):
     """Observer base para IDE/CLI/logger — suscribirse a ErrorManager."""
 
     def update(self, event: str, data: Any) -> None:
+        """Recibe un evento del Subject."""
         pass
 
 
 class ErrorManager(Subject):
     """Gestiona la recoleccion y reporte de errores durante la compilacion.
+
     Permite continuar el analisis despues de errores no fatales.
     Patrones: Subject/Observer (notifica a IDE/CLI), Strategy (formateo).
     Optimización: notificación O(1) por error, sin polling.
@@ -62,8 +70,8 @@ class ErrorManager(Subject):
 
     def __init__(self, max_errores=50):
         super().__init__()
-        self.errores: List[InvenioLangError] = []
-        self.warnings: List[InvenioLangError] = []
+        self.errores: list[InvenioLangError] = []
+        self.warnings: list[InvenioLangError] = []
         self.max_errores = max_errores
         self.archivo_actual = "<desconocido>"
         self.detener = False
@@ -105,16 +113,20 @@ class ErrorManager(Subject):
         self._registrar(err)
 
     def error_poo(self, codigo, mensaje, linea, columna):
-        """Registra un error de POO (IL-POO, InvenioLang 2.0 -- docs/
-        InvenioLang_2.0_POO.md)."""
+        """Registra un error de POO (IL-POO, InvenioLang 2.0 -- docs/.
+
+        InvenioLang_2.0_POO.md).
+        """
         err = InvenioLangError(codigo, mensaje, linea, columna, self.archivo_actual)
         self._registrar(err)
 
     def error_estructurado(self, codigo, mensaje, linea, columna):
-        """Registra un error del lenguaje estructurado completo (IL-EST,
+        """Registra un error IL-EST (Etapa 6).
+
         Etapa 6 -- switch/do-while/ternario/try-catch). Prefijo propio, igual
         que IL-POO, para no perturbar el catálogo v1.0 (§18.1: estable entre
-        versiones)."""
+        versiones).
+        """
         err = InvenioLangError(codigo, mensaje, linea, columna, self.archivo_actual)
         self._registrar(err)
 
@@ -160,11 +172,17 @@ class ErrorManager(Subject):
             print(reporte)
         for aviso in self.obtener_advertencias():
             print(aviso)
-        self.notify("impresion_completa", {"errores": len(self.errores), "warnings": len(self.warnings)})
+        self.notify(
+            "impresion_completa", {"errores": len(self.errores), "warnings": len(self.warnings)}
+        )
 
     def resumen(self):
         """Resumen rápido para barra de estado / accesibilidad."""
-        return {"errores": len(self.errores), "advertencias": len(self.warnings), "detener": self.detener}
+        return {
+            "errores": len(self.errores),
+            "advertencias": len(self.warnings),
+            "detener": self.detener,
+        }
 
     def limpiar(self):
         """Limpia todos los errores y advertencias."""
@@ -174,7 +192,8 @@ class ErrorManager(Subject):
         self.notify("limpieza", None)
 
     # Facade para suscripción rápida (útil para GUI)
-    def suscribir_consola(self) -> "ErrorObserver":
+    def suscribir_consola(self) -> ErrorObserver:
+        """Suscribe la consola a los errores."""
         obs = _ConsolaObserver()
         self.attach(obs)
         return obs
@@ -182,5 +201,6 @@ class ErrorManager(Subject):
 
 class _ConsolaObserver(ErrorObserver):
     def update(self, event: str, data: Any) -> None:
+        """Recibe un evento del Subject."""
         if event == "error":
             pass  # hook para logging futuro

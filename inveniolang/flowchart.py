@@ -5,7 +5,53 @@
 # Patrones: Builder (construcción diagrama), Factory (cajas/flechas),
 # Strategy (layout), Visitor (recorrido AST), Composite (diagrama)
 from __future__ import annotations
-from .ast_nodes import *
+
+from .ast_nodes import (
+    ArrayAccess,
+    ArrayDecl,
+    ArrayLValue,
+    AssignStmt,
+    BinaryOp,
+    BreakStmt,
+    CallStmt,
+    ConstDecl,
+    ContinueStmt,
+    DoWhileStmt,
+    ForEachStmt,
+    ForInitAsig,
+    ForInitIncDec,
+    ForInitVar,
+    ForStmt,
+    FunctionCall,
+    Identifier,
+    IfStmt,
+    IncDecStmt,
+    LambdaExpr,
+    Literal,
+    MatchStmt,
+    MatrixAccess,
+    MatrixDecl,
+    MatrixLValue,
+    MemberAccess,
+    MemberLValue,
+    MethodCallExpr,
+    MethodCallStmt,
+    NewExpr,
+    NullExpr,
+    PrintStmt,
+    ReadStmt,
+    ReturnStmt,
+    SuperCallStmt,
+    SuperExpr,
+    SwitchStmt,
+    TernaryExpr,
+    ThisExpr,
+    TryStmt,
+    UnaryOp,
+    VarDecl,
+    VarLValue,
+    WhileStmt,
+)
 
 # ---- Formas de caja (estilo PSeInt / ISO 5807 simplificado) ----
 INICIO = "inicio"
@@ -55,26 +101,32 @@ class Caja:
 
     @property
     def centro_x(self):
+        """Centro horizontal de la caja."""
         return self.x + self.w / 2
 
     @property
     def arriba(self):
+        """Ordenada del borde superior."""
         return (self.centro_x, self.y)
 
     @property
     def abajo(self):
+        """Ordenada del borde inferior."""
         return (self.centro_x, self.y + self.h)
 
     @property
     def derecha(self):
+        """Punto medio del borde derecho."""
         return (self.x + self.w, self.y + self.h / 2)
 
 
 class Flecha:
-    """`puntos` es la ruta completa (lista de coordenadas); se resuelve al
+    """`puntos` es la ruta completa (lista de coordenadas); se resuelve al.
+
     final del layout para las flechas rectas simples (ver `_resolver_puntos`
     en `construir_diagrama`), y se da explícita para las rutas especiales
-    (retroceso de ciclo, autolazo)."""
+    (retroceso de ciclo, autolazo).
+    """
 
     def __init__(self, origen_id, destino_id, etiqueta, puntos):
         self.origen_id = origen_id
@@ -84,6 +136,8 @@ class Flecha:
 
 
 class Diagrama:
+    """Diagrama de flujo con cajas y flechas."""
+
     def __init__(self, cajas, flechas, ancho, alto):
         self.cajas = cajas
         self.flechas = flechas
@@ -125,6 +179,7 @@ class _Constructor:
         self.flechas = []
 
     def caja(self, forma, texto, cx, y, linea):
+        """Agrega una caja al diagrama."""
         w, h = ANCHO[forma], ALTO[forma]
         id_ = self._siguiente_id
         self._siguiente_id += 1
@@ -132,6 +187,7 @@ class _Constructor:
         return id_
 
     def flecha(self, origen_id, destino_id, etiqueta=None, puntos=None):
+        """Agrega una flecha entre cajas."""
         self.flechas.append(Flecha(origen_id, destino_id, etiqueta, puntos))
 
 
@@ -193,7 +249,10 @@ def _texto_expr(nodo):
         punto = "?." if nodo.es_seguro else "."
         return f"{_texto_receptor(nodo.receptor)}{punto}{nodo.nombre_metodo}({args})"
     if isinstance(nodo, TernaryExpr):
-        return f"{_texto_expr(nodo.condicion)} ? {_texto_expr(nodo.si_verdadero)} " f": {_texto_expr(nodo.si_falso)}"
+        return (
+            f"{_texto_expr(nodo.condicion)} ? {_texto_expr(nodo.si_verdadero)} "
+            f": {_texto_expr(nodo.si_falso)}"
+        )
     if isinstance(nodo, LambdaExpr):
         # Etapa 12.6: no se dibuja el cuerpo del lambda como sub-diagrama
         # (alcance acotado -- ver docs/InvenioLang_2.0_POO.md) -- solo su
@@ -228,7 +287,9 @@ def _texto_instruccion(nodo):
     if isinstance(nodo, AssignStmt):
         return f"{_texto_lvalue(nodo.lvalue)} {nodo.operador} {_texto_expr(nodo.expr)}"
     if isinstance(nodo, IncDecStmt):
-        return f"{nodo.operador}{nodo.nombre}" if nodo.es_prefijo else f"{nodo.nombre}{nodo.operador}"
+        return (
+            f"{nodo.operador}{nodo.nombre}" if nodo.es_prefijo else f"{nodo.nombre}{nodo.operador}"
+        )
     if isinstance(nodo, PrintStmt):
         return f"imprimir({_texto_expr(nodo.expr)})"
     if isinstance(nodo, ReadStmt):
@@ -253,14 +314,18 @@ def _texto_for_init_act(nodo):
     if isinstance(nodo, ForInitAsig):
         return f"{_texto_lvalue(nodo.lvalue)} {nodo.operador} {_texto_expr(nodo.expr)}"
     if isinstance(nodo, ForInitIncDec):
-        return f"{nodo.operador}{nodo.nombre}" if nodo.es_prefijo else f"{nodo.nombre}{nodo.operador}"
+        return (
+            f"{nodo.operador}{nodo.nombre}" if nodo.es_prefijo else f"{nodo.nombre}{nodo.operador}"
+        )
     return ""
 
 
 def _auto_lazo_puntos(caja):
-    """Ruta de una flecha que sale y vuelve a la MISMA caja (ciclo con
+    """Ruta de una flecha que sale y vuelve a la MISMA caja (ciclo con.
+
     cuerpo vacío) -- pasa por el lado derecho para no degenerar a una
-    línea de longitud cero."""
+    línea de longitud cero.
+    """
     cx, cy = caja.derecha
     return [(cx, cy), (cx + 60, cy), (cx + 60, cy - 20), (cx, cy - 20)]
 
@@ -351,8 +416,12 @@ def _layout_if(c, nodo, cx, y, contexto):
     cond_id = c.caja(DECISION, _texto_expr(nodo.condicion), cx, y, nodo.linea)
     y_ramas = y + ALTO[DECISION] + ESPACIO_V
 
-    e_then, s_then, y_then_fin, _ = _layout_rama(c, nodo.bloque_then, cx - RAMA_OFFSET, y_ramas, contexto)
-    e_else, s_else, y_else_fin, _ = _layout_rama(c, nodo.bloque_else, cx + RAMA_OFFSET, y_ramas, contexto)
+    e_then, s_then, y_then_fin, _ = _layout_rama(
+        c, nodo.bloque_then, cx - RAMA_OFFSET, y_ramas, contexto
+    )
+    e_else, s_else, y_else_fin, _ = _layout_rama(
+        c, nodo.bloque_else, cx + RAMA_OFFSET, y_ramas, contexto
+    )
     y_convergencia = max(y_then_fin, y_else_fin)
 
     then_cae = e_then is None or s_then is not None
@@ -390,8 +459,12 @@ def _layout_while(c, nodo, cx, y, contexto):
     y_cuerpo = y + ALTO[DECISION] + ESPACIO_V
 
     ciclo = _CicloInfo(cond_id)
-    contexto_cuerpo = _Contexto(fin_id=contexto.fin_id, ciclo=ciclo, break_target=ciclo.breaks_pendientes)
-    e_cuerpo, s_cuerpo, y_fin, ancho_cuerpo = _layout_rama(c, nodo.bloque, cx, y_cuerpo, contexto_cuerpo)
+    contexto_cuerpo = _Contexto(
+        fin_id=contexto.fin_id, ciclo=ciclo, break_target=ciclo.breaks_pendientes
+    )
+    e_cuerpo, s_cuerpo, y_fin, ancho_cuerpo = _layout_rama(
+        c, nodo.bloque, cx, y_cuerpo, contexto_cuerpo
+    )
 
     if e_cuerpo is not None:
         c.flecha(cond_id, e_cuerpo, etiqueta="Sí")
@@ -405,35 +478,53 @@ def _layout_while(c, nodo, cx, y, contexto):
     for break_id in ciclo.breaks_pendientes:
         c.flecha(break_id, salida_id)
 
-    return cond_id, salida_id, y_fin + ALTO[CONECTOR] + ESPACIO_V, max(ancho_cuerpo, ANCHO[DECISION])
+    return (
+        cond_id,
+        salida_id,
+        y_fin + ALTO[CONECTOR] + ESPACIO_V,
+        max(ancho_cuerpo, ANCHO[DECISION]),
+    )
 
 
 def _layout_foreach(c, nodo, cx, y, contexto):
-    """para_cada/foreach (Etapa 12.1): mismo layout que _layout_while --
+    """Dibuja para_cada como decisión sin condición.
+
     una decision con el texto "nombre en arreglo" en vez de una condicion
     booleana (el recorrido siempre termina cuando se agota el arreglo, no
-    hay condicion explicita que dibujar)."""
+    hay condicion explicita que dibujar).
+    """
     texto = f"{nodo.nombre} en {_texto_expr(nodo.arreglo)}"
     cond_id = c.caja(DECISION, texto, cx, y, nodo.linea)
     y_cuerpo = y + ALTO[DECISION] + ESPACIO_V
 
     ciclo = _CicloInfo(cond_id)
-    contexto_cuerpo = _Contexto(fin_id=contexto.fin_id, ciclo=ciclo, break_target=ciclo.breaks_pendientes)
-    e_cuerpo, s_cuerpo, y_fin, ancho_cuerpo = _layout_rama(c, nodo.bloque, cx, y_cuerpo, contexto_cuerpo)
+    contexto_cuerpo = _Contexto(
+        fin_id=contexto.fin_id, ciclo=ciclo, break_target=ciclo.breaks_pendientes
+    )
+    e_cuerpo, s_cuerpo, y_fin, ancho_cuerpo = _layout_rama(
+        c, nodo.bloque, cx, y_cuerpo, contexto_cuerpo
+    )
 
     if e_cuerpo is not None:
         c.flecha(cond_id, e_cuerpo, etiqueta="cada elemento")
         if s_cuerpo is not None:
             c.flecha(s_cuerpo, cond_id)
     else:
-        c.flecha(cond_id, cond_id, etiqueta="cada elemento", puntos=_auto_lazo_puntos(c.cajas[cond_id]))
+        c.flecha(
+            cond_id, cond_id, etiqueta="cada elemento", puntos=_auto_lazo_puntos(c.cajas[cond_id])
+        )
 
     salida_id = c.caja(CONECTOR, "", cx, y_fin, 0)
     c.flecha(cond_id, salida_id, etiqueta="fin del arreglo")
     for break_id in ciclo.breaks_pendientes:
         c.flecha(break_id, salida_id)
 
-    return cond_id, salida_id, y_fin + ALTO[CONECTOR] + ESPACIO_V, max(ancho_cuerpo, ANCHO[DECISION])
+    return (
+        cond_id,
+        salida_id,
+        y_fin + ALTO[CONECTOR] + ESPACIO_V,
+        max(ancho_cuerpo, ANCHO[DECISION]),
+    )
 
 
 def _layout_for(c, nodo, cx, y, contexto):
@@ -451,8 +542,12 @@ def _layout_for(c, nodo, cx, y, contexto):
     y_cuerpo = y_actual + ALTO[DECISION] + ESPACIO_V
 
     ciclo = _CicloInfo(cond_id)
-    contexto_cuerpo = _Contexto(fin_id=contexto.fin_id, ciclo=ciclo, break_target=ciclo.breaks_pendientes)
-    e_cuerpo, s_cuerpo, y_fin, ancho_cuerpo = _layout_rama(c, nodo.bloque, cx, y_cuerpo, contexto_cuerpo)
+    contexto_cuerpo = _Contexto(
+        fin_id=contexto.fin_id, ciclo=ciclo, break_target=ciclo.breaks_pendientes
+    )
+    e_cuerpo, s_cuerpo, y_fin, ancho_cuerpo = _layout_rama(
+        c, nodo.bloque, cx, y_cuerpo, contexto_cuerpo
+    )
 
     act_id = None
     if nodo.act_stmt is not None:
@@ -477,18 +572,29 @@ def _layout_for(c, nodo, cx, y, contexto):
     for break_id in ciclo.breaks_pendientes:
         c.flecha(break_id, salida_id)
 
-    return entrada_id, salida_id, y_fin + ALTO[CONECTOR] + ESPACIO_V, max(ancho_cuerpo, ANCHO[DECISION])
+    return (
+        entrada_id,
+        salida_id,
+        y_fin + ALTO[CONECTOR] + ESPACIO_V,
+        max(ancho_cuerpo, ANCHO[DECISION]),
+    )
 
 
 def _layout_do_while(c, nodo, cx, y, contexto):
-    """do/hacer ... while/mientras (Etapa 6): el cuerpo va ANTES de la caja
+    """do/hacer ... while/mientras (Etapa 6): el cuerpo va ANTES de la caja.
+
     de decisión. Se reserva el id de la decisión antes de poner el cuerpo
     (misma técnica que el Fin del diagrama completo, "y se corrige
-    después") para que un 'continuar' dentro del cuerpo pueda apuntarle."""
+    después") para que un 'continuar' dentro del cuerpo pueda apuntarle.
+    """
     cond_id = c.caja(DECISION, _texto_expr(nodo.condicion), cx, 0, nodo.linea)
     ciclo = _CicloInfo(cond_id)
-    contexto_cuerpo = _Contexto(fin_id=contexto.fin_id, ciclo=ciclo, break_target=ciclo.breaks_pendientes)
-    e_cuerpo, s_cuerpo, y_fin_cuerpo, ancho_cuerpo = _layout_rama(c, nodo.bloque, cx, y, contexto_cuerpo)
+    contexto_cuerpo = _Contexto(
+        fin_id=contexto.fin_id, ciclo=ciclo, break_target=ciclo.breaks_pendientes
+    )
+    e_cuerpo, s_cuerpo, y_fin_cuerpo, ancho_cuerpo = _layout_rama(
+        c, nodo.bloque, cx, y, contexto_cuerpo
+    )
     c.cajas[cond_id].y = y_fin_cuerpo
 
     entrada_id = e_cuerpo if e_cuerpo is not None else cond_id
@@ -505,14 +611,21 @@ def _layout_do_while(c, nodo, cx, y, contexto):
     for break_id in ciclo.breaks_pendientes:
         c.flecha(break_id, salida_id)
 
-    return entrada_id, salida_id, y_fin + ALTO[CONECTOR] + ESPACIO_V, max(ancho_cuerpo, ANCHO[DECISION])
+    return (
+        entrada_id,
+        salida_id,
+        y_fin + ALTO[CONECTOR] + ESPACIO_V,
+        max(ancho_cuerpo, ANCHO[DECISION]),
+    )
 
 
 def _layout_switch(c, nodo, cx, y, contexto):
-    """switch/segun (Etapa 6): una caja de decisión con una rama por cada
+    """switch/segun (Etapa 6): una caja de decisión con una rama por cada.
+
     case (+ default si existe), convergiendo después -- simplificación
     visual del fallthrough real (cada case se dibuja como una rama
-    independiente, no encadenada a la siguiente)."""
+    independiente, no encadenada a la siguiente).
+    """
     cond_id = c.caja(DECISION, _texto_expr(nodo.expr), cx, y, nodo.linea)
     y_ramas = y + ALTO[DECISION] + ESPACIO_V
 
@@ -526,7 +639,9 @@ def _layout_switch(c, nodo, cx, y, contexto):
     switch_breaks = []
     # `ciclo` se hereda del contexto exterior sin cambios: 'continuar' NO lo
     # satisface un switch (§9, semantic.py), solo el bucle envolvente.
-    contexto_ramas = _Contexto(fin_id=contexto.fin_id, ciclo=contexto.ciclo, break_target=switch_breaks)
+    contexto_ramas = _Contexto(
+        fin_id=contexto.fin_id, ciclo=contexto.ciclo, break_target=switch_breaks
+    )
 
     resultados = []
     y_max = y_ramas
@@ -538,7 +653,7 @@ def _layout_switch(c, nodo, cx, y, contexto):
 
     conector_id = c.caja(CONECTOR, "", cx, y_max, 0)
     algo_converge = False
-    for (e_id, s_id), etiqueta in zip(resultados, etiquetas):
+    for (e_id, s_id), etiqueta in zip(resultados, etiquetas, strict=True):
         if e_id is None:
             c.flecha(cond_id, conector_id, etiqueta=etiqueta)
             algo_converge = True
@@ -562,13 +677,15 @@ def _layout_switch(c, nodo, cx, y, contexto):
 
 
 def _layout_match(c, nodo, cx, y, contexto):
-    """emparejar/match (Etapa 12.9/12.10): mismo patrón visual que switch
+    """emparejar/match (Etapa 12.9/12.10): mismo patrón visual que switch.
+
     -- una caja de decisión con una rama por caso (+ comodín si existe),
     convergiendo después. A diferencia de switch, cada rama es realmente
     excluyente (instanceof, sin fallthrough) y no admite `break` propio --
     `contexto` se pasa SIN una lista de break_target nueva (un `break`
     dentro de un caso, si lo hubiera, apunta al bucle envolvente, no al
-    match, ver semantic.py::_visitar_match)."""
+    match, ver semantic.py::_visitar_match).
+    """
     cond_id = c.caja(DECISION, _texto_expr(nodo.expr), cx, y, nodo.linea)
     y_ramas = y + ALTO[DECISION] + ESPACIO_V
 
@@ -579,7 +696,9 @@ def _layout_match(c, nodo, cx, y, contexto):
         etiquetas.append("_")
     n = max(len(bloques), 1)
 
-    contexto_ramas = _Contexto(fin_id=contexto.fin_id, ciclo=contexto.ciclo, break_target=contexto.break_target)
+    contexto_ramas = _Contexto(
+        fin_id=contexto.fin_id, ciclo=contexto.ciclo, break_target=contexto.break_target
+    )
 
     resultados = []
     y_max = y_ramas
@@ -591,7 +710,7 @@ def _layout_match(c, nodo, cx, y, contexto):
 
     conector_id = c.caja(CONECTOR, "", cx, y_max, 0)
     algo_converge = False
-    for (e_id, s_id), etiqueta in zip(resultados, etiquetas):
+    for (e_id, s_id), etiqueta in zip(resultados, etiquetas, strict=True):
         if e_id is None:
             c.flecha(cond_id, conector_id, etiqueta=etiqueta)
             algo_converge = True
@@ -614,14 +733,20 @@ def _layout_match(c, nodo, cx, y, contexto):
 
 
 def _layout_try(c, nodo, cx, y, contexto):
-    """try/intentar ... catch/capturar genérico (Etapa 6): mismo patrón de
+    """try/intentar ... catch/capturar genérico (Etapa 6): mismo patrón de.
+
     dos ramas que convergen ya usado por `_layout_if`, con la rama
-    izquierda el bloque protegido y la derecha el manejador."""
+    izquierda el bloque protegido y la derecha el manejador.
+    """
     marcador_id = c.caja(PROCESO, f"intentar / capturar ({nodo.nombre_catch})", cx, y, nodo.linea)
     y_ramas = y + ALTO[PROCESO] + ESPACIO_V
 
-    e_try, s_try, y_try_fin, _ = _layout_rama(c, nodo.bloque_try, cx - RAMA_OFFSET, y_ramas, contexto)
-    e_catch, s_catch, y_catch_fin, _ = _layout_rama(c, nodo.bloque_catch, cx + RAMA_OFFSET, y_ramas, contexto)
+    e_try, s_try, y_try_fin, _ = _layout_rama(
+        c, nodo.bloque_try, cx - RAMA_OFFSET, y_ramas, contexto
+    )
+    e_catch, s_catch, y_catch_fin, _ = _layout_rama(
+        c, nodo.bloque_catch, cx + RAMA_OFFSET, y_ramas, contexto
+    )
     y_convergencia = max(y_try_fin, y_catch_fin)
 
     try_cae = e_try is None or s_try is not None

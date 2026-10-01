@@ -28,6 +28,7 @@ from inveniolang import ir as ir_mod
 from inveniolang import ll1_demo
 from inveniolang import flowchart as fcmod
 from inveniolang import flowchart_builder as fb
+from inveniolang.ast_nodes import Bloque as _BloqueFlowchart
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIR_PRUEBAS = os.path.join(RAIZ, 'pruebas')
@@ -1957,7 +1958,7 @@ def correr_etapa13(res, verboso):
     # re-parsear con el pipeline REAL y confirmar que compila y corre ----
     def _diagrama_acumulador_par():
         # entero suma = 0; para (i=0;i<5;i++) { si (i%2==0) { suma=suma+i; } } imprimir(suma);
-        raiz = fcmod.Bloque([])
+        raiz = _BloqueFlowchart([])
         n1, _ = fb.crear_proceso('entero suma = 0')
         fb.insertar(raiz, 0, n1)
         if_nodo, _ = fb.crear_decision('i % 2 == 0')
@@ -1972,7 +1973,7 @@ def correr_etapa13(res, verboso):
 
     def _diagrama_si_sino():
         # entero x = 7; si (x > 5) { imprimir("grande"); } sino { imprimir("chico"); }
-        raiz = fcmod.Bloque([])
+        raiz = _BloqueFlowchart([])
         n1, _ = fb.crear_proceso('entero x = 7')
         fb.insertar(raiz, 0, n1)
         if_nodo, _ = fb.crear_decision('x > 5')
@@ -1986,7 +1987,7 @@ def correr_etapa13(res, verboso):
 
     def _diagrama_hacer_mientras():
         # entero n = 0; hacer { n = n + 1; imprimir(n); } mientras (n < 3);
-        raiz = fcmod.Bloque([])
+        raiz = _BloqueFlowchart([])
         n1, _ = fb.crear_proceso('entero n = 0')
         fb.insertar(raiz, 0, n1)
         do_nodo, _ = fb.crear_hacer_mientras('n < 3')

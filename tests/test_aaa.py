@@ -75,3 +75,11 @@ def test_core_modos():
     assert compile_pure(base).ok
     toks = compile_pure(CompileRequest(ruta="t.inv", codigo="void main() { }", modo="tokens"))
     assert toks.ok and len(toks.salida) > 0
+
+
+def test_for_accion_incdec():
+    """Acción ++/-- del for ejecuta sin NameError (rama IncDecNode eliminada)."""
+    r = api.ejecutar("void main() { int s = 0; para (int i = 0; i < 3; i++) { s = s + 1; } imprimir(s); }")
+    assert r.ok and "".join(r.salida) == "3"
+    r2 = api.ejecutar("void main() { int s = 0; para (int i = 3; i > 0; i--) { s = s + 1; } imprimir(s); }")
+    assert r2.ok and "".join(r2.salida) == "3"

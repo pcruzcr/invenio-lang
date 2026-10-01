@@ -5,10 +5,12 @@ Dynamic = "dynamic"
 
 
 def is_dynamic(t: str) -> bool:
+    """Indica si es dinámico."""
     return t == Dynamic or t is None or t == "?"
 
 
 def consistent(a: str, b: str) -> bool:
+    """Indica consistencia de tipos."""
     if a == b:
         return True
     if is_dynamic(a) or is_dynamic(b):
@@ -21,9 +23,8 @@ def consistent(a: str, b: str) -> bool:
         st = SymbolTable()
         if st.es_clase(a) and st.es_clase(b):
             return st.es_subtipo_clase(a, b) or st.es_subtipo_clase(b, a)
-    except Exception:
+    except Exception:  # noqa: S110 - sin tabla, se sigue con reglas sintácticas
         pass
-    # Arrays: T[] consistente con U[] si T consistente con U
     if a.endswith("[]") and b.endswith("[]"):
         return consistent(a[:-2], b[:-2])
     if {a, b} == {"int", "float"} or {a, b} == {"entero", "real"}:
@@ -32,6 +33,7 @@ def consistent(a: str, b: str) -> bool:
 
 
 def join(a: str, b: str) -> str:
+    """Une dos tipos."""
     if a == b:
         return a
     if is_dynamic(a):
@@ -58,12 +60,13 @@ def join(a: str, b: str) -> str:
                 for anc in st.cadena_ancestros(a) or []:
                     if anc in common:
                         return anc
-    except Exception:
+    except Exception:  # noqa: S110 - fallback a dynamic si falla la jerarquía
         pass
     return "dynamic"
 
 
 def meet(a: str, b: str) -> str:
+    """Calcula el encuentro de tipos."""
     if a == b:
         return a
     if is_dynamic(a):
@@ -74,6 +77,7 @@ def meet(a: str, b: str) -> str:
 
 
 def check_call(func_t: str, args: list) -> bool:
+    """Verifica la llamada."""
     # func_t como "funcion(int,string)->bool"
     if not func_t.startswith("funcion("):
         return True
@@ -83,4 +87,4 @@ def check_call(func_t: str, args: list) -> bool:
     params = inner[0].rstrip(")").split(",") if inner[0].rstrip(")") else []
     if len(params) != len(args):
         return False
-    return all(consistent(p.strip(), a) for p, a in zip(params, args))
+    return all(consistent(p.strip(), a) for p, a in zip(params, args, strict=True))

@@ -51,13 +51,14 @@
 # clases/POO/arreglos dentro del diagrama.
 
 from __future__ import annotations
+
+from . import flowchart as fc
+from .ast_nodes import Bloque, DoWhileStmt, ForStmt, IfStmt, WhileStmt
+from .errors import ErrorManager, InvenioLangError
 from .lexer import Lexer
 from .parser import Parser
 from .semantic import SemanticAnalyzer
 from .type_checker import TypeChecker
-from .errors import ErrorManager, InvenioLangError
-from .ast_nodes import Bloque, IfStmt, WhileStmt, DoWhileStmt, ForStmt
-from . import flowchart as fc
 
 # ---- Formas de la paleta (vocabulario propio de este módulo -- INICIO/FIN
 # no aplican, siempre hay exactamente uno de cada uno al principio/final
@@ -74,18 +75,22 @@ FORMAS_PALETA = (PROCESO, ENTRADA, SALIDA, DECISION, MIENTRAS, HACER_MIENTRAS, P
 
 
 def _error_local(mensaje):
-    """Error propio de este módulo (p. ej. "debe ser una sola
+    """Error propio de este módulo (p. ej. "debe ser una sola.
+
     instrucción"), NO del catálogo oficial IL-* (§18.1: ese catálogo es
     estable entre versiones) -- código con prefijo distinto a propósito,
-    para que nunca se confunda con un diagnóstico real del compilador."""
+    para que nunca se confunda con un diagnóstico real del compilador.
+    """
     return InvenioLangError("DIAG-001", mensaje, 1, 1, "diagrama")
 
 
 def _parsear_programa(codigo):
-    """Corre Lexer + Parser (solo sintaxis, sin semántico/tipos -- eso se
+    """Corre Lexer + Parser (solo sintaxis, sin semántico/tipos -- eso se.
+
     hace aparte, sobre el diagrama COMPLETO, ver `validar_diagrama`) sobre
     un programa envoltorio mínimo. Retorna (ast, errores) -- ast es None
-    si errores no está vacío."""
+    si errores no está vacío.
+    """
     em = ErrorManager()
     lx = Lexer(em)
     lx.tokenizar(codigo, "diagrama.inv")
@@ -104,10 +109,12 @@ def _parsear_programa(codigo):
 
 
 def _asegurar_punto_coma(texto):
-    """Le agrega ";" al final si el estudiante no lo escribió -- el resto
+    """Le agrega ";" al final si el estudiante no lo escribió -- el resto.
+
     de las formas (Entrada/Salida/condiciones) nunca le piden el ";" al
     estudiante (va implícito en la plantilla que las envuelve), así que
-    Proceso tampoco debería exigírselo."""
+    Proceso tampoco debería exigírselo.
+    """
     texto = texto.strip()
     if texto and not texto.endswith((";", "}")):
         texto += ";"
@@ -115,25 +122,31 @@ def _asegurar_punto_coma(texto):
 
 
 def crear_proceso(texto):
-    """Valida `texto` como UNA instrucción o declaración suelta InvenioLang
+    """Valida `texto` como UNA instrucción o declaración suelta InvenioLang.
+
     (asignación, incremento/decremento, llamada, declaración de variable/
     constante, ...). No hace falta escribir el ";" final. Retorna
-    (nodo, errores)."""
+    (nodo, errores).
+    """
     ast, errores = _parsear_programa(f"void main() {{ {_asegurar_punto_coma(texto)} }}")
     if errores:
         return None, errores
     elementos = ast.main.bloque.elementos
     if len(elementos) != 1:
         return None, [
-            _error_local('Un bloque de "Proceso" debe contener exactamente una ' "instrucción o declaración.")
+            _error_local(
+                'Un bloque de "Proceso" debe contener exactamente una instrucción o declaración.'
+            )
         ]
     return elementos[0], []
 
 
 def crear_entrada(texto):
-    """`texto` debe ser un identificador simple (variable ya declarada
+    """`texto` debe ser un identificador simple (variable ya declarada.
+
     antes en el diagrama -- eso se comprueba al validar el diagrama
-    completo, no aquí). Retorna (ReadStmt, errores)."""
+    completo, no aquí). Retorna (ReadStmt, errores).
+    """
     ast, errores = _parsear_programa(f"void main() {{ leer({texto}); }}")
     if errores:
         return None, errores
@@ -141,8 +154,10 @@ def crear_entrada(texto):
 
 
 def crear_salida(texto):
-    """`texto` es cualquier expresión InvenioLang válida. Retorna
-    (PrintStmt, errores)."""
+    """`texto` es cualquier expresión InvenioLang válida. Retorna.
+
+    (PrintStmt, errores).
+    """
     ast, errores = _parsear_programa(f"void main() {{ imprimir({texto}); }}")
     if errores:
         return None, errores
@@ -177,9 +192,13 @@ def crear_hacer_mientras(texto_condicion):
 
 
 def crear_para(texto_init, texto_cond, texto_paso):
-    """Los tres campos se ensamblan tal cual en la cabecera real de un
-    `para (init; cond; paso)`. Retorna (ForStmt con cuerpo vacío, errores)."""
-    ast, errores = _parsear_programa(f"void main() {{ para ({texto_init}; {texto_cond}; {texto_paso}) {{ }} }}")
+    """Los tres campos se ensamblan tal cual en la cabecera real de un.
+
+    `para (init; cond; paso)`. Retorna (ForStmt con cuerpo vacío, errores).
+    """
+    ast, errores = _parsear_programa(
+        f"void main() {{ para ({texto_init}; {texto_cond}; {texto_paso}) {{ }} }}"
+    )
     if errores:
         return None, errores
     nodo = ast.main.bloque.elementos[0]
@@ -195,29 +214,35 @@ def crear_para(texto_init, texto_cond, texto_paso):
 
 
 def insertar(bloque, indice, nodo):
+    """Inserta un nodo en el bloque."""
     bloque.elementos.insert(indice, nodo)
 
 
 def reemplazar(bloque, nodo_viejo, nodo_nuevo):
-    """Sustituye `nodo_viejo` por `nodo_nuevo` EN SU MISMA POSICIÓN dentro
+    """Sustituye `nodo_viejo` por `nodo_nuevo` EN SU MISMA POSICIÓN dentro.
+
     de `bloque.elementos` -- para editar el texto de una caja hoja
     (Proceso/Entrada/Salida) sin perder el orden de sus hermanas. Para
     editar solo la condición de una Decisión/Mientras/Hacer-mientras/Para
     (que sí tienen hijos que preservar -- sus ramas/cuerpo), es mejor
     mutar `.condicion` (o `.init_stmt`/`.cond_expr`/`.act_stmt`) del nodo
     EXISTENTE directamente en vez de reemplazarlo entero; ver el uso de
-    esta función en gui_qt.py."""
+    esta función en gui_qt.py.
+    """
     bloque.elementos[bloque.elementos.index(nodo_viejo)] = nodo_nuevo
 
 
 def eliminar(bloque, nodo):
+    """Elimina un nodo del bloque."""
     bloque.elementos.remove(nodo)
 
 
 def mover(bloque, nodo, delta):
-    """Desplaza `nodo` `delta` posiciones dentro de `bloque.elementos`
+    """Desplaza `nodo` `delta` posiciones dentro de `bloque.elementos`.
+
     (-1 = subir, +1 = bajar). No hace nada si el movimiento se sale de
-    los límites de la lista."""
+    los límites de la lista.
+    """
     i = bloque.elementos.index(nodo)
     j = i + delta
     if 0 <= j < len(bloque.elementos):
@@ -231,6 +256,7 @@ def agregar_rama_else(if_stmt):
 
 
 def quitar_rama_else(if_stmt):
+    """Quita la rama else del condicional."""
     if_stmt.bloque_else = None
 
 
@@ -290,11 +316,13 @@ def _emitir_instruccion(nodo, nivel, lineas, mapa_lineas):
 
 
 def generar_texto_main(bloque):
-    """Genera el programa InvenioLang COMPLETO (`void main() { ... }`) a
+    """Genera el programa InvenioLang COMPLETO (`void main() { ... }`) a.
+
     partir del `Bloque` construido en el panel. Retorna (texto,
     mapa_lineas) -- mapa_lineas: dict[id(nodo) -> línea 1-indexada],
     usado por `validar_diagrama` para reasignar cada error a la caja que
-    lo originó."""
+    lo originó.
+    """
     lineas = ["void main() {"]
     mapa_lineas = {}
     _emitir_bloque(bloque, 1, lineas, mapa_lineas)
@@ -303,14 +331,16 @@ def generar_texto_main(bloque):
 
 
 def validar_diagrama(bloque):
-    """Corre el pipeline completo (Lexer -> Parser -> SemanticAnalyzer ->
+    """Corre el pipeline completo (Lexer -> Parser -> SemanticAnalyzer ->.
+
     TypeChecker, mismo orden que `pruebas/conformidad.py::analizar()`)
     sobre el texto generado por TODO el diagrama junto -- así una caja que
     lee una variable declarada en una caja anterior no se marca como error
     falso (a diferencia de validar cada caja aislada). Retorna (texto,
     errores_por_nodo) -- errores_por_nodo: dict[id(nodo) ->
     list[InvenioLangError]], solo con entradas para los nodos que
-    realmente tienen algún error asociado."""
+    realmente tienen algún error asociado.
+    """
     texto, mapa_lineas = generar_texto_main(bloque)
     linea_a_nodo = {linea: id_nodo for id_nodo, linea in mapa_lineas.items()}
 

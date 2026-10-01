@@ -1,9 +1,19 @@
 # effects — v8 effect system 100% — para azar/leer_archivo, pureza, análisis
 from __future__ import annotations
-from typing import Dict, Set, List, Any
+
+from typing import Any
+
+__all__ = [
+    "Effect",
+    "PURE_FUNCS",
+    "effect_of",
+    "effects",
+    "is_pure",
+    "requires_io",
+]
 
 Effect = str
-effects: Dict[str, Set[str]] = {
+effects: dict[str, set[str]] = {
     "azar": {"io", "random"},
     "random": {"io", "random"},
     "leer_archivo": {"io", "fs"},
@@ -18,13 +28,22 @@ effects: Dict[str, Set[str]] = {
     "print": {"io"},
 }
 
-PURE_FUNCS = {"int_a_float", "float_a_int", "longitud_texto", "subcadena", "raiz_cuadrada", "elevar", "absoluto"}
+PURE_FUNCS = {
+    "int_a_float",
+    "float_a_int",
+    "longitud_texto",
+    "subcadena",
+    "raiz_cuadrada",
+    "elevar",
+    "absoluto",
+}
 
 
-def effect_of(node: Any, tabla=None) -> Set[str]:
-    from ..ast_nodes import FunctionCall, MethodCallExpr, Identifier
+def effect_of(node: Any, tabla=None) -> set[str]:
+    """Calcula los efectos de un nodo."""
+    from ..ast_nodes import FunctionCall, Identifier
 
-    eff: Set[str] = set()
+    eff: set[str] = set()
     if isinstance(node, FunctionCall):
         eff.update(effects.get(node.nombre, set()))
         for arg in node.argumentos:
@@ -58,8 +77,10 @@ def effect_of(node: Any, tabla=None) -> Set[str]:
 
 
 def is_pure(node: Any) -> bool:
+    """Indica si la función es pura."""
     return len(effect_of(node)) == 0
 
 
 def requires_io(node: Any) -> bool:
+    """Indica si requiere entrada/salida."""
     return "io" in effect_of(node)

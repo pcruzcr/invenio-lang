@@ -16,6 +16,7 @@ from .type_checker import TypeChecker
 
 
 def diagnostics_for(uri: str, text: str) -> list[dict[str, Any]]:
+    """Calcula diagnósticos LSP."""
     em = ErrorManager()
     lx = Lexer(em)
     lx.tokenizar(text, uri)
@@ -47,6 +48,7 @@ def diagnostics_for(uri: str, text: str) -> list[dict[str, Any]]:
 
 
 def hover_for(word: str) -> str:
+    """Texto para hover LSP."""
     exp = explicar(word)
     if exp:
         return f"**{exp.codigo} {exp.titulo}**\n{exp.por_que}\n`{exp.ejemplo_bueno}`"
@@ -55,6 +57,7 @@ def hover_for(word: str) -> str:
 
 # CLI para VS Code extension (stdio JSON-RPC minimal)
 def main():
+    """Punto de entrada del programa."""
     print(
         "InvenioLang LSP — stdin JSON-RPC (hover/diagnostics). Requiere cliente VS Code.",
         file=sys.stderr,
@@ -73,7 +76,7 @@ def main():
                 }
                 print(json.dumps(resp))
                 sys.stdout.flush()
-        except Exception:
+        except Exception:  # noqa: S112 - servidor LSP nunca muere por un mensaje
             continue
 
 
@@ -98,7 +101,7 @@ def leer_mensajes(stream) -> Any:
             buf = resto[largo:]
             try:
                 yield json.loads(cuerpo.decode("utf-8"))
-            except Exception:
+            except Exception:  # noqa: S112 - frame corrupto se salta, sigue el stream
                 continue
         else:
             linea, sep, resto = buf.partition(b"\n")
@@ -108,7 +111,7 @@ def leer_mensajes(stream) -> Any:
                 continue
             try:
                 yield json.loads(linea.decode("utf-8"))
-            except Exception:
+            except Exception:  # noqa: S112 - línea corrupta se salta, sigue el stream
                 continue
 
 
@@ -122,7 +125,7 @@ def completion_for(prefijo: str) -> list[dict[str, Any]]:
     cands: set[str] = set(_Lx.keywords.keys())
     try:
         cands.update(_bi.FUNCIONES_BUILT_IN.keys())
-    except Exception:
+    except Exception:  # noqa: S110 - sin builtins igual se completa con keywords
         pass
     pref = (prefijo or "").lower()
     return [{"label": c} for c in sorted(cands) if c.startswith(pref)][:50]

@@ -2,44 +2,64 @@
 # Reusa symbol_table.py:116 SymbolTable + interpreter.py:240 pila_marcos
 # Patrones: Observer (escucha Interpreter), Strategy (render por tipo), Builder (grafo)
 from __future__ import annotations
-from typing import Dict, List, Any, Optional
+
 from dataclasses import dataclass, field
+from typing import Any
+
 from .patterns import Observer, Strategy
 
 
 @dataclass
 class NodoVisual:
+    """Nodo para visualización de datos."""
+
     id: str
     tipo: str  # arreglo, lista, pila, objeto, variable
     etiqueta: str
-    valores: List[Any] = field(default_factory=list)
-    conexiones: List[str] = field(default_factory=list)  # ids destino
+    valores: list[Any] = field(default_factory=list)
+    conexiones: list[str] = field(default_factory=list)  # ids destino
     linea: int = 0
 
 
 @dataclass
 class SnapshotMemoria:
+    """Instantánea de la memoria en depuración."""
+
     # Capturado desde Interpreter._snapshot_debug + SymbolTable
-    variables: List[Dict[str, Any]]
-    pila: List[str]
+    variables: list[dict[str, Any]]
+    pila: list[str]
     linea: int
-    nodos: List[NodoVisual] = field(default_factory=list)
+    nodos: list[NodoVisual] = field(default_factory=list)
 
 
 class RenderStrategy(Strategy):
-    def execute(self, valor: Any, nombre: str, tipo: str, *args, **kwargs) -> Optional[NodoVisual]:
+    """Estrategia render."""
+
+    def execute(self, valor: Any, nombre: str, tipo: str, *args, **kwargs) -> NodoVisual | None:
+        """Ejecuta la operación."""
         raise NotImplementedError
 
 
 class ArregloStrategy(RenderStrategy):
-    def execute(self, valor: Any, nombre: str, tipo: str, *args, **kwargs) -> Optional[NodoVisual]:
+    """Estrategia arreglo."""
+
+    def execute(self, valor: Any, nombre: str, tipo: str, *args, **kwargs) -> NodoVisual | None:
+        """Ejecuta la operación."""
         if isinstance(valor, list) and tipo in ("int", "float", "string", "bool"):
-            return NodoVisual(id=nombre, tipo="arreglo", etiqueta=f"{nombre}[{len(valor)}]:{tipo}", valores=list(valor))
+            return NodoVisual(
+                id=nombre,
+                tipo="arreglo",
+                etiqueta=f"{nombre}[{len(valor)}]:{tipo}",
+                valores=list(valor),
+            )
         return None
 
 
 class ListaEnlazadaStrategy(RenderStrategy):
-    def execute(self, valor: Any, nombre: str, tipo: str, *args, **kwargs) -> Optional[NodoVisual]:
+    """Estrategia lista enlazada."""
+
+    def execute(self, valor: Any, nombre: str, tipo: str, *args, **kwargs) -> NodoVisual | None:
+        """Ejecuta la operación."""
         # Detecta InstanciaObjeto con campo 'siguiente' o 'next'
         from .interpreter import InstanciaObjeto
 
@@ -56,7 +76,9 @@ class ListaEnlazadaStrategy(RenderStrategy):
                     cur = nxt
                 else:
                     break
-            if len(nodos) >= 1 and any("siguiente" in n.campos or "next" in n.campos for n in nodos):
+            if len(nodos) >= 1 and any(
+                "siguiente" in n.campos or "next" in n.campos for n in nodos
+            ):
                 # Nodo cabeza
                 vals = [f"{list(n.campos.values())[0] if n.campos else ''}" for n in nodos]
                 return NodoVisual(
@@ -70,9 +92,14 @@ class ListaEnlazadaStrategy(RenderStrategy):
 
 
 class PilaStrategy(RenderStrategy):
-    def execute(self, valor: Any, nombre: str, tipo: str, *args, **kwargs) -> Optional[NodoVisual]:
+    """Estrategia pila."""
+
+    def execute(self, valor: Any, nombre: str, tipo: str, *args, **kwargs) -> NodoVisual | None:
+        """Ejecuta la operación."""
         if isinstance(valor, list) and "pila" in nombre.lower():
-            return NodoVisual(id=nombre, tipo="pila", etiqueta=f"{nombre}:Pila", valores=list(reversed(valor)))
+            return NodoVisual(
+                id=nombre, tipo="pila", etiqueta=f"{nombre}:Pila", valores=list(reversed(valor))
+            )
         return None
 
 
@@ -80,14 +107,22 @@ class VisualizerObserver(Observer):
     """Observer que se suscribe a Interpreter (Subject) vía debug_on_statement."""
 
     def __init__(self):
-        self.history: List[SnapshotMemoria] = []
-        self.strategies: List[RenderStrategy] = [ListaEnlazadaStrategy(), ArregloStrategy(), PilaStrategy()]
+        self.history: list[SnapshotMemoria] = []
+        self.strategies: list[RenderStrategy] = [
+            ListaEnlazadaStrategy(),
+            ArregloStrategy(),
+            PilaStrategy(),
+        ]
 
     def update(self, event: str, data: Any) -> None:
+        """Recibe un evento del Subject."""
         if event == "snapshot":
             self.history.append(data)
 
-    def visualizar_variables(self, variables: List[Dict[str, Any]], linea: int, pila: List[str]) -> SnapshotMemoria:
+    def visualizar_variables(
+        self, variables: list[dict[str, Any]], linea: int, pila: list[str]
+    ) -> SnapshotMemoria:
+        """Visualiza las variables del marco."""
         snap = SnapshotMemoria(variables=variables, pila=pila, linea=linea)
         for v in variables:
             nombre = v.get("nombre", "")
@@ -103,16 +138,23 @@ class VisualizerObserver(Observer):
             if not any(n.id == nombre for n in snap.nodos):
                 snap.nodos.append(
                     NodoVisual(
-                        id=nombre, tipo="scalar", etiqueta=f"{nombre}:{tipo}={valor!r}", valores=[valor], linea=linea
+                        id=nombre,
+                        tipo="scalar",
+                        etiqueta=f"{nombre}:{tipo}={valor!r}",
+                        valores=[valor],
+                        linea=linea,
                     )
                 )
         return snap
 
     def to_dot(self, snap: SnapshotMemoria) -> str:
+        """Serializa el CFG a Graphviz DOT."""
         lines = ["digraph G { rankdir=LR; node [shape=record];"]
         for n in snap.nodos:
             if n.tipo == "arreglo":
-                label = f"{n.etiqueta}|" + "|".join(f"<f{i}> {v!r}" for i, v in enumerate(n.valores))
+                label = f"{n.etiqueta}|" + "|".join(
+                    f"<f{i}> {v!r}" for i, v in enumerate(n.valores)
+                )
                 lines.append(f'  {n.id} [label="{label}"];')
             elif n.tipo == "lista":
                 label = f"{n.etiqueta}|" + " -> ".join(str(v) for v in n.valores)
@@ -125,12 +167,16 @@ class VisualizerObserver(Observer):
 
 # Integración con Interpreter hooks sin reescribir lógica
 def attach_to_interpreter(interp) -> VisualizerObserver:
+    """Conecta el visualizador al intérprete."""
     obs = VisualizerObserver()
     orig = interp.debug_on_statement
 
     def wrapped(snap, pausar):
+        """Envuelve la función con traza."""
         # snap ya es dict de _snapshot_debug
-        vis = obs.visualizar_variables(snap.get("variables", []), snap.get("linea", 0), snap.get("pila", []))
+        vis = obs.visualizar_variables(
+            snap.get("variables", []), snap.get("linea", 0), snap.get("pila", [])
+        )
         obs.history.append(vis)
         interp.notify("snapshot", vis) if hasattr(interp, "notify") else None
         if orig:

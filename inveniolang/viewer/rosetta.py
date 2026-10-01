@@ -27,6 +27,7 @@ class _BaseEmitter(Strategy):
     FALSE: str = "false"
 
     def execute(self, ast: Any, *a, **kw) -> str:
+        """Ejecuta la operación."""
         return self.programa(ast)
 
     # ---- expresiones ----
@@ -36,6 +37,7 @@ class _BaseEmitter(Strategy):
         return '"' + s + '"'
 
     def expr(self, n: Any) -> str:
+        """Traduce la expresión."""
         c = type(n).__name__
         if c == "Literal":
             v = n.valor
@@ -74,6 +76,7 @@ class _BaseEmitter(Strategy):
         return f"/*expr-{c}*/0"
 
     def lvalue(self, n: Any) -> str:
+        """Traduce el destino."""
         c = type(n).__name__
         if c == "VarLValue":
             return str(n.nombre)
@@ -85,13 +88,17 @@ class _BaseEmitter(Strategy):
 
     # ---- sentencias (cada target implementa bloque) ----
     def programa(self, ast: Any) -> str:  # pragma: no cover - base
+        """Traduce el programa."""
         raise NotImplementedError
 
 
 class PythonTranspiler(_BaseEmitter):
+    """Emisor Python (vista)."""
+
     TIPOS = {"int": "int", "float": "float", "string": "str", "bool": "bool", "void": "None"}
 
     def programa(self, ast) -> str:
+        """Traduce el programa."""
         out: list[str] = ["# InvenioLang -> Python (vista)"]
         for d in list(getattr(ast, "declaraciones_globales", []) or []):
             out.append(self.decl(d, 0))
@@ -104,6 +111,7 @@ class PythonTranspiler(_BaseEmitter):
         return "\n".join(x for x in out if x is not None)
 
     def decl(self, n, nv: int) -> str:
+        """Traduce la declaración."""
         c = type(n).__name__
         pad = "    " * nv
         if c in ("VarDecl", "ConstDecl"):
@@ -112,6 +120,7 @@ class PythonTranspiler(_BaseEmitter):
         return f"{pad}pass  # {c}-no-soportado"
 
     def func(self, s, nv: int) -> list[str]:
+        """Traduce la función."""
         pad = "    " * nv
         args = ", ".join(p.nombre for p in (s.parametros or []))
         head = f"{pad}def {s.nombre}({args}):"
@@ -119,6 +128,7 @@ class PythonTranspiler(_BaseEmitter):
         return [head, *body]
 
     def bloque(self, b, nv: int) -> list[str]:
+        """Traduce el bloque."""
         pad = "    " * nv
         out: list[str] = []
         for e in getattr(b, "elementos", []) or []:
@@ -126,6 +136,7 @@ class PythonTranspiler(_BaseEmitter):
         return out or [pad + "pass"]
 
     def stmt(self, e, nv: int) -> list[str]:
+        """Traduce la sentencia."""
         pad = "    " * nv
         c = type(e).__name__
         if c in ("VarDecl", "ConstDecl"):
@@ -173,6 +184,7 @@ class PythonTranspiler(_BaseEmitter):
         return [f"{pad}pass  # {c}"]
 
     def for_init(self, n, nv: int) -> list[str]:
+        """Traduce el inicio del for."""
         if n is None:
             return []
         pad = "    " * nv
@@ -188,6 +200,7 @@ class PythonTranspiler(_BaseEmitter):
         return []
 
     def for_act(self, n, nv: int) -> list[str]:
+        """Traduce la acción del for."""
         return self.for_init(n, nv)
 
 
@@ -200,6 +213,7 @@ class _CBraceEmitter(_BaseEmitter):
     CLASE_ENV: list[str] = []
 
     def programa(self, ast) -> str:
+        """Traduce el programa."""
         out: list[str] = list(self.CABECERA)
         for d in list(getattr(ast, "declaraciones_globales", []) or []):
             out.append(self.decl(d, 0))
@@ -213,6 +227,7 @@ class _CBraceEmitter(_BaseEmitter):
         return "\n".join(x for x in out if x is not None)
 
     def decl(self, n, nv: int) -> str:
+        """Traduce la declaración."""
         pad = "    " * nv
         c = type(n).__name__
         if c in ("VarDecl", "ConstDecl"):
@@ -223,6 +238,7 @@ class _CBraceEmitter(_BaseEmitter):
         return f"{pad}// {c} no soportado en vista"
 
     def func(self, s, nv: int) -> list[str]:
+        """Traduce la función."""
         pad = "    " * nv
         ret = _tipo(getattr(s, "tipo_retorno", "void"), self.TIPOS)
         args = ", ".join(f"{_tipo(p.tipo, self.TIPOS)} {p.nombre}" for p in (s.parametros or []))
@@ -230,12 +246,14 @@ class _CBraceEmitter(_BaseEmitter):
         return [head, *self.bloque(s.bloque, nv + 1), f"{pad}}}"]
 
     def bloque(self, b, nv: int) -> list[str]:
+        """Traduce el bloque."""
         out: list[str] = []
         for e in getattr(b, "elementos", []) or []:
             out.extend(self.stmt(e, nv))
         return out
 
     def stmt(self, e, nv: int) -> list[str]:
+        """Traduce la sentencia."""
         pad = "    " * nv
         c = type(e).__name__
         if c in ("VarDecl", "ConstDecl"):
@@ -284,9 +302,11 @@ class _CBraceEmitter(_BaseEmitter):
         return [f"{pad}// {c} ver InvenioLang"]
 
     def print_call(self, node) -> str:
+        """Llamada de impresión del target."""
         return f"print({self.expr(node)})"
 
     def for_cabecera(self, n) -> str:
+        """Cabecera del for en C."""
         if n is None:
             return ""
         c = type(n).__name__
@@ -302,12 +322,15 @@ class _CBraceEmitter(_BaseEmitter):
 
 
 class CTranspiler(_CBraceEmitter):
+    """Emisor C (vista)."""
+
     TIPOS = {"int": "int", "float": "double", "string": "char*", "bool": "bool", "void": "void"}
     CABECERA = ["// InvenioLang -> C (vista)", "#include <stdio.h>", "#include <stdbool.h>"]
     MAIN_HEAD = "int main(){"
     MAIN_TAIL = "return 0; }"
 
     def print_call(self, node) -> str:
+        """Llamada de impresión del target."""
         c = type(node).__name__
         if c == "Literal":
             if node.tipo_literal == "string":
@@ -322,6 +345,8 @@ class CTranspiler(_CBraceEmitter):
 
 
 class JavaTranspiler(_CBraceEmitter):
+    """Emisor Java (vista)."""
+
     TIPOS = {"int": "int", "float": "double", "string": "String", "bool": "boolean", "void": "void"}
     CABECERA = ["// InvenioLang -> Java (vista)", "public class Main {"]
     MAIN_HEAD = "  public static void main(String[] args) {"
@@ -329,10 +354,13 @@ class JavaTranspiler(_CBraceEmitter):
     CLASE_ENV = ["}"]
 
     def print_call(self, node) -> str:
+        """Llamada de impresión del target."""
         return f"System.out.print({self.expr(node)})"
 
 
 class CSharpTranspiler(_CBraceEmitter):
+    """Emisor C# (vista)."""
+
     TIPOS = {"int": "int", "float": "double", "string": "string", "bool": "bool", "void": "void"}
     CABECERA = ["// InvenioLang -> C# (vista)", "using System; class Program {"]
     MAIN_HEAD = "  static void Main(){"
@@ -340,13 +368,17 @@ class CSharpTranspiler(_CBraceEmitter):
     CLASE_ENV = ["}"]
 
     def print_call(self, node) -> str:
+        """Llamada de impresión del target."""
         return f"Console.Write({self.expr(node)})"
 
 
 class PascalTranspiler(_BaseEmitter):
+    """Emisor Pascal (vista)."""
+
     TIPOS = {"int": "integer", "float": "real", "string": "string", "bool": "boolean", "void": ""}
 
     def programa(self, ast) -> str:
+        """Traduce el programa."""
         out: list[str] = ["{ InvenioLang -> Pascal (vista) }", "program Main;"]
         for s in list(getattr(ast, "subrutinas", []) or []):
             out.extend(self.func(s))
@@ -357,6 +389,7 @@ class PascalTranspiler(_BaseEmitter):
         return "\n".join(out)
 
     def func(self, s) -> list[str]:
+        """Traduce la función."""
         args = "; ".join(f"{p.nombre}: {_tipo(p.tipo, self.TIPOS)}" for p in (s.parametros or []))
         ret = _tipo(getattr(s, "tipo_retorno", "void"), self.TIPOS)
         head = (
@@ -367,12 +400,14 @@ class PascalTranspiler(_BaseEmitter):
         return [head, *self.bloque(s.bloque, 1), "end;"]
 
     def bloque(self, b, nv: int) -> list[str]:
+        """Traduce el bloque."""
         out: list[str] = []
         for e in getattr(b, "elementos", []) or []:
             out.extend(self.stmt(e, nv))
         return out
 
     def stmt(self, e, nv: int) -> list[str]:
+        """Traduce la sentencia."""
         pad = "  " * nv
         c = type(e).__name__
         if c in ("VarDecl", "ConstDecl"):
@@ -425,6 +460,7 @@ class PascalTranspiler(_BaseEmitter):
         return [f"{pad}// {c}"]
 
     def p_expr(self, n) -> str:
+        """Expresión en sintaxis Pascal."""
         c = type(n).__name__
         if c == "Literal" and n.tipo_literal == "bool":
             return "True" if n.valor else "False"
@@ -434,6 +470,7 @@ class PascalTranspiler(_BaseEmitter):
         return self.expr(n)
 
     def p_for_init(self, n, nv: int) -> list[str]:
+        """Traduce el inicio del for en Pascal."""
         if n is None:
             return []
         pad = "  " * nv
@@ -450,6 +487,7 @@ class PascalTranspiler(_BaseEmitter):
         return []
 
     def p_for_act(self, n, nv: int) -> list[str]:
+        """Traduce la acción del for en Pascal."""
         return self.p_for_init(n, nv)
 
 
@@ -460,6 +498,7 @@ class TranspilerFactory(RegistryFactory):
 
     @classmethod
     def get(cls):
+        """Retorna la instancia compartida."""
         if cls._inst is None:
             cls._inst = cls()
             cls._inst.register("python", lambda: PythonTranspiler())
@@ -471,6 +510,7 @@ class TranspilerFactory(RegistryFactory):
         return cls._inst
 
     def transpile(self, target: str, ast) -> str:
+        """Traduce a otro lenguaje (vista)."""
         return self.create(target).execute(ast)
 
 

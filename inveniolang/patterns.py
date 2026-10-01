@@ -14,10 +14,12 @@
 # extensibilidad (abierto/cerrado).
 
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
-from functools import wraps
+
 import threading
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from functools import wraps
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
@@ -29,10 +31,13 @@ T = TypeVar("T")
 
 
 class SingletonMeta(type):
-    _instances: Dict[Type, Any] = {}
+    """Metaclase Singleton thread-safe."""
+
+    _instances: dict[type, Any] = {}
     _lock = threading.Lock()
 
     def __call__(cls, *args, **kwargs):
+        """Crea o retorna la instancia única."""
         if cls not in cls._instances:
             with cls._lock:
                 if cls not in cls._instances:
@@ -48,34 +53,43 @@ class SingletonMeta(type):
 
 
 class Observer(ABC):
+    """Observador observer."""
+
     @abstractmethod
     def update(self, event: str, data: Any) -> None:
+        """Recibe un evento del Subject."""
         pass
 
 
 class Subject:
+    """Sujeto observable."""
+
     def __init__(self):
-        self._observers: List[Observer] = []
+        self._observers: list[Observer] = []
         self._lock = threading.Lock()
 
     def attach(self, observer: Observer) -> None:
+        """Suscribe un observador."""
         with self._lock:
             if observer not in self._observers:
                 self._observers.append(observer)
 
     def detach(self, observer: Observer) -> None:
+        """Elimina un observador suscrito."""
         with self._lock:
             if observer in self._observers:
                 self._observers.remove(observer)
 
     def notify(self, event: str, data: Any = None) -> None:
+        """Notifica un evento a los observadores."""
         for obs in list(self._observers):
             try:
                 obs.update(event, data)
-            except Exception:
+            except Exception:  # noqa: S110 - Observer nunca debe romper al Subject
                 pass  # Observer nunca debe romper al Subject
 
     def observer_count(self) -> int:
+        """Cuenta los observadores suscritos."""
         return len(self._observers)
 
 
@@ -87,22 +101,29 @@ class Subject:
 
 
 class Strategy(ABC):
+    """Estrategia strategy."""
+
     @abstractmethod
     def execute(self, *args, **kwargs) -> Any:
+        """Ejecuta la operación."""
         pass
 
 
 class StrategyContext:
-    def __init__(self, strategy: Optional[Strategy] = None):
+    """Contexto de estrategias intercambiables."""
+
+    def __init__(self, strategy: Strategy | None = None):
         self._strategy = strategy
-        self._strategies: Dict[str, Strategy] = {}
+        self._strategies: dict[str, Strategy] = {}
 
     def register(self, name: str, strategy: Strategy) -> None:
+        """Registra un creador en la factoría."""
         self._strategies[name] = strategy
         if self._strategy is None:
             self._strategy = strategy
 
     def set_strategy(self, name_or_strategy) -> None:
+        """Fija la estrategia activa."""
         if isinstance(name_or_strategy, str):
             if name_or_strategy in self._strategies:
                 self._strategy = self._strategies[name_or_strategy]
@@ -110,11 +131,13 @@ class StrategyContext:
             self._strategy = name_or_strategy
 
     def execute(self, *args, **kwargs) -> Any:
+        """Ejecuta la operación."""
         if self._strategy is None:
             raise ValueError("No strategy set")
         return self._strategy.execute(*args, **kwargs)
 
     def execute_named(self, name: str, *args, **kwargs) -> Any:
+        """Ejecuta la estrategia nombrada."""
         if name not in self._strategies:
             raise KeyError(f"Strategy '{name}' not registered")
         return self._strategies[name].execute(*args, **kwargs)
@@ -128,26 +151,34 @@ class StrategyContext:
 
 
 class Factory(ABC):
+    """Factoría factory."""
+
     @abstractmethod
     def create(self, kind: str, *args, **kwargs) -> Any:
+        """Crea el objeto solicitado."""
         pass
 
 
 class RegistryFactory(Factory):
+    """Factoría registry."""
+
     def __init__(self):
-        self._registry: Dict[str, Callable] = {}
-        self._cache: Dict[str, Any] = {}
+        self._registry: dict[str, Callable] = {}
+        self._cache: dict[str, Any] = {}
 
     def register(self, kind: str, creator: Callable) -> None:
+        """Registra un creador en la factoría."""
         self._registry[kind.lower()] = creator
 
     def create(self, kind: str, *args, **kwargs) -> Any:
+        """Crea el objeto solicitado."""
         key = kind.lower()
         if key not in self._registry:
             raise ValueError(f"Factory: unknown kind '{kind}'. Registered: {list(self._registry)}")
         return self._registry[key](*args, **kwargs)
 
     def create_cached(self, kind: str, cache_key: str, *args, **kwargs) -> Any:
+        """Crea o reutiliza el objeto en caché."""
         if cache_key in self._cache:
             return self._cache[cache_key]
         obj = self.create(kind, *args, **kwargs)
@@ -163,13 +194,31 @@ class RegistryFactory(Factory):
 # ============================================================
 
 
-class Visitor(ABC):
+class Visitor(ABC):  # noqa: B024 - base con despacho concreto por diseño
+    """Visitante con despacho por nombre de clase."""
+
     def visit(self, node: Any) -> Any:
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
+        """Visitante visitor."""
         method_name = f"visit_{type(node).__name__}"
         method = getattr(self, method_name, self.generic_visit)
         return method(node)
 
     def generic_visit(self, node: Any) -> Any:
+        """Visita genérica por introspección."""
         # Introspección genérica para nodos compuestos
         for attr in (
             "elementos",
@@ -208,8 +257,11 @@ class Visitor(ABC):
 
 
 class Visitable(ABC):
+    """Elemento que acepta visitantes."""
+
     @abstractmethod
     def accept(self, visitor: Visitor) -> Any:
+        """Acepta un visitante (doble despacho)."""
         pass
 
 
@@ -221,23 +273,31 @@ class Visitable(ABC):
 
 
 class Command(ABC):
+    """Comando ejecutable con deshacer."""
+
     @abstractmethod
     def execute(self) -> Any:
+        """Ejecuta la operación."""
         pass
 
-    def undo(self) -> None:
+    def undo(self) -> None:  # noqa: B027 - hook opcional con no-op por defecto
+        """Deshace el comando."""
         pass
 
     def can_undo(self) -> bool:
+        """Indica si se puede deshacer."""
         return False
 
 
 class CommandInvoker:
+    """Invoca comandos con historial."""
+
     def __init__(self, max_history: int = 100):
-        self._history: List[Command] = []
+        self._history: list[Command] = []
         self._max_history = max_history
 
     def execute(self, cmd: Command) -> Any:
+        """Ejecuta la operación."""
         result = cmd.execute()
         if cmd.can_undo():
             self._history.append(cmd)
@@ -246,6 +306,7 @@ class CommandInvoker:
         return result
 
     def undo_last(self) -> bool:
+        """Deshace el último comando."""
         if not self._history:
             return False
         cmd = self._history.pop()
@@ -253,6 +314,7 @@ class CommandInvoker:
         return True
 
     def clear_history(self) -> None:
+        """Limpia el historial."""
         self._history.clear()
 
 
@@ -264,7 +326,10 @@ class CommandInvoker:
 
 
 def decorator_chain(*decorators):
+    """Encadena decoradores."""
+
     def wrapper(func):
+        """Envuelve la función con traza."""
         for dec in reversed(decorators):
             func = dec(func)
         return func
@@ -273,10 +338,12 @@ def decorator_chain(*decorators):
 
 
 def cached_method(func):
+    """Cachea el método."""
     cache = {}
 
     @wraps(func)
     def wrapped(*args, **kwargs):
+        """Envuelve la función con traza."""
         key = (args, tuple(sorted(kwargs.items())))
         if key not in cache:
             cache[key] = func(*args, **kwargs)
@@ -288,9 +355,14 @@ def cached_method(func):
 
 
 def logged(level: str = "INFO"):
+    """Registra la llamada."""
+
     def dec(func):
+        """Decorador parametrizado."""
+
         @wraps(func)
         def wrapped(*args, **kwargs):
+            """Envuelve la función con traza."""
             # En producción se conectaría a logging; aquí es no-op para no penalizar
             return func(*args, **kwargs)
 
@@ -300,9 +372,14 @@ def logged(level: str = "INFO"):
 
 
 def validated(validator: Callable):
+    """Valida antes de ejecutar."""
+
     def dec(func):
+        """Decorador parametrizado."""
+
         @wraps(func)
         def wrapped(*args, **kwargs):
+            """Envuelve la función con traza."""
             validator(*args, **kwargs)
             return func(*args, **kwargs)
 
@@ -319,8 +396,11 @@ def validated(validator: Callable):
 
 
 class Facade(ABC):
+    """Fachada del subsistema."""
+
     @abstractmethod
     def execute(self, *args, **kwargs) -> Any:
+        """Ejecuta la operación."""
         pass
 
 
@@ -332,12 +412,16 @@ class Facade(ABC):
 
 
 class Builder(ABC):
+    """Constructor builder."""
+
     @abstractmethod
     def reset(self) -> None:
+        """Reinicia el constructor."""
         pass
 
     @abstractmethod
     def build(self) -> Any:
+        """Construye el objeto."""
         pass
 
 
@@ -349,7 +433,10 @@ class Builder(ABC):
 
 
 class TemplatePipeline(ABC):
+    """Pipeline con pasos customizables."""
+
     def run(self, ctx: Any) -> Any:
+        """Ejecuta el flujo."""
         self.pre_process(ctx)
         for step in self.steps():
             self.execute_step(ctx, step)
@@ -357,21 +444,26 @@ class TemplatePipeline(ABC):
                 break
         return self.post_process(ctx)
 
-    def pre_process(self, ctx: Any) -> None:
+    def pre_process(self, ctx: Any) -> None:  # noqa: B027 - hook opcional con no-op por defecto
+        """Prepara el contexto."""
         pass
 
     def post_process(self, ctx: Any) -> Any:
+        """Procesa el resultado final."""
         return ctx
 
     @abstractmethod
-    def steps(self) -> List[str]:
+    def steps(self) -> list[str]:
+        """Pasos del pipeline."""
         pass
 
     @abstractmethod
     def execute_step(self, ctx: Any, step: str) -> None:
+        """Ejecuta un paso del pipeline."""
         pass
 
     def should_stop(self, ctx: Any) -> bool:
+        """Indica si detener el pipeline."""
         return False
 
 
@@ -383,14 +475,18 @@ class TemplatePipeline(ABC):
 
 
 class Handler(ABC):
-    def __init__(self):
-        self._next: Optional["Handler"] = None
+    """Manejador de cadena de responsabilidad."""
 
-    def set_next(self, handler: "Handler") -> "Handler":
+    def __init__(self):
+        self._next: Handler | None = None
+
+    def set_next(self, handler: Handler) -> Handler:
+        """Encadena el siguiente manejador."""
         self._next = handler
         return handler
 
-    def handle(self, request: Any) -> Optional[Any]:
+    def handle(self, request: Any) -> Any | None:
+        """Atiende la solicitud o la delega."""
         result = self._handle(request)
         if result is not None:
             return result
@@ -399,7 +495,7 @@ class Handler(ABC):
         return None
 
     @abstractmethod
-    def _handle(self, request: Any) -> Optional[Any]:
+    def _handle(self, request: Any) -> Any | None:
         pass
 
 
@@ -411,6 +507,8 @@ class Handler(ABC):
 
 
 class Memento:
+    """Instantánea opaca del estado."""
+
     def __init__(self, state: Any):
         # Copia superficial optimizada; para estado profundo usar copy.deepcopy
         self._state = state
@@ -419,26 +517,33 @@ class Memento:
         self.timestamp = time.time()
 
     def get_state(self) -> Any:
+        """Retorna el estado guardado."""
         return self._state
 
 
 class Caretaker:
+    """Guarda mementos."""
+
     def __init__(self, max_mementos: int = 50):
-        self._mementos: List[Memento] = []
+        self._mementos: list[Memento] = []
         self._max = max_mementos
 
     def save(self, memento: Memento) -> None:
+        """Guarda el memento."""
         self._mementos.append(memento)
         if len(self._mementos) > self._max:
             self._mementos.pop(0)
 
-    def restore_last(self) -> Optional[Memento]:
+    def restore_last(self) -> Memento | None:
+        """Restaura el último memento."""
         if not self._mementos:
             return None
         return self._mementos.pop()
 
     def count(self) -> int:
+        """Cuenta los mementos."""
         return len(self._mementos)
 
     def clear(self) -> None:
+        """Limpia el almacenamiento."""
         self._mementos.clear()

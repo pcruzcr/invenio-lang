@@ -1,14 +1,15 @@
 # toolchain/formatter.py — v4 inveniofmt determinista
 # Usa patterns Builder + Strategy; idempotente fmt(fmt(x))==fmt(x)
 from __future__ import annotations
+
 import re
-from typing import List
 
 
 def format_code(src: str) -> str:
+    """Formatea el código."""
     # v10: formatter completo con tracking de strings/parens para for(;;) y switch
     # Preserva ; dentro de for(...;...;...) y strings "..."
-    out_chars: List[str] = []
+    out_chars: list[str] = []
     in_str = False
     str_char = ""
     paren_depth = 0
@@ -57,7 +58,7 @@ def format_code(src: str) -> str:
     # normaliza espacios pero preserva indent
     tmp = re.sub(r"[ \t]+", " ", tmp)
     tmp = re.sub(r" *\n *", "\n", tmp)
-    lines: List[str] = []
+    lines: list[str] = []
     indent = 0
     for raw in tmp.splitlines():
         line = raw.strip()
@@ -89,8 +90,15 @@ def format_code(src: str) -> str:
     # normaliza espacios alrededor ops binarios fuera de strings, preservando ++ -- << >> && ||
     out = re.sub(r"\s*([=+\-*/%<>!&|]+)\s*", r" \1 ", out)
     # re-join multi-char ops que fueron separados
-    out = out.replace(" + + ", "++").replace(" - - ", "--").replace(" < < ", "<<").replace(" > > ", ">>")
-    out = out.replace(" = =", "==").replace(" ! =", "!=").replace(" < =", "<=").replace(" > =", ">=")
+    out = (
+        out.replace(" + + ", "++")
+        .replace(" - - ", "--")
+        .replace(" < < ", "<<")
+        .replace(" > > ", ">>")
+    )
+    out = (
+        out.replace(" = =", "==").replace(" ! =", "!=").replace(" < =", "<=").replace(" > =", ">=")
+    )
     out = (
         out.replace(" & & ", "&&")
         .replace(" | | ", "||")
@@ -115,6 +123,7 @@ def format_code(src: str) -> str:
 
 
 def format_file(path: str) -> str:
+    """Formatea el archivo."""
     import pathlib
 
     p = pathlib.Path(path)

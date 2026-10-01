@@ -1,20 +1,28 @@
 # complexity.py — H3.7 Complexity analyzer + Tutor Socrático
 # Patrones: Visitor (recorre AST), Strategy (estimadores), Template Method
 from __future__ import annotations
-from typing import Dict, Any
+
+from typing import Any
+
 from .ast_nodes import ASTNode
 from .patterns import Strategy
 
 
 class ComplexityEstimator(Strategy):
-    def execute(self, node: ASTNode, depth: int = 0, *args, **kwargs) -> Dict[str, Any]:
+    """ComplexityEstimator como estrategia intercambiable."""
+
+    def execute(self, node: ASTNode, depth: int = 0, *args, **kwargs) -> dict[str, Any]:
+        """Ejecuta la operación."""
         raise NotImplementedError
 
 
 class LoopDepthEstimator(ComplexityEstimator):
-    def execute(self, node: ASTNode, depth: int = 0, *args, **kwargs) -> Dict[str, Any]:
+    """Estima la profundidad de bucles."""
+
+    def execute(self, node: ASTNode, depth: int = 0, *args, **kwargs) -> dict[str, Any]:
+        """Ejecuta la operación."""
         # Cuenta anidamiento máximo de for/while/foreach/do
-        from .ast_nodes import ForStmt, WhileStmt, ForEachStmt, DoWhileStmt
+        from .ast_nodes import DoWhileStmt, ForEachStmt, ForStmt, WhileStmt
 
         maxd = depth
         if isinstance(node, (ForStmt, WhileStmt, ForEachStmt, DoWhileStmt)):
@@ -47,12 +55,12 @@ class LoopDepthEstimator(ComplexityEstimator):
         return {"max_depth": maxd, "estimado": mapa.get(maxd, f"O(n^{maxd})"), "tipo": "loop_depth"}
 
 
-def analyze(codigo_o_ast) -> Dict[str, Any]:
+def analyze(codigo_o_ast) -> dict[str, Any]:
     """Facade: acepta string .inv o AST Program, retorna dict con estimado."""
     if isinstance(codigo_o_ast, str):
+        from .errors import ErrorManager
         from .lexer import Lexer
         from .parser import Parser
-        from .errors import ErrorManager
 
         em = ErrorManager()
         lx = Lexer(em)
@@ -71,14 +79,15 @@ def analyze(codigo_o_ast) -> Dict[str, Any]:
 
 # Tutor Socrático — no da solución, solo preguntas
 PREGUNTAS_SOCRATICAS = {
-    "IL-SEM-003": "¿Dónde declaraste '{nombre}'? ¿En qué ámbito está visible según symbol_table.py:116?",
+    "IL-SEM-003": "¿Dónde declaraste '{nombre}'? ¿En qué ámbito está visible?",
     "IL-EJE-050": "¿Qué tamaño tiene tu arreglo y qué índice usas? Revisa 0..n-1.",
     "LOOP": "¿Cuál es el invariante de tu ciclo? ¿Qué garantiza que termina?",
-    "COMPLEXITY": "Tu análisis es {estimado}. ¿Puedes reducir anidamiento con un mapa/hash (ver tabla_hash_arreglo.inv)?",
+    "COMPLEXITY": "Tu análisis es {estimado}. ¿Puedes reducir anidamiento con un mapa/hash?",
 }
 
 
-def tutor_hint(codigo_error: str, contexto: Dict[str, Any] = None) -> str:
+def tutor_hint(codigo_error: str, contexto: dict[str, Any] = None) -> str:
+    """Da una pista socrática para el error."""
     contexto = contexto or {}
     tmpl = PREGUNTAS_SOCRATICAS.get(codigo_error, PREGUNTAS_SOCRATICAS.get("LOOP"))
     try:
@@ -88,5 +97,6 @@ def tutor_hint(codigo_error: str, contexto: Dict[str, Any] = None) -> str:
 
 
 def tutor_for_complexity(ast) -> str:
+    """Explica la complejidad estimada."""
     r = analyze(ast)
     return tutor_hint("COMPLEXITY", r)

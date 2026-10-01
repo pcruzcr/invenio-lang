@@ -6,13 +6,16 @@
 # Factory (registro centralizado), Decorator (validación/seguridad), Template
 # Method (flujo parseo → validación → conversión)
 from __future__ import annotations
-from typing import List, Callable, Any, Optional
-from functools import wraps
-from .patterns import Strategy, RegistryFactory
+
 import math
 import os
 import random
 import re
+from collections.abc import Callable
+from functools import wraps
+from typing import Any
+
+from .patterns import RegistryFactory, Strategy
 
 # Rango del tipo int / entero: 32 bits con signo (§4.2.1)
 INT_MIN = -2147483648
@@ -50,7 +53,9 @@ def float_a_int(val):
         raise BuiltInError("IL-EJE-003", "float_to_int recibió un valor no finito")
     truncado = int(val)  # int() trunca hacia cero
     if truncado < INT_MIN or truncado > INT_MAX:
-        raise BuiltInError("IL-EJE-003", f"float_to_int: {val} excede el rango de int " f"[{INT_MIN}, {INT_MAX}]")
+        raise BuiltInError(
+            "IL-EJE-003", f"float_to_int: {val} excede el rango de int [{INT_MIN}, {INT_MAX}]"
+        )
     return truncado
 
 
@@ -88,7 +93,9 @@ def texto_a_int(val):
         raise BuiltInError("IL-EJE-004", f'string_to_int: "{val}" no es un entero decimal válido')
     n = int(s)
     if n < INT_MIN or n > INT_MAX:
-        raise BuiltInError("IL-EJE-004", f"string_to_int: {n} excede el rango de int [{INT_MIN}, {INT_MAX}]")
+        raise BuiltInError(
+            "IL-EJE-004", f"string_to_int: {n} excede el rango de int [{INT_MIN}, {INT_MAX}]"
+        )
     return n
 
 
@@ -137,32 +144,40 @@ def subcadena(s, inicio, fin):
     """Subcadena [inicio, fin) de s. IL-EST-010 si el rango es inválido."""
     if inicio < 0 or fin > len(s) or inicio > fin:
         raise BuiltInError(
-            "IL-EST-010", f"subcadena: rango [{inicio},{fin}) inválido para una cadena " f"de longitud {len(s)}"
+            "IL-EST-010",
+            f"subcadena: rango [{inicio},{fin}) inválido para una cadena de longitud {len(s)}",
         )
     return s[inicio:fin]
 
 
 def mayusculas(s):
+    """Convierte a mayúsculas."""
     return s.upper()
 
 
 def minusculas(s):
+    """Convierte a minúsculas."""
     return s.lower()
 
 
 def caracter_en(s, i):
-    """Carácter (como cadena de 1) en la posición i. IL-EST-011 si i está
-    fuera de rango."""
+    """Carácter (como cadena de 1) en la posición i. IL-EST-011 si i está.
+
+    fuera de rango.
+    """
     if i < 0 or i >= len(s):
         raise BuiltInError(
-            "IL-EST-011", f"caracter_en: índice {i} fuera de rango para una cadena de " f"longitud {len(s)}"
+            "IL-EST-011",
+            f"caracter_en: índice {i} fuera de rango para una cadena de longitud {len(s)}",
         )
     return s[i]
 
 
 def indice_de(s, sub):
-    """Posición de la primera aparición de sub en s, o -1 si no aparece
-    (mismo convenio que arreglos.inv::buscar)."""
+    """Posición de la primera aparición de sub en s, o -1 si no aparece.
+
+    (mismo convenio que arreglos.inv::buscar).
+    """
     return s.find(sub)
 
 
@@ -172,8 +187,10 @@ def recortar(s):
 
 
 def invertir_texto(s):
-    """Cadena invertida (Etapa 10) -- ejercicio clásico de Fundamentos
-    (verificar palíndromos) sin tener que armar el bucle manual cada vez."""
+    """Cadena invertida (Etapa 10) -- ejercicio clásico de Fundamentos.
+
+    (verificar palíndromos) sin tener que armar el bucle manual cada vez.
+    """
     return s[::-1]
 
 
@@ -185,18 +202,23 @@ def raiz(x):
 
 
 def potencia(base, exponente):
-    """base elevado a exponente. IL-EST-013 si el resultado no es un
-    número real (p. ej. raíz de un negativo con exponente fraccionario)."""
+    """Base elevado a exponente. IL-EST-013 si el resultado no es un.
+
+    número real (p. ej. raíz de un negativo con exponente fraccionario).
+    """
     try:
         resultado = base**exponente
     except (ValueError, OverflowError) as e:
-        raise BuiltInError("IL-EST-013", f"potencia: {e}")
+        raise BuiltInError("IL-EST-013", f"potencia: {e}") from e
     if isinstance(resultado, complex):
-        raise BuiltInError("IL-EST-013", f"potencia: {base} ** {exponente} no produce un número real")
+        raise BuiltInError(
+            "IL-EST-013", f"potencia: {base} ** {exponente} no produce un número real"
+        )
     return float(resultado)
 
 
 def absoluto(x):
+    """Calcula el valor absoluto."""
     return abs(x)
 
 
@@ -211,13 +233,16 @@ def techo(x):
 
 
 def azar(minimo_, maximo_):
-    """Entero aleatorio uniforme en [minimo_, maximo_]. IL-EST-014 si el
-    rango es inválido."""
+    """Entero aleatorio uniforme en [minimo_, maximo_]. IL-EST-014 si el.
+
+    rango es inválido.
+    """
     if minimo_ > maximo_:
         raise BuiltInError(
-            "IL-EST-014", f"azar: el mínimo ({minimo_}) no puede ser mayor que el " f"máximo ({maximo_})"
+            "IL-EST-014",
+            f"azar: el mínimo ({minimo_}) no puede ser mayor que el máximo ({maximo_})",
         )
-    return random.randint(minimo_, maximo_)
+    return random.randint(minimo_, maximo_)  # noqa: S311 - azar didáctico, no criptografía
 
 
 # ============================================================
@@ -253,7 +278,9 @@ def _validar_ruta(ruta: str):
     # Normalizar separadores
     ruta_n = ruta.replace("\\", "/")
     if ruta_n.startswith("/") or (len(ruta_n) >= 2 and ruta_n[1] == ":"):
-        raise BuiltInError("IL-EST-015", f'ruta absoluta no permitida: "{ruta}" (use ruta relativa)')
+        raise BuiltInError(
+            "IL-EST-015", f'ruta absoluta no permitida: "{ruta}" (use ruta relativa)'
+        )
     partes = ruta_n.split("/")
     if ".." in partes:
         raise BuiltInError("IL-EST-015", f'traversal no permitido ("..") en ruta: "{ruta}"')
@@ -265,7 +292,8 @@ def _validar_ruta(ruta: str):
     if ext.lower() not in _RUTAS_PERMITIDAS_EXT:
         raise BuiltInError(
             "IL-EST-015",
-            f'extensión "{ext}" no permitida en "{ruta}" (permitidas: {", ".join(sorted(_RUTAS_PERMITIDAS_EXT))})',
+            f'extensión "{ext}" no permitida en '
+            f'"{ruta}" (permitidas: {", ".join(sorted(_RUTAS_PERMITIDAS_EXT))})',
         )
     # Longitud
     if len(ruta) > 260:
@@ -282,7 +310,9 @@ def _validar_contenido(contenido: str, limite=_MAX_CONTENIDO_ESCRITURA):
 
 def existe_archivo(ruta):
     """True si `ruta` existe y es un archivo regular (no directorio).
-    Nunca falla -- una ruta inexistente es simplemente False, no un error."""
+
+    Nunca falla -- una ruta inexistente es simplemente False, no un error.
+    """
     try:
         ruta_v = _validar_ruta(ruta)
     except BuiltInError:
@@ -291,8 +321,10 @@ def existe_archivo(ruta):
 
 
 def leer_archivo(ruta):
-    """Contenido completo de `ruta` como texto. IL-EST-015 si no existe, no
-    se puede leer (permisos) o no es UTF-8 válido. Máx 2 MiB."""
+    """Contenido completo de `ruta` como texto. IL-EST-015 si no existe, no.
+
+    se puede leer (permisos) o no es UTF-8 válido. Máx 2 MiB.
+    """
     ruta_v = _validar_ruta(ruta)
     try:
         # Comprobar tamaño antes de leer completo
@@ -300,25 +332,31 @@ def leer_archivo(ruta):
             tam = os.path.getsize(ruta_v)
             if tam > _MAX_ARCHIVO_BYTES:
                 raise BuiltInError(
-                    "IL-EST-015", f'leer_archivo: "{ruta}" excede límite de {_MAX_ARCHIVO_BYTES} bytes ({tam})'
+                    "IL-EST-015",
+                    f'leer_archivo: "{ruta}" excede límite de {_MAX_ARCHIVO_BYTES} bytes ({tam})',
                 )
         except OSError:
             pass  # si no se puede stat, dejar que open falle con su mensaje
-        with open(ruta_v, "r", encoding="utf-8") as f:
+        with open(ruta_v, encoding="utf-8") as f:
             data = f.read(_MAX_ARCHIVO_BYTES + 1)
             if len(data.encode("utf-8")) > _MAX_ARCHIVO_BYTES:
-                raise BuiltInError("IL-EST-015", f'leer_archivo: "{ruta}" excede límite de {_MAX_ARCHIVO_BYTES} bytes')
+                raise BuiltInError(
+                    "IL-EST-015",
+                    f'leer_archivo: "{ruta}" excede límite de {_MAX_ARCHIVO_BYTES} bytes',
+                )
             return data
     except BuiltInError:
         raise
     except (OSError, UnicodeDecodeError) as e:
-        raise BuiltInError("IL-EST-015", f'leer_archivo: no se pudo leer "{ruta}": {e}')
+        raise BuiltInError("IL-EST-015", f'leer_archivo: no se pudo leer "{ruta}": {e}') from e
 
 
 def escribir_archivo(ruta, contenido):
-    """Escribe `contenido` en `ruta`, reemplazando el archivo si ya existe
+    """Escribe `contenido` en `ruta`, reemplazando el archivo si ya existe.
+
     (o creándolo). Retorna verdadero si tuvo éxito; IL-EST-016 si no se
-    pudo escribir (ruta inválida, permisos, disco lleno, ...). Máx 2 MiB."""
+    pudo escribir (ruta inválida, permisos, disco lleno, ...). Máx 2 MiB.
+    """
     ruta_v = _validar_ruta(ruta)
     _validar_contenido(contenido)
     try:
@@ -326,12 +364,16 @@ def escribir_archivo(ruta, contenido):
             f.write(contenido)
         return True
     except OSError as e:
-        raise BuiltInError("IL-EST-016", f'escribir_archivo: no se pudo escribir "{ruta}": {e}')
+        raise BuiltInError(
+            "IL-EST-016", f'escribir_archivo: no se pudo escribir "{ruta}": {e}'
+        ) from e
 
 
 def agregar_archivo(ruta, contenido):
     """Agrega `contenido` al final de `ruta` (la crea si no existe).
-    Retorna verdadero si tuvo éxito; IL-EST-017 si no se pudo escribir. Máx 2 MiB por agregado."""
+
+    Retorna verdadero si tuvo éxito; IL-EST-017 si no se pudo escribir. Máx 2 MiB por agregado.
+    """
     ruta_v = _validar_ruta(ruta)
     _validar_contenido(contenido)
     # Comprobar tamaño resultante
@@ -340,7 +382,9 @@ def agregar_archivo(ruta, contenido):
             tam_actual = os.path.getsize(ruta_v)
             if tam_actual + len(contenido.encode("utf-8")) > _MAX_ARCHIVO_BYTES:
                 raise BuiltInError(
-                    "IL-EST-017", f"agregar_archivo: tamaño resultante excede límite de {_MAX_ARCHIVO_BYTES} bytes"
+                    "IL-EST-017",
+                    f"agregar_archivo: tamaño resultante excede límite de "
+                    f"{_MAX_ARCHIVO_BYTES} bytes",
                 )
     except BuiltInError:
         raise
@@ -351,7 +395,9 @@ def agregar_archivo(ruta, contenido):
             f.write(contenido)
         return True
     except OSError as e:
-        raise BuiltInError("IL-EST-017", f'agregar_archivo: no se pudo escribir "{ruta}": {e}')
+        raise BuiltInError(
+            "IL-EST-017", f'agregar_archivo: no se pudo escribir "{ruta}": {e}'
+        ) from e
 
 
 # Tabla de funciones integradas: nombre -> (funcion, tipo_retorno, [tipos_parametros])
@@ -491,46 +537,59 @@ class ConversionStrategy(Strategy):
     """Strategy base para conversiones de tipo."""
 
     def execute(self, valor: Any, *args, **kwargs) -> Any:
+        """Ejecuta la operación."""
         raise NotImplementedError
 
 
 class IntAFloatStrategy(ConversionStrategy):
+    """Estrategia int a float."""
+
     def execute(self, valor: int, *args, **kwargs) -> float:
+        """Ejecuta la operación."""
         return float(valor)
 
 
 class FloatAIntStrategy(ConversionStrategy):
+    """Estrategia float a int."""
+
     def execute(self, valor: float, *args, **kwargs) -> int:
+        """Ejecuta la operación."""
         return float_a_int(valor)
 
 
 class BuiltInFactory(RegistryFactory):
     """Factory para built-ins — centraliza creación y validación."""
 
-    _instance: Optional["BuiltInFactory"] = None
+    _instance: BuiltInFactory | None = None
 
     @classmethod
-    def get_instance(cls) -> "BuiltInFactory":
+    def get_instance(cls) -> BuiltInFactory:
+        """Retorna la instancia compartida."""
         if cls._instance is None:
             cls._instance = cls()
             cls._instance._init_defaults()
         return cls._instance
 
     def _init_defaults(self) -> None:
-        for nombre, (func, ret, params) in FUNCIONES_BUILT_IN.items():
+        for nombre, (func, _ret, _params) in FUNCIONES_BUILT_IN.items():
             self.register(nombre, lambda f=func: f)
 
 
 # Decorator para validación de built-ins (cross-cutting)
 def validar_argumentos_built_in(func: Callable) -> Callable:
+    """Valida argumentos built in."""
+
     @wraps(func)
-    def wrapper(nombre: str, argumentos: List[Any]) -> Any:
+    def wrapper(nombre: str, argumentos: list[Any]) -> Any:
+        """Envuelve la función con traza."""
         info = FUNCIONES_BUILT_IN.get(nombre)
         if info:
             _, _, tipos_esperados = info
             if len(argumentos) != len(tipos_esperados):
                 raise BuiltInError(
-                    "IL-SEM-052", f"Built-in {nombre} espera {len(tipos_esperados)} args, recibió {len(argumentos)}"
+                    "IL-SEM-052",
+                    f"Built-in {nombre} espera {len(tipos_esperados)} args, recibió "
+                    f"{len(argumentos)}",
                 )
         return func(nombre, argumentos)
 

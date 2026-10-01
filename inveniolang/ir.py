@@ -8,8 +8,8 @@
 # optimización intercambiables), Builder (construcción TAC), Visitor (recorrido
 # AST → TAC), Decorator (instrumentación), Template Method (pipeline TAC)
 from __future__ import annotations
-from typing import List, Tuple, Optional
-from .patterns import RegistryFactory, Strategy
+
+from . import builtins
 
 #
 # ADITIVO Y AISLADO A PROPÓSITO: interpreter.py sigue siendo el motor de
@@ -27,25 +27,63 @@ from .patterns import RegistryFactory, Strategy
 # genéricos de semantic.py (`_expandir_genericos`) corre ANTES de llegar
 # aquí, así que una clase genérica especializada también cae en este mismo
 # rechazo -- no hace falta un caso especial para genéricos.
-
-from .ast_nodes import *
-from . import builtins
+from .ast_nodes import (
+    ArrayAccess,
+    ArrayDecl,
+    ArrayLValue,
+    AssignStmt,
+    BinaryOp,
+    BreakStmt,
+    CallStmt,
+    ConstDecl,
+    ContinueStmt,
+    DoWhileStmt,
+    ForEachStmt,
+    ForInitAsig,
+    ForInitIncDec,
+    ForInitVar,
+    ForStmt,
+    FunctionCall,
+    Identifier,
+    IfStmt,
+    IncDecStmt,
+    Literal,
+    MatrixAccess,
+    MatrixDecl,
+    MatrixLValue,
+    MemberAccess,
+    PrintStmt,
+    ReadStmt,
+    ReturnStmt,
+    SwitchStmt,
+    TernaryExpr,
+    TryStmt,
+    UnaryOp,
+    VarDecl,
+    VarLValue,
+    WhileStmt,
+)
+from .patterns import RegistryFactory, Strategy
 
 _BINOPS = {"+", "-", "*", "/", "%", "==", "!=", "<", ">", "<=", ">="}
 _VALORES_POR_DEFECTO = {"int": 0, "float": 0.0, "string": "", "bool": False}
 
 
 class NoSoportadoIR(Exception):
-    """El programa usa una construcción fuera del subconjunto que cubre el
-    generador de código intermedio (POO o matrices)."""
+    """El programa usa una construcción fuera del subconjunto que cubre el.
+
+    generador de código intermedio (POO o matrices).
+    """
 
 
 class ErrorEjecucionTAC(Exception):
-    """Error de ejecución detectado por MaquinaTAC, con `codigo`/`mensaje`
+    """Error de ejecución detectado por MaquinaTAC, con `codigo`/`mensaje`.
+
     al estilo del catálogo IL-EJE-* (ver interpreter.py::RuntimeError_).
     No replica el catálogo completo -- solo división/módulo por cero e
     índice de arreglo fuera de rango -- pero es real: es lo que un
-    try/catch (Etapa 6) ejecutado con --run-ir efectivamente captura."""
+    try/catch (Etapa 6) ejecutado con --run-ir efectivamente captura.
+    """
 
     def __init__(self, codigo, mensaje):
         self.codigo = codigo
@@ -119,22 +157,25 @@ class Instr:
 class InstrFactory(RegistryFactory):
     """Factory para instrucciones TAC — centraliza creación y permite pooling."""
 
-    _default: Optional["InstrFactory"] = None
+    _default: InstrFactory | None = None
 
     @classmethod
-    def get_default(cls) -> "InstrFactory":
+    def get_default(cls) -> InstrFactory:
+        """Retorna la instancia compartida."""
         if cls._default is None:
             cls._default = cls()
         return cls._default
 
-    def create_instr(self, op: str, arg1=None, arg2=None, arg3=None, resultado=None) -> "Instr":
+    def create_instr(self, op: str, arg1=None, arg2=None, arg3=None, resultado=None) -> Instr:
+        """Crea una instrucción TAC."""
         return Instr(op, arg1, arg2, arg3, resultado)
 
 
 class OptimizationStrategy(Strategy):
     """Strategy base para pasadas de optimización TAC."""
 
-    def execute(self, instrucciones: List["Instr"], *args, **kwargs) -> Tuple[List["Instr"], int]:
+    def execute(self, instrucciones: list[Instr], *args, **kwargs) -> tuple[list[Instr], int]:
+        """Ejecuta la operación."""
         raise NotImplementedError
 
 
@@ -144,10 +185,12 @@ class OptimizationStrategy(Strategy):
 
 
 class GeneradorIR:
-    """Recorre el AST (ya validado por semantic.py/type_checker.py) y
+    """Recorre el AST (ya validado por semantic.py/type_checker.py) y.
+
     genera TAC. Reutiliza el mismo patrón de recorrido de control de flujo
     ya resuelto en flowchart.py para if/while/for/break/continue/return,
-    aquí emitiendo saltos con etiquetas en vez de geometría 2D."""
+    aquí emitiendo saltos con etiquetas en vez de geometría 2D.
+    """
 
     def __init__(self):
         self._temp_n = 0
@@ -180,16 +223,20 @@ class GeneradorIR:
     # ---- puntos de entrada ----
 
     def generar_globales(self, ast):
-        """TAC de las declaraciones globales (antes y después de main),
-        para ejecutarse una sola vez antes de invocar 'main' (§5.2.3)."""
+        """Genera TAC de declaraciones globales.
+
+        para ejecutarse una sola vez antes de invocar 'main' (§5.2.3).
+        """
         self._reiniciar()
         for d in list(ast.declaraciones_globales) + list(ast.declaraciones_posteriores):
             self._gen_declaracion_global(d)
         return self.instrucciones
 
     def generar_subrutina(self, parametros, bloque):
-        """TAC de UNA función/procedimiento. Retorna (nombres_parametros,
-        instrucciones)."""
+        """TAC de UNA función/procedimiento.
+
+        Retorna (nombres_parametros, instrucciones).
+        """
         self._reiniciar()
         for p in parametros:
             self._tipos[p.nombre] = p.tipo
@@ -320,10 +367,12 @@ class GeneradorIR:
                     self._emit("array_set", nodo.nombre, idx, val)
 
     def _gen_promover_float(self, val):
-        """Replica interpreter.py::_promover_si_float: si el valor es un int
+        """Promueve int a float en TAC.
+
         en tiempo de ejecución, lo convierte a float (es una decisión que
         solo puede tomarse en tiempo de ejecución, así que se emite como
-        instrucción, no se decide aquí)."""
+        instrucción, no se decide aquí).
+        """
         t = self._nuevo_temp()
         self._emit("a_float", val, resultado=t)
         return t
@@ -385,7 +434,9 @@ class GeneradorIR:
             self._emit("+", t_mul, col, resultado=t_idx)
             self._emit("array_set", lvalue.nombre, t_idx, valor)
         else:
-            raise NoSoportadoIR(f'lvalue "{type(lvalue).__name__}" fuera del subconjunto estructurado')
+            raise NoSoportadoIR(
+                f'lvalue "{type(lvalue).__name__}" fuera del subconjunto estructurado'
+            )
 
     def _gen_if(self, nodo):
         cond = self._gen_expr(nodo.condicion)
@@ -417,14 +468,16 @@ class GeneradorIR:
         self._emit("label", etq_fin)
 
     def _gen_foreach(self, nodo):
-        """TAC de para_cada/foreach (Etapa 12.1): solo soportado sobre un
+        """TAC de para_cada/foreach (Etapa 12.1): solo soportado sobre un.
+
         arreglo LOCAL de tamaño estático conocido (`self._tams`, poblado
         por `_gen_array_decl`) -- ir.py ya no soporta arreglos de
         parámetro en ningún otro punto (no hay 'PARAM_ARREGLO' en todo
         este módulo), así que esto no reduce el alcance ya existente, solo
         lo hereda. Se traduce a un bucle indexado explícito con
         `array_get`, equivalente a como un estudiante lo escribiría a
-        mano con un `for` clásico."""
+        mano con un `for` clásico.
+        """
         tam = self._tams.get(nodo.arreglo.nombre) if isinstance(nodo.arreglo, Identifier) else None
         if tam is None:
             raise NoSoportadoIR(
@@ -474,9 +527,11 @@ class GeneradorIR:
         self._emit("label", etq_fin)
 
     def _gen_do_while(self, nodo):
-        """do/hacer ... while/mientras (Etapa 6): el cuerpo corre al menos
+        """do/hacer ... while/mientras (Etapa 6): el cuerpo corre al menos.
+
         una vez; `continue` salta a re-evaluar la condición (no directo al
-        inicio del cuerpo)."""
+        inicio del cuerpo).
+        """
         etq_inicio = self._nueva_etiqueta()
         etq_continuar = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
@@ -492,18 +547,20 @@ class GeneradorIR:
         self._emit("label", etq_fin)
 
     def _gen_switch(self, nodo):
-        """switch/segun (Etapa 6): cadena de comparaciones (no una tabla de
+        """switch/segun (Etapa 6): cadena de comparaciones (no una tabla de.
+
         saltos O(1) -- suficiente para el tamaño típico de un switch
         didáctico) que salta al primer case coincidente; los cuerpos de los
         case se emiten en secuencia SIN goto entre ellos, así que caen al
         siguiente por sí solos (fallthrough, semántica C) salvo que haya un
-        `break`."""
+        `break`.
+        """
         valor = self._gen_expr(nodo.expr)
         etq_fin = self._nueva_etiqueta()
         etq_casos = [self._nueva_etiqueta() for _ in nodo.casos]
         etq_default = self._nueva_etiqueta() if nodo.bloque_default is not None else etq_fin
 
-        for etq, caso in zip(etq_casos, nodo.casos):
+        for etq, caso in zip(etq_casos, nodo.casos, strict=True):
             t_const = self._nuevo_temp()
             self._emit("const", caso.valor.valor, resultado=t_const)
             t_neq = self._nuevo_temp()
@@ -514,7 +571,7 @@ class GeneradorIR:
         self._emit("goto", etq_default)
 
         self._ctx_ciclo.append(("switch", etq_fin, self._profundidad_try))
-        for etq, caso in zip(etq_casos, nodo.casos):
+        for etq, caso in zip(etq_casos, nodo.casos, strict=True):
             self._emit("label", etq)
             for e in caso.bloque.elementos:
                 self._gen_stmt(e)
@@ -526,14 +583,16 @@ class GeneradorIR:
         self._emit("label", etq_fin)
 
     def _gen_try(self, nodo):
-        """try/intentar ... catch/capturar genérico (Etapa 6): `try_begin`
+        """try/intentar ... catch/capturar genérico (Etapa 6): `try_begin`.
+
         registra en MaquinaTAC un manejador activo (etiqueta + nombre de la
         variable de catch) que se desactiva con `try_end` al salir
         normalmente, o se consume al capturar un error -- ver
         MaquinaTAC._ejecutar_lista. El acceso a `nombre.codigo`/
         `nombre.mensaje` dentro del catch se resuelve en `_gen_expr`
         (MemberAccess) leyendo directamente las variables sintéticas que el
-        manejador deja escritas."""
+        manejador deja escritas.
+        """
         etq_catch = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
         self._emit("try_begin", etq_catch, nodo.nombre_catch)
@@ -549,9 +608,11 @@ class GeneradorIR:
         self._emit("label", etq_fin)
 
     def _emit_pops_manejadores(self, profundidad_objetivo):
-        """Antes de un break/continue que salta fuera de uno o más try
+        """Antes de un break/continue que salta fuera de uno o más try.
+
         activos, cierra esos manejadores (si no, quedarían "colgados" y
-        podrían capturar por error algo que ocurra después del ciclo)."""
+        podrían capturar por error algo que ocurra después del ciclo).
+        """
         for _ in range(self._profundidad_try - profundidad_objetivo):
             self._emit("pop_manejador")
 
@@ -618,8 +679,10 @@ class GeneradorIR:
     # ---- expresiones ----
 
     def _gen_expr(self, nodo):
-        """Genera TAC para una expresión y retorna el NOMBRE (variable o
-        temporal) que contiene su valor."""
+        """Genera TAC para una expresión y retorna el NOMBRE (variable o.
+
+        temporal) que contiene su valor.
+        """
         if isinstance(nodo, Literal):
             t = self._nuevo_temp()
             self._emit("const", nodo.valor, resultado=t)
@@ -692,9 +755,11 @@ class GeneradorIR:
         )
 
     def _gen_ternario(self, nodo):
-        """cond ? si_verdadero : si_falso (Etapa 6) -- solo se genera código
+        """Cond ? si_verdadero : si_falso (Etapa 6) -- solo se genera código.
+
         para la rama elegida en tiempo de ejecución (igual criterio que
-        &&/||: nunca se evalúa la rama descartada)."""
+        &&/||: nunca se evalúa la rama descartada).
+        """
         t = self._nuevo_temp()
         etq_falso = self._nueva_etiqueta()
         etq_fin = self._nueva_etiqueta()
@@ -754,9 +819,11 @@ class GeneradorIR:
 
 
 def generar_programa(ast):
-    """Genera el IR de todo el programa. Retorna (subrutinas, ir_globales)
+    """Genera el IR de todo el programa. Retorna (subrutinas, ir_globales).
+
     donde `subrutinas` es dict nombre -> (nombres_parametros, instrucciones)
-    e incluye 'main'. Lanza NoSoportadoIR si el programa usa clases/POO."""
+    e incluye 'main'. Lanza NoSoportadoIR si el programa usa clases/POO.
+    """
     if ast.clases:
         raise NoSoportadoIR(
             "El generador de código intermedio no cubre clases/POO en este "
@@ -784,9 +851,11 @@ def formatear(instrucciones):
 
 
 def _calcular_binop(op, a, b):
-    """Misma aritmética que interpreter.py (división/módulo truncados hacia
+    """Misma aritmética que interpreter.py (división/módulo truncados hacia.
+
     cero, §4.2.2) para que el plegado de constantes y MaquinaTAC calculen
-    exactamente lo mismo que el intérprete de árbol."""
+    exactamente lo mismo que el intérprete de árbol.
+    """
     if op == "==":
         return a == b
     if op == "!=":
@@ -827,12 +896,14 @@ def _es_real(v):
 
 
 def plegado_constantes(instrucciones):
-    """Plegado + propagación de constantes en una sola pasada hacia
+    """Plegado + propagación de constantes en una sola pasada hacia.
+
     adelante: sigue qué nombres tienen actualmente un valor constante
     conocido, propaga ese valor a los usos, y si TODOS los operandos de una
     operación quedan constantes, la reduce a una única instrucción `const`.
     Una `label` es un punto de unión de varios caminos posibles, así que
-    invalida todo lo que se sabía hasta ahí (conservador pero correcto)."""
+    invalida todo lo que se sabía hasta ahí (conservador pero correcto).
+    """
     constantes = {}
     nuevas = []
     cambios = 0
@@ -871,7 +942,9 @@ def plegado_constantes(instrucciones):
                     valor = None
                 if valor is not None:
                     # Evitar plegar 0.0/0.0 -> nan o inf; preservar semántica de error
-                    if isinstance(valor, float) and (valor != valor or valor in (float("inf"), float("-inf"))):
+                    if isinstance(valor, float) and (
+                        valor != valor or valor in (float("inf"), float("-inf"))
+                    ):
                         pass
                     else:
                         nuevas.append(Instr("const", valor, resultado=ins.resultado))
@@ -898,9 +971,11 @@ def plegado_constantes(instrucciones):
 
 
 def eliminar_codigo_muerto(instrucciones):
-    """Quita instrucciones PURAS (sin efectos de lado: const/copy/aritmética/
+    """Quita instrucciones PURAS (sin efectos de lado: const/copy/aritmética/.
+
     array_get) cuyo resultado -- siempre un temporal, nunca una variable del
-    programa -- no se usa en ningún lado."""
+    programa -- no se usa en ningún lado.
+    """
     usados = set()
     for ins in instrucciones:
         for campo in (ins.arg1, ins.arg2, ins.arg3):
@@ -910,7 +985,11 @@ def eliminar_codigo_muerto(instrucciones):
     nuevas = []
     cambios = 0
     for ins in instrucciones:
-        es_temp_no_usado = ins.resultado is not None and ins.resultado.startswith("t") and ins.resultado not in usados
+        es_temp_no_usado = (
+            ins.resultado is not None
+            and ins.resultado.startswith("t")
+            and ins.resultado not in usados
+        )
         if ins.op in puras and es_temp_no_usado:
             cambios += 1
             continue
@@ -919,8 +998,10 @@ def eliminar_codigo_muerto(instrucciones):
 
 
 def eliminar_inalcanzable(instrucciones):
-    """Quita instrucciones entre un salto incondicional (`goto`/`return`) y
-    la siguiente etiqueta -- nunca se llega a ejecutarlas."""
+    """Quita instrucciones entre un salto incondicional (`goto`/`return`) y.
+
+    la siguiente etiqueta -- nunca se llega a ejecutarlas.
+    """
     nuevas = []
     cambios = 0
     muerto = False
@@ -939,8 +1020,10 @@ def eliminar_inalcanzable(instrucciones):
 
 
 def peephole_saltos_redundantes(instrucciones):
-    """Quita un `goto` cuyo destino es la etiqueta inmediatamente
-    siguiente -- saltar ahí es lo mismo que no saltar."""
+    """Quita un `goto` cuyo destino es la etiqueta inmediatamente.
+
+    siguiente -- saltar ahí es lo mismo que no saltar.
+    """
     nuevas = []
     cambios = 0
     n = len(instrucciones)
@@ -958,7 +1041,8 @@ def peephole_saltos_redundantes(instrucciones):
 
 
 def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
-    """Elimina la recursión de cola DIRECTA (Etapa 12.8): cuando la última
+    """Elimina la recursión de cola DIRECTA (Etapa 12.8): cuando la última.
+
     instrucción antes de un `return t` es exactamente una llamada a la
     PROPIA subrutina (`t = call nombre_funcion, N`, con los `N` `param`
     que la preceden inmediatamente y sin ninguna instrucción entre el
@@ -978,7 +1062,8 @@ def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
     demás pasadas de `_PASADAS`, pero esta SÍ necesita el nombre de la
     propia subrutina, así que se aplica por separado en
     `optimizar_programa`, no dentro de `_PASADAS` (que son todas
-    agnósticas del nombre)."""
+    agnósticas del nombre).
+    """
     etq_inicio = f"__tco_{nombre_funcion}_inicio"
     nuevas = [Instr("label", etq_inicio)]
     cambios = 0
@@ -1016,7 +1101,7 @@ def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
                 # aritmética, ...) quedan en `nuevas` sin su 'param' -- se
                 # vuelven temporales muertos que `eliminar_codigo_muerto`
                 # (la pasada siguiente en optimizar_programa) limpia solo.
-                for nombre_param, val in zip(nombres_parametros, valores):
+                for nombre_param, val in zip(nombres_parametros, valores, strict=True):
                     nuevas.append(Instr("copy", val, resultado=nombre_param))
                 nuevas.append(Instr("goto", etq_inicio))
                 cambios += 1
@@ -1038,12 +1123,14 @@ _PASADAS = (
 
 
 def optimizar(instrucciones, rondas=3):
-    """Corre las pasadas de optimización repetidamente hasta que ninguna
+    """Corre las pasadas de optimización repetidamente hasta que ninguna.
+
     cambie nada (una pasada puede desbloquear a otra: por ejemplo, plegar
     una condición constante puede dejar una rama entera inalcanzable) o se
     agoten las `rondas`. Retorna (instrucciones_optimizadas, resumen) donde
     `resumen` es una lista de (nombre_pasada, instrucciones_afectadas) solo
-    con las pasadas que sí cambiaron algo, en orden."""
+    con las pasadas que sí cambiaron algo, en orden.
+    """
     resumen = []
     actuales = list(instrucciones)
     for _ in range(rondas):
@@ -1059,7 +1146,8 @@ def optimizar(instrucciones, rondas=3):
 
 
 def optimizar_programa(subrutinas):
-    """Aplica `optimizar` a cada subrutina de un programa generado por
+    """Aplica `optimizar` a cada subrutina de un programa generado por.
+
     `generar_programa`. Retorna (subrutinas_optimizadas, resumen_por_nombre).
 
     La eliminación de recursión de cola (Etapa 12.8) se aplica ANTES que
@@ -1067,7 +1155,8 @@ def optimizar_programa(subrutinas):
     subrutina (una de las claves de `subrutinas`), así que no encaja en
     `_PASADAS` (agnósticas del nombre); una vez reescrita a `copy`+`goto`,
     el resto de pasadas (peephole en particular) puede seguir limpiándola
-    igual que a cualquier otro código."""
+    igual que a cualquier otro código.
+    """
     optimizadas = {}
     resumenes = {}
     for nombre, (parametros, instrucciones) in subrutinas.items():
@@ -1089,14 +1178,16 @@ def optimizar_programa(subrutinas):
 
 
 class MaquinaTAC:
-    """Intérprete lineal de TAC. Modelo de ámbitos deliberadamente simple
+    """Intérprete lineal de TAC. Modelo de ámbitos deliberadamente simple.
+
     (dos niveles: variables globales compartidas + un marco plano por
     llamada activa, sin bloques anidados -- el propio TAC ya aplanó los
     bloques del AST) -- suficiente para el subconjunto estructurado que
     cubre el generador; no reproduce el catálogo completo de errores de
     ejecución de interpreter.py (IL-EJE-*), solo el resultado computacional,
     ya que su propósito es demostrar/verificar el back end, no reemplazar
-    el intérprete de producción."""
+    el intérprete de producción.
+    """
 
     def __init__(self, subrutinas, ir_globales):
         self.subrutinas = subrutinas  # nombre -> (parametros, instrucciones)
@@ -1106,6 +1197,7 @@ class MaquinaTAC:
         self.entrada = []
 
     def ejecutar(self, entrada=None):
+        """Ejecuta el programa."""
         self.entrada = list(entrada) if entrada else []
         self.salida = []
         self.globales = {}
@@ -1118,12 +1210,12 @@ class MaquinaTAC:
             try:
                 return builtins.ejecutar_built_in(nombre, argumentos)
             except builtins.BuiltInError as e:
-                raise ErrorEjecucionTAC(e.codigo, e.mensaje)
+                raise ErrorEjecucionTAC(e.codigo, e.mensaje) from e
         entrada_sub = self.subrutinas.get(nombre)
         if entrada_sub is None:
             raise RuntimeError(f'subrutina no encontrada en el IR: "{nombre}"')
         parametros, instrucciones = entrada_sub
-        marco = dict(zip(parametros, argumentos))
+        marco = dict(zip(parametros, argumentos, strict=True))
         tipo, valor = self._ejecutar_lista(instrucciones, marco)
         return valor if tipo == "return" else None
 
@@ -1168,17 +1260,19 @@ class MaquinaTAC:
                     b = self._leer_var(ins.arg2, marco)
                     try:
                         resultado = _calcular_binop(op, a, b)
-                    except ZeroDivisionError:
+                    except ZeroDivisionError as e:
                         # Misma distinción que interpreter.py::_error_division_cero:
                         # '/' entre reales -> IL-EJE-002, entre enteros -> IL-EJE-006;
                         # '%' (siempre entero) es IL-EJE-006 en cualquier caso.
                         if op == "/" and (_es_real(a) or _es_real(b)):
                             raise ErrorEjecucionTAC(
-                                "IL-EJE-002", "Operación de punto flotante inválida: división entre 0.0"
-                            )
+                                "IL-EJE-002",
+                                "Operación de punto flotante inválida: división entre 0.0",
+                            ) from e
                         raise ErrorEjecucionTAC(
-                            "IL-EJE-006", "División por cero" if op == "/" else "División por cero en módulo"
-                        )
+                            "IL-EJE-006",
+                            "División por cero" if op == "/" else "División por cero en módulo",
+                        ) from e
                     self._escribir_var(ins.resultado, resultado, marco)
                 elif op == "neg":
                     self._escribir_var(ins.resultado, -self._leer_var(ins.arg1, marco), marco)
@@ -1328,8 +1422,10 @@ class MaquinaTAC:
 
 
 class NoSoportadoObjetivo(Exception):
-    """El programa usa una construcción fuera del subconjunto que cubre el
-    generador de código objetivo (arreglos, try/catch, lectura de entrada)."""
+    """El programa usa una construcción fuera del subconjunto que cubre el.
+
+    generador de código objetivo (arreglos, try/catch, lectura de entrada).
+    """
 
 
 class InstrObjetivo:
@@ -1445,9 +1541,11 @@ def _usos_defs_instr(ins):
 
 
 def calcular_liveness(instrucciones):
-    """Punto fijo hacia atrás sobre IN[i]/OUT[i] (ver comentario de
+    """Punto fijo hacia atrás sobre IN[i]/OUT[i] (ver comentario de.
+
     sección). Retorna (vivo_in, vivo_out): dos listas de sets[str], una
-    entrada por instrucción, en el mismo orden que `instrucciones`."""
+    entrada por instrucción, en el mismo orden que `instrucciones`.
+    """
     n = len(instrucciones)
     etiquetas = {ins.arg1: i for i, ins in enumerate(instrucciones) if ins.op == "label"}
 
@@ -1490,9 +1588,11 @@ def calcular_liveness(instrucciones):
 
 
 def calcular_rangos_vida(instrucciones, vivo_in, vivo_out):
-    """Rango de vida [inicio, fin] de cada variable/temporal -- el índice
+    """Rango de vida [inicio, fin] de cada variable/temporal -- el índice.
+
     de instrucción MÍNIMO y MÁXIMO en el que aparece viva (en `vivo_in` o
-    `vivo_out`). Retorna dict nombre -> (inicio, fin)."""
+    `vivo_out`). Retorna dict nombre -> (inicio, fin).
+    """
     rangos = {}
     for i in range(len(instrucciones)):
         for v in vivo_in[i] | vivo_out[i]:
@@ -1507,13 +1607,15 @@ def calcular_rangos_vida(instrucciones, vivo_in, vivo_out):
 
 
 def asignar_registros(rangos, k=4):
-    """Asignador linear-scan simple (Poletto & Sarkar) sobre los rangos de
+    """Asignador linear-scan simple (Poletto & Sarkar) sobre los rangos de.
+
     vida de `calcular_rangos_vida`, con `k` registros disponibles.
     Retorna (asignacion, spills):
       asignacion: dict nombre -> 'R0'..'R{k-1}' (registro) o el propio
                   `nombre` (sin cambios -- spill, se queda en memoria).
       spills: list[str] de los nombres que terminaron en memoria, en el
-              orden en que se decidió el spill (para reportar/verificar)."""
+              orden en que se decidió el spill (para reportar/verificar).
+    """
     orden = sorted(rangos.items(), key=lambda par: par[1][0])
     libres = [f"R{i}" for i in range(k)]
     activos = []  # lista de (fin, nombre, registro)
@@ -1557,7 +1659,8 @@ def asignar_registros(rangos, k=4):
 
 
 def generar_objetivo_subrutina(instrucciones, asignacion=None):
-    """Traduce el TAC de UNA subrutina (ya generada por `GeneradorIR`,
+    """Traduce el TAC de una subrutina a objetivo.
+
     optimizada o no) a una lista de `InstrObjetivo`.
 
     `asignacion` (Etapa 12.12, opcional): dict nombre_TAC -> nombre final
@@ -1569,7 +1672,8 @@ def generar_objetivo_subrutina(instrucciones, asignacion=None):
     mismo ISA, solo cambia qué cadena identifica cada valor (el ISA de
     juguete no distingue "registro" de "memoria" en tiempo de ejecución,
     solo en el NOMBRE -- ver MaquinaObjetivo, que usa un dict plano para
-    ambos por igual)."""
+    ambos por igual).
+    """
 
     def _ren(nombre):
         if asignacion is None or nombre is None:
@@ -1634,12 +1738,15 @@ def generar_objetivo_subrutina(instrucciones, asignacion=None):
             salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
             salida.append(InstrObjetivo("PRINT"))
         else:
-            raise NoSoportadoObjetivo(f'"{op}" no está soportado por el generador de código objetivo.')
+            raise NoSoportadoObjetivo(
+                f'"{op}" no está soportado por el generador de código objetivo.'
+            )
     return salida
 
 
 def generar_objetivo_programa(subrutinas, k_registros=None):
-    """Traduce TODAS las subrutinas de un programa (dict nombre ->
+    """Traduce TODAS las subrutinas de un programa (dict nombre ->.
+
     (parametros, instrucciones), la misma forma que retorna
     `generar_programa`/`optimizar_programa`) a código objetivo.
 
@@ -1652,7 +1759,8 @@ def generar_objetivo_programa(subrutinas, k_registros=None):
     Retorna (dict nombre -> (parametros, list[InstrObjetivo]),
     dict nombre -> (asignacion, spills) -- vacío si `k_registros` es
     None), mismo contrato de "resumen aparte" que ya usa
-    `optimizar_programa`."""
+    `optimizar_programa`.
+    """
     resultado = {}
     resumen = {}
     for nombre, (params, instrs) in subrutinas.items():
@@ -1673,12 +1781,14 @@ def formatear_objetivo(instrucciones):
 
 
 class MaquinaObjetivo:
-    """Ejecuta el ISA de juguete generado por `generar_objetivo_programa`
+    """Ejecuta el ISA de juguete generado por `generar_objetivo_programa`.
+
     -- una máquina de pila de operandos por marco de llamada, con las
     mismas dos capas de ámbito que `MaquinaTAC` (globales compartidas +
     un marco plano por llamada activa). Sirve para comprobar que la
     traducción TAC -> objetivo preserva el resultado: mismo criterio de
-    paridad que ya se usa entre `--run-ir` y el intérprete de árbol."""
+    paridad que ya se usa entre `--run-ir` y el intérprete de árbol.
+    """
 
     def __init__(self, subrutinas, ir_globales):
         self.subrutinas = subrutinas  # nombre -> (parametros, instrucciones_objetivo)
@@ -1688,6 +1798,7 @@ class MaquinaObjetivo:
         self.entrada = []
 
     def ejecutar(self, entrada=None):
+        """Ejecuta el programa."""
         self.entrada = list(entrada) if entrada else []
         self.salida = []
         self.globales = {}
@@ -1704,12 +1815,12 @@ class MaquinaObjetivo:
             try:
                 return builtins.ejecutar_built_in(nombre, argumentos)
             except builtins.BuiltInError as e:
-                raise ErrorEjecucionTAC(e.codigo, e.mensaje)
+                raise ErrorEjecucionTAC(e.codigo, e.mensaje) from e
         entrada_sub = self.subrutinas.get(nombre)
         if entrada_sub is None:
             raise RuntimeError(f'subrutina no encontrada en el código objetivo: "{nombre}"')
         parametros, instrucciones = entrada_sub
-        marco = dict(zip(parametros, argumentos))
+        marco = dict(zip(parametros, argumentos, strict=True))
         return self._ejecutar_lista(instrucciones, marco)
 
     def _contenedor(self, nombre, marco):
@@ -1739,20 +1850,33 @@ class MaquinaObjetivo:
                 pila.append(self._leer_var(ins.arg1, marco))
             elif op == "STORE":
                 self._escribir_var(ins.arg1, pila.pop(), marco)
-            elif op in ("ADD", "SUB", "MUL", "DIV", "MOD", "CMPEQ", "CMPNE", "CMPLT", "CMPLE", "CMPGT", "CMPGE"):
+            elif op in (
+                "ADD",
+                "SUB",
+                "MUL",
+                "DIV",
+                "MOD",
+                "CMPEQ",
+                "CMPNE",
+                "CMPLT",
+                "CMPLE",
+                "CMPGT",
+                "CMPGE",
+            ):
                 b = pila.pop()
                 a = pila.pop()
                 simbolo = {v: k for k, v in _MAPA_BINOP_OBJETIVO.items()}[op]
                 try:
                     pila.append(_calcular_binop(simbolo, a, b))
-                except ZeroDivisionError:
+                except ZeroDivisionError as e:
                     if simbolo == "/" and (_es_real(a) or _es_real(b)):
                         raise ErrorEjecucionTAC(
                             "IL-EJE-002", "Operación de punto flotante inválida: división entre 0.0"
-                        )
+                        ) from e
                     raise ErrorEjecucionTAC(
-                        "IL-EJE-006", "División por cero" if simbolo == "/" else "División por cero en módulo"
-                    )
+                        "IL-EJE-006",
+                        "División por cero" if simbolo == "/" else "División por cero en módulo",
+                    ) from e
             elif op == "NEG":
                 pila.append(-pila.pop())
             elif op == "NOT":

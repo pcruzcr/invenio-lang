@@ -78,9 +78,11 @@
 
 
 class ErrorSintacticoLL1(Exception):
-    """Error de análisis sintáctico del parser LL(1) de esta demo --
+    """Error sintáctico del parser LL(1) demo.
+
     catálogo propio, deliberadamente separado de IL-SIN-*/IL-LEX-* (este
-    módulo no forma parte del compilador real)."""
+    módulo no forma parte del compilador real).
+    """
 
 
 class NodoLL1:
@@ -132,10 +134,12 @@ def _tokenizar(texto):
 
 
 class ParserLL1:
-    """Descenso recursivo predictivo sobre la gramática de la cabecera de
+    """Descenso recursivo predictivo sobre la gramática de la cabecera de.
+
     este módulo -- un método por no-terminal, cada uno decide qué
     alternativa tomar mirando ÚNICAMENTE el token de lookahead actual
-    (LL(1): 1 solo token de anticipación, nunca retrocede)."""
+    (LL(1): 1 solo token de anticipación, nunca retrocede).
+    """
 
     def __init__(self, texto):
         self.tokens = _tokenizar(texto)
@@ -147,25 +151,30 @@ class ParserLL1:
     def _consumir(self, tipo_esperado):
         tipo, valor = self._actual()
         if tipo != tipo_esperado:
-            raise ErrorSintacticoLL1(f"se esperaba {tipo_esperado!r}, se encontró {tipo!r} ({valor!r})")
+            raise ErrorSintacticoLL1(
+                f"se esperaba {tipo_esperado!r}, se encontró {tipo!r} ({valor!r})"
+            )
         self.pos += 1
         return valor
 
     def parsear(self):
+        """Parsea el código fuente."""
         nodo = self._E()
         self._consumir("$")
         return nodo
 
     def _E(self):
-        """E -> T E'"""
+        """E -> T E'."""
         izq = self._T()
         return self._Eprima(izq)
 
     def _Eprima(self, izq):
-        """E' -> + T E' | - T E' | ε -- el lookahead decide: FIRST(+T E')
+        """E' -> + T E' | - T E' | ε -- el lookahead decide: FIRST(+T E').
+
         = {+}, FIRST(- T E') = {-}, y si el token actual no es ninguno de
         los dos, se toma la alternativa ε (que aquí es "no hay más que
-        hacer, retornar `izq` tal cual")."""
+        hacer, retornar `izq` tal cual").
+        """
         tipo, _ = self._actual()
         if tipo == "+":
             self._consumir("+")
@@ -178,12 +187,12 @@ class ParserLL1:
         return izq  # ε: tipo actual no esta en FIRST(E') -- debe estar en FOLLOW(E')
 
     def _T(self):
-        """T -> F T'"""
+        """T -> F T'."""
         izq = self._F()
         return self._Tprima(izq)
 
     def _Tprima(self, izq):
-        """T' -> * F T' | / F T' | ε"""
+        """T' -> * F T' | / F T' | ε."""
         tipo, _ = self._actual()
         if tipo == "*":
             self._consumir("*")
@@ -218,10 +227,12 @@ def parsear(texto):
 
 
 def evaluar(nodo):
-    """Evalúa un NodoLL1 a un número (int/float) -- misma aritmética
+    """Evalúa un NodoLL1 a un número (int/float) -- misma aritmética.
+
     entera truncada hacia cero de interpreter.py/ir.py para que / y %
     coincidan exactamente si el resultado se compara contra el pipeline
-    real (ver `_evaluar_lalr` en las pruebas de este módulo)."""
+    real (ver `_evaluar_lalr` en las pruebas de este módulo).
+    """
     if nodo.op == "num":
         return nodo.valor
     if nodo.op == "neg":
@@ -268,7 +279,8 @@ _EXPRESIONES_PRUEBA = [
 
 
 def _evaluar_lalr(expresion):
-    """Evalúa `expresion` con el pipeline REAL de InvenioLang (lexer.py/
+    """Evalúa `expresion` con el pipeline REAL de InvenioLang (lexer.py/.
+
     parser.py/semantic.py/type_checker.py/interpreter.py) envuelta en un
     programa mínimo que la imprime -- la gramática LALR(1) completa de
     expr_suma/expr_mult/expr_unario, no la sub-gramática de este módulo.
@@ -276,13 +288,14 @@ def _evaluar_lalr(expresion):
     en vez de tocar el AST/estado interno del intérprete -- más simple y
     más fiel a "lo que el compilador realmente hace". Importa el
     pipeline real localmente (no al nivel del módulo) -- ver el
-    comentario de cabecera del archivo."""
+    comentario de cabecera del archivo.
+    """
+    from .errors import ErrorManager
+    from .interpreter import Interpreter
     from .lexer import Lexer
     from .parser import Parser
-    from .interpreter import Interpreter
     from .semantic import SemanticAnalyzer
     from .type_checker import TypeChecker
-    from .errors import ErrorManager
 
     codigo = f"void main() {{ imprimir({expresion}); }}\n"
     em = ErrorManager()
@@ -296,7 +309,9 @@ def _evaluar_lalr(expresion):
         if not em.hay_errores():
             TypeChecker(em, tabla).verificar(ast)
     if em.hay_errores():
-        raise RuntimeError(f"pipeline LALR(1) rechazó {expresion!r}: " f"{[e.codigo for e in em.errores]}")
+        raise RuntimeError(
+            f"pipeline LALR(1) rechazó {expresion!r}: {[e.codigo for e in em.errores]}"
+        )
     interp = Interpreter(em, tabla)
     salida = interp.interpretar(ast, [], usar_stdin=False)
     texto = "".join(salida)
@@ -305,7 +320,9 @@ def _evaluar_lalr(expresion):
 
 def verificar_contra_lalr(verboso=False):
     """Corre `_EXPRESIONES_PRUEBA` por ambos analizadores y compara.
-    Retorna (ok, detalles) -- ok=True si TODAS coinciden."""
+
+    Retorna (ok, detalles) -- ok=True si TODAS coinciden.
+    """
     detalles = []
     ok = True
     for expr in _EXPRESIONES_PRUEBA:
@@ -327,7 +344,7 @@ def verificar_contra_lalr(verboso=False):
             ok = False
         if verboso:
             print(
-                f'  {"ok  " if coincide else "FALLA"} {expr!r} '
+                f"  {'ok  ' if coincide else 'FALLA'} {expr!r} "
                 f"-> LL(1)={resultado_ll1!r} LALR(1)={resultado_lalr!r}"
             )
     return ok, detalles

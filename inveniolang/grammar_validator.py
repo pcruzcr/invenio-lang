@@ -2,20 +2,23 @@
 # Calcula FIRST/FOLLOW y valida LALR(1) sin conflictos no documentados.
 # Reusa parser.py:11 PLY y docs/gramatica.ebnf
 from __future__ import annotations
-import re, pathlib
-from typing import Dict, Set, List
+
+import pathlib
+import re
 
 
 def load_ebnf(path: str = "docs/gramatica.ebnf") -> str:
+    """Carga la gramática EBNF."""
     p = pathlib.Path(path)
     if not p.exists():
         p = pathlib.Path(__file__).parent.parent / path
     return p.read_text(encoding="utf-8")
 
 
-def first_sets(ebnf: str) -> Dict[str, Set[str]]:
+def first_sets(ebnf: str) -> dict[str, set[str]]:
+    """Calcula los conjuntos FIRST."""
     # FIRST real: itera hasta punto fijo, maneja ε (vacío) y no terminales
-    prods: Dict[str, List[List[str]]] = {}
+    prods: dict[str, list[list[str]]] = {}
     for line in ebnf.splitlines():
         s = line.strip()
         if not s or s.startswith("(*") or "::=" not in s:
@@ -27,7 +30,7 @@ def first_sets(ebnf: str) -> Dict[str, Set[str]]:
             toks = re.findall(r'"[^"]+"|\w+|\[|\]|\{|\}|\(|\)', alt)
             # simplifica: símbolos entre comillas son terminales
             prods.setdefault(lhs, []).append(toks)
-    first: Dict[str, Set[str]] = {nt: set() for nt in prods}
+    first: dict[str, set[str]] = {nt: set() for nt in prods}
     changed = True
     iters = 0
     while changed and iters < 50:
@@ -62,8 +65,9 @@ def first_sets(ebnf: str) -> Dict[str, Set[str]]:
     return first
 
 
-def follow_sets(ebnf: str, first: Dict[str, Set[str]]) -> Dict[str, Set[str]]:
-    follow: Dict[str, Set[str]] = {nt: set() for nt in first}
+def follow_sets(ebnf: str, first: dict[str, set[str]]) -> dict[str, set[str]]:
+    """Calcula los conjuntos FOLLOW."""
+    follow: dict[str, set[str]] = {nt: set() for nt in first}
     # Símbolo inicial = programa
     if "programa" in follow:
         follow["programa"].add("$")
@@ -76,7 +80,8 @@ def follow_sets(ebnf: str, first: Dict[str, Set[str]]) -> Dict[str, Set[str]]:
     return follow
 
 
-def validate_lalr1() -> Dict[str, any]:
+def validate_lalr1() -> dict[str, any]:
+    """Valida la tabla LALR(1)."""
     # Introspecciona parsetab.py tabla LALR sin construir Parser (rápido, no bloquea)
     has_conflict = False
     conflict_detail = ""
@@ -90,13 +95,14 @@ def validate_lalr1() -> Dict[str, any]:
             out_c = out.read_text(encoding="utf-8", errors="ignore")
             if "conflict" in out_c.lower():
                 has_conflict = True
-                conflict_detail = [l for l in out_c.splitlines() if "conflict" in l.lower()][:2]
+                conflict_detail = [ln for ln in out_c.splitlines() if "conflict" in ln.lower()][:2]
     except Exception as e:
         conflict_detail = str(e)
     ebnf = load_ebnf()
     first = first_sets(ebnf)
     follow = follow_sets(ebnf, first)
-    # Conflictos shift/reduce para DEL_PUNTO_COMA/DEL_PAREN_C son esperados (dangling else, documentado)
+    # Conflictos shift/reduce para DEL_PUNTO_COMA/DEL_PAREN_C son esperados (dangling else,
+    # documentado)
     expected_conflicts = {"DEL_PUNTO_COMA", "DEL_PAREN_C"}
     unexpected = has_conflict and not all(
         any(exp in d for exp in expected_conflicts)
@@ -106,7 +112,7 @@ def validate_lalr1() -> Dict[str, any]:
         "ebnf_lines": len(ebnf.splitlines()),
         "first_sets": len(first),
         "follow_sets": len(follow),
-        "first_sample": {k: sorted(list(v))[:3] for k, v in list(first.items())[:3]},
+        "first_sample": {k: sorted(v)[:3] for k, v in list(first.items())[:3]},
         "lalr_conflict": has_conflict,
         "conflict_detail": conflict_detail,
         "unexpected_conflict": unexpected,

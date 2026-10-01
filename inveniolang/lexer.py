@@ -4,8 +4,9 @@
 # Patrones: Factory (tokens), Strategy (manejo de errores léxicos), Singleton
 # (instancia lexer PLY cacheada), Decorator (validación)
 from __future__ import annotations
+
 import ply.lex as lex
-from typing import Optional
+
 from .errors import ErrorManager
 from .patterns import RegistryFactory, Strategy
 
@@ -14,6 +15,7 @@ class LexicalErrorStrategy(Strategy):
     """Strategy para clasificación de errores léxicos — intercambiable."""
 
     def execute(self, char: str, *args, **kwargs) -> str:
+        """Clasifica un carácter inválido en su código IL-LEX."""
         if char in "\"'":
             return "IL-LEX-010/012/013"
         if char.isdigit():
@@ -321,12 +323,18 @@ class Lexer:
                 # Cierre correcto; no hay error salvo que hubiera salto dentro
                 if hay_salto:
                     self.error_manager.error_lexico(
-                        "IL-LEX-010", "Salto de linea dentro de literal de texto", t.lexer.lineno, col
+                        "IL-LEX-010",
+                        "Salto de linea dentro de literal de texto",
+                        t.lexer.lineno,
+                        col,
                     )
                 return (i + 1) - pos
             if ch in "\"'":  # comilla distinta a la de apertura -> IL-LEX-013
                 self.error_manager.error_lexico(
-                    "IL-LEX-013", f"Delimitadores de string no coinciden: " f"{opening}...{ch}", t.lexer.lineno, col
+                    "IL-LEX-013",
+                    f"Delimitadores de string no coinciden: " f"{opening}...{ch}",
+                    t.lexer.lineno,
+                    col,
                 )
                 return (i + 1) - pos
             if ch == chr(92) and i + 1 < len(data):
@@ -337,7 +345,9 @@ class Lexer:
             i += 1
 
         # Fin de linea/archivo sin encontrar cierre -> IL-LEX-012
-        self.error_manager.error_lexico("IL-LEX-012", "Literal de texto no terminado", t.lexer.lineno, col)
+        self.error_manager.error_lexico(
+            "IL-LEX-012", "Literal de texto no terminado", t.lexer.lineno, col
+        )
         return len(data) - pos
 
     def _procesar_escapes(self, s, t):
@@ -361,7 +371,10 @@ class Lexer:
                     # IL-LEX-011: Secuencia de escape desconocida
                     col = self._calc_col(t.lexer, t.lexpos)
                     self.error_manager.error_lexico(
-                        "IL-LEX-011", f'Secuencia de escape desconocida: "\\{s[i+1]}"', t.lexer.lineno, col
+                        "IL-LEX-011",
+                        f'Secuencia de escape desconocida: "\\{s[i+1]}"',
+                        t.lexer.lineno,
+                        col,
                     )
                     resultado.append(s[i + 1])
                     i += 2
@@ -402,21 +415,30 @@ class Lexer:
             # IL-LEX-007: Subrayado en entero (ej: 1_000)
             if nxt == "_":
                 end = pos
-                while end < len(t.lexer.lexdata) and (t.lexer.lexdata[end].isalnum() or t.lexer.lexdata[end] == "_"):
+                while end < len(t.lexer.lexdata) and (
+                    t.lexer.lexdata[end].isalnum() or t.lexer.lexdata[end] == "_"
+                ):
                     end += 1
                 bad_lit = t.lexer.lexdata[t.lexpos : end]
                 self.error_manager.error_lexico(
-                    "IL-LEX-007", f'Subrayado no permitido en literal entero: "{bad_lit}"', t.lexer.lineno, col
+                    "IL-LEX-007",
+                    f'Subrayado no permitido en literal entero: "{bad_lit}"',
+                    t.lexer.lineno,
+                    col,
                 )
                 t.lexer.skip(len(bad_lit) - len(t.value))
                 return
             # IL-LEX-008: Base no soportada (ej: 0xFF, 0b101, 0o77)
             if nxt in "xXbBoO" and t.value == "0":
                 end = pos + 1
-                while end < len(t.lexer.lexdata) and (t.lexer.lexdata[end].isalnum() or t.lexer.lexdata[end] == "_"):
+                while end < len(t.lexer.lexdata) and (
+                    t.lexer.lexdata[end].isalnum() or t.lexer.lexdata[end] == "_"
+                ):
                     end += 1
                 bad_lit = t.lexer.lexdata[t.lexpos : end]
-                self.error_manager.error_lexico("IL-LEX-008", f'Base no soportada: "{bad_lit}"', t.lexer.lineno, col)
+                self.error_manager.error_lexico(
+                    "IL-LEX-008", f'Base no soportada: "{bad_lit}"', t.lexer.lineno, col
+                )
                 t.lexer.skip(len(bad_lit) - len(t.value))
                 return
             # IL-LEX-009: 5. (falta digito despues del punto)
@@ -439,18 +461,26 @@ class Lexer:
                     end += 1
                 bad_lit = t.lexer.lexdata[t.lexpos : end]
                 self.error_manager.error_lexico(
-                    "IL-LEX-009", f'Literal real mal formado (falta punto decimal): "{bad_lit}"', t.lexer.lineno, col
+                    "IL-LEX-009",
+                    f'Literal real mal formado (falta punto decimal): "{bad_lit}"',
+                    t.lexer.lineno,
+                    col,
                 )
                 t.lexer.skip(len(bad_lit) - len(t.value))
                 return
             # IL-LEX-004: Identificador inicia con digito
             if nxt.isalpha() or nxt == "_":
                 end = pos
-                while end < len(t.lexer.lexdata) and (t.lexer.lexdata[end].isalnum() or t.lexer.lexdata[end] == "_"):
+                while end < len(t.lexer.lexdata) and (
+                    t.lexer.lexdata[end].isalnum() or t.lexer.lexdata[end] == "_"
+                ):
                     end += 1
                 bad_id = t.lexer.lexdata[t.lexpos : end]
                 self.error_manager.error_lexico(
-                    "IL-LEX-004", f'Identificador inicia con dígito: "{bad_id}"', t.lexer.lineno, col
+                    "IL-LEX-004",
+                    f'Identificador inicia con dígito: "{bad_id}"',
+                    t.lexer.lineno,
+                    col,
                 )
                 t.lexer.skip(len(bad_id) - len(t.value))
                 return
@@ -488,7 +518,8 @@ class Lexer:
             # Apéndice A). Reservada para versiones futuras del lenguaje.
             self.error_manager.error_lexico(
                 "IL-LEX-006",
-                f'"{t.value}" es una palabra reservada del lenguaje y no puede ' f"usarse como identificador",
+                f'"{t.value}" es una palabra reservada del lenguaje y no puede '
+                f"usarse como identificador",
                 t.lexer.lineno,
                 self._calc_col(t.lexer, t.lexpos),
             )
@@ -510,7 +541,9 @@ class Lexer:
         r"/\*[\s\S]*"
         # IL-LEX-014: Comentario de bloque sin cerrar (llega a EOF)
         col = self._calc_col(t.lexer, t.lexpos)
-        self.error_manager.error_lexico("IL-LEX-014", "Comentario de bloque no terminado", t.lexer.lineno, col)
+        self.error_manager.error_lexico(
+            "IL-LEX-014", "Comentario de bloque no terminado", t.lexer.lineno, col
+        )
         t.lexer.lineno += t.value.count("\n")
 
     # ---- Manejo de errores léxicos ----
@@ -543,11 +576,16 @@ class Lexer:
             # contexto es realmente inválido, pero se reporta como
             # IL-LEX-005 para no confundir al estudiante con "carácter
             # inválido" cuando el carácter sí existe en el lenguaje.
-            self.error_manager.error_lexico("IL-LEX-002", f'Caracter inválido: "{char}"', t.lexer.lineno, col)
+            self.error_manager.error_lexico(
+                "IL-LEX-002", f'Caracter inválido: "{char}"', t.lexer.lineno, col
+            )
             t.lexer.skip(1)
         elif ord(char) < 32 and char not in "\n\r\t":
             self.error_manager.error_lexico(
-                "IL-LEX-003", f"Caracter de control inválido: 0x{ord(char):02X}", t.lexer.lineno, col
+                "IL-LEX-003",
+                f"Caracter de control inválido: 0x{ord(char):02X}",
+                t.lexer.lineno,
+                col,
             )
             t.lexer.skip(1)
         else:
@@ -598,10 +636,11 @@ class Lexer:
 class TokenFactory(RegistryFactory):
     """Factory para tokens — centraliza tipos y validación."""
 
-    _default: Optional["TokenFactory"] = None
+    _default: TokenFactory | None = None
 
     @classmethod
-    def get_default(cls) -> "TokenFactory":
+    def get_default(cls) -> TokenFactory:
+        """Retorna la factoría compartida (Singleton)."""
         if cls._default is None:
             cls._default = cls()
         return cls._default

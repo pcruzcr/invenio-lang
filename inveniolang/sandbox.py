@@ -1,13 +1,15 @@
 # sandbox.py — Sprint 2 gVisor/resource sandbox para aula (Windows + Unix)
 # Patrones: Strategy (sandbox strategy), Decorator (limite), Factory
 from __future__ import annotations
+
 import ctypes
+import os
 import subprocess
 import sys
-import os
-from typing import Dict, Any, List, Optional
-from .patterns import Strategy
+from typing import Any
+
 from .observability import get_logger
+from .patterns import Strategy
 
 try:
     import resource  # type: ignore[assignment]
@@ -74,15 +76,22 @@ def _windows_job_limits(job: int, mem_mb: int, procs: int = 64) -> bool:
     if _JobObjectExtendedLimitInformation is None:
         return False
     info = _JobObjectExtendedLimitInformation()
-    info.BasicLimitInformation.LimitFlags = _JOB_OBJECT_LIMIT_PROCESS_MEMORY | _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+    info.BasicLimitInformation.LimitFlags = (
+        _JOB_OBJECT_LIMIT_PROCESS_MEMORY | _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+    )
     info.ProcessMemoryLimit = mem_mb * 1024 * 1024
     return bool(
-        ctypes.windll.kernel32.SetInformationJobObject(job, 9, ctypes.byref(info), ctypes.sizeof(info))
+        ctypes.windll.kernel32.SetInformationJobObject(
+            job, 9, ctypes.byref(info), ctypes.sizeof(info)
+        )
     )  # 9 = JobObjectExtendedLimitInformation
 
 
 class SandboxStrategy(Strategy):
+    """Estrategia sandbox."""
+
     def execute(self, *args, **kwargs) -> Any:
+        """Ejecuta la operación."""
         raise NotImplementedError
 
 
@@ -98,13 +107,21 @@ class ResourceSandbox(SandboxStrategy):
     """
 
     def execute(
-        self, cmd: List[str], timeout: int = 5, mem_mb: int = 256, entrada: Optional[List[str]] = None, *args, **kwargs
-    ) -> Dict[str, Any]:
-        stdin_text: Optional[str] = None
+        self,
+        cmd: list[str],
+        timeout: int = 5,
+        mem_mb: int = 256,
+        entrada: list[str] | None = None,
+        *args,
+        **kwargs,
+    ) -> dict[str, Any]:
+        """Ejecuta la operación."""
+        stdin_text: str | None = None
         if entrada is not None:
             stdin_text = "\n".join(str(e) for e in entrada) + "\n"
 
         def preexec():
+            """Prepara límites del proceso hijo."""
             if not HAS_RESOURCE:
                 return
             try:
@@ -112,7 +129,7 @@ class ResourceSandbox(SandboxStrategy):
                 resource.setrlimit(resource.RLIMIT_AS, (mem_mb * 1024 * 1024, mem_mb * 1024 * 1024))
                 resource.setrlimit(resource.RLIMIT_NPROC, (64, 64))
                 resource.setrlimit(resource.RLIMIT_FSIZE, (2 * 1024 * 1024, 2 * 1024 * 1024))
-            except Exception:
+            except Exception:  # noqa: S110 - límites best-effort, sandbox sigue con timeout
                 pass
 
         use_job = os.name == "nt"
@@ -152,9 +169,15 @@ class ResourceSandbox(SandboxStrategy):
             out, err = proc.communicate(input=stdin_text, timeout=timeout + 1)
             ok = proc.returncode == 0
             _log.info(
-                "sandbox_ejecucion", extra={"returncode": proc.returncode, "ok": ok, "cmd": cmd[0] if cmd else ""}
+                "sandbox_ejecucion",
+                extra={"returncode": proc.returncode, "ok": ok, "cmd": cmd[0] if cmd else ""},
             )
-            return {"ok": ok, "stdout": (out or "")[:5000], "stderr": (err or "")[:2000], "returncode": proc.returncode}
+            return {
+                "ok": ok,
+                "stdout": (out or "")[:5000],
+                "stderr": (err or "")[:2000],
+                "returncode": proc.returncode,
+            }
         except subprocess.TimeoutExpired:
             proc.kill()
             out, err = proc.communicate()
@@ -162,7 +185,7 @@ class ResourceSandbox(SandboxStrategy):
             return {
                 "ok": False,
                 "stdout": (out or "")[:5000],
-                "stderr": "Timeout IL-EJE-030 (sandbox %ss)" % timeout,
+                "stderr": f"Timeout IL-EJE-030 (sandbox {timeout}s)",
                 "returncode": 124,
             }
         except Exception as e:
@@ -181,19 +204,25 @@ class WindowsSandbox(ResourceSandbox):
 class DockerSandbox(SandboxStrategy):
     """Docker/gVisor sandbox descriptor — genera comando docker run."""
 
-    def execute(self, *args, **kwargs) -> Dict[str, Any]:
+    def execute(self, *args, **kwargs) -> dict[str, Any]:
+        """Ejecuta la operación."""
         return {
-            "docker": "docker run --rm --read-only --tmpfs /tmp --memory=256m --cpus=0.5 --pids-limit=64 --network=none -v $(pwd):/app -w /app python:3.11-slim python -m inveniolang.cli",
+            "docker": "docker run --rm --read-only --tmpfs /tmp --memory=256m --cpus=0.5 "
+            "--pids-limit=64 --network=none -v $(pwd):/app -w /app python:3.11-slim "
+            "python -m inveniolang.cli",
             "gvisor": "docker run --runtime=runsc --rm ... (ver docker/README.md)",
             "note": "Usar docker/Dockerfile + compose network_mode none",
         }
 
 
 def run_sandboxed(
-    file: str, strategy: str = "resource", timeout: int = 5, entrada: Optional[List[str]] = None
-) -> Dict[str, Any]:
+    file: str, strategy: str = "resource", timeout: int = 5, entrada: list[str] | None = None
+) -> dict[str, Any]:
+    """Ejecuta aislado en sandbox."""
     m = {"resource": ResourceSandbox(), "docker": DockerSandbox()}
     strat = m.get(strategy, ResourceSandbox())
     if strategy == "docker":
         return strat.execute()
-    return strat.execute([sys.executable, "-m", "inveniolang.cli", file], timeout=timeout, entrada=entrada)
+    return strat.execute(
+        [sys.executable, "-m", "inveniolang.cli", file], timeout=timeout, entrada=entrada
+    )

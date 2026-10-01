@@ -5,13 +5,63 @@
 # Strategy (operaciones aritméticas intercambiables), Command (debug),
 # Memento (snapshot), Observer (eventos de ejecución), Template Method
 from __future__ import annotations
+
 import sys
 import time
-from typing import Any, Dict
-from .ast_nodes import *
-from .ast_nodes import ASTVisitor
-from .patterns import Strategy, StrategyContext, Caretaker, Subject
-from .builtins import BuiltInError, es_built_in, ejecutar_built_in
+from typing import Any
+
+from .ast_nodes import (
+    ArrayAccess,
+    ArrayDecl,
+    ArrayLValue,
+    AssignStmt,
+    ASTVisitor,
+    BinaryOp,
+    BreakStmt,
+    Callable,
+    CallStmt,
+    ConstDecl,
+    ContinueStmt,
+    DoWhileStmt,
+    ForEachStmt,
+    ForInitAsig,
+    ForInitIncDec,
+    ForInitVar,
+    ForStmt,
+    FunctionCall,
+    FunctionDecl,
+    Identifier,
+    IfStmt,
+    IncDecStmt,
+    LambdaExpr,
+    Literal,
+    MatchStmt,
+    MatrixAccess,
+    MatrixDecl,
+    MatrixLValue,
+    MemberAccess,
+    MemberLValue,
+    MethodCallExpr,
+    MethodCallStmt,
+    NewExpr,
+    NullExpr,
+    PrintStmt,
+    ProcedureDecl,
+    ReadStmt,
+    ReturnStmt,
+    SuperCallStmt,
+    SuperExpr,
+    SwitchStmt,
+    TernaryExpr,
+    ThisExpr,
+    TryStmt,
+    UnaryOp,
+    VarDecl,
+    VarLValue,
+    WhileStmt,
+)
+from .builtins import BuiltInError, ejecutar_built_in, es_built_in
+from .patterns import Caretaker, Strategy, StrategyContext, Subject
 
 # Orden superior sobre arreglos (Etapa 12.7) -- ver semantic.py::
 # _ORDEN_SUPERIOR para el diseño completo (monomórfico sobre entero,
@@ -78,7 +128,8 @@ class InstanciaObjeto:
 
 
 class _AccesoEstatico:
-    """Marcador de receptor 'NombreClase' (acceso estático, Etapa 7) -- NO
+    """Marcador de receptor 'NombreClase' (acceso estático, Etapa 7) -- NO.
+
     es una instancia. `_resolver_receptor` lo devuelve cuando el receptor
     de un acceso a miembro es el nombre de una clase (no una variable), y
     el resto del intérprete lo usa para enrutar lectura/escritura de
@@ -87,7 +138,8 @@ class _AccesoEstatico:
     de pila de llamadas, `_pila_instancias`) trate una llamada a método
     estático igual que una de instancia, sin ramas especiales -- un método
     estático simplemente no debe usar `this`/`super` (se bloquea en
-    semantic.py, IL-POO-025)."""
+    semantic.py, IL-POO-025).
+    """
 
     __slots__ = ("nombre_clase",)
 
@@ -96,11 +148,13 @@ class _AccesoEstatico:
 
     @property
     def clase(self):
+        """Nombre de la clase para despacho."""
         return self.nombre_clase
 
 
 class ValorFuncion:
-    """Valor función de primera clase (Etapa 12.6). Envuelve EXACTAMENTE
+    """Valor función de primera clase (Etapa 12.6). Envuelve EXACTAMENTE.
+
     una de dos cosas:
       - `lambda_nodo` + `marcos_capturados`: un lambda creado en tiempo de
         ejecución, con una referencia (no copia) a la pila de marcos
@@ -143,6 +197,7 @@ class ExecutionStrategy(Strategy):
     """Strategy para operaciones — permite intercambiar algoritmos (int vs float)."""
 
     def execute(self, a: Any, b: Any, *args, **kwargs) -> Any:
+        """Ejecuta la operación."""
         raise NotImplementedError
 
 
@@ -164,7 +219,7 @@ class Interpreter(ASTVisitor, Subject):
         self.tabla = tabla_simbolos
         self._strategy_ctx = StrategyContext()
         self._caretaker = Caretaker(max_mementos=30)
-        self._op_cache: Dict[str, Callable] = {}
+        self._op_cache: dict[str, Callable] = {}
         # Entorno de ejecución: pila de marcos (cada marco es un dict)
         self.pila_marcos = [{}]
         # Tipos de las variables conocidos en ejecución (por nombre).
@@ -420,12 +475,12 @@ class Interpreter(ASTVisitor, Subject):
             self._declarar_variable(nodo.nombre, valor)
         elif isinstance(nodo, ArrayDecl):
             # Hardening: límite de memoria en ejecución (coherente con semantic.py)
-            _MAX_EJEC_TAM = 100000
+            _max_ejec_tam = 100000
             if nodo.init_exprs:
-                if len(nodo.init_exprs) > _MAX_EJEC_TAM:
+                if len(nodo.init_exprs) > _max_ejec_tam:
                     raise RuntimeError_(
                         "IL-EJE-050",
-                        f'Arreglo "{nodo.nombre}" excede límite de {_MAX_EJEC_TAM} elementos',
+                        f'Arreglo "{nodo.nombre}" excede límite de {_max_ejec_tam} elementos',
                         nodo.linea,
                         nodo.columna,
                     )
@@ -433,16 +488,16 @@ class Interpreter(ASTVisitor, Subject):
                 self._declarar_variable(nodo.nombre, valores)
             else:
                 tam = self._resolver_dimension(nodo.tam)
-                if tam > _MAX_EJEC_TAM:
+                if tam > _max_ejec_tam:
                     raise RuntimeError_(
                         "IL-EJE-050",
-                        f'Arreglo "{nodo.nombre}" excede límite de {_MAX_EJEC_TAM} elementos',
+                        f'Arreglo "{nodo.nombre}" excede límite de {_max_ejec_tam} elementos',
                         nodo.linea,
                         nodo.columna,
                     )
                 self._declarar_variable(nodo.nombre, [None] * tam)
         elif isinstance(nodo, MatrixDecl):
-            _MAX_EJEC_DIM = 10000
+            _max_ejec_dim = 10000
             if nodo.init_filas:
                 matriz = []
                 for fila in nodo.init_filas:
@@ -451,7 +506,7 @@ class Interpreter(ASTVisitor, Subject):
             else:
                 filas = self._resolver_dimension(nodo.filas)
                 cols = self._resolver_dimension(nodo.cols)
-                if filas > _MAX_EJEC_DIM or cols > _MAX_EJEC_DIM or filas * cols > 200000:
+                if filas > _max_ejec_dim or cols > _max_ejec_dim or filas * cols > 200000:
                     raise RuntimeError_(
                         "IL-EJE-050",
                         f'Matriz "{nodo.nombre}" excede límites de memoria ({filas}x{cols})',
@@ -470,7 +525,9 @@ class Interpreter(ASTVisitor, Subject):
         try:
             return ejecutar_built_in(nombre, argumentos)
         except BuiltInError as e:
-            raise RuntimeError_(e.codigo, e.mensaje, getattr(nodo, "linea", 0), getattr(nodo, "columna", 0))
+            raise RuntimeError_(
+                e.codigo, e.mensaje, getattr(nodo, "linea", 0), getattr(nodo, "columna", 0)
+            ) from e
 
     def _ejecutar_subrutina(self, nombre, argumentos, nodo=None):
         """Ejecuta una función o procedimiento por nombre."""
@@ -514,7 +571,7 @@ class Interpreter(ASTVisitor, Subject):
 
         try:
             # Asignar parámetros
-            for param, arg in zip(nodo.parametros, argumentos):
+            for param, arg in zip(nodo.parametros, argumentos, strict=True):
                 self.tipos_variables[param.nombre] = param.tipo
                 self._declarar_variable(param.nombre, arg)
 
@@ -541,7 +598,7 @@ class Interpreter(ASTVisitor, Subject):
         self._pila_subrutinas.append(nodo.nombre)
 
         try:
-            for param, arg in zip(nodo.parametros, argumentos):
+            for param, arg in zip(nodo.parametros, argumentos, strict=True):
                 self.tipos_variables[param.nombre] = param.tipo
                 self._declarar_variable(param.nombre, arg)
 
@@ -557,19 +614,22 @@ class Interpreter(ASTVisitor, Subject):
             self._profundidad_llamadas -= 1
 
     def _resolver_valor_funcion_variable(self, nombre):
-        """Si `nombre` es una variable local que guarda un ValorFuncion
+        """Si `nombre` es una variable local que guarda un ValorFuncion.
+
         (Etapa 12.6), lo retorna; si no, None. Usado en los puntos de
         llamada (`_ejecutar_llamada`, `FunctionCall`) para decidir, con la
         MISMA sintaxis de llamada que una función/procedimiento normal
         (`llamada_funcion : IDENTIFICADOR '(' args ')'`), si se está
         invocando un closure guardado en variable en vez de una subrutina
         de nivel superior -- el punto de decisión es semántico (ver
-        checkpoint 12.5), no gramatical."""
+        checkpoint 12.5), no gramatical.
+        """
         valor = self._obtener_valor_variable(nombre)
         return valor if isinstance(valor, ValorFuncion) else None
 
     def _invocar_valor_funcion(self, vf, argumentos, nodo):
-        """Invoca un ValorFuncion (Etapa 12.6): delega en
+        """Invoca un ValorFuncion (Etapa 12.6): delega en.
+
         `_ejecutar_subrutina` si envuelve una función/procedimiento de
         nivel superior, o ejecuta el lambda con sus marcos capturados
         restaurados temporalmente en `self.pila_marcos` -- el mecanismo de
@@ -579,7 +639,8 @@ class Interpreter(ASTVisitor, Subject):
         variable capturada que cambia después de crear el closure (o que
         el propio closure reasigna) se sigue viendo actualizada la
         próxima vez que se invoca -- semántica estándar de clausura por
-        referencia, no por valor."""
+        referencia, no por valor.
+        """
         if vf.nombre_subrutina is not None:
             return self._ejecutar_subrutina(vf.nombre_subrutina, argumentos, nodo)
 
@@ -597,7 +658,7 @@ class Interpreter(ASTVisitor, Subject):
         self.pila_marcos = list(vf.marcos_capturados) + [{}]
         self._pila_subrutinas.append("<lambda>")
         try:
-            for param, arg in zip(nodo_lambda.parametros, argumentos):
+            for param, arg in zip(nodo_lambda.parametros, argumentos, strict=True):
                 self.tipos_variables[param.nombre] = param.tipo
                 self._declarar_variable(param.nombre, arg)
             try:
@@ -616,13 +677,15 @@ class Interpreter(ASTVisitor, Subject):
             self._profundidad_llamadas -= 1
 
     def _invocar_orden_superior(self, nombre, args_eval, nodo):
-        """reducir/mapear/filtrar (Etapa 12.7) -- ver semantic.py::
+        """Ejecuta mapear/filtrar/reducir.
+
         _ORDEN_SUPERIOR para el diseño completo. `salida` en mapear/
         filtrar es la MISMA lista de Python que ya representa el arreglo
         del llamador (los arreglos ya se pasan por referencia en todo el
         lenguaje) -- escribir `salida[i] = ...` aquí es exactamente lo
         mismo que ya hace cualquier función que recibe un arreglo por
-        parámetro y lo modifica, sin mecanismo nuevo."""
+        parámetro y lo modifica, sin mecanismo nuevo.
+        """
         if nombre in ("reducir", "reduce"):
             arreglo, f, inicial = args_eval
             acc = inicial
@@ -651,9 +714,11 @@ class Interpreter(ASTVisitor, Subject):
     # ============================================================
 
     def _es_tipo_clase_de_variable(self, nombre):
-        """Indica si `nombre` esta declarado con un tipo de clase (para
+        """Indica si `nombre` esta declarado con un tipo de clase (para.
+
         distinguir, al leerlo, "None porque nunca se asigno" -- error,
-        IL-EJE-010 -- de "None porque su valor es nulo/null" -- valido)."""
+        IL-EJE-010 -- de "None porque su valor es nulo/null" -- valido).
+        """
         tipo = self.tipos_variables.get(nombre)
         if tipo is None:
             entrada = self.tabla.buscar(nombre)
@@ -667,9 +732,11 @@ class Interpreter(ASTVisitor, Subject):
         return self._pila_clase_definicion[-1] if self._pila_clase_definicion else None
 
     def _tipo_runtime(self, valor):
-        """Tipo de un valor en tiempo de ejecución, para elegir sobrecarga
+        """Tipo de un valor en tiempo de ejecución, para elegir sobrecarga.
+
         (Etapa 7) -- mismo vocabulario de tipos que usa el resto del
-        compilador ('int'/'float'/'string'/'bool'/nombre de clase/'null')."""
+        compilador ('int'/'float'/'string'/'bool'/nombre de clase/'null').
+        """
         if isinstance(valor, bool):
             return "bool"
         if isinstance(valor, int):
@@ -685,8 +752,10 @@ class Interpreter(ASTVisitor, Subject):
         return None
 
     def _tipo_parametro_ast(self, p):
-        """Mismo formato que semantic.py::_tipo_parametro, pero sin
-        depender de ese módulo (interpreter.py no importa semantic.py)."""
+        """Formato de tipo de parámetro.
+
+        depender de ese módulo (interpreter.py no importa semantic.py).
+        """
         if p.es_matriz:
             return f"{p.tipo}[][]"
         if p.es_arreglo:
@@ -694,7 +763,8 @@ class Interpreter(ASTVisitor, Subject):
         return p.tipo
 
     def _buscar_metodo_ast(self, nombre_clase, nombre_metodo, argumentos=None):
-        """Encuentra la implementación más derivada de `nombre_metodo`
+        """Encuentra la implementación más derivada de `nombre_metodo`.
+
         visible desde `nombre_clase`, devolviendo (clase_declarante,
         MethodDecl). Reutiliza `SymbolTable.resolver_metodo` (ya probado en
         semantic.py/type_checker.py) para decidir QUÉ clase la declara, y
@@ -712,7 +782,8 @@ class Interpreter(ASTVisitor, Subject):
         `resolver_metodo` que ya usa type_checker.py, pero con tipos
         derivados de los VALORES reales en vez de la verificación
         estática). Sin `argumentos` (o con una sola sobrecarga posible),
-        se usa la primera/única declarada."""
+        se usa la primera/única declarada.
+        """
         tipos_args = [self._tipo_runtime(a) for a in argumentos] if argumentos is not None else None
         resultado = self.tabla.resolver_metodo(nombre_clase, nombre_metodo, tipos_args)
         if resultado is None and tipos_args is not None:
@@ -726,9 +797,8 @@ class Interpreter(ASTVisitor, Subject):
         if clase_nodo is None:
             return None
         for met in clase_nodo.metodos:
-            if (
-                met.nombre == nombre_metodo
-                and [self._tipo_parametro_ast(p) for p in met.parametros] == metodo_info.params_tipos
+            if met.nombre == nombre_metodo and (
+                [self._tipo_parametro_ast(p) for p in met.parametros] == metodo_info.params_tipos
             ):
                 return clase_declarante, met
         # Ninguna coincidencia exacta de firma (no debería pasar): primer
@@ -739,10 +809,12 @@ class Interpreter(ASTVisitor, Subject):
         return None
 
     def _resolver_receptor(self, receptor):
-        """Retorna (instancia, nombre_clase_de_busqueda) para el receptor de
+        """Retorna (instancia, nombre_clase_de_busqueda) para el receptor de.
+
         un acceso a miembro. Ver `_buscar_metodo_ast` sobre por qué el punto
         de partida difiere entre this/identificador (dinámico) y padre
-        (fijo, salta el despacho virtual)."""
+        (fijo, salta el despacho virtual).
+        """
         if isinstance(receptor, ThisExpr):
             instancia = self._instancia_actual()
             return instancia, (instancia.clase if instancia else None)
@@ -772,12 +844,14 @@ class Interpreter(ASTVisitor, Subject):
         return None, None
 
     def _inicializar_estaticos(self, ast):
-        """Inicializa los atributos estáticos de cada clase UNA sola vez
+        """Inicializa los atributos estáticos de cada clase UNA sola vez.
+
         (Etapa 7) -- una única copia compartida en `ClaseInfo.
         estado_estatico`, a diferencia de los atributos de instancia (uno
         por objeto, ver `_inicializar_campos`). Ámbito vacío: sin `this` ni
         variables locales, mismo criterio que los inicializadores de
-        instancia."""
+        instancia.
+        """
         self._entrar_marco()
         try:
             for c in ast.clases:
@@ -811,10 +885,12 @@ class Interpreter(ASTVisitor, Subject):
             self._salir_marco()
 
     def _es_atributo_estatico(self, nombre_clase, nombre_campo):
-        """Etapa 7: True si `nombre_campo` es un atributo ESTATICO de
+        """Etapa 7: True si `nombre_campo` es un atributo ESTATICO de.
+
         `nombre_clase` (o un ancestro). Deja acceder a un miembro estático
         también a través de una instancia (`objeto.estatico`), no solo del
-        nombre de la clase -- permisivo a propósito, ver semantic.py."""
+        nombre de la clase -- permisivo a propósito, ver semantic.py.
+        """
         for clase in self.tabla.cadena_ancestros(nombre_clase) or [nombre_clase]:
             c_info = self.tabla.clases.get(clase)
             if c_info and nombre_campo in c_info.atributos:
@@ -826,7 +902,9 @@ class Interpreter(ASTVisitor, Subject):
             c_info = self.tabla.clases.get(clase)
             if c_info and nombre_campo in c_info.atributos:
                 return c_info.estado_estatico.get(nombre_campo)
-        raise RuntimeError_("IL-SEM-003", f'Atributo no encontrado: "{nombre_campo}"', nodo.linea, nodo.columna)
+        raise RuntimeError_(
+            "IL-SEM-003", f'Atributo no encontrado: "{nombre_campo}"', nodo.linea, nodo.columna
+        )
 
     def _escribir_campo_estatico(self, nombre_clase, nombre_campo, valor, nodo):
         for clase in self.tabla.cadena_ancestros(nombre_clase) or [nombre_clase]:
@@ -834,14 +912,18 @@ class Interpreter(ASTVisitor, Subject):
             if c_info and nombre_campo in c_info.atributos:
                 c_info.estado_estatico[nombre_campo] = valor
                 return
-        raise RuntimeError_("IL-SEM-003", f'Atributo no encontrado: "{nombre_campo}"', nodo.linea, nodo.columna)
+        raise RuntimeError_(
+            "IL-SEM-003", f'Atributo no encontrado: "{nombre_campo}"', nodo.linea, nodo.columna
+        )
 
     def _inicializar_campos(self, instancia, nombre_clase):
-        """Inicializa los campos de una instancia recién creada, del
+        """Inicializa los campos de una instancia recién creada, del.
+
         ancestro más lejano al más cercano (§4 de la spec de POO). Se
         evalúan los inicializadores en un ámbito vacío -- igual que validó
         semantic.py (sin `este` ni variables locales del llamador visibles,
-        clase_actual=None durante esa verificación)."""
+        clase_actual=None durante esa verificación).
+        """
         cadena = self.tabla.cadena_ancestros(nombre_clase) or [nombre_clase]
         self._entrar_marco()
         try:
@@ -859,20 +941,24 @@ class Interpreter(ASTVisitor, Subject):
             self._salir_marco()
 
     def _crear_instancia(self, nombre_clase, argumentos, nodo):
-        """Implementa `nuevo`/`new`: reserva los campos con sus valores por
-        defecto/inicializadores y ejecuta la cadena de constructores."""
+        """Implementa `nuevo`/`new`: reserva los campos con sus valores por.
+
+        defecto/inicializadores y ejecuta la cadena de constructores.
+        """
         instancia = InstanciaObjeto(nombre_clase)
         self._inicializar_campos(instancia, nombre_clase)
         self._ejecutar_constructor(instancia, nombre_clase, argumentos, nodo)
         return instancia
 
     def _buscar_constructor_ast(self, nombre_clase, argumentos):
-        """Encuentra el ConstructorDecl de `nombre_clase` que coincide con
+        """Encuentra el ConstructorDecl de `nombre_clase` que coincide con.
+
         `argumentos` (valores YA evaluados) -- Etapa 10, sobrecarga de
         constructores. Mismo mecanismo que `_buscar_metodo_ast`, pero los
         constructores NUNCA se heredan (cada clase tiene los suyos propios;
         `padre(...)` ya llama explícitamente al del padre). Retorna el nodo
-        AST, o None si la clase no declara ningún constructor (implícito)."""
+        AST, o None si la clase no declara ningún constructor (implícito).
+        """
         clase_nodo = self.clases_ast.get(nombre_clase)
         if clase_nodo is None or not clase_nodo.constructores:
             return None
@@ -922,7 +1008,7 @@ class Interpreter(ASTVisitor, Subject):
         self._pila_clase_definicion.append(nombre_clase)
         self._pila_subrutinas.append(f"{nombre_clase}.{nombre_clase}")
         try:
-            for param, arg in zip(constructor.parametros, argumentos):
+            for param, arg in zip(constructor.parametros, argumentos, strict=True):
                 self.tipos_variables[param.nombre] = param.tipo
                 self._declarar_variable(param.nombre, arg)
 
@@ -950,7 +1036,9 @@ class Interpreter(ASTVisitor, Subject):
             self._salir_marco()
             self._profundidad_llamadas -= 1
 
-    def _invocar_metodo_desde(self, instancia, nombre_clase_inicio, nombre_metodo, argumentos, nodo):
+    def _invocar_metodo_desde(
+        self, instancia, nombre_clase_inicio, nombre_metodo, argumentos, nodo
+    ):
         resultado = self._buscar_metodo_ast(nombre_clase_inicio, nombre_metodo, argumentos)
         if resultado is None:
             raise RuntimeError_(
@@ -978,7 +1066,7 @@ class Interpreter(ASTVisitor, Subject):
         self._pila_clase_definicion.append(clase_declarante)
         self._pila_subrutinas.append(f"{instancia.clase}.{nodo_metodo.nombre}")
         try:
-            for param, arg in zip(nodo_metodo.parametros, argumentos):
+            for param, arg in zip(nodo_metodo.parametros, argumentos, strict=True):
                 self.tipos_variables[param.nombre] = param.tipo
                 self._declarar_variable(param.nombre, arg)
 
@@ -987,7 +1075,11 @@ class Interpreter(ASTVisitor, Subject):
                     self._ejecutar_elemento(elem)
             except ReturnException as e:
                 valor = e.valor
-                if nodo_metodo.tipo_retorno == "float" and isinstance(valor, int) and not isinstance(valor, bool):
+                if (
+                    nodo_metodo.tipo_retorno == "float"
+                    and isinstance(valor, int)
+                    and not isinstance(valor, bool)
+                ):
                     valor = float(valor)
                 return valor
             return None
@@ -1008,16 +1100,22 @@ class Interpreter(ASTVisitor, Subject):
     _NOMBRES_A_TEXTO = ("aTexto", "toString")
 
     def _metodo_a_texto(self, nombre_clase):
-        """Busca, en `nombre_clase` y su cadena de ancestros, un método
+        """Busca, en `nombre_clase` y su cadena de ancestros, un método.
+
         público `aTexto()`/`toString()` sin parámetros que retorne texto
-        (Etapa 10). Retorna el nombre encontrado (para invocarlo) o None."""
+        (Etapa 10). Retorna el nombre encontrado (para invocarlo) o None.
+        """
         for nombre in self._NOMBRES_A_TEXTO:
             todos = self.tabla.resolver_metodo_todos(nombre_clase, nombre)
             if todos is None:
                 continue
             _, candidatos = todos
             for info in candidatos:
-                if info.visibilidad == "publico" and info.tipo == "string" and not info.params_tipos:
+                if (
+                    info.visibilidad == "publico"
+                    and info.tipo == "string"
+                    and not info.params_tipos
+                ):
                     return nombre
         return None
 
@@ -1028,29 +1126,39 @@ class Interpreter(ASTVisitor, Subject):
     _NOMBRES_IGUAL = ("esIgual", "equals")
 
     def _metodo_igual(self, nombre_clase):
-        """Busca, en `nombre_clase` y su cadena de ancestros, un método
+        """Busca, en `nombre_clase` y su cadena de ancestros, un método.
+
         público `esIgual(x)`/`equals(x)` de 1 parámetro que retorne bool
         (Etapa 11). Retorna el nombre encontrado, o None -- en cuyo caso
-        `==`/`!=` siguen siendo identidad de referencia, como siempre."""
+        `==`/`!=` siguen siendo identidad de referencia, como siempre.
+        """
         for nombre in self._NOMBRES_IGUAL:
             todos = self.tabla.resolver_metodo_todos(nombre_clase, nombre)
             if todos is None:
                 continue
             _, candidatos = todos
             for info in candidatos:
-                if info.visibilidad == "publico" and info.tipo == "bool" and len(info.params_tipos) == 1:
+                if (
+                    info.visibilidad == "publico"
+                    and info.tipo == "bool"
+                    and len(info.params_tipos) == 1
+                ):
                     return nombre
         return None
 
     def _formatear_objeto(self, instancia):
-        """Si la clase (o un ancestro) declara públicamente `aTexto()`/
+        """Si la clase (o un ancestro) declara públicamente `aTexto()`/.
+
         `toString()` (Etapa 10), se usa esa representación personalizada.
         Si no, el formato automático de siempre:
         `NombreClase(campo1=valor1, campo2=valor2, ...)`, en orden de
-        declaración del ancestro al descendiente (§4 de la spec de POO)."""
+        declaración del ancestro al descendiente (§4 de la spec de POO).
+        """
         nombre_metodo = self._metodo_a_texto(instancia.clase)
         if nombre_metodo is not None:
-            resultado = self._invocar_metodo_desde(instancia, instancia.clase, nombre_metodo, [], None)
+            resultado = self._invocar_metodo_desde(
+                instancia, instancia.clase, nombre_metodo, [], None
+            )
             return resultado if isinstance(resultado, str) else str(resultado)
         cadena = self.tabla.cadena_ancestros(instancia.clase) or [instancia.clase]
         pares = []
@@ -1115,7 +1223,10 @@ class Interpreter(ASTVisitor, Subject):
             self._ejecutar_llamada(nodo.nombre, nodo.argumentos, nodo)
         elif isinstance(nodo, MethodCallStmt):
             instancia, clase_inicio = self._resolver_receptor(nodo.receptor)
-            receptor_invalido = not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico)) or clase_inicio is None
+            receptor_invalido = (
+                not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico))
+                or clase_inicio is None
+            )
             if nodo.es_seguro and receptor_invalido:
                 # Acceso seguro (Etapa 12.2): objeto?.metodo(); no hace
                 # nada si objeto es nulo (mismo cortocircuito que la forma
@@ -1159,7 +1270,10 @@ class Interpreter(ASTVisitor, Subject):
             return valor
         if actual is None:
             raise RuntimeError_(
-                "IL-EJE-010", "Asignación compuesta sobre un destino no inicializado", nodo.linea, nodo.columna
+                "IL-EJE-010",
+                "Asignación compuesta sobre un destino no inicializado",
+                nodo.linea,
+                nodo.columna,
             )
         if operador == "+=":
             return actual + valor
@@ -1175,7 +1289,9 @@ class Interpreter(ASTVisitor, Subject):
             return actual / valor
         if operador == "%=":
             if valor == 0:
-                raise RuntimeError_("IL-EJE-006", "División por cero en módulo", nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-006", "División por cero en módulo", nodo.linea, nodo.columna
+                )
             if isinstance(actual, int) and isinstance(valor, int):
                 return self._mod_entero(actual, valor)
             return actual % valor
@@ -1198,10 +1314,15 @@ class Interpreter(ASTVisitor, Subject):
             idx = self._evaluar_expresion(nodo.lvalue.indice)
             arreglo = self._obtener_valor_variable(nombre)
             if arreglo is None:
-                raise RuntimeError_("IL-EJE-010", f'Arreglo "{nombre}" no inicializado', nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010", f'Arreglo "{nombre}" no inicializado', nodo.linea, nodo.columna
+                )
             if idx < 0 or idx >= len(arreglo):
                 raise RuntimeError_(
-                    "IL-EJE-050", f'Índice {idx} fuera de rango en "{nombre}"', nodo.linea, nodo.columna
+                    "IL-EJE-050",
+                    f"Índice {idx} fuera de rango en " f'"{nombre}"',
+                    nodo.linea,
+                    nodo.columna,
                 )
             resultado = self._combinar_compuesto(nodo.operador, arreglo[idx], valor, nodo)
             arreglo[idx] = self._verificar_rango_int(resultado, nodo)
@@ -1212,11 +1333,20 @@ class Interpreter(ASTVisitor, Subject):
             col = self._evaluar_expresion(nodo.lvalue.columna)
             matriz = self._obtener_valor_variable(nombre)
             if matriz is None:
-                raise RuntimeError_("IL-EJE-010", f'Matriz "{nombre}" no inicializada', nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010", f'Matriz "{nombre}" no inicializada', nodo.linea, nodo.columna
+                )
             if fila < 0 or fila >= len(matriz):
-                raise RuntimeError_("IL-EJE-050", f"Índice de fila {fila} fuera de rango", nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050", f"Índice de fila {fila} fuera de rango", nodo.linea, nodo.columna
+                )
             if col < 0 or col >= len(matriz[fila]):
-                raise RuntimeError_("IL-EJE-050", f"Índice de columna {col} fuera de rango", nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050",
+                    f"Índice de columna {col} fuera de rango",
+                    nodo.linea,
+                    nodo.columna,
+                )
             resultado = self._combinar_compuesto(nodo.operador, matriz[fila][col], valor, nodo)
             matriz[fila][col] = self._verificar_rango_int(resultado, nodo)
 
@@ -1229,7 +1359,10 @@ class Interpreter(ASTVisitor, Subject):
                 actual = self._leer_campo_estatico(instancia.nombre_clase, nombre_campo, nodo)
                 resultado = self._combinar_compuesto(nodo.operador, actual, valor, nodo)
                 self._escribir_campo_estatico(
-                    instancia.nombre_clase, nombre_campo, self._verificar_rango_int(resultado, nodo), nodo
+                    instancia.nombre_clase,
+                    nombre_campo,
+                    self._verificar_rango_int(resultado, nodo),
+                    nodo,
                 )
             elif isinstance(instancia, InstanciaObjeto):
                 if self._es_atributo_estatico(instancia.clase, nombre_campo):
@@ -1239,7 +1372,10 @@ class Interpreter(ASTVisitor, Subject):
                     actual = self._leer_campo_estatico(instancia.clase, nombre_campo, nodo)
                     resultado = self._combinar_compuesto(nodo.operador, actual, valor, nodo)
                     self._escribir_campo_estatico(
-                        instancia.clase, nombre_campo, self._verificar_rango_int(resultado, nodo), nodo
+                        instancia.clase,
+                        nombre_campo,
+                        self._verificar_rango_int(resultado, nodo),
+                        nodo,
                     )
                 else:
                     actual = instancia.campos.get(nombre_campo)
@@ -1264,7 +1400,9 @@ class Interpreter(ASTVisitor, Subject):
         """Ejecuta incremento/decremento."""
         actual = self._obtener_valor_variable(nodo.nombre)
         if actual is None:
-            raise RuntimeError_("IL-EJE-010", f'Variable "{nodo.nombre}" no inicializada', nodo.linea, nodo.columna)
+            raise RuntimeError_(
+                "IL-EJE-010", f'Variable "{nodo.nombre}" no inicializada', nodo.linea, nodo.columna
+            )
 
         if nodo.operador == "++":
             self._asignar_variable(nodo.nombre, actual + 1)
@@ -1343,11 +1481,14 @@ class Interpreter(ASTVisitor, Subject):
                 else:
                     valor = valor_str
                 self._asignar_variable(nodo.nombre, valor)
-            except ValueError:
+            except ValueError as e:
                 cod = {"int": "IL-EJE-020", "float": "IL-EJE-021", "bool": "IL-EJE-022"}
                 raise RuntimeError_(
-                    cod.get(tipo, "IL-EJE-020"), f"Entrada no convertible a {tipo}", nodo.linea, nodo.columna
-                )
+                    cod.get(tipo, "IL-EJE-020"),
+                    f"Entrada no convertible a " f"{tipo}",
+                    nodo.linea,
+                    nodo.columna,
+                ) from e
 
     def _ejecutar_if(self, nodo):
         """Ejecuta if/si."""
@@ -1392,7 +1533,9 @@ class Interpreter(ASTVisitor, Subject):
             if transcurrido > self.max_segundos:
                 raise RuntimeError_(
                     "IL-EJE-030",
-                    "Posible ciclo infinito: el programa lleva " f"{transcurrido:.1f} s sin terminar",
+                    "Posible ciclo infinito: el programa lleva "
+                    f"{transcurrido:.1f} s sin "
+                    f"terminar",
                     nodo.linea,
                     nodo.columna,
                 )
@@ -1416,8 +1559,10 @@ class Interpreter(ASTVisitor, Subject):
                 continue
 
     def _ejecutar_do_while(self, nodo):
-        """Ejecuta do/hacer ... while/mientras (Etapa 6): el cuerpo corre al
-        menos una vez antes de evaluar la condición por primera vez."""
+        """Ejecuta do/hacer ... while/mientras (Etapa 6): el cuerpo corre al.
+
+        menos una vez antes de evaluar la condición por primera vez.
+        """
         vueltas = 0
         while True:
             vueltas += 1
@@ -1434,10 +1579,12 @@ class Interpreter(ASTVisitor, Subject):
                 break
 
     def _ejecutar_switch(self, nodo):
-        """Ejecuta switch/segun (Etapa 6): salta al primer case cuyo valor
+        """Ejecuta switch/segun (Etapa 6): salta al primer case cuyo valor.
+
         coincide y cae al siguiente (fallthrough, semántica C) hasta un
         break o el final. `continue` NO se captura aquí -- debe propagarse
-        a un ciclo envolvente, ver IL-SEM-041/semantic.py."""
+        a un ciclo envolvente, ver IL-SEM-041/semantic.py.
+        """
         valor = self._evaluar_expresion(nodo.expr)
         idx_inicio = None
         for i, caso in enumerate(nodo.casos):
@@ -1459,7 +1606,8 @@ class Interpreter(ASTVisitor, Subject):
             pass
 
     def _ejecutar_match(self, nodo):
-        """Ejecuta emparejar/match (Etapa 12.9/12.10). Dos caminos,
+        """Ejecuta emparejar/match.
+
         exactamente como en semantic.py/type_checker.py:
           - Tipo suma con carga: el valor es una InstanciaObjeto real (la
             variante desazucarada, ver semantic.py::_desazucarar_tipos_suma);
@@ -1469,16 +1617,19 @@ class Interpreter(ASTVisitor, Subject):
             (ordinal) desnudo, sin ninguna referencia a su clase -- hace
             falta resolver el tipo DECLARADO de la expresión para saber a
             qué enum pertenece y mapear el ordinal de vuelta a un nombre
-            de miembro (ver _tipo_enum_de_expresion)."""
+            de miembro (ver _tipo_enum_de_expresion).
+        """
         valor = self._evaluar_expresion(nodo.expr)
         if isinstance(valor, InstanciaObjeto):
             for caso in nodo.casos:
                 if self.tabla.es_subtipo_clase(valor.clase, caso.nombre_variante):
                     info_variante = self.tabla.clases.get(caso.nombre_variante)
                     nombres_campos = (
-                        [n for n, a in info_variante.atributos.items() if not a.es_estatico] if info_variante else []
+                        [n for n, a in info_variante.atributos.items() if not a.es_estatico]
+                        if info_variante
+                        else []
                     )
-                    for ligadura, nombre_campo in zip(caso.ligaduras, nombres_campos):
+                    for ligadura, nombre_campo in zip(caso.ligaduras, nombres_campos, strict=True):
                         self._declarar_variable(ligadura, valor.campos.get(nombre_campo))
                     for elem in caso.bloque.elementos:
                         self._ejecutar_elemento(elem)
@@ -1506,14 +1657,16 @@ class Interpreter(ASTVisitor, Subject):
                 self._ejecutar_elemento(elem)
 
     def _tipo_enum_de_expresion(self, expr):
-        """Best-effort: tipo declarado de `expr` para emparejar sobre un
+        """Best-effort: tipo declarado de `expr` para emparejar sobre un.
+
         enum PURO (Etapa 11.8) -- el único camino donde el valor en tiempo
         de ejecución (un entero ordinal desnudo) no trae consigo su propia
         clase, a diferencia de una instancia de tipo suma. Cubre los casos
         realistas (identificador, acceso a miembro encadenado); una
         expresión más compleja simplemente no resuelve tipo y cae al caso
         comodín/ningún caso -- type_checker.py ya garantizó antes de esto
-        que el programa compila, así que en la práctica siempre se resuelve."""
+        que el programa compila, así que en la práctica siempre se resuelve.
+        """
         if isinstance(expr, Identifier):
             tipo = self.tipos_variables.get(expr.nombre)
             if tipo is None:
@@ -1528,11 +1681,13 @@ class Interpreter(ASTVisitor, Subject):
         return None
 
     def _ejecutar_try(self, nodo):
-        """Ejecuta try/intentar ... catch/capturar genérico (Etapa 6):
+        """Ejecuta try/catch genérico.
+
         cualquier RuntimeError_ (IL-EJE-*) del bloque try se captura y la
         variable de catch queda ligada a una instancia sintética de la
         clase 'Excepcion' (codigo/mensaje, ver symbol_table.py). Break/
-        continue/return del try siguen propagándose -- no son errores."""
+        continue/return del try siguen propagándose -- no son errores.
+        """
         try:
             for elem in nodo.bloque_try.elementos:
                 self._ejecutar_elemento(elem)
@@ -1593,19 +1748,12 @@ class Interpreter(ASTVisitor, Subject):
                             self._asignar_variable(nombre, actual + 1)
                         elif nodo.act_stmt.operador == "--":
                             self._asignar_variable(nombre, actual - 1)
-                elif isinstance(nodo.act_stmt, IncDecNode):
-                    nombre = nodo.act_stmt.nombre
-                    actual = self._obtener_valor_variable(nombre)
-                    if actual is not None:
-                        if nodo.act_stmt.operador == "++":
-                            self._asignar_variable(nombre, actual + 1)
-                        elif nodo.act_stmt.operador == "--":
-                            self._asignar_variable(nombre, actual - 1)
                 else:
                     self._evaluar_expresion(nodo.act_stmt)
 
     def _ejecutar_foreach(self, nodo):
-        """Ejecuta para_cada/foreach (Etapa 12.1). No es azúcar desarmada
+        """Ejecuta para_cada/foreach (Etapa 12.1). No es azúcar desarmada.
+
         en el parser (ver ast_nodes.py::ForEachStmt): se evalúa el arreglo
         una sola vez y se recorre directamente la lista de Python -- igual
         de simple que desazucarar a un while indexado, pero sin necesitar
@@ -1613,7 +1761,8 @@ class Interpreter(ASTVisitor, Subject):
         lenguaje. Sin marco/ámbito propio por iteración, mismo criterio
         que _ejecutar_while/_ejecutar_for (el chequeo estático ya ocurrió
         en semantic.py; en tiempo de ejecución basta con reasignar la
-        variable de recorrido en cada vuelta)."""
+        variable de recorrido en cada vuelta).
+        """
         arreglo = self._evaluar_expresion(nodo.arreglo)
         for valor in list(arreglo):
             self._declarar_variable(nodo.nombre, valor)
@@ -1656,7 +1805,9 @@ class Interpreter(ASTVisitor, Subject):
             self._ejecutar_subrutina(nombre, args_eval, nodo)
             return None
 
-        raise RuntimeError_("IL-SEM-003", f'Subrutina no encontrada: "{nombre}"', nodo.linea, nodo.columna)
+        raise RuntimeError_(
+            "IL-SEM-003", f'Subrutina no encontrada: "{nombre}"', nodo.linea, nodo.columna
+        )
 
     def _evaluar_expresion(self, nodo):
         """Evalúa una expresión y retorna su valor."""
@@ -1690,30 +1841,52 @@ class Interpreter(ASTVisitor, Subject):
                 # Para un tipo de clase, None ES un valor legitimo (nulo/null,
                 # Estructuras de Datos) -- no una variable sin inicializar.
                 # Solo los primitivos exigen asignacion antes de leerse.
-                raise RuntimeError_("IL-EJE-010", f'Variable "{nodo.nombre}" no inicializada', nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010",
+                    f'Variable "{nodo.nombre}" no inicializada',
+                    nodo.linea,
+                    nodo.columna,
+                )
             return valor
 
         if isinstance(nodo, ArrayAccess):
             arreglo = self._obtener_valor_variable(nodo.nombre)
             if arreglo is None:
-                raise RuntimeError_("IL-EJE-010", f'Arreglo "{nodo.nombre}" no inicializado', nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010",
+                    f'Arreglo "{nodo.nombre}" no inicializado',
+                    nodo.linea,
+                    nodo.columna,
+                )
             idx = self._evaluar_expresion(nodo.indice)
             if idx < 0 or idx >= len(arreglo):
                 raise RuntimeError_(
-                    "IL-EJE-050", f'Índice {idx} fuera de rango en "{nodo.nombre}"', nodo.linea, nodo.columna
+                    "IL-EJE-050",
+                    f"Índice {idx} fuera de rango en " f'"{nodo.nombre}"',
+                    nodo.linea,
+                    nodo.columna,
                 )
             return arreglo[idx]
 
         if isinstance(nodo, MatrixAccess):
             matriz = self._obtener_valor_variable(nodo.nombre)
             if matriz is None:
-                raise RuntimeError_("IL-EJE-010", f'Matriz "{nodo.nombre}" no inicializada', nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010",
+                    f'Matriz "{nodo.nombre}" no inicializada',
+                    nodo.linea,
+                    nodo.columna,
+                )
             fila = self._evaluar_expresion(nodo.fila)
             col = self._evaluar_expresion(nodo.columna)
             if fila < 0 or fila >= len(matriz):
-                raise RuntimeError_("IL-EJE-050", f"Fila {fila} fuera de rango", nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050", f"Fila {fila} fuera de rango", nodo.linea, nodo.columna
+                )
             if col < 0 or col >= len(matriz[fila]):
-                raise RuntimeError_("IL-EJE-050", f"Columna {col} fuera de rango", nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050", f"Columna {col} fuera de rango", nodo.linea, nodo.columna
+                )
             return matriz[fila][col]
 
         if isinstance(nodo, FunctionCall):
@@ -1767,13 +1940,19 @@ class Interpreter(ASTVisitor, Subject):
                 return self._leer_campo_estatico(instancia.clase, nodo.nombre_miembro, nodo)
             if nodo.nombre_miembro not in instancia.campos:
                 raise RuntimeError_(
-                    "IL-SEM-003", f'Atributo no encontrado: "{nodo.nombre_miembro}"', nodo.linea, nodo.columna
+                    "IL-SEM-003",
+                    f"Atributo no encontrado: " f'"{nodo.nombre_miembro}"',
+                    nodo.linea,
+                    nodo.columna,
                 )
             return instancia.campos[nodo.nombre_miembro]
 
         if isinstance(nodo, MethodCallExpr):
             instancia, clase_inicio = self._resolver_receptor(nodo.receptor)
-            receptor_invalido = not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico)) or clase_inicio is None
+            receptor_invalido = (
+                not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico))
+                or clase_inicio is None
+            )
             if nodo.es_seguro and receptor_invalido:
                 # Acceso seguro (Etapa 12.2): los argumentos NO se evalúan
                 # si el receptor es nulo (cortocircuito, mismo criterio que
@@ -1788,7 +1967,9 @@ class Interpreter(ASTVisitor, Subject):
                     nodo.linea,
                     nodo.columna,
                 )
-            return self._invocar_metodo_desde(instancia, clase_inicio, nodo.nombre_metodo, args, nodo)
+            return self._invocar_metodo_desde(
+                instancia, clase_inicio, nodo.nombre_metodo, args, nodo
+            )
 
         if isinstance(nodo, BinaryOp):
             # Cortocircuito garantizado por §6.3.1: el operando derecho NO se
@@ -1850,7 +2031,9 @@ class Interpreter(ASTVisitor, Subject):
         nombre = destino.nombre
         actual = self._obtener_valor_variable(nombre)
         if actual is None:
-            raise RuntimeError_("IL-EJE-010", f'Variable "{nombre}" no inicializada', nodo.linea, nodo.columna)
+            raise RuntimeError_(
+                "IL-EJE-010", f'Variable "{nombre}" no inicializada', nodo.linea, nodo.columna
+            )
         nuevo = actual + 1 if nodo.operador == "++" else actual - 1
         nuevo = self._verificar_rango_int(nuevo, nodo)
         self._asignar_variable(nombre, nuevo)
@@ -1872,7 +2055,9 @@ class Interpreter(ASTVisitor, Subject):
         if valor < self.INT_MIN or valor > self.INT_MAX:
             raise RuntimeError_(
                 "IL-EJE-001",
-                f"Desbordamiento de entero: {valor} excede el rango " f"[{self.INT_MIN}, {self.INT_MAX}]",
+                f"Desbordamiento de entero: "
+                f"{valor} excede el rango "
+                f"[{self.INT_MIN}, {self.INT_MAX}]",
                 getattr(nodo, "linea", 0),
                 getattr(nodo, "columna", 0),
             )
@@ -1887,20 +2072,27 @@ class Interpreter(ASTVisitor, Subject):
         es_real = isinstance(izq, float) or isinstance(der, float)
         if es_real:
             return RuntimeError_(
-                "IL-EJE-002", "Operación de punto flotante inválida: división entre 0.0", nodo.linea, nodo.columna
+                "IL-EJE-002",
+                "Operación de punto flotante inválida: división entre 0.0",
+                nodo.linea,
+                nodo.columna,
             )
         return RuntimeError_("IL-EJE-006", "División por cero", nodo.linea, nodo.columna)
 
     def _div_entero(self, a, b):
         """División entera con truncamiento hacia cero (§4.2.2).
+
         Ej: 7/2=3 y -7/2=-3 (a diferencia del operador // de Python que
-        redondea hacia -infinito)."""
+        redondea hacia -infinito).
+        """
         q = abs(a) // abs(b)
         return -q if (a < 0) != (b < 0) else q
 
     def _mod_entero(self, a, b):
-        """Módulo entero con el signo del dividendo (estilo C), consistente
-        con la división que trunca hacia cero."""
+        """Módulo entero con el signo del dividendo (estilo C), consistente.
+
+        con la división que trunca hacia cero.
+        """
         r = abs(a) % abs(b)
         return -r if a < 0 else r
 
@@ -1923,7 +2115,9 @@ class Interpreter(ASTVisitor, Subject):
             if isinstance(left, InstanciaObjeto) and isinstance(right, InstanciaObjeto):
                 nombre_metodo = self._metodo_igual(left.clase)
                 if nombre_metodo is not None:
-                    resultado = bool(self._invocar_metodo_desde(left, left.clase, nombre_metodo, [right], nodo))
+                    resultado = bool(
+                        self._invocar_metodo_desde(left, left.clase, nombre_metodo, [right], nodo)
+                    )
                     return resultado if op == "==" else not resultado
             return left == right if op == "==" else left != right
         if op == "<":
@@ -1950,7 +2144,9 @@ class Interpreter(ASTVisitor, Subject):
             return left / right
         if op == "%":
             if right == 0:
-                raise RuntimeError_("IL-EJE-006", "División por cero en módulo", nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-006", "División por cero en módulo", nodo.linea, nodo.columna
+                )
             if isinstance(left, int) and isinstance(right, int):
                 return self._mod_entero(left, right)
             return left % right
@@ -1966,11 +2162,15 @@ class Interpreter(ASTVisitor, Subject):
             return self._verificar_rango_int(left ^ right, nodo)
         if op == "<<":
             if right < 0:
-                raise RuntimeError_("IL-EJE-001", "Desplazamiento con exponente negativo", nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-001", "Desplazamiento con exponente negativo", nodo.linea, nodo.columna
+                )
             return self._verificar_rango_int(left << right, nodo)
         if op == ">>":
             if right < 0:
-                raise RuntimeError_("IL-EJE-001", "Desplazamiento con exponente negativo", nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-001", "Desplazamiento con exponente negativo", nodo.linea, nodo.columna
+                )
             return left >> right
         raise RuntimeError_("IL-EJE-001", f"Operador desconocido: {op}", nodo.linea, nodo.columna)
 

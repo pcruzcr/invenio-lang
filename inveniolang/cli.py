@@ -91,7 +91,10 @@ def leer_fuente(ruta, error_manager=None):
             print(f"Error: {mensaje}")
         return None, 1
     except UnicodeDecodeError as e:
-        mensaje = f"El archivo no esta codificado en UTF-8 valido " f"(byte invalido en la posicion {e.start})"
+        mensaje = (
+            f"El archivo no esta codificado en UTF-8 valido "
+            f"(byte invalido en la posicion {e.start})"
+        )
         if error_manager is not None:
             error_manager.set_archivo(nombre)
             error_manager.error_lexico("IL-LEX-001", mensaje, 0, 0)
@@ -156,12 +159,14 @@ class CompilationCommand(Command):
         self.result = None
 
     def execute(self) -> Any:
+        """Ejecuta la operación."""
         self.result = self.func(*self.args, **self.kwargs)
         return self.result
 
 
 class CompilerFacade(Facade, Subject):
     """Facade que simplifica el pipeline completo lex→parse→semantic→types→run.
+
     Observer para progreso, Template Method para orden de fases.
     """
 
@@ -169,10 +174,13 @@ class CompilerFacade(Facade, Subject):
         super().__init__()
         self.invoker = CommandInvoker()
 
-    def execute(self, ruta: str, entrada: list[str] | None = None, modo: str = "run") -> dict[str, Any]:
-        from .errors import ErrorManager as EM
+    def execute(
+        self, ruta: str, entrada: list[str] | None = None, modo: str = "run"
+    ) -> dict[str, Any]:
+        """Ejecuta la operación."""
+        from .errors import ErrorManager
 
-        em = EM()
+        em = ErrorManager()
         codigo, fallo = leer_fuente(ruta, em)
         if fallo:
             return {"ok": False, "errores": em.obtener_reportes()}
@@ -201,11 +209,12 @@ class CompilerFacade(Facade, Subject):
         return {"ok": not em.hay_errores(), "salida": salida, "errores": em.obtener_reportes()}
 
     def check(self, ruta: str) -> dict[str, Any]:
+        """Revisa un archivo sin ejecutar."""
         return self.execute(ruta, modo="check")
 
 
 def _imprimir_errores_con_caret(error_manager, codigo: str, titulo: str) -> None:
-    """Imprime los errores de una fase con contexto visual (UX/UDC):
+    """Imprime errores con contexto visual.
 
         [IL-SIN-010] t.inv:1:23 — Se esperaba ";"
             1 | entero x = 2 escribir(x+3);
@@ -314,7 +323,8 @@ def ejecutar_archivo(ruta_archivo, entrada_usuario=None):
 
 
 def revisar_archivo(ruta, detalle=True):
-    """Revisa un archivo .inv realizando el análisis estático completo
+    """Revisa un archivo .inv realizando el análisis estático completo.
+
     (léxico -> sintáctico -> semántico -> tipos) SIN interpretar el programa.
 
     Es el equivalente CLI del análisis en vivo de la GUI: reporta errores y
@@ -368,7 +378,8 @@ def revisar_archivo(ruta, detalle=True):
 
 
 def trazar_archivo(ruta, max_pasos=None):
-    """Traza (según la ejecución) un archivo .inv: muestra cada instrucción
+    """Traza (según la ejecución) un archivo .inv: muestra cada instrucción.
+
     ejecutada con sus variables y la pila de llamadas. Sin interpretar a ciegas.
 
     Args:
@@ -417,6 +428,7 @@ def trazar_archivo(ruta, max_pasos=None):
     traza = []
 
     def on_statement(snap, pausar=False):
+        """Atiende cada sentencia ejecutada."""
         # El intérprete invoca el callback como (snapshot, pausar) y usa el
         # valor retornado para decidir si debe bloquearse. La traza sólo
         # registra, nunca pausa.
@@ -450,7 +462,8 @@ def trazar_archivo(ruta, max_pasos=None):
 
 
 def _compilar_estatico(ruta):
-    """Corre léxico->sintáctico->semántico->tipos y retorna (ast, tabla, em)
+    """Corre léxico->sintáctico->semántico->tipos y retorna (ast, tabla, em).
+
     si no hubo errores, o (None, None, em) si los hubo (ya impresos).
     """
     codigo, fallo = leer_fuente(ruta)
@@ -490,7 +503,8 @@ def _compilar_estatico(ruta):
 
 
 def _generar_ir_o_avisar(ast):
-    """Genera el IR del programa, o imprime un aviso claro y retorna None si
+    """Genera el IR del programa, o imprime un aviso claro y retorna None si.
+
     el programa usa una construcción fuera del alcance del generador
     (clases/POO, matrices) -- ver inveniolang/ir.py.
     """
@@ -503,7 +517,8 @@ def _generar_ir_o_avisar(ast):
 
 
 def mostrar_ir(ruta, optimizar=False):
-    """--ir / --ir-opt: genera y muestra el código de tres direcciones (TAC)
+    """--ir / --ir-opt: genera y muestra el código de tres direcciones (TAC).
+
     del programa. Con `optimizar=True` corre además las pasadas de
     optimización y muestra un resumen de qué cambió cada una.
     """
@@ -545,7 +560,8 @@ def mostrar_ir(ruta, optimizar=False):
 
 
 def mostrar_objetivo(ruta, k_registros=None):
-    """--target (Etapa 12.11): genera y muestra el código objetivo del ISA
+    """--target (Etapa 12.11): genera y muestra el código objetivo del ISA.
+
     de juguete (traducido del TAC ya optimizado -- incluye la eliminación
     de recursión de cola de la Etapa 12.8 si aplica). Ver ir.py, sección
     "Etapa 12.11" para el ISA completo.
@@ -591,12 +607,13 @@ def mostrar_objetivo(ruta, k_registros=None):
                 else "  asignación: (sin variables con registro)"
             )
             if spills:
-                print(f'  spill (memoria): {", ".join(spills)}')
+                print(f"  spill (memoria): {', '.join(spills)}")
     return 0
 
 
 def ejecutar_con_ir(ruta, entrada_usuario=None, optimizado=False):
-    """--run-ir: ejecuta el programa con MaquinaTAC (el motor del código
+    """--run-ir: ejecuta el programa con MaquinaTAC (el motor del código.
+
     intermedio) en vez del intérprete de árbol de producción, e imprime la
     salida con el mismo formato que la ejecución normal.
     """
@@ -629,12 +646,19 @@ _VERSION = "10.0.0"
 
 
 def build_argparser():
+    """Construye el parser de argumentos CLI."""
     import argparse
 
-    p = argparse.ArgumentParser(prog="inveniolang", description="InvenioLang 10.0 — Compilador educativo estable")
+    p = argparse.ArgumentParser(
+        prog="inveniolang", description="InvenioLang 10.0 — Compilador educativo estable"
+    )
     p.add_argument("archivo", nargs="?", help="Archivo .inv a compilar/ejecutar")
     p.add_argument("entrada", nargs="*", help="Entrada simulada para read/leer")
-    p.add_argument("--check", action="store_true", help="Revisar sin ejecutar (léxico/sintáctico/semántico/tipos)")
+    p.add_argument(
+        "--check",
+        action="store_true",
+        help="Revisar sin ejecutar (léxico/sintáctico/semántico/tipos)",
+    )
     p.add_argument("--step", action="store_true", help="Traza paso a paso")
     p.add_argument("--maxpasos", type=int, default=None, help="Límite traza (con --step)")
     p.add_argument("--tokens", action="store_true", help="Mostrar tokens")
@@ -795,9 +819,9 @@ def main():
         if pargs.json:
             import json
 
-            from .errors import ErrorManager as EM2
+            from .errors import ErrorManager as ErrorManagerCheck
 
-            em2 = EM2()
+            em2 = ErrorManagerCheck()
             codigo2, _ = leer_fuente(ruta, em2)
             if codigo2 is not None:
                 from .lexer import Lexer as Lx2
@@ -815,7 +839,11 @@ def main():
                             Tc2(em2, ta).verificar(pa)
             print(
                 json.dumps(
-                    {"archivo": ruta, "errores": em2.obtener_reportes_json(), "ok": not em2.hay_errores()},
+                    {
+                        "archivo": ruta,
+                        "errores": em2.obtener_reportes_json(),
+                        "ok": not em2.hay_errores(),
+                    },
                     ensure_ascii=False,
                     indent=2,
                 )
@@ -885,7 +913,7 @@ def main():
             sem = SemanticAnalyzer(error_manager)
             tabla = sem.analizar(ast)
             print("=== TABLA DE SÍMBOLOS ===")
-            for nombre, entrada in tabla.obtener_simbolos_visibles().items():
+            for _nombre, entrada in tabla.obtener_simbolos_visibles().items():
                 print(f"  {entrada}")
         return 0
 

@@ -71,7 +71,16 @@ ignore_missing_imports = true
 line-length = 100
 target-version = "py310"
 lint.select = ["E","F","W","I","B","C4","UP","S","N","D"]
-lint.ignore = ["D100","D104","D105","D107","S101","S603","S607"]
+# N802: visit_<Clase> es despacho Visitor (patterns.py:166 construye el nombre
+# como f"visit_{type(node).__name__}"); renombrar rompería el doble despacho.
+# N818/N801: *Exception/RuntimeError_ son API pública (interpreter.py, cli.py,
+# gui, tests); renombrar rompería compatibilidad.
+lint.ignore = ["D100","D104","D105","D107","S101","S603","S607","N802","N818","N801"]
+
+# parser.py/lexer.py: la gramática LALR vive en docstrings (producciones
+# p_* y tokens t_* exigidos por PLY). Las reglas de prosa-docstring y de
+# nombres no aplican ahí; E501 cubre líneas de la tabla gramatical.
+lint.per-file-ignores = {"inveniolang/parser.py" = ["D205","D208","D209","D210","D212","D213","D214","D215","D300","D301","D403","D404","D415","D416","N815","E501"], "inveniolang/lexer.py" = ["D205","D208","D209","D210","D212","D213","D214","D215","D300","D301","D403","D404","D415","D416","N815","E501"]}
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

@@ -1,11 +1,12 @@
 # ir_ssa.py — v5 SSA + dominadores (extraído de ir/ssa.py, movido por conflicto ir.py)
 from __future__ import annotations
-from typing import Dict, Set
+
 from .cfg import BloqueCFG
 
 
-def compute_dominators(cfg: Dict[str, BloqueCFG], entry: str) -> Dict[str, Set[str]]:
-    dom: Dict[str, Set[str]] = {bid: set(cfg.keys()) for bid in cfg}
+def compute_dominators(cfg: dict[str, BloqueCFG], entry: str) -> dict[str, set[str]]:
+    """Calcula dominadores del CFG."""
+    dom: dict[str, set[str]] = {bid: set(cfg.keys()) for bid in cfg}
     dom[entry] = {entry}
     changed = True
     while changed:
@@ -23,7 +24,8 @@ def compute_dominators(cfg: Dict[str, BloqueCFG], entry: str) -> Dict[str, Set[s
     return dom
 
 
-def to_ssa(cfg: Dict[str, BloqueCFG]) -> Dict[str, BloqueCFG]:
+def to_ssa(cfg: dict[str, BloqueCFG]) -> dict[str, BloqueCFG]:
+    """Convierte a SSA."""
     for blk in cfg.values():
         if len(blk.predecesores) > 1:
             blk.instrs.insert(0, "phi")

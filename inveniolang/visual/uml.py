@@ -1,9 +1,9 @@
 # visual/uml.py — v10 UML + patrones + diagrama de flujo all-in-one
 from __future__ import annotations
-from typing import List
 
 
 def to_plantuml(clases) -> str:
+    """Exporta a PlantUML."""
     out = ["@startuml", "skinparam classAttributeIconSize 0"]
     for c in clases:
         her = f" extends {c.padre}" if c.padre else ""
@@ -28,6 +28,7 @@ def to_plantuml(clases) -> str:
 
 
 def to_mermaid(clases) -> str:
+    """Exporta a Mermaid."""
     out = ["classDiagram"]
     for c in clases:
         out.append(f"class {c.nombre} {{")
@@ -41,7 +42,8 @@ def to_mermaid(clases) -> str:
     return "\n".join(out)
 
 
-def patrones_detectados(clases) -> List[str]:
+def patrones_detectados(clases) -> list[str]:
+    """Patrones detectados."""
     pats = []
     for c in clases:
         if any(m.es_abstracto for m in c.metodos):

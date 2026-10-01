@@ -1,15 +1,20 @@
 # visual/trees.py — v10 visualización árboles AVL, grafos, listas
 from __future__ import annotations
-from typing import Any, List
+
+from typing import Any
 
 
-def render_arbol(nodo: Any, get_val=lambda n: str(n), get_izq=lambda n: None, get_der=lambda n: None) -> str:
+def render_arbol(
+    nodo: Any, get_val=lambda n: str(n), get_izq=lambda n: None, get_der=lambda n: None
+) -> str:
+    """Renderiza el árbol."""
     # ASCII art para AVL/BST, agil O(n) - usa ASCII puro para Windows cp1252
     if nodo is None:
         return "(vacio)"
-    lines: List[str] = []
+    lines: list[str] = []
 
     def dfs(n, pref="", is_left=True):
+        """Recorre en profundidad."""
         if n is None:
             return
         lines.append(pref + ("|-- " if is_left else "`-- ") + get_val(n))
@@ -24,7 +29,8 @@ def render_arbol(nodo: Any, get_val=lambda n: str(n), get_izq=lambda n: None, ge
     return "\n".join(lines)
 
 
-def render_grafo(matriz: List[List[int]], labels: List[str] = None) -> str:
+def render_grafo(matriz: list[list[int]], labels: list[str] = None) -> str:
+    """Renderiza el grafo."""
     n = len(matriz)
     labels = labels or [str(i) for i in range(n)]
     out = ["graph G {"]
@@ -37,8 +43,11 @@ def render_grafo(matriz: List[List[int]], labels: List[str] = None) -> str:
 
 
 def render_lista(
-    head: Any, get_val=lambda n: n.campos.get("valor", "?"), get_next=lambda n: n.campos.get("siguiente")
+    head: Any,
+    get_val=lambda n: n.campos.get("valor", "?"),
+    get_next=lambda n: n.campos.get("siguiente"),
 ) -> str:
+    """Renderiza la lista."""
     vals = []
     cur = head
     seen = set()

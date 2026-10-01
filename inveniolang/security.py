@@ -49,7 +49,9 @@ def validar_ruta_relativa(ruta: str, *, para_escritura=False) -> str:
         raise ValueError("wildcards/inyección de ruta no permitidos")
     _, ext = os.path.splitext(norm)
     if ext.lower() not in _EXT_PERMITIDAS:
-        raise ValueError(f"extensión '{ext}' no permitida (permitidas: {', '.join(sorted(_EXT_PERMITIDAS))})")
+        raise ValueError(
+            f"extensión '{ext}' no permitida (permitidas: {', '.join(sorted(_EXT_PERMITIDAS))})"
+        )
     # Evitar dispositivos reservados de Windows
     base = os.path.basename(norm).upper().split(".")[0]
     if base in {"CON", "PRN", "AUX", "NUL"} or re.match(r"COM[1-9]|LPT[1-9]", base):
@@ -58,6 +60,7 @@ def validar_ruta_relativa(ruta: str, *, para_escritura=False) -> str:
 
 
 def validar_tamano_contenido(texto: str, limite=MAX_ARCHIVO_BUILTIN):
+    """Valida tamano contenido."""
     if not isinstance(texto, str):
         raise ValueError("contenido debe ser texto")
     if len(texto.encode("utf-8")) > limite:
@@ -69,7 +72,7 @@ def validar_tamano_contenido(texto: str, limite=MAX_ARCHIVO_BUILTIN):
 def sanitizar_salida(texto: str, max_len=10000) -> str:
     """Trunca salida para la GUI / CLI sin perder diagnóstico."""
     if len(texto) > max_len:
-        return texto[:max_len] + f"\n... [truncado, {len(texto)-max_len} chars más]"
+        return texto[:max_len] + f"\n... [truncado, {len(texto) - max_len} chars más]"
     return texto
 
 
