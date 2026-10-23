@@ -127,6 +127,9 @@ def test_traza_devuelve_el_reproductor_autonomo():
         json.dumps({"metodo": "traza", "args": {"codigo": "", "max_pasos": "10"}}),
         json.dumps({"metodo": "ejecutar", "args": {"codigo": "x" * 200_001}}),
     ],
+    # Ids cortos: con el valor como id, pytest pone 200 KB en PYTEST_CURRENT_TEST
+    # y Windows rechaza variables de entorno de más de 32 767 caracteres.
+    ids=lambda peticion: peticion[:40],
 )
 def test_peticiones_invalidas_se_rechazan_sin_excepciones(peticion):
     r = json.loads(llamar(peticion))

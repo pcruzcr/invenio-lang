@@ -133,6 +133,7 @@ def test_javascript_del_reproductor_funciona(nombre, tmp_path):
         ["node", str(AQUI / "dom_minimo.js"), str(pagina)],
         capture_output=True,
         text=True,
+        encoding="utf-8",  # Node escribe UTF-8; en Windows el valor por defecto es cp1252
         timeout=60,
         check=True,
     )

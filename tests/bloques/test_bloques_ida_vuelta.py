@@ -17,7 +17,7 @@ from inveniolang import api, flujo
 
 def test_el_curriculo_esta_completo():
     assert len(CURRICULO) == 266
-    assert len([p for p in CURRICULO if "/es/" in str(p)]) == 133
+    assert len([p for p in CURRICULO if "es" in p.parts]) == 133
 
 
 @pytest.mark.parametrize("inv", CURRICULO, ids=lambda p: f"{p.parent.parent.name}/{p.stem}")

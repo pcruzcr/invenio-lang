@@ -6,9 +6,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const G = JSON.parse(readFileSync(new URL("../syntaxes/inveniolang.tmLanguage.json", import.meta.url), "utf8"));
-const CURRICULO = new URL("../../curriculum/", import.meta.url).pathname;
+// fileURLToPath y no .pathname: en Windows .pathname da "/C:/..." (ruta inválida).
+const CURRICULO = fileURLToPath(new URL("../../curriculum/", import.meta.url));
 
 function aplanar(patrones) {
   return patrones.flatMap((p) => (p.include ? aplanar(G.repository[p.include.slice(1)].patterns) : [p]));

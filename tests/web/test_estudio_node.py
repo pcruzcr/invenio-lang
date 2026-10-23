@@ -30,9 +30,11 @@ def test_node_test(carpeta):
     # La prueba del servidor LSP lo lanza con este mismo intérprete.
     entorno = {**os.environ, "INVENIOLANG_PYTHON": sys.executable}
     r = subprocess.run(
-        [NODE, "--test", *pruebas],
+        # TAP explícito: desde Node 20 el reportero por defecto es "spec" (ℹ fail 0).
+        [NODE, "--test", "--test-reporter=tap", *pruebas],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=300,
         cwd=carpeta,
         env=entorno,

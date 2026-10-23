@@ -4,13 +4,15 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { escaparHTML, idiomaDelCodigo, resaltarHTML, tokenizar } from "../js/resaltado.js";
+import { fileURLToPath } from "node:url";
 
 const LEXICO = {
   palabras: { si: "clave", if: "clave", mientras: "clave", while: "clave", entero: "tipo", int: "tipo", verdadero: "literal", true: "literal", vacio: "tipo", void: "tipo", imprimir: "clave", print: "clave" },
   integradas: ["longitud", "length"],
 };
 const PARES = [["si", "if"], ["mientras", "while"], ["entero", "int"], ["imprimir", "print"], ["vacio", "void"]];
-const RAIZ = new URL("../../../curriculum/", import.meta.url).pathname;
+// fileURLToPath y no .pathname: en Windows .pathname da "/C:/..." (ruta inválida).
+const RAIZ = fileURLToPath(new URL("../../../curriculum/", import.meta.url));
 
 function archivos(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
