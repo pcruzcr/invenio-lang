@@ -1,0 +1,21 @@
+{
+  "id": "N10-E04",
+  "nivel": 10,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Evaluar expresiones postfijas",
+  "enunciado": "Evalúa expresiones en notación postfija (polaca inversa) cuyos símbolos vienen en un arreglo de textos: \"3 4 + 2 *\" y \"5 1 2 + 4 * + 3 -\". Muestra la pila después de cada símbolo de la segunda.",
+  "objetivos": [
+    "Evaluar expresiones sin paréntesis con una pila",
+    "Respetar el orden de los operandos al desapilar"
+  ],
+  "pistas": [
+    "Un número se apila.",
+    "Un operador desapila b, luego a, y apila a op b.",
+    "Al final la pila contiene un solo valor: el resultado."
+  ],
+  "conceptos": [
+    "notación postfija",
+    "pila"
+  ]
+}

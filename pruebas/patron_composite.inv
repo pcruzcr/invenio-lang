@@ -1,0 +1,25 @@
+// patron_composite.inv - Composite binario (sin arreglos en atributos).
+clase Hoja {
+    publico entero v;
+    Hoja(entero x) { this.v = x; }
+    publico entero total() {
+        return this.v;
+    }
+}
+clase Grupo {
+    privado Hoja izq;
+    privado Hoja der;
+    Grupo(entero a, entero b) {
+        this.izq = nuevo Hoja(a);
+        this.der = nuevo Hoja(b);
+    }
+    publico entero total() {
+        Hoja x = this.izq;
+        Hoja y = this.der;
+        return x.total() + y.total();
+    }
+}
+void main() {
+    Grupo g = nuevo Grupo(3, 4);
+    imprimir(g.total());
+}

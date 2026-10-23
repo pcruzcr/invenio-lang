@@ -1,0 +1,20 @@
+// Nivel 2 · Ejercicio 06 — hacer-mientras: validar la entrada
+// Objetivos:
+//   - Usar hacer { } mientras (...) cuando el cuerpo debe ejecutarse al
+//   - menos una vez
+//   - Validar datos de entrada
+//
+vacio main() {
+    entero nota;
+    entero intentos = 0;
+    // El cuerpo se ejecuta al menos una vez: no se puede validar antes de leer.
+    hacer {
+        leer(nota);
+        intentos++;
+        si (nota < 0 || nota > 100) {
+            imprimir("invalid\n");
+        }
+    } mientras (nota < 0 || nota > 100);
+    imprimir("grade = "); imprimir(nota); imprimir("\n");
+    imprimir("attempts = "); imprimir(intentos); imprimir("\n");
+}

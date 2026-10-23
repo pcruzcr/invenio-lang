@@ -1,0 +1,18 @@
+// Level 2 · Exercise 01 — Even or odd
+// Learning goals:
+//   - Make decisions with if / else
+//   - Use % to test divisibility
+//
+void main() {
+    for (int i = 0; i < 3; i++) {
+        int n;
+        read(n);
+        print(n); print(": ");
+        // We compare with 0: it also works with negatives.
+        if (n % 2 == 0) {
+            print("EVEN\n");
+        } else {
+            print("ODD\n");
+        }
+    }
+}

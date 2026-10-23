@@ -1,0 +1,18 @@
+// Ejercita estructuras/arbol_binario_busqueda desde un programa (INV-1430).
+importar "estructuras/arbol_binario_busqueda";
+
+vacio main() {
+    ArbolBinarioBusqueda a = nuevo ArbolBinarioBusqueda();
+    imprimir(a.esta_vacio()); imprimir(" "); imprimir(a.altura()); imprimir("\n");
+    entero[9] valores = {8, 3, 10, 1, 6, 14, 4, 7, 13};
+    para_cada (entero x : valores) {
+        a.insertar(x);
+    }
+    imprimir(a.insertar(6)); imprimir(" "); imprimir(a.tamano()); imprimir("\n");
+    imprimir(a.inorden()); imprimir("\n");
+    imprimir(a.preorden()); imprimir("\n");
+    imprimir(a.postorden()); imprimir("\n");
+    imprimir(a.altura()); imprimir(" "); imprimir(a.minimo()); imprimir(" "); imprimir(a.maximo()); imprimir(" "); imprimir(a.contiene(7)); imprimir(a.contiene(5)); imprimir("\n");
+    a.eliminar(3); a.eliminar(8); a.eliminar(14);
+    imprimir(a.eliminar(99)); imprimir(" "); imprimir(a.inorden()); imprimir(" "); imprimir(a.preorden()); imprimir(" "); imprimir(a.tamano()); imprimir("\n");
+}

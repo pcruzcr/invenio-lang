@@ -1,16 +1,77 @@
 # Módulo de Análisis Semántico de InvenioLang 1.0
 # Implementa las reglas semánticas de la Sección 14
 # Construye la tabla de símbolos y verifica reglas de alcance, declaración y uso
+# Patrones: Visitor (recorrido AST sin isinstance disperso), Strategy (validación
+# de tipos/herencia), Template Method (fases), Observer (notifica a IDE)
+from __future__ import annotations
 
 import copy
 
-from .ast_nodes import *
-from .symbol_table import SymbolTable, TipoSimbolo, MiembroInfo, MetodoInfo
+from .ast_nodes import (
+    ArrayAccess,
+    ArrayDecl,
+    ArrayLValue,
+    AssignStmt,
+    ASTNode,
+    ASTVisitor,
+    AttrDecl,
+    BinaryOp,
+    Bloque,
+    BreakStmt,
+    CallStmt,
+    ClassDecl,
+    ConstDecl,
+    ConstructorDecl,
+    ContinueStmt,
+    DoWhileStmt,
+    ForEachStmt,
+    ForInitAsig,
+    ForInitIncDec,
+    ForInitVar,
+    ForStmt,
+    FunctionCall,
+    FunctionDecl,
+    Identifier,
+    IfStmt,
+    IncDecStmt,
+    LambdaExpr,
+    Literal,
+    MatchStmt,
+    MatrixAccess,
+    MatrixDecl,
+    MatrixLValue,
+    MemberAccess,
+    MemberIndexAccess,
+    MemberIndexLValue,
+    MemberLValue,
+    MethodCallExpr,
+    MethodCallStmt,
+    NewArrayExpr,
+    NewExpr,
+    NullExpr,
+    PrintStmt,
+    ProcedureDecl,
+    ReadStmt,
+    ReturnStmt,
+    SuperCallStmt,
+    SuperExpr,
+    SwitchStmt,
+    TernaryExpr,
+    ThisExpr,
+    TryStmt,
+    UnaryOp,
+    VarDecl,
+    VarLValue,
+    WhileStmt,
+)
 from .builtins import FUNCIONES_BUILT_IN
+from .i18n import M
+from .patterns import StrategyContext, Subject
+from .symbol_table import MetodoInfo, MiembroInfo, SymbolTable, TipoSimbolo
 
 # Tipos primitivos de InvenioLang 1.0. Cualquier otro nombre de tipo debe ser
 # una clase declarada (POO, InvenioLang 2.0) o es IL-POO-016.
-_TIPOS_PRIMITIVOS = {'int', 'float', 'string', 'bool', 'void'}
+_TIPOS_PRIMITIVOS = {"int", "float", "string", "bool", "void"}
 
 # Orden superior sobre arreglos (Etapa 12.7): reducir/mapear/filtrar reciben
 # un valor-función como argumento -- no caben en `FUNCIONES_BUILT_IN`
@@ -29,15 +90,19 @@ _TIPOS_PRIMITIVOS = {'int', 'float', 'string', 'bool', 'void'}
 # paso de arreglos por referencia que ya existe, no inventa uno nuevo:
 #   entero reducir(entero[] arr, funcion(entero,entero) entero f, entero inicial)
 #   void mapear(entero[] arr, entero[] salida, funcion(entero) entero f)
-#   entero filtrar(entero[] arr, entero[] salida, funcion(entero) bool pred)  -- retorna cuantos escribio
+# entero filtrar(entero[] arr, entero[] salida, funcion(entero) bool pred) -- retorna cuantos
+# s escribio
 _ORDEN_SUPERIOR = {
-    'reducir': 3, 'reduce': 3,
-    'mapear': 3, 'map': 3,
-    'filtrar': 3, 'filter': 3,
+    "reducir": 3,
+    "reduce": 3,
+    "mapear": 3,
+    "map": 3,
+    "filtrar": 3,
+    "filter": 3,
 }
 
 
-class SemanticAnalyzer:
+class SemanticAnalyzer(ASTVisitor, Subject):
     """Analizador semántico de InvenioLang 1.0.
 
     Recorre el AST y construye la tabla de símbolos verificando:
@@ -49,17 +114,24 @@ class SemanticAnalyzer:
     - Procedimientos como expresiones (IL-SEM-060)
     - Argumentos correctos (IL-SEM-052)
     - main válido (IL-SEM-020, IL-SEM-021, IL-SEM-022, IL-SEM-023)
+
+    Patrones: Visitor (visit_Program/Bloque/...), Strategy (validación por
+    tipo), Template Method (fases), Subject (notifica a IDE).
+    Optimización: tabla con caché de ancestros, visitor O(1).
     """
 
     def __init__(self, error_manager):
+        Subject.__init__(self)
         self.error_manager = error_manager
         self.tabla = SymbolTable()
+        self._strategy_ctx = StrategyContext()
         self._registrar_builtins()
 
     def _registrar_builtins(self):
         """Registra las funciones integradas en la tabla de símbolos."""
         from .symbol_table import TipoSimbolo
-        for nombre, (func, tipo_ret, tipos_params) in FUNCIONES_BUILT_IN.items():
+
+        for nombre, (_func, tipo_ret, tipos_params) in FUNCIONES_BUILT_IN.items():
             entrada = self.tabla.declarar(nombre, TipoSimbolo.FUNCION, tipo_ret, 0, 0)
             if entrada:
                 entrada.params = tipos_params
@@ -84,8 +156,8 @@ class SemanticAnalyzer:
         # que estos diccionarios son la unica forma de recuperar "que
         # variantes tenia este enum" para verificar exhaustividad en
         # _visitar_match.
-        self.variantes_enum = {}    # nombre_enum -> list[str] variantes, en orden
-        self.campos_variante = {}   # nombre_variante -> list[str] campos, en orden
+        self.variantes_enum = {}  # nombre_enum -> list[str] variantes, en orden
+        self.campos_variante = {}  # nombre_variante -> list[str] campos, en orden
         self.enum_de_variante = {}  # nombre_variante -> nombre_enum
         self.en_metodo_estatico = False  # Etapa 7: bloquea este/padre (IL-POO-025)
 
@@ -130,9 +202,14 @@ class SemanticAnalyzer:
         for m in enum_nodo.valores:
             if m.nombre in nombres_variantes:
                 self.error_manager.error_poo(
-                    'IL-POO-031',
-                    f'Valor duplicado "{m.nombre}" en la enumeración "{enum_nodo.nombre}"',
-                    enum_nodo.linea, enum_nodo.columna
+                    "IL-POO-031",
+                    M(
+                        "IL-POO-031.valor_duplicado_enumeracion",
+                        nombre=m.nombre,
+                        nombre2=enum_nodo.nombre,
+                    ),
+                    enum_nodo.linea,
+                    enum_nodo.columna,
                 )
                 continue
             nombres_variantes.append(m.nombre)
@@ -140,30 +217,35 @@ class SemanticAnalyzer:
             self.campos_variante[m.nombre] = [p.nombre for p in m.parametros]
 
             atributos = [
-                AttrDecl('publico', p.tipo, p.nombre, None, False, m.linea, m.columna)
+                AttrDecl("publico", p.tipo, p.nombre, None, False, m.linea, m.columna)
                 for p in m.parametros
             ]
             cuerpo_ctor = [
                 AssignStmt(
                     MemberLValue(ThisExpr(m.linea, m.columna), p.nombre, m.linea, m.columna),
-                    '=', Identifier(p.nombre, m.linea, m.columna), m.linea, m.columna
+                    "=",
+                    Identifier(p.nombre, m.linea, m.columna),
+                    m.linea,
+                    m.columna,
                 )
                 for p in m.parametros
             ]
             ctor = ConstructorDecl(
-                m.nombre, m.parametros, Bloque(cuerpo_ctor, m.linea, m.columna),
-                'publico', m.linea, m.columna
+                m.nombre,
+                m.parametros,
+                Bloque(cuerpo_ctor, m.linea, m.columna),
+                "publico",
+                m.linea,
+                m.columna,
             )
             clase_variante = ClassDecl(
-                m.nombre, enum_nodo.nombre, atributos, [], [ctor],
-                False, None, m.linea, m.columna
+                m.nombre, enum_nodo.nombre, atributos, [], [ctor], False, None, m.linea, m.columna
             )
             lista_clases.append(clase_variante)
 
         self.variantes_enum[enum_nodo.nombre] = nombres_variantes
         clase_base = ClassDecl(
-            enum_nodo.nombre, None, [], [], [],
-            True, None, enum_nodo.linea, enum_nodo.columna
+            enum_nodo.nombre, None, [], [], [], True, None, enum_nodo.linea, enum_nodo.columna
         )
         lista_clases.append(clase_base)
 
@@ -202,24 +284,27 @@ class SemanticAnalyzer:
             return
         usos = set()
         self._recolectar_usos_genericos(ast, genericas, usos)
-        especializadas = [self._especializar_clase(genericas[base], arg)
-                          for base, arg in sorted(usos)]
+        especializadas = [
+            self._especializar_clase(genericas[base], arg) for base, arg in sorted(usos)
+        ]
         ast.clases = [c for c in ast.clases if c.parametro_tipo is None] + especializadas
 
     def _recolectar_usos_genericos(self, obj, genericas, usos, vistos=None):
-        """Recorre el AST completo (genérico, vía __dict__ -- no hace falta
+        """Recorre el AST completo (genérico, vía __dict__ -- no hace falta.
+
         enumerar cada tipo de nodo a mano) buscando cadenas de tipo con la
-        forma 'Base<Arg>' que correspondan a una clase genérica declarada."""
+        forma 'Base<Arg>' que correspondan a una clase genérica declarada.
+        """
         if vistos is None:
             vistos = set()
         if isinstance(obj, ASTNode):
             if id(obj) in vistos:
                 return
             vistos.add(id(obj))
-            for attr in ('tipo', 'nombre_clase', 'tipo_retorno'):
+            for attr in ("tipo", "nombre_clase", "tipo_retorno"):
                 valor = getattr(obj, attr, None)
-                if isinstance(valor, str) and valor.endswith('>') and '<' in valor:
-                    base, _, resto = valor.partition('<')
+                if isinstance(valor, str) and valor.endswith(">") and "<" in valor:
+                    base, _, resto = valor.partition("<")
                     if base in genericas:
                         usos.add((base, resto[:-1]))
             for valor in vars(obj).values():
@@ -229,13 +314,15 @@ class SemanticAnalyzer:
                 self._recolectar_usos_genericos(item, genericas, usos, vistos)
 
     def _especializar_clase(self, plantilla, arg):
-        """Copia profunda de la ClassDecl genérica `plantilla`, con el
+        """Copia profunda de la ClassDecl genérica `plantilla`, con el.
+
         parámetro de tipo sustituido por `arg` en todo el cuerpo. El nombre
         especializado ('Base<arg>') es el nombre INTERNO de la nueva clase
         -- nunca puede colisionar con un identificador real de InvenioLang
-        (la sintaxis del lenguaje no admite '<'/'>' en un nombre)."""
+        (la sintaxis del lenguaje no admite '<'/'>' en un nombre).
+        """
         nueva = copy.deepcopy(plantilla)
-        nombre_especializado = f'{plantilla.nombre}<{arg}>'
+        nombre_especializado = f"{plantilla.nombre}<{arg}>"
         self._sustituir_parametro_tipo(nueva, plantilla.parametro_tipo, arg)
         nueva.nombre = nombre_especializado
         nueva.parametro_tipo = None
@@ -250,7 +337,7 @@ class SemanticAnalyzer:
             if id(obj) in vistos:
                 return
             vistos.add(id(obj))
-            for attr in ('tipo', 'tipo_retorno'):
+            for attr in ("tipo", "tipo_retorno"):
                 if getattr(obj, attr, None) == param:
                     setattr(obj, attr, arg)
             for valor in vars(obj).values():
@@ -263,12 +350,18 @@ class SemanticAnalyzer:
         """Visita el nodo Programa."""
         # Registrar funciones, procedimientos y clases primero (forward
         # reference entre cualquier combinación de ellos).
+        # INV-1420: `en_origen` atribuye cada diagnostico al archivo donde
+        # vive la declaracion (programa principal o modulo importado).
+        en_origen = self.error_manager.en_origen
         for sub in nodo.subrutinas:
-            self._declarar_subrutina(sub)
+            with en_origen(sub):
+                self._declarar_subrutina(sub)
         for e in nodo.enums:
-            self._declarar_enum(e)
+            with en_origen(e):
+                self._declarar_enum(e)
         for c in nodo.clases:
-            self._declarar_clase(c)
+            with en_origen(c):
+                self._declarar_clase(c)
 
         # Con todos los nombres ya conocidos: validar herencia y que los
         # tipos usados en firmas (parametros, retornos, atributos) sean
@@ -281,24 +374,26 @@ class SemanticAnalyzer:
 
         # Declaraciones globales (deben ir antes de visitar cuerpos de funciones)
         for d in nodo.declaraciones_globales:
-            self._visitar_declaracion(d)
+            with en_origen(d):
+                self._visitar_declaracion(d)
 
         for d in nodo.declaraciones_posteriores:
             self._visitar_declaracion(d)
 
         # Visitar cuerpos de funciones y procedimientos
         for sub in nodo.subrutinas:
-            self._visitar_subrutina(sub)
+            with en_origen(sub):
+                self._visitar_subrutina(sub)
 
         # Visitar cuerpos de clases (metodos y constructor)
         for c in nodo.clases:
-            self._visitar_clase(c)
+            with en_origen(c):
+                self._visitar_clase(c)
 
         # Verificar main
         if nodo.main is None:
             self.error_manager.error_semantico(
-                'IL-SEM-020', 'No se encontró la función main en el archivo fuente',
-                0, 0
+                "IL-SEM-020", M("IL-SEM-020.no_encontro_funcion_main"), 0, 0
             )
         else:
             self._visitar_main(nodo.main)
@@ -310,7 +405,7 @@ class SemanticAnalyzer:
             tipo_ret = nodo.tipo_retorno
         elif isinstance(nodo, ProcedureDecl):
             ts = TipoSimbolo.PROCEDIMIENTO
-            tipo_ret = 'void'
+            tipo_ret = "void"
         else:
             return
 
@@ -353,9 +448,9 @@ class SemanticAnalyzer:
     def _tipo_parametro(self, param):
         """Retorna la representación del tipo de un parámetro."""
         if param.es_matriz:
-            return f'{param.tipo}[][]'
+            return f"{param.tipo}[][]"
         if param.es_arreglo:
-            return f'{param.tipo}[]'
+            return f"{param.tipo}[]"
         return param.tipo
 
     # ============================================================
@@ -363,18 +458,23 @@ class SemanticAnalyzer:
     # ============================================================
 
     def _validar_tipo(self, tipo, linea, columna):
-        """IL-POO-016: un tipo debe ser primitivo, una clase declarada, o
+        """IL-POO-016: un tipo debe ser primitivo, una clase declarada, o.
+
         un tipo función sintetizado por el parser (Etapa 12.6,
         `funcion(...)->...` -- su forma ya está garantizada válida por la
         gramática misma: cada tipo de parámetro que compone la cadena ya
-        pasó por `tipo`/`tipo_retorno_funcion`, no hace falta re-validar)."""
-        if tipo in _TIPOS_PRIMITIVOS or self.tabla.es_clase(tipo) or tipo.startswith('funcion('):
+        pasó por `tipo`/`tipo_retorno_funcion`, no hace falta re-validar).
+        """
+        # INV-1440: "<tipo>[]" es un atributo arreglo dinamico; se valida su
+        # tipo de elemento.
+        base = tipo[:-2] if tipo.endswith("[]") else tipo
+        if base in _TIPOS_PRIMITIVOS or self.tabla.es_clase(base) or tipo.startswith("funcion("):
             return
         self.error_manager.error_poo(
-            'IL-POO-016',
-            f'"{tipo}" no es un tipo válido: ni un tipo primitivo ni una '
-            f'clase declarada',
-            linea, columna
+            "IL-POO-016",
+            M("IL-POO-016.no_tipo_valido_ni", tipo=tipo),
+            linea,
+            columna,
         )
 
     def _validar_tipos_subrutinas(self, subrutinas):
@@ -399,31 +499,37 @@ class SemanticAnalyzer:
                     self._validar_tipo(p.tipo, p.linea, p.columna)
 
     def _nombre_ocupado_por_atributo(self, info, nombre):
-        """Un atributo y un metodo comparten espacio de nombres dentro de
+        """Un atributo y un metodo comparten espacio de nombres dentro de.
+
         una clase (más simple de razonar para el estudiante que permitir que
-        coexistan, como sí hacen algunos lenguajes de producción)."""
+        coexistan, como sí hacen algunos lenguajes de producción).
+        """
         return nombre in info.atributos or nombre in info.metodos
 
     def _declarar_enum(self, nodo):
-        """Registra una enumeración (Etapa 11): internamente es una
+        """Registra una enumeración (Etapa 11): internamente es una.
+
         ClaseInfo con es_enum=True y un atributo estático público por cada
         miembro, de tipo "el propio nombre del enum" -- reutiliza TODO el
         mecanismo de acceso a miembro estático que ya existe para clases
         (NombreEnum.MIEMBRO), sin duplicar código. El valor entero de cada
         miembro (su posición 0, 1, 2, ...) lo asigna interpreter.py al
-        inicializar estáticos, igual que ya hace con los estáticos reales."""
+        inicializar estáticos, igual que ya hace con los estáticos reales.
+        """
         info = self.tabla.declarar_clase(nodo.nombre, None, nodo.linea, nodo.columna)
         if info is None:
             self.error_manager.error_poo(
-                'IL-POO-001',
-                f'Clase duplicada: "{nodo.nombre}"',
-                nodo.linea, nodo.columna
+                "IL-POO-001",
+                M("IL-POO-001.clase_duplicada", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
             return
         info.es_enum = True
 
-        entrada = self._declarar_simbolo(nodo.nombre, TipoSimbolo.CLASE, nodo.nombre,
-                                         nodo.linea, nodo.columna)
+        entrada = self._declarar_simbolo(
+            nodo.nombre, TipoSimbolo.CLASE, nodo.nombre, nodo.linea, nodo.columna
+        )
         if entrada is None:
             self._manejar_duplicado(nodo.nombre, nodo.linea, nodo.columna)
 
@@ -439,38 +545,48 @@ class SemanticAnalyzer:
             nombre = miembro.nombre
             if nombre in vistos:
                 self.error_manager.error_poo(
-                    'IL-POO-031',
-                    f'Valor duplicado "{nombre}" en la enumeración "{nodo.nombre}"',
-                    nodo.linea, nodo.columna
+                    "IL-POO-031",
+                    M("IL-POO-031.valor_duplicado_enumeracion", nombre=nombre, nombre2=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
                 )
                 continue
             vistos.add(nombre)
             info.atributos[nombre] = MiembroInfo(
-                nombre, 'publico', nodo.nombre, nodo.linea, nodo.columna,
-                es_estatico=True)
+                nombre, "publico", nodo.nombre, nodo.linea, nodo.columna, es_estatico=True
+            )
 
     def _declarar_clase(self, nodo):
-        """Registra una clase (encabezado + miembros) en la tabla de
+        """Registra una clase (encabezado + miembros) en la tabla de.
+
         símbolos. La cadena de herencia NO se valida aquí -- necesita que
         TODAS las clases estén registradas primero (`_validar_herencia`),
-        por si el padre se declara más adelante en el archivo."""
-        info = self.tabla.declarar_clase(nodo.nombre, nodo.padre, nodo.linea, nodo.columna,
-                                         es_abstracta=nodo.es_abstracta,
-                                         interfaces=nodo.interfaces,
-                                         es_interfaz=nodo.es_interfaz)
+        por si el padre se declara más adelante en el archivo.
+        """
+        info = self.tabla.declarar_clase(
+            nodo.nombre,
+            nodo.padre,
+            nodo.linea,
+            nodo.columna,
+            es_abstracta=nodo.es_abstracta,
+            interfaces=nodo.interfaces,
+            es_interfaz=nodo.es_interfaz,
+        )
         if info is None:
             self.error_manager.error_poo(
-                'IL-POO-001',
-                f'Clase duplicada: "{nodo.nombre}"',
-                nodo.linea, nodo.columna
+                "IL-POO-001",
+                M("IL-POO-001.clase_duplicada", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
             return
 
         # También ocupa el espacio de nombres global, para que choque con
         # una variable/función del mismo nombre igual que cualquier otro
         # identificador (IL-SEM-002/IL-SEM-080).
-        entrada = self._declarar_simbolo(nodo.nombre, TipoSimbolo.CLASE, nodo.nombre,
-                                         nodo.linea, nodo.columna)
+        entrada = self._declarar_simbolo(
+            nodo.nombre, TipoSimbolo.CLASE, nodo.nombre, nodo.linea, nodo.columna
+        )
         if entrada is None:
             self._manejar_duplicado(nodo.nombre, nodo.linea, nodo.columna)
 
@@ -479,56 +595,78 @@ class SemanticAnalyzer:
             # instancia -- mismo criterio que Java/C#/Kotlin (una interfaz
             # es un contrato de comportamiento, no de datos).
             self.error_manager.error_poo(
-                'IL-POO-034',
-                f'La interfaz "{nodo.nombre}" no puede declarar atributos '
-                f'(solo métodos abstractos)',
-                nodo.atributos[0].linea, nodo.atributos[0].columna
+                "IL-POO-034",
+                M("IL-POO-034.interfaz_no_puede_declarar", nombre=nodo.nombre),
+                nodo.atributos[0].linea,
+                nodo.atributos[0].columna,
             )
         if nodo.es_interfaz and nodo.constructores:
             self.error_manager.error_poo(
-                'IL-POO-034',
-                f'La interfaz "{nodo.nombre}" no puede declarar constructores '
-                f'(no es instanciable)',
-                nodo.constructores[0].linea, nodo.constructores[0].columna
+                "IL-POO-034",
+                M("IL-POO-034.interfaz_no_puede_declarar_2", nombre=nodo.nombre),
+                nodo.constructores[0].linea,
+                nodo.constructores[0].columna,
             )
 
         for attr in nodo.atributos:
             if self._nombre_ocupado_por_atributo(info, attr.nombre):
                 self.error_manager.error_poo(
-                    'IL-POO-004',
-                    f'Miembro duplicado "{attr.nombre}" en la clase "{nodo.nombre}"',
-                    attr.linea, attr.columna
+                    "IL-POO-004",
+                    M(
+                        "IL-POO-004.miembro_duplicado_clase",
+                        nombre=attr.nombre,
+                        nombre2=nodo.nombre,
+                    ),
+                    attr.linea,
+                    attr.columna,
                 )
                 continue
             info.atributos[attr.nombre] = MiembroInfo(
-                attr.nombre, attr.visibilidad, attr.tipo, attr.linea, attr.columna,
-                es_estatico=attr.es_estatico)
+                attr.nombre,
+                attr.visibilidad,
+                attr.tipo,
+                attr.linea,
+                attr.columna,
+                es_estatico=attr.es_estatico,
+            )
 
         for met in nodo.metodos:
             # IL-POO-022: un método abstracto no lleva cuerpo, y viceversa.
             if met.es_abstracto and met.bloque is not None:
                 self.error_manager.error_poo(
-                    'IL-POO-022',
-                    f'El método abstracto "{nodo.nombre}.{met.nombre}" no '
-                    f'debe tener cuerpo',
-                    met.linea, met.columna
+                    "IL-POO-022",
+                    M(
+                        "IL-POO-022.metodo_abstracto_no_debe",
+                        nombre=nodo.nombre,
+                        nombre2=met.nombre,
+                    ),
+                    met.linea,
+                    met.columna,
                 )
             elif not met.es_abstracto and met.bloque is None:
                 self.error_manager.error_poo(
-                    'IL-POO-022',
-                    f'El método "{nodo.nombre}.{met.nombre}" debe tener '
-                    f'cuerpo (no está marcado abstracto)',
-                    met.linea, met.columna
+                    "IL-POO-022",
+                    M(
+                        "IL-POO-022.metodo_debe_tener_cuerpo",
+                        nombre=nodo.nombre,
+                        nombre2=met.nombre,
+                    ),
+                    met.linea,
+                    met.columna,
                 )
             # IL-POO-024: un método abstracto solo tiene sentido en una
             # clase que también lo es (si no, nunca podría instanciarse
             # nada que lo deje sin implementar -- ver IL-POO-020/021).
             if met.es_abstracto and not nodo.es_abstracta:
                 self.error_manager.error_poo(
-                    'IL-POO-024',
-                    f'El método abstracto "{nodo.nombre}.{met.nombre}" solo '
-                    f'puede declararse en una clase abstracta',
-                    met.linea, met.columna
+                    "IL-POO-024",
+                    M(
+                        "IL-POO-024.metodo_abstracto_solo_puede",
+                        nombre=nodo.nombre,
+                        nombre2=met.nombre,
+                    ),
+                    met.linea,
+                    met.columna,
                 )
             # IL-POO-034 (Etapa 12.3): una interfaz solo declara metodos
             # abstractos -- uno con cuerpo ya se rechaza como error de
@@ -537,19 +675,24 @@ class SemanticAnalyzer:
             # invalido dentro de 'interfaz X {...}'.
             if nodo.es_interfaz and not met.es_abstracto:
                 self.error_manager.error_poo(
-                    'IL-POO-034',
-                    f'La interfaz "{nodo.nombre}.{met.nombre}" debe ser '
-                    f'abstracta (una interfaz no declara métodos con cuerpo)',
-                    met.linea, met.columna
+                    "IL-POO-034",
+                    M(
+                        "IL-POO-034.interfaz_debe_ser_abstracta",
+                        nombre=nodo.nombre,
+                        nombre2=met.nombre,
+                    ),
+                    met.linea,
+                    met.columna,
                 )
 
             if met.nombre in info.atributos:
                 # IL-POO-004: un método no puede compartir nombre con un
                 # atributo, con o sin sobrecarga.
                 self.error_manager.error_poo(
-                    'IL-POO-004',
-                    f'Miembro duplicado "{met.nombre}" en la clase "{nodo.nombre}"',
-                    met.linea, met.columna
+                    "IL-POO-004",
+                    M("IL-POO-004.miembro_duplicado_clase", nombre=met.nombre, nombre2=nodo.nombre),
+                    met.linea,
+                    met.columna,
                 )
                 continue
             params_tipos = [self._tipo_parametro(p) for p in met.parametros]
@@ -558,16 +701,29 @@ class SemanticAnalyzer:
                 # IL-POO-004: sobrecarga con la MISMA firma exacta ya
                 # existente -- eso no es sobrecarga, es un duplicado.
                 self.error_manager.error_poo(
-                    'IL-POO-004',
-                    f'"{nodo.nombre}.{met.nombre}({", ".join(params_tipos)})" '
-                    f'ya está declarado en esta clase',
-                    met.linea, met.columna
+                    "IL-POO-004",
+                    M(
+                        "IL-POO-004.ya_esta_declarado_esta",
+                        nombre=nodo.nombre,
+                        nombre2=met.nombre,
+                        valor=", ".join(params_tipos),
+                    ),
+                    met.linea,
+                    met.columna,
                 )
                 continue
-            sobrecargas.append(MetodoInfo(
-                met.nombre, met.visibilidad, met.tipo_retorno, params_tipos,
-                met.linea, met.columna,
-                es_estatico=met.es_estatico, es_abstracto=met.es_abstracto))
+            sobrecargas.append(
+                MetodoInfo(
+                    met.nombre,
+                    met.visibilidad,
+                    met.tipo_retorno,
+                    params_tipos,
+                    met.linea,
+                    met.columna,
+                    es_estatico=met.es_estatico,
+                    es_abstracto=met.es_abstracto,
+                )
+            )
 
         # Etapa 10: sobrecarga de constructores -- mismo criterio que la
         # sobrecarga de métodos de arriba (IL-POO-019 en vez de IL-POO-004,
@@ -576,20 +732,33 @@ class SemanticAnalyzer:
             params_tipos = [self._tipo_parametro(p) for p in ctor.parametros]
             if any(c.params_tipos == params_tipos for c in info.constructores):
                 self.error_manager.error_poo(
-                    'IL-POO-019',
-                    f'"{nodo.nombre}({", ".join(params_tipos)})" ya está '
-                    f'declarado como constructor de esta clase',
-                    ctor.linea, ctor.columna
+                    "IL-POO-019",
+                    M(
+                        "IL-POO-019.ya_esta_declarado_como",
+                        nombre=nodo.nombre,
+                        valor=", ".join(params_tipos),
+                    ),
+                    ctor.linea,
+                    ctor.columna,
                 )
                 continue
-            info.constructores.append(MetodoInfo(
-                nodo.nombre, ctor.visibilidad, nodo.nombre, params_tipos,
-                ctor.linea, ctor.columna))
+            info.constructores.append(
+                MetodoInfo(
+                    nodo.nombre,
+                    ctor.visibilidad,
+                    nodo.nombre,
+                    params_tipos,
+                    ctor.linea,
+                    ctor.columna,
+                )
+            )
 
     def _detectar_ciclo(self, nombre):
-        """Camina la cadena de padres desde `nombre`. Retorna la lista del
+        """Camina la cadena de padres desde `nombre`. Retorna la lista del.
+
         ciclo si lo hay, o None si la cadena termina (en la raíz o en un
-        padre inexistente, que no es un ciclo y se reporta aparte)."""
+        padre inexistente, que no es un ciclo y se reporta aparte).
+        """
         camino = []
         actual = nombre
         while actual is not None:
@@ -607,10 +776,10 @@ class SemanticAnalyzer:
         for nombre, info in self.tabla.clases.items():
             if info.padre is not None and info.padre not in self.tabla.clases:
                 self.error_manager.error_poo(
-                    'IL-POO-002',
-                    f'La clase "{nombre}" hereda de "{info.padre}", que no '
-                    f'es una clase declarada',
-                    info.linea, info.columna
+                    "IL-POO-002",
+                    M("IL-POO-002.clase_hereda_no_clase", nombre=nombre, padre=info.padre),
+                    info.linea,
+                    info.columna,
                 )
 
         reportadas = set()
@@ -621,45 +790,56 @@ class SemanticAnalyzer:
             if ciclo:
                 reportadas.update(ciclo)
                 self.error_manager.error_poo(
-                    'IL-POO-003',
-                    'Herencia circular detectada: '
-                    f'{" -> ".join(ciclo + [ciclo[0]])}',
-                    info.linea, info.columna
+                    "IL-POO-003",
+                    M(
+                        "IL-POO-003.herencia_circular_detectada",
+                        valor=" -> ".join(ciclo + [ciclo[0]]),
+                    ),
+                    info.linea,
+                    info.columna,
                 )
 
     def _validar_interfaces(self):
-        """IL-POO-002 (reutilizado: implementa algo no declarado) e
+        """IL-POO-002 (reutilizado: implementa algo no declarado) e.
+
         IL-POO-033 (implementa algo que no es abstracto/interfaz -- Etapa
         12.3). `implementa` es una lista, a diferencia de `hereda`
         (siempre singular) -- por eso no se apoya en `_detectar_ciclo` ni
-        en `cadena_ancestros`, que asumen un solo padre."""
+        en `cadena_ancestros`, que asumen un solo padre.
+        """
         for nombre, info in self.tabla.clases.items():
             for interfaz in info.interfaces:
                 destino = self.tabla.clases.get(interfaz)
                 if destino is None:
                     self.error_manager.error_poo(
-                        'IL-POO-002',
-                        f'La clase "{nombre}" implementa "{interfaz}", que no '
-                        f'es una clase/interfaz declarada',
-                        info.linea, info.columna
+                        "IL-POO-002",
+                        M("IL-POO-002.clase_implementa_no_clase", nombre=nombre, interfaz=interfaz),
+                        info.linea,
+                        info.columna,
                     )
                 elif not destino.es_abstracta:
                     self.error_manager.error_poo(
-                        'IL-POO-033',
-                        f'La clase "{nombre}" implementa "{interfaz}", que no '
-                        f'es una interfaz ni una clase abstracta',
-                        info.linea, info.columna
+                        "IL-POO-033",
+                        M(
+                            "IL-POO-033.clase_implementa_no_interfaz",
+                            nombre=nombre,
+                            interfaz=interfaz,
+                        ),
+                        info.linea,
+                        info.columna,
                     )
 
     def _validar_metodos_abstractos(self):
-        """IL-POO-021: una clase NO abstracta debe implementar (con cuerpo)
+        """IL-POO-021: una clase NO abstracta debe implementar (con cuerpo).
+
         todo método abstracto heredado (por `hereda`) O exigido por una
         interfaz (`implementa`, Etapa 12.3) -- si no, sigue siendo
         efectivamente abstracta y `nuevo` sobre ella dejaría un método sin
         cuerpo por ejecutar. Recorre cada jerarquía de la raíz hacia el más
         derivado: una implementación concreta "cierra" un pendiente
         declarado por un ancestro más básico o por una interfaz; una
-        re-declaración abstracta lo reabre (caso raro pero correcto)."""
+        re-declaración abstracta lo reabre (caso raro pero correcto).
+        """
         for nombre, info in self.tabla.clases.items():
             if info.es_abstracta:
                 continue  # una clase abstracta puede dejar métodos sin implementar
@@ -688,20 +868,27 @@ class SemanticAnalyzer:
                             pendientes[clave] = m
                         else:
                             pendientes.pop(clave, None)
-            for (m_nombre, params), m in pendientes.items():
-                firma = ', '.join(params)
+            for (m_nombre, params), _m in pendientes.items():
+                firma = ", ".join(params)
                 self.error_manager.error_poo(
-                    'IL-POO-021',
-                    f'La clase "{nombre}" no es abstracta pero no implementa '
-                    f'el método abstracto "{m_nombre}({firma})" heredado',
-                    info.linea, info.columna
+                    "IL-POO-021",
+                    M(
+                        "IL-POO-021.clase_no_abstracta_pero",
+                        nombre=nombre,
+                        m_nombre=m_nombre,
+                        firma=firma,
+                    ),
+                    info.linea,
+                    info.columna,
                 )
 
     def _visitar_clase(self, nodo):
-        """Visita el cuerpo (constructor + métodos) de una clase ya
+        """Visita el cuerpo (constructor + métodos) de una clase ya.
+
         registrada. Los inicializadores de atributo se visitan SIN
         `clase_actual` activo: no tienen acceso a `este`/this ni a otros
-        atributos (se evalúan antes de que exista la instancia)."""
+        atributos (se evalúan antes de que exista la instancia).
+        """
         info = self.tabla.clases.get(nodo.nombre)
         if info is None:
             return  # nombre duplicado, ya reportado; no hay info fiable
@@ -719,15 +906,18 @@ class SemanticAnalyzer:
             # cadena de herencia tenga un constructor de 0 argumentos.
             self._validar_super_implicito(nodo, nodo)
         for met in nodo.metodos:
-            if met.es_abstracto:
-                continue  # sin cuerpo que visitar (Etapa 7)
+            if met.es_abstracto or met.bloque is None:
+                # Abstracto: sin cuerpo que visitar (Etapa 7). Sin cuerpo y SIN
+                # `abstracto` ya se reportó como IL-POO-022 arriba; antes se
+                # visitaba igual y el analizador caía con AttributeError.
+                continue
             self._visitar_metodo(nodo, met)
         self.clase_actual = None
 
     def _visitar_constructor(self, clase_nodo, nodo):
         self.tabla.entrar_ambito()
-        self.funcion_actual = f'{clase_nodo.nombre}.{nodo.nombre}'
-        self.tipo_retorno_actual = 'void'
+        self.funcion_actual = f"{clase_nodo.nombre}.{nodo.nombre}"
+        self.tipo_retorno_actual = "void"
         self.en_funcion = False
         self.en_procedimiento = False
         self.en_constructor = True
@@ -752,10 +942,10 @@ class SemanticAnalyzer:
 
     def _visitar_metodo(self, clase_nodo, nodo):
         self.tabla.entrar_ambito()
-        self.funcion_actual = f'{clase_nodo.nombre}.{nodo.nombre}'
+        self.funcion_actual = f"{clase_nodo.nombre}.{nodo.nombre}"
         self.tipo_retorno_actual = nodo.tipo_retorno
-        self.en_funcion = nodo.tipo_retorno != 'void'
-        self.en_procedimiento = nodo.tipo_retorno == 'void'
+        self.en_funcion = nodo.tipo_retorno != "void"
+        self.en_procedimiento = nodo.tipo_retorno == "void"
         self.en_constructor = False
         self.en_metodo_estatico = nodo.es_estatico
         self.tiene_return = False
@@ -769,12 +959,16 @@ class SemanticAnalyzer:
         # Reutiliza IL-SEM-050 (§10.4 de la v1.0): el requisito de que toda
         # ruta de ejecución alcance un return es el mismo para un método que
         # para una función; no hace falta un código IL-POO paralelo.
-        if nodo.tipo_retorno != 'void' and not self._siempre_retorna(nodo.bloque.elementos):
+        if nodo.tipo_retorno != "void" and not self._siempre_retorna(nodo.bloque.elementos):
             self.error_manager.error_semantico(
-                'IL-SEM-050',
-                f'El método "{clase_nodo.nombre}.{nodo.nombre}" tiene al '
-                f'menos una ruta de ejecución que no alcanza ningún return',
-                nodo.linea, nodo.columna
+                "IL-SEM-050",
+                M(
+                    "IL-SEM-050.metodo_tiene_menos_ruta",
+                    nombre=clase_nodo.nombre,
+                    nombre2=nodo.nombre,
+                ),
+                nodo.linea,
+                nodo.columna,
             )
 
         self.tabla.salir_ambito()
@@ -784,58 +978,59 @@ class SemanticAnalyzer:
         self.en_metodo_estatico = False
 
     def _validar_super_implicito(self, clase_nodo, nodo_ref):
-        """Si el constructor (explícito o implícito) no llama a padre(...),
+        """Valida el super implícito.
+
         y la clase tiene padre, se necesita que el padre tenga un
         constructor de 0 argumentos -- ya sea el implícito (si no declara
         ninguno) o una sobrecarga explícita de 0 parámetros (Etapa 10:
-        sobrecarga de constructores) -- si no, IL-POO-007."""
+        sobrecarga de constructores) -- si no, IL-POO-007.
+        """
         info = self.tabla.clases.get(clase_nodo.nombre)
         if info is None or info.padre is None:
             return
         padre_info = self.tabla.clases.get(info.padre)
         if padre_info is None:
             return  # padre inexistente, ya reportado (IL-POO-002)
-        ctor_cero = next((c for c in padre_info.constructores
-                          if len(c.params_tipos) == 0), None)
+        ctor_cero = next((c for c in padre_info.constructores if len(c.params_tipos) == 0), None)
         if padre_info.constructores and ctor_cero is None:
             self.error_manager.error_poo(
-                'IL-POO-007',
-                f'La clase "{clase_nodo.nombre}" no llama a padre(...) '
-                f'explícitamente, pero "{info.padre}" no declara ningún '
-                f'constructor de 0 argumentos',
-                nodo_ref.linea, nodo_ref.columna
+                "IL-POO-007",
+                M("IL-POO-007.clase_no_llama_padre", nombre=clase_nodo.nombre, padre=info.padre),
+                nodo_ref.linea,
+                nodo_ref.columna,
             )
-        elif ctor_cero is not None and ctor_cero.visibilidad == 'privado':
+        elif ctor_cero is not None and ctor_cero.visibilidad == "privado":
             # Etapa 11: el constructor implícito de 0 argumentos del padre
             # existe pero es privado -- tampoco se puede invocar
             # implícitamente desde una subclase (IL-POO-030).
             self.error_manager.error_poo(
-                'IL-POO-030',
-                f'La clase "{clase_nodo.nombre}" no llama a padre(...) '
-                f'explícitamente, pero el constructor de 0 argumentos de '
-                f'"{info.padre}" es privado',
-                nodo_ref.linea, nodo_ref.columna
+                "IL-POO-030",
+                M("IL-POO-030.clase_no_llama_padre", nombre=clase_nodo.nombre, padre=info.padre),
+                nodo_ref.linea,
+                nodo_ref.columna,
             )
 
     def _visitar_super_call_stmt(self, nodo, es_primera):
-        """Valida un padre(...)/super(...). `es_primera` indica si el
+        """Valida un padre(...)/super(...). `es_primera` indica si el.
+
         llamador ya confirmó que es la primera instrucción de un
-        constructor -- si no, siempre es un uso inválido (IL-POO-009)."""
+        constructor -- si no, siempre es un uso inválido (IL-POO-009).
+        """
         if not (self.en_constructor and es_primera):
             self.error_manager.error_poo(
-                'IL-POO-009',
-                'padre(...) (super) solo puede usarse como la primera '
-                'instrucción de un constructor',
-                nodo.linea, nodo.columna
+                "IL-POO-009",
+                M("IL-POO-009.padre_super_solo_puede"),
+                nodo.linea,
+                nodo.columna,
             )
         if self.clase_actual is not None:
             info = self.tabla.clases.get(self.clase_actual)
             if info is not None and info.padre is None:
                 self.error_manager.error_poo(
-                    'IL-POO-010',
-                    f'padre(...) usado en "{self.clase_actual}", que no '
-                    f'tiene clase padre',
-                    nodo.linea, nodo.columna
+                    "IL-POO-010",
+                    M("IL-POO-010.padre_usado_no_tiene", clase_actual=self.clase_actual),
+                    nodo.linea,
+                    nodo.columna,
                 )
             elif info is not None and info.padre is not None:
                 padre_info = self.tabla.clases.get(info.padre)
@@ -851,64 +1046,73 @@ class SemanticAnalyzer:
                         esperados = candidatos[0].params_tipos if candidatos else []
                         if len(esperados) != len(nodo.argumentos):
                             self.error_manager.error_poo(
-                                'IL-POO-007',
-                                f'padre(...): "{info.padre}" espera '
-                                f'{len(esperados)} argumento(s), se pasaron '
-                                f'{len(nodo.argumentos)}',
-                                nodo.linea, nodo.columna
+                                "IL-POO-007",
+                                M(
+                                    "IL-POO-007.padre_espera_argumento_s",
+                                    padre=info.padre,
+                                    len_esperados=len(esperados),
+                                    len_argumentos=len(nodo.argumentos),
+                                ),
+                                nodo.linea,
+                                nodo.columna,
                             )
         for a in nodo.argumentos:
             self._visitar_expresion(a)
 
     def _visitar_receptor(self, receptor):
-        """Visita el receptor de un acceso a miembro (este/padre/IDENT) y
+        """Visita el receptor de un acceso a miembro (este/padre/IDENT) y.
+
         retorna el nombre de la clase estática que representa, o None si no
         se pudo resolver (ya se reportó el error correspondiente).
 
-        Los receptores están acotados por gramática a estas tres formas
-        (§2 de la spec de POO: sin encadenar), así que no hace falta el
-        motor general de tipos de type_checker.py para resolverlos."""
+        INV-4406: el receptor también puede ser otro acceso (``a.b.c``,
+        ``a.m().c``): su clase es el tipo declarado del atributo o el
+        retorno del método del eslabón anterior, resueltos con la misma
+        ``_resolver_miembro`` (existencia, visibilidad, estáticos).
+        """
         if isinstance(receptor, ThisExpr):
             if self.clase_actual is None:
                 self.error_manager.error_poo(
-                    'IL-POO-011',
-                    'este/this solo puede usarse dentro de un método o '
-                    'constructor',
-                    receptor.linea, receptor.columna
+                    "IL-POO-011",
+                    M("IL-POO-011.este_this_solo_puede"),
+                    receptor.linea,
+                    receptor.columna,
                 )
                 return None
             if self.en_metodo_estatico:
                 # IL-POO-025 (Etapa 7): un método estático no tiene instancia.
                 self.error_manager.error_poo(
-                    'IL-POO-025',
-                    'este/this no puede usarse dentro de un método estático',
-                    receptor.linea, receptor.columna
+                    "IL-POO-025",
+                    M("IL-POO-025.este_this_no_puede"),
+                    receptor.linea,
+                    receptor.columna,
                 )
                 return None
             return self.clase_actual
         if isinstance(receptor, SuperExpr):
             if self.clase_actual is None:
                 self.error_manager.error_poo(
-                    'IL-POO-011',
-                    'padre/super solo puede usarse dentro de un método o '
-                    'constructor',
-                    receptor.linea, receptor.columna
+                    "IL-POO-011",
+                    M("IL-POO-011.padre_super_solo_puede"),
+                    receptor.linea,
+                    receptor.columna,
                 )
                 return None
             if self.en_metodo_estatico:
                 self.error_manager.error_poo(
-                    'IL-POO-025',
-                    'padre/super no puede usarse dentro de un método estático',
-                    receptor.linea, receptor.columna
+                    "IL-POO-025",
+                    M("IL-POO-025.padre_super_no_puede"),
+                    receptor.linea,
+                    receptor.columna,
                 )
                 return None
             info = self.tabla.clases.get(self.clase_actual)
             if info is None or info.padre is None:
                 self.error_manager.error_poo(
-                    'IL-POO-012',
-                    f'padre/super usado en "{self.clase_actual}", que no '
-                    f'tiene clase padre',
-                    receptor.linea, receptor.columna
+                    "IL-POO-012",
+                    M("IL-POO-012.padre_super_usado_no", clase_actual=self.clase_actual),
+                    receptor.linea,
+                    receptor.columna,
                 )
                 return None
             return info.padre
@@ -916,17 +1120,18 @@ class SemanticAnalyzer:
             entrada = self.tabla.buscar(receptor.nombre)
             if entrada is None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-003',
-                    f'Identificador no declarado: "{receptor.nombre}"',
-                    receptor.linea, receptor.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.identificador_no_declarado", nombre=receptor.nombre),
+                    receptor.linea,
+                    receptor.columna,
                 )
                 return None
             if not self.tabla.es_clase(entrada.tipo_dato):
                 self.error_manager.error_poo(
-                    'IL-POO-006',
-                    f'"{receptor.nombre}" no es una instancia de una clase; '
-                    f'no tiene miembros',
-                    receptor.linea, receptor.columna
+                    "IL-POO-006",
+                    M("IL-POO-006.no_instancia_clase_no", nombre=receptor.nombre),
+                    receptor.linea,
+                    receptor.columna,
                 )
                 return None
             return entrada.tipo_dato
@@ -941,70 +1146,133 @@ class SemanticAnalyzer:
                 return None
             if not self.tabla.es_clase(entrada.tipo_dato):
                 self.error_manager.error_poo(
-                    'IL-POO-006',
-                    f'"{receptor.nombre}" no es un arreglo de objetos; sus '
-                    f'elementos no tienen miembros',
-                    receptor.linea, receptor.columna
+                    "IL-POO-006",
+                    M("IL-POO-006.no_arreglo_objetos_elementos", nombre=receptor.nombre),
+                    receptor.linea,
+                    receptor.columna,
                 )
                 return None
             return entrada.tipo_dato
+        if isinstance(receptor, MemberAccess):
+            tipo_clase = self._visitar_receptor(receptor.receptor)
+            if tipo_clase is None:
+                return None
+            info = self._resolver_miembro(
+                tipo_clase,
+                receptor.nombre_miembro,
+                False,
+                receptor,
+                receptor_estatico=self._receptor_es_estatico(receptor.receptor),
+            )
+            return self._clase_del_eslabon(info, receptor.nombre_miembro, receptor)
+        if isinstance(receptor, MethodCallExpr):
+            info = self._visitar_llamada_metodo(
+                receptor.receptor, receptor.nombre_metodo, receptor.argumentos, receptor
+            )
+            return self._clase_del_eslabon(info, receptor.nombre_metodo + "()", receptor)
         return None
 
+    def _clase_del_eslabon(self, info, nombre, nodo):
+        """Clase del valor de un eslabón intermedio de ``a.b.c`` (INV-4406).
+
+        Si el atributo o el retorno no es de un tipo clase no se puede
+        seguir encadenando: IL-POO-006 con el nombre del eslabón.
+        """
+        if info is None:
+            return None
+        if not self.tabla.es_clase(info.tipo):
+            self.error_manager.error_poo(
+                "IL-POO-006",
+                M("IL-POO-006.no_instancia_clase_no", nombre=nombre),
+                nodo.linea,
+                nodo.columna,
+            )
+            return None
+        return info.tipo
+
     def _receptor_es_estatico(self, receptor):
-        """True si el receptor es el NOMBRE de una clase (acceso estático,
+        """Indica si el receptor es estático.
+
         Etapa 7: NombreClase.miembro), no una variable/instancia. Solo un
         IDENTIFICADOR puede serlo -- este/padre/elemento de arreglo nunca
-        lo son (siempre representan una instancia)."""
+        lo son (siempre representan una instancia).
+        """
         if not isinstance(receptor, Identifier):
             return False
         entrada = self.tabla.buscar(receptor.nombre)
         return entrada is not None and entrada.tipo_simbolo == TipoSimbolo.CLASE
 
-    def _resolver_miembro(self, tipo_clase, nombre_miembro, es_metodo, nodo,
-                          receptor_estatico=False):
-        """Busca `nombre_miembro` en `tipo_clase` y su cadena de ancestros,
+    def _resolver_miembro(
+        self, tipo_clase, nombre_miembro, es_metodo, nodo, receptor_estatico=False
+    ):
+        """Resuelve un miembro en la jerarquía.
+
         validando existencia (IL-POO-006), visibilidad (IL-POO-005) y,
         cuando el receptor es un nombre de clase, que el miembro sea
         estático (IL-POO-026 -- acceder a un miembro de instancia sin una
         instancia no tiene sentido). Al revés SÍ se permite (acceder a un
         miembro estático a través de una instancia es válido, mismo
         criterio permisivo que otros lenguajes). Retorna la MiembroInfo/
-        MetodoInfo encontrada, o None."""
+        MetodoInfo encontrada, o None.
+        """
         resolver = self.tabla.resolver_metodo if es_metodo else self.tabla.resolver_atributo
         resultado = resolver(tipo_clase, nombre_miembro)
         if resultado is None:
             self.error_manager.error_poo(
-                'IL-POO-006',
-                f'"{tipo_clase}" no tiene {"el método" if es_metodo else "el atributo"} '
-                f'"{nombre_miembro}"',
-                nodo.linea, nodo.columna
+                "IL-POO-006",
+                M(
+                    "IL-POO-006.no_tiene_metodo" if es_metodo else "IL-POO-006.no_tiene_atributo",
+                    tipo_clase=tipo_clase,
+                    nombre_miembro=nombre_miembro,
+                ),
+                nodo.linea,
+                nodo.columna,
             )
             return None
         clase_declarante, info = resultado
-        if info.visibilidad == 'privado' and self.clase_actual != clase_declarante:
+        if info.visibilidad == "privado" and self.clase_actual != clase_declarante:
             self.error_manager.error_poo(
-                'IL-POO-005',
-                f'"{nombre_miembro}" es privado en "{clase_declarante}" y '
-                f'no es accesible desde aquí',
-                nodo.linea, nodo.columna
+                "IL-POO-005",
+                M(
+                    "IL-POO-005.privado_no_accesible_desde",
+                    nombre_miembro=nombre_miembro,
+                    clase_declarante=clase_declarante,
+                ),
+                nodo.linea,
+                nodo.columna,
             )
             return None
         if receptor_estatico and not info.es_estatico:
             self.error_manager.error_poo(
-                'IL-POO-026',
-                f'"{nombre_miembro}" no es estático; no se puede acceder a '
-                f'través del nombre de la clase "{tipo_clase}", solo de una '
-                f'instancia',
-                nodo.linea, nodo.columna
+                "IL-POO-026",
+                M(
+                    "IL-POO-026.no_estatico_no_puede",
+                    nombre_miembro=nombre_miembro,
+                    tipo_clase=tipo_clase,
+                ),
+                nodo.linea,
+                nodo.columna,
             )
             return None
         return info
 
     def _visitar_llamada_metodo(self, receptor, nombre_metodo, argumentos, nodo):
+        """Valida una llamada a método; devuelve su MetodoInfo (o None).
+
+        Con sobrecargas la firma concreta la elige type_checker.py; aquí se
+        devuelve la primera solo si todas retornan el mismo tipo (lo único
+        que necesita un acceso encadenado, INV-4406).
+        """
+        resultado = None
         tipo_clase = self._visitar_receptor(receptor)
         if tipo_clase is not None:
-            info = self._resolver_miembro(tipo_clase, nombre_metodo, True, nodo,
-                                          receptor_estatico=self._receptor_es_estatico(receptor))
+            info = self._resolver_miembro(
+                tipo_clase,
+                nombre_metodo,
+                True,
+                nodo,
+                receptor_estatico=self._receptor_es_estatico(receptor),
+            )
             if info is not None:
                 # Etapa 7 (sobrecarga): con una sola firma declarada, la
                 # aridad se valida aquí (mismo mensaje de siempre). Con
@@ -1013,44 +1281,52 @@ class SemanticAnalyzer:
                 # fina (y su diagnóstico, IL-POO-027) es de type_checker.py.
                 todos = self.tabla.resolver_metodo_todos(tipo_clase, nombre_metodo)
                 candidatos = todos[1] if todos is not None else [info]
+                if len({c.tipo for c in candidatos}) == 1:
+                    resultado = info
                 if len(candidatos) == 1:
                     num_params, num_args = len(info.params_tipos), len(argumentos)
                     if num_params != num_args:
                         self.error_manager.error_poo(
-                            'IL-POO-017',
-                            f'Llamada a "{nombre_metodo}": esperados '
-                            f'{num_params} argumentos, recibidos {num_args}',
-                            nodo.linea, nodo.columna
+                            "IL-POO-017",
+                            M(
+                                "IL-POO-017.llamada_esperados_argumentos_recibidos",
+                                nombre_metodo=nombre_metodo,
+                                num_params=num_params,
+                                num_args=num_args,
+                            ),
+                            nodo.linea,
+                            nodo.columna,
                         )
         for a in argumentos:
             self._visitar_expresion(a)
+        return resultado
 
     def _visitar_new(self, nodo):
         if not self.tabla.es_clase(nodo.nombre_clase):
             self.error_manager.error_poo(
-                'IL-POO-016',
-                f'"{nodo.nombre_clase}" no es una clase declarada',
-                nodo.linea, nodo.columna
+                "IL-POO-016",
+                M("IL-POO-016.no_clase_declarada", nombre_clase=nodo.nombre_clase),
+                nodo.linea,
+                nodo.columna,
             )
         else:
             info = self.tabla.clases[nodo.nombre_clase]
             if info.es_abstracta:
                 # IL-POO-020: una clase abstracta no es instanciable.
                 self.error_manager.error_poo(
-                    'IL-POO-020',
-                    f'No se puede instanciar la clase abstracta '
-                    f'"{nodo.nombre_clase}" con nuevo/new',
-                    nodo.linea, nodo.columna
+                    "IL-POO-020",
+                    M("IL-POO-020.no_puede_instanciar_clase", nombre_clase=nodo.nombre_clase),
+                    nodo.linea,
+                    nodo.columna,
                 )
             elif info.es_enum:
                 # IL-POO-032 (Etapa 11): una enumeración no es un tipo
                 # instanciable -- se usa por sus miembros (Enum.MIEMBRO).
                 self.error_manager.error_poo(
-                    'IL-POO-032',
-                    f'"{nodo.nombre_clase}" es una enumeración: no se puede '
-                    f'instanciar con nuevo/new, use "{nodo.nombre_clase}.'
-                    f'MIEMBRO"',
-                    nodo.linea, nodo.columna
+                    "IL-POO-032",
+                    M("IL-POO-032.enumeracion_no_puede_instanciar", nombre_clase=nodo.nombre_clase),
+                    nodo.linea,
+                    nodo.columna,
                 )
                 return
             # Etapa 10 (sobrecarga de constructores): mismo criterio que
@@ -1062,18 +1338,24 @@ class SemanticAnalyzer:
                 esperados = candidatos[0].params_tipos if candidatos else []
                 if len(esperados) != len(nodo.argumentos):
                     self.error_manager.error_poo(
-                        'IL-POO-007',
-                        f'nuevo {nodo.nombre_clase}(...): esperados '
-                        f'{len(esperados)} argumento(s), recibidos '
-                        f'{len(nodo.argumentos)}',
-                        nodo.linea, nodo.columna
+                        "IL-POO-007",
+                        M(
+                            "IL-POO-007.nuevo_esperados_argumento_s",
+                            nombre_clase=nodo.nombre_clase,
+                            len_esperados=len(esperados),
+                            len_argumentos=len(nodo.argumentos),
+                        ),
+                        nodo.linea,
+                        nodo.columna,
                     )
         for a in nodo.argumentos:
             self._visitar_expresion(a)
 
     def _declarar_simbolo(self, nombre, tipo_simbolo, tipo_dato, linea, columna):
-        """Declara un símbolo y emite IL-WARN-001 cuando oculta uno externo
-        (§3.5.3, §14.16). Retorna la entrada o None si ya existe (duplicado)."""
+        """Declara un símbolo y emite IL-WARN-001 cuando oculta uno externo.
+
+        (§3.5.3, §14.16). Retorna la entrada o None si ya existe (duplicado).
+        """
         # Los nombres de funciones integradas están reservados en TODO ámbito,
         # no sólo en el global (§19.1). Se rechaza aquí y el reporte lo emite
         # `_manejar_duplicado`, que ya distingue IL-SEM-080 de IL-SEM-002.
@@ -1084,31 +1366,35 @@ class SemanticAnalyzer:
             return None
         if self.tabla.profundidad_ambito() > 1 and self.tabla.hay_externo(nombre):
             self.error_manager.advertencia(
-                'IL-WARN-001',
-                f'"{nombre}" oculta un identificador externo del mismo nombre',
-                linea, columna
+                "IL-WARN-001",
+                M("IL-WARN-001.oculta_identificador_externo_mismo", nombre=nombre),
+                linea,
+                columna,
             )
         return entrada
 
     def _manejar_duplicado(self, nombre, linea, columna):
-        """Reporta un identificador duplicado. Si el nombre es de una función
-        integrada, se emite IL-SEM-080 (§19.11); en caso contrario IL-SEM-002."""
+        """Reporta un identificador duplicado. Si el nombre es de una función.
+
+        integrada, se emite IL-SEM-080 (§19.11); en caso contrario IL-SEM-002.
+        """
         if nombre in FUNCIONES_BUILT_IN:
             self.error_manager.error_semantico(
-                'IL-SEM-080',
-                f'El nombre "{nombre}" está reservado por una función integrada',
-                linea, columna
+                "IL-SEM-080",
+                M("IL-SEM-080.nombre_esta_reservado_funcion", nombre=nombre),
+                linea,
+                columna,
             )
         else:
             self.error_manager.error_semantico(
-                'IL-SEM-002',
-                f'Identificador duplicado: "{nombre}"',
-                linea, columna
+                "IL-SEM-002", M("IL-SEM-002.identificador_duplicado", nombre=nombre), linea, columna
             )
 
     def _es_expr_constante(self, expr):
-        """Indica si una expresión es constante (literales, constantes y
-        operaciones sobre ellas). Se usa para IL-SEM-032 (§5.3)."""
+        """Indica si una expresión es constante (literales, constantes y.
+
+        operaciones sobre ellas). Se usa para IL-SEM-032 (§5.3).
+        """
         if isinstance(expr, Literal):
             return True
         if isinstance(expr, Identifier):
@@ -1126,15 +1412,15 @@ class SemanticAnalyzer:
         Se usa para IL-WARN-010. Comprueba el VALOR de la constante, no sólo
         que sea de tipo bool: `const bool SALIR = false;` no debe advertir.
         """
-        if isinstance(expr, Literal) and expr.tipo_literal == 'bool' and expr.valor is True:
+        if isinstance(expr, Literal) and expr.tipo_literal == "bool" and expr.valor is True:
             return True
         if isinstance(expr, Identifier):
             e = self.tabla.buscar(expr.nombre)
             if e is None or e.tipo_simbolo != TipoSimbolo.CONSTANTE:
                 return False
-            if e.tipo_dato != 'bool':
+            if e.tipo_dato != "bool":
                 return False
-            return getattr(e, 'valor_constante', None) is True
+            return getattr(e, "valor_constante", None) is True
         return False
 
     def _siempre_retorna(self, elems):
@@ -1152,14 +1438,17 @@ class SemanticAnalyzer:
             if isinstance(e, IfStmt):
                 if e.bloque_else is None:
                     continue
-                if (self._siempre_retorna(e.bloque_then.elementos)
-                        and self._siempre_retorna(e.bloque_else.elementos)):
+                if self._siempre_retorna(e.bloque_then.elementos) and self._siempre_retorna(
+                    e.bloque_else.elementos
+                ):
                     return True
         return False
 
     def _bloque_tiene_break(self, elems):
-        """Indica si existe una instrucción break alcanzable en una lista de
-        elementos (recorre if/while/for para detectar break anidados)."""
+        """Indica si existe una instrucción break alcanzable en una lista de.
+
+        elementos (recorre if/while/for para detectar break anidados).
+        """
         for e in elems:
             if isinstance(e, BreakStmt):
                 return True
@@ -1179,15 +1468,16 @@ class SemanticAnalyzer:
     def _visitar_main(self, nodo):
         """Verifica la función main y visita su bloque."""
         # main debe ser void (es garantizado por la gramática)
-        if not self.tabla.buscar_funcion('main'):
-            entrada = self._declarar_simbolo('main', TipoSimbolo.FUNCION, 'void',
-                                             nodo.linea, nodo.columna)
+        if not self.tabla.buscar_funcion("main"):
+            entrada = self._declarar_simbolo(
+                "main", TipoSimbolo.FUNCION, "void", nodo.linea, nodo.columna
+            )
             if entrada:
                 entrada.params = []
 
         self.tabla.entrar_ambito()
-        self.funcion_actual = 'main'
-        self.tipo_retorno_actual = 'void'
+        self.funcion_actual = "main"
+        self.tipo_retorno_actual = "void"
         self.en_funcion = False
         # main no es un procedimiento: un return con valor en su interior es
         # IL-SEM-023, no IL-SEM-061 (§3.2).
@@ -1232,12 +1522,12 @@ class SemanticAnalyzer:
             self._visitar_elemento_bloque(elem)
 
         # IL-SEM-050: toda ruta de ejecución debe alcanzar un return (§10.4)
-        if nodo.tipo_retorno != 'void' and not self._siempre_retorna(nodo.bloque.elementos):
+        if nodo.tipo_retorno != "void" and not self._siempre_retorna(nodo.bloque.elementos):
             self.error_manager.error_semantico(
-                'IL-SEM-050',
-                f'La función "{nodo.nombre}" tiene al menos una ruta de '
-                f'ejecución que no alcanza ningún return',
-                nodo.linea, nodo.columna
+                "IL-SEM-050",
+                M("IL-SEM-050.funcion_tiene_menos_ruta", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
 
         self.tabla.salir_ambito()
@@ -1248,7 +1538,7 @@ class SemanticAnalyzer:
         """Analiza el cuerpo de un procedimiento."""
         self.tabla.entrar_ambito()
         self.funcion_actual = nodo.nombre
-        self.tipo_retorno_actual = 'void'
+        self.tipo_retorno_actual = "void"
         self.en_funcion = False
         self.en_procedimiento = True
         self.tiene_return = False
@@ -1265,11 +1555,12 @@ class SemanticAnalyzer:
 
     def _declarar_parametro(self, param):
         """Declara un parámetro en la tabla de símbolos."""
-        if param.tipo == 'void':
+        if param.tipo == "void":
             self.error_manager.error_tipo(
-                'IL-TIPO-015',
-                f'Parámetro "{param.nombre}" no puede ser de tipo void',
-                param.linea, param.columna
+                "IL-TIPO-015",
+                M("IL-TIPO-015.parametro_no_puede_ser", nombre=param.nombre),
+                param.linea,
+                param.columna,
             )
         if param.es_matriz:
             ts = TipoSimbolo.PARAM_MATRIZ
@@ -1278,8 +1569,7 @@ class SemanticAnalyzer:
         else:
             ts = TipoSimbolo.PARAMETRO
 
-        entrada = self._declarar_simbolo(param.nombre, ts, param.tipo,
-                                         param.linea, param.columna)
+        entrada = self._declarar_simbolo(param.nombre, ts, param.tipo, param.linea, param.columna)
         if entrada is None:
             self._manejar_duplicado(param.nombre, param.linea, param.columna)
         else:
@@ -1296,9 +1586,10 @@ class SemanticAnalyzer:
         elif isinstance(elem, FunctionDecl):
             # Función declarada localmente - error sintáctico/semántico
             self.error_manager.error_sintactico(
-                'IL-SIN-050',
-                'No se permite declarar funciones dentro de bloques locales',
-                elem.linea, elem.columna
+                "IL-SIN-050",
+                M("IL-SIN-050.no_permite_declarar_funciones"),
+                elem.linea,
+                elem.columna,
             )
         else:
             self._visitar_instruccion(elem)
@@ -1316,17 +1607,17 @@ class SemanticAnalyzer:
 
     def _visitar_var_decl(self, nodo):
         """Declara una variable."""
-        if nodo.tipo == 'void':
+        if nodo.tipo == "void":
             self.error_manager.error_semantico(
-                'IL-TIPO-015',
-                f'Variable "{nodo.nombre}" no puede ser de tipo void',
-                nodo.linea, nodo.columna
+                "IL-TIPO-015",
+                M("IL-TIPO-015.variable_no_puede_ser", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
         else:
             self._validar_tipo(nodo.tipo, nodo.linea, nodo.columna)
         ts = TipoSimbolo.VARIABLE
-        entrada = self._declarar_simbolo(nodo.nombre, ts, nodo.tipo,
-                                         nodo.linea, nodo.columna)
+        entrada = self._declarar_simbolo(nodo.nombre, ts, nodo.tipo, nodo.linea, nodo.columna)
         if entrada is None:
             self._manejar_duplicado(nodo.nombre, nodo.linea, nodo.columna)
             return
@@ -1352,9 +1643,10 @@ class SemanticAnalyzer:
             return
         if isinstance(expr, Identifier) and expr.nombre == nombre:
             self.error_manager.error_semantico(
-                'IL-SEM-004',
-                f'Autorreferencia en inicialización de "{nombre}"',
-                expr.linea, expr.columna
+                "IL-SEM-004",
+                M("IL-SEM-004.autorreferencia_inicializacion", nombre=nombre),
+                expr.linea,
+                expr.columna,
             )
             return
         if isinstance(expr, BinaryOp):
@@ -1368,18 +1660,20 @@ class SemanticAnalyzer:
         elif isinstance(expr, ArrayAccess):
             if expr.nombre == nombre:
                 self.error_manager.error_semantico(
-                    'IL-SEM-004',
-                    f'Autorreferencia en inicialización de "{nombre}"',
-                    expr.linea, expr.columna
+                    "IL-SEM-004",
+                    M("IL-SEM-004.autorreferencia_inicializacion", nombre=nombre),
+                    expr.linea,
+                    expr.columna,
                 )
                 return
             self._verificar_autoref(nombre, expr.indice)
         elif isinstance(expr, MatrixAccess):
             if expr.nombre == nombre:
                 self.error_manager.error_semantico(
-                    'IL-SEM-004',
-                    f'Autorreferencia en inicialización de "{nombre}"',
-                    expr.linea, expr.columna
+                    "IL-SEM-004",
+                    M("IL-SEM-004.autorreferencia_inicializacion", nombre=nombre),
+                    expr.linea,
+                    expr.columna,
                 )
                 return
             self._verificar_autoref(nombre, expr.fila)
@@ -1387,15 +1681,15 @@ class SemanticAnalyzer:
 
     def _visitar_const_decl(self, nodo):
         """Declara una constante."""
-        if nodo.tipo == 'void':
+        if nodo.tipo == "void":
             self.error_manager.error_semantico(
-                'IL-TIPO-015',
-                f'Constante "{nodo.nombre}" no puede ser de tipo void',
-                nodo.linea, nodo.columna
+                "IL-TIPO-015",
+                M("IL-TIPO-015.constante_no_puede_ser", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
         ts = TipoSimbolo.CONSTANTE
-        entrada = self._declarar_simbolo(nodo.nombre, ts, nodo.tipo,
-                                         nodo.linea, nodo.columna)
+        entrada = self._declarar_simbolo(nodo.nombre, ts, nodo.tipo, nodo.linea, nodo.columna)
         if entrada is None:
             self._manejar_duplicado(nodo.nombre, nodo.linea, nodo.columna)
             return
@@ -1407,18 +1701,17 @@ class SemanticAnalyzer:
         # IL-SEM-032: la inicialización de una constante debe ser constante
         if not self._es_expr_constante(nodo.init_expr):
             self.error_manager.error_semantico(
-                'IL-SEM-032',
-                f'La constante "{nodo.nombre}" debe inicializarse con una '
-                f'expresión constante',
-                nodo.init_expr.linea, nodo.init_expr.columna
+                "IL-SEM-032",
+                M("IL-SEM-032.constante_debe_inicializarse_expresion", nombre=nodo.nombre),
+                nodo.init_expr.linea,
+                nodo.init_expr.columna,
             )
         self._visitar_expresion(nodo.init_expr)
 
     def _visitar_array_decl(self, nodo):
         """Declara un arreglo."""
         ts = TipoSimbolo.ARREGLO
-        entrada = self._declarar_simbolo(nodo.nombre, ts, nodo.tipo,
-                                         nodo.linea, nodo.columna)
+        entrada = self._declarar_simbolo(nodo.nombre, ts, nodo.tipo, nodo.linea, nodo.columna)
         if entrada is None:
             self._manejar_duplicado(nodo.nombre, nodo.linea, nodo.columna)
             return
@@ -1428,13 +1721,27 @@ class SemanticAnalyzer:
         # rechace reasignar cualquiera de sus elementos (IL-SEM-031).
         entrada.es_constante = nodo.es_constante
 
-        # Verificar tamaño
+        # Verificar tamaño — con límite de seguridad para evitar DoS por memoria
+        _max_dim = 100000  # límite profesional: 100k elementos por dimensión
         if isinstance(nodo.tam, int):
             if nodo.tam <= 0:
                 self.error_manager.error_semantico(
-                    'IL-SEM-071',
-                    f'Dimensión de arreglo "{nodo.nombre}" debe ser positiva',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-071",
+                    M("IL-SEM-071.dimension_arreglo_debe_ser", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
+            elif nodo.tam > _max_dim:
+                self.error_manager.error_semantico(
+                    "IL-SEM-071",
+                    M(
+                        "IL-SEM-071.dimension_arreglo_excede_limite",
+                        nombre=nodo.nombre,
+                        max_dim=_max_dim,
+                        tam=nodo.tam,
+                    ),
+                    nodo.linea,
+                    nodo.columna,
                 )
             else:
                 entrada.tam_arreglo = nodo.tam
@@ -1445,17 +1752,19 @@ class SemanticAnalyzer:
                 entrada.tam_arreglo = nodo.tam  # Guardar nombre de la constante
             else:
                 self.error_manager.error_semantico(
-                    'IL-SEM-070',
-                    f'Dimensión de arreglo "{nodo.nombre}" debe ser una constante',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-070",
+                    M("IL-SEM-070.dimension_arreglo_debe_ser", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
                 )
 
         # Verificar void como tipo base (IL-SEM-072, §12/§14)
-        if nodo.tipo == 'void':
+        if nodo.tipo == "void":
             self.error_manager.error_semantico(
-                'IL-SEM-072',
-                f'Arreglo "{nodo.nombre}" no puede ser de tipo void',
-                nodo.linea, nodo.columna
+                "IL-SEM-072",
+                M("IL-SEM-072.arreglo_no_puede_ser", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
         else:
             self._validar_tipo(nodo.tipo, nodo.linea, nodo.columna)
@@ -1466,27 +1775,44 @@ class SemanticAnalyzer:
                 self._visitar_expresion(e)
             if isinstance(entrada.tam_arreglo, int) and len(nodo.init_exprs) != entrada.tam_arreglo:
                 self.error_manager.error_semantico(
-                    'IL-SEM-073',
-                    f'Arreglo "{nodo.nombre}" esperaba {entrada.tam_arreglo} elementos, '
-                    f'pero se proporcionaron {len(nodo.init_exprs)}',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-073",
+                    M(
+                        "IL-SEM-073.arreglo_esperaba_elementos_pero",
+                        nombre=nodo.nombre,
+                        tam_arreglo=entrada.tam_arreglo,
+                        len_init_exprs=len(nodo.init_exprs),
+                    ),
+                    nodo.linea,
+                    nodo.columna,
                 )
 
     def _visitar_matrix_decl(self, nodo):
         """Declara una matriz."""
         ts = TipoSimbolo.MATRIZ
-        entrada = self._declarar_simbolo(nodo.nombre, ts, nodo.tipo,
-                                         nodo.linea, nodo.columna)
+        entrada = self._declarar_simbolo(nodo.nombre, ts, nodo.tipo, nodo.linea, nodo.columna)
         if entrada is None:
             self._manejar_duplicado(nodo.nombre, nodo.linea, nodo.columna)
             return
 
+        _max_dim_m = 10000
         if isinstance(nodo.filas, int):
             if nodo.filas <= 0:
                 self.error_manager.error_semantico(
-                    'IL-SEM-071',
-                    f'Dimensión de matriz "{nodo.nombre}" debe ser positiva',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-071",
+                    M("IL-SEM-071.dimension_matriz_debe_ser", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
+            elif nodo.filas > _max_dim_m:
+                self.error_manager.error_semantico(
+                    "IL-SEM-071",
+                    M(
+                        "IL-SEM-071.dimension_matriz_excede_limite",
+                        nombre=nodo.nombre,
+                        max_dim_m=_max_dim_m,
+                    ),
+                    nodo.linea,
+                    nodo.columna,
                 )
             else:
                 entrada.filas_matriz = nodo.filas
@@ -1496,16 +1822,29 @@ class SemanticAnalyzer:
                 entrada.filas_matriz = nodo.filas
             else:
                 self.error_manager.error_semantico(
-                    'IL-SEM-070',
-                    f'Dimensión de matriz "{nodo.nombre}" debe ser una constante',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-070",
+                    M("IL-SEM-070.dimension_matriz_debe_ser", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
                 )
         if isinstance(nodo.cols, int):
             if nodo.cols <= 0:
                 self.error_manager.error_semantico(
-                    'IL-SEM-071',
-                    f'Dimensión de matriz "{nodo.nombre}" debe ser positiva',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-071",
+                    M("IL-SEM-071.dimension_matriz_debe_ser", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
+            elif nodo.cols > _max_dim_m:
+                self.error_manager.error_semantico(
+                    "IL-SEM-071",
+                    M(
+                        "IL-SEM-071.dimension_matriz_excede_limite",
+                        nombre=nodo.nombre,
+                        max_dim_m=_max_dim_m,
+                    ),
+                    nodo.linea,
+                    nodo.columna,
                 )
             else:
                 entrada.cols_matriz = nodo.cols
@@ -1515,16 +1854,18 @@ class SemanticAnalyzer:
                 entrada.cols_matriz = nodo.cols
             else:
                 self.error_manager.error_semantico(
-                    'IL-SEM-070',
-                    f'Dimensión de matriz "{nodo.nombre}" debe ser una constante',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-070",
+                    M("IL-SEM-070.dimension_matriz_debe_ser", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
                 )
 
-        if nodo.tipo == 'void':
+        if nodo.tipo == "void":
             self.error_manager.error_semantico(
-                'IL-SEM-072',
-                f'Matriz "{nodo.nombre}" no puede ser de tipo void',
-                nodo.linea, nodo.columna
+                "IL-SEM-072",
+                M("IL-SEM-072.matriz_no_puede_ser", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
 
         if nodo.init_filas:
@@ -1536,19 +1877,30 @@ class SemanticAnalyzer:
             cols_ok = isinstance(entrada.cols_matriz, int)
             if filas_ok and len(nodo.init_filas) != entrada.filas_matriz:
                 self.error_manager.error_semantico(
-                    'IL-SEM-073',
-                    f'Matriz "{nodo.nombre}" esperaba {entrada.filas_matriz} filas, '
-                    f'pero se proporcionaron {len(nodo.init_filas)}',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-073",
+                    M(
+                        "IL-SEM-073.matriz_esperaba_filas_pero",
+                        nombre=nodo.nombre,
+                        filas_matriz=entrada.filas_matriz,
+                        len_init_filas=len(nodo.init_filas),
+                    ),
+                    nodo.linea,
+                    nodo.columna,
                 )
             if cols_ok:
                 for i, fila in enumerate(nodo.init_filas):
                     if len(fila) != entrada.cols_matriz:
                         self.error_manager.error_semantico(
-                            'IL-SEM-073',
-                            f'Matriz "{nodo.nombre}" fila {i} esperaba {entrada.cols_matriz} columnas, '
-                            f'pero se proporcionaron {len(fila)}',
-                            nodo.linea, nodo.columna
+                            "IL-SEM-073",
+                            M(
+                                "IL-SEM-073.matriz_fila_esperaba_columnas",
+                                nombre=nodo.nombre,
+                                i=i,
+                                cols_matriz=entrada.cols_matriz,
+                                len_fila=len(fila),
+                            ),
+                            nodo.linea,
+                            nodo.columna,
                         )
 
     def _visitar_instruccion(self, nodo):
@@ -1595,15 +1947,15 @@ class SemanticAnalyzer:
             self._visitar_llamada(nodo.nombre, nodo.argumentos, nodo)
             # IL-WARN-020: se descarta el valor de retorno (§10.5)
             entrada = self.tabla.buscar_funcion(nodo.nombre)
-            if entrada and entrada.tipo_retorno and entrada.tipo_retorno != 'void':
+            if entrada and entrada.tipo_retorno and entrada.tipo_retorno != "void":
                 self.error_manager.advertencia(
-                    'IL-WARN-020',
-                    f'Se descarta el valor de retorno de la función "{nodo.nombre}"',
-                    nodo.linea, nodo.columna
+                    "IL-WARN-020",
+                    M("IL-WARN-020.descarta_valor_retorno_funcion", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
                 )
         elif isinstance(nodo, MethodCallStmt):
-            self._visitar_llamada_metodo(nodo.receptor, nodo.nombre_metodo,
-                                         nodo.argumentos, nodo)
+            self._visitar_llamada_metodo(nodo.receptor, nodo.nombre_metodo, nodo.argumentos, nodo)
         elif isinstance(nodo, SuperCallStmt):
             # Solo llega aquí un padre(...)/super(...) que NO es la primera
             # instrucción de un constructor (ese caso especial lo consume
@@ -1618,26 +1970,31 @@ class SemanticAnalyzer:
             entrada = self.tabla.buscar(nodo.lvalue.nombre)
             if entrada is None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-003',
-                    f'Identificador no declarado: "{nodo.lvalue.nombre}"',
-                    nodo.lvalue.linea, nodo.lvalue.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.identificador_no_declarado", nombre=nodo.lvalue.nombre),
+                    nodo.lvalue.linea,
+                    nodo.lvalue.columna,
                 )
             elif entrada.tipo_simbolo == TipoSimbolo.CONSTANTE:
                 self.error_manager.error_semantico(
-                    'IL-SEM-031',
-                    f'No se puede asignar a la constante "{nodo.lvalue.nombre}"',
-                    nodo.lvalue.linea, nodo.lvalue.columna
+                    "IL-SEM-031",
+                    M("IL-SEM-031.no_puede_asignar_constante", nombre=nodo.lvalue.nombre),
+                    nodo.lvalue.linea,
+                    nodo.lvalue.columna,
                 )
-            elif entrada.tipo_simbolo in (TipoSimbolo.ARREGLO, TipoSimbolo.MATRIZ,
-                                          TipoSimbolo.PARAM_ARREGLO,
-                                          TipoSimbolo.PARAM_MATRIZ):
+            elif entrada.tipo_simbolo in (
+                TipoSimbolo.ARREGLO,
+                TipoSimbolo.MATRIZ,
+                TipoSimbolo.PARAM_ARREGLO,
+                TipoSimbolo.PARAM_MATRIZ,
+            ):
                 # IL-SIN-070: no se puede asignar un arreglo/matriz completo
                 # con "="; la copia debe ser elemento a elemento (§12.6).
                 self.error_manager.error_sintactico(
-                    'IL-SIN-070',
-                    f'No se puede asignar el arreglo o matriz completo '
-                    f'"{nodo.lvalue.nombre}"; copie elemento a elemento',
-                    nodo.lvalue.linea, nodo.lvalue.columna
+                    "IL-SIN-070",
+                    M("IL-SIN-070.no_puede_asignar_arreglo", nombre=nodo.lvalue.nombre),
+                    nodo.lvalue.linea,
+                    nodo.lvalue.columna,
                 )
             else:
                 entrada.inicializado = True
@@ -1645,19 +2002,20 @@ class SemanticAnalyzer:
             entrada = self.tabla.buscar(nodo.lvalue.nombre)
             if entrada is None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-003',
-                    f'Arreglo no declarado: "{nodo.lvalue.nombre}"',
-                    nodo.lvalue.linea, nodo.lvalue.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.arreglo_no_declarado", nombre=nodo.lvalue.nombre),
+                    nodo.lvalue.linea,
+                    nodo.lvalue.columna,
                 )
             elif entrada.es_constante:
                 # Etapa 11: arreglo constante -- ninguno de sus elementos
                 # se puede reasignar, mismo código que una constante
                 # escalar (IL-SEM-031).
                 self.error_manager.error_semantico(
-                    'IL-SEM-031',
-                    f'No se puede asignar a un elemento del arreglo '
-                    f'constante "{nodo.lvalue.nombre}"',
-                    nodo.lvalue.linea, nodo.lvalue.columna
+                    "IL-SEM-031",
+                    M("IL-SEM-031.no_puede_asignar_elemento", nombre=nodo.lvalue.nombre),
+                    nodo.lvalue.linea,
+                    nodo.lvalue.columna,
                 )
             else:
                 self._verificar_indices_matriz(entrada, nodo.lvalue)
@@ -1667,20 +2025,29 @@ class SemanticAnalyzer:
             entrada = self.tabla.buscar(nodo.lvalue.nombre)
             if entrada is None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-003',
-                    f'Matriz no declarada: "{nodo.lvalue.nombre}"',
-                    nodo.lvalue.linea, nodo.lvalue.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.matriz_no_declarada", nombre=nodo.lvalue.nombre),
+                    nodo.lvalue.linea,
+                    nodo.lvalue.columna,
                 )
             else:
                 entrada.inicializado = True
             self._visitar_expresion(nodo.lvalue.fila)
             self._visitar_expresion(nodo.lvalue.columna)
+        elif isinstance(nodo.lvalue, MemberIndexLValue):
+            # INV-1440: `este.datos[i] = v` -- el arreglo es un miembro.
+            self._visitar_expresion(nodo.lvalue.acceso)
+            self._visitar_expresion(nodo.lvalue.indice)
         elif isinstance(nodo.lvalue, MemberLValue):
             tipo_clase = self._visitar_receptor(nodo.lvalue.receptor)
             if tipo_clase is not None:
-                self._resolver_miembro(tipo_clase, nodo.lvalue.nombre_miembro,
-                                       False, nodo.lvalue,
-                                       receptor_estatico=self._receptor_es_estatico(nodo.lvalue.receptor))
+                self._resolver_miembro(
+                    tipo_clase,
+                    nodo.lvalue.nombre_miembro,
+                    False,
+                    nodo.lvalue,
+                    receptor_estatico=self._receptor_es_estatico(nodo.lvalue.receptor),
+                )
 
         self._visitar_expresion(nodo.expr)
 
@@ -1688,10 +2055,10 @@ class SemanticAnalyzer:
         """IL-SIN-080: una matriz debe indexarse con dos índices (§13.4)."""
         if entrada.tipo_simbolo in (TipoSimbolo.MATRIZ, TipoSimbolo.PARAM_MATRIZ):
             self.error_manager.error_sintactico(
-                'IL-SIN-080',
-                f'La matriz "{nodo.nombre}" requiere dos índices: '
-                f'{nodo.nombre}[fila][columna]',
-                nodo.linea, nodo.columna
+                "IL-SIN-080",
+                M("IL-SIN-080.matriz_requiere_dos_indices", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
 
     def _visitar_inc_dec(self, nodo):
@@ -1699,15 +2066,17 @@ class SemanticAnalyzer:
         entrada = self.tabla.buscar(nodo.nombre)
         if entrada is None:
             self.error_manager.error_semantico(
-                'IL-SEM-003',
-                f'Identificador no declarado: "{nodo.nombre}"',
-                nodo.linea, nodo.columna
+                "IL-SEM-003",
+                M("IL-SEM-003.identificador_no_declarado", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
         elif entrada.tipo_simbolo == TipoSimbolo.CONSTANTE:
             self.error_manager.error_semantico(
-                'IL-SEM-031',
-                f'No se puede modificar la constante "{nodo.nombre}"',
-                nodo.linea, nodo.columna
+                "IL-SEM-031",
+                M("IL-SEM-031.no_puede_modificar_constante", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
         else:
             entrada.inicializado = True
@@ -1717,15 +2086,17 @@ class SemanticAnalyzer:
         entrada = self.tabla.buscar(nodo.nombre)
         if entrada is None:
             self.error_manager.error_semantico(
-                'IL-SEM-003',
-                f'Identificador no declarado: "{nodo.nombre}"',
-                nodo.linea, nodo.columna
+                "IL-SEM-003",
+                M("IL-SEM-003.identificador_no_declarado", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
         elif entrada.tipo_simbolo == TipoSimbolo.CONSTANTE:
             self.error_manager.error_semantico(
-                'IL-SEM-031',
-                f'No se puede leer en la constante "{nodo.nombre}"',
-                nodo.linea, nodo.columna
+                "IL-SEM-031",
+                M("IL-SEM-031.no_puede_leer_constante", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
         else:
             entrada.inicializado = True
@@ -1748,11 +2119,14 @@ class SemanticAnalyzer:
         """Verifica instrucción while."""
         self._visitar_expresion(nodo.condicion)
         # IL-WARN-010: while infinito (condición literal true) sin break (§9.1.3)
-        if self._es_true_constante(nodo.condicion) and not self._bloque_tiene_break(nodo.bloque.elementos):
+        if self._es_true_constante(nodo.condicion) and not self._bloque_tiene_break(
+            nodo.bloque.elementos
+        ):
             self.error_manager.advertencia(
-                'IL-WARN-010',
-                'Ciclo while con condición constantemente true sin break alcanzable',
-                nodo.linea, nodo.columna
+                "IL-WARN-010",
+                M("IL-WARN-010.ciclo_while_condicion_constantemente"),
+                nodo.linea,
+                nodo.columna,
             )
         self.tabla.loop_actual += 1
         self.tabla.entrar_ambito()
@@ -1771,14 +2145,17 @@ class SemanticAnalyzer:
         if nodo.init_stmt:
             if isinstance(nodo.init_stmt, ForInitVar):
                 ts = TipoSimbolo.VARIABLE
-                entrada = self._declarar_simbolo(nodo.init_stmt.nombre, ts,
-                                                 nodo.init_stmt.tipo,
-                                                 nodo.init_stmt.linea,
-                                                 nodo.init_stmt.columna)
+                entrada = self._declarar_simbolo(
+                    nodo.init_stmt.nombre,
+                    ts,
+                    nodo.init_stmt.tipo,
+                    nodo.init_stmt.linea,
+                    nodo.init_stmt.columna,
+                )
                 if entrada is None:
-                    self._manejar_duplicado(nodo.init_stmt.nombre,
-                                            nodo.init_stmt.linea,
-                                            nodo.init_stmt.columna)
+                    self._manejar_duplicado(
+                        nodo.init_stmt.nombre, nodo.init_stmt.linea, nodo.init_stmt.columna
+                    )
                 elif nodo.init_stmt.init_expr:
                     entrada.inicializado = True
                     self._visitar_expresion(nodo.init_stmt.init_expr)
@@ -1799,9 +2176,10 @@ class SemanticAnalyzer:
                 entrada = self.tabla.buscar(nodo.act_stmt.nombre)
                 if entrada is None:
                     self.error_manager.error_semantico(
-                        'IL-SEM-003',
-                        f'Identificador no declarado: "{nodo.act_stmt.nombre}"',
-                        nodo.act_stmt.linea, nodo.act_stmt.columna
+                        "IL-SEM-003",
+                        M("IL-SEM-003.identificador_no_declarado", nombre=nodo.act_stmt.nombre),
+                        nodo.act_stmt.linea,
+                        nodo.act_stmt.columna,
                     )
 
         # Cuerpo
@@ -1818,12 +2196,14 @@ class SemanticAnalyzer:
         type_checker.py (mismo criterio de división de responsabilidades
         que el resto del lenguaje: aquí solo registro de símbolos y
         alcance, la compatibilidad de tipos vive en el verificador de
-        tipos)."""
-        if nodo.tipo == 'void':
+        tipos).
+        """
+        if nodo.tipo == "void":
             self.error_manager.error_semantico(
-                'IL-TIPO-015',
-                f'La variable de recorrido "{nodo.nombre}" no puede ser de tipo void',
-                nodo.linea, nodo.columna
+                "IL-TIPO-015",
+                M("IL-TIPO-015.variable_recorrido_no_puede", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
             )
         else:
             self._validar_tipo(nodo.tipo, nodo.linea, nodo.columna)
@@ -1831,8 +2211,9 @@ class SemanticAnalyzer:
 
         self.tabla.loop_actual += 1
         self.tabla.entrar_ambito()
-        entrada = self._declarar_simbolo(nodo.nombre, TipoSimbolo.VARIABLE,
-                                         nodo.tipo, nodo.linea, nodo.columna)
+        entrada = self._declarar_simbolo(
+            nodo.nombre, TipoSimbolo.VARIABLE, nodo.tipo, nodo.linea, nodo.columna
+        )
         if entrada is None:
             self._manejar_duplicado(nodo.nombre, nodo.linea, nodo.columna)
         elif entrada:
@@ -1856,10 +2237,12 @@ class SemanticAnalyzer:
         self._visitar_expresion(nodo.condicion)
 
     def _visitar_switch(self, nodo):
-        """Verifica instrucción switch/segun (Etapa 6). El tipo de la
+        """Verifica instrucción switch/segun (Etapa 6). El tipo de la.
+
         expresión y de cada case se valida en type_checker.py; aquí sólo se
         controlan alcance, `break` y duplicados (estructural, igual que el
-        resto de semantic.py)."""
+        resto de semantic.py).
+        """
         self._visitar_expresion(nodo.expr)
         self.tabla.switch_actual += 1
         vistos = set()
@@ -1867,10 +2250,10 @@ class SemanticAnalyzer:
             clave = (caso.valor.tipo_literal, caso.valor.valor)
             if clave in vistos:
                 self.error_manager.error_estructurado(
-                    'IL-EST-003',
-                    f'Valor de case duplicado dentro del mismo switch: '
-                    f'{caso.valor.valor!r}',
-                    caso.linea, caso.columna
+                    "IL-EST-003",
+                    M("IL-EST-003.valor_case_duplicado_dentro", valor=caso.valor.valor),
+                    caso.linea,
+                    caso.columna,
                 )
             vistos.add(clave)
             self.tabla.entrar_ambito()
@@ -1885,7 +2268,8 @@ class SemanticAnalyzer:
         self.tabla.switch_actual -= 1
 
     def _visitar_match(self, nodo):
-        """Verifica emparejar/match (Etapa 12.9/12.10): alcance y ligadura
+        """Verifica emparejar/match (Etapa 12.9/12.10): alcance y ligadura.
+
         de variables por caso -- igual que switch, la verificación de
         TIPOS (variante válida, aridad, exhaustividad) vive en
         type_checker.py::_verificar_match (necesita el tipo estático de
@@ -1893,7 +2277,8 @@ class SemanticAnalyzer:
         las ligaduras de cada caso con el tipo de campo que ya se conoce
         (las variantes, con o sin carga, ya son clases reales a esta
         altura -- ver _desazucarar_tipos_suma) y se visita cada bloque en
-        su propio ámbito."""
+        su propio ámbito.
+        """
         self._visitar_expresion(nodo.expr)
         for caso in nodo.casos:
             self.tabla.entrar_ambito()
@@ -1903,8 +2288,9 @@ class SemanticAnalyzer:
                 campos = [a for a in info_variante.atributos.values() if not a.es_estatico]
             for i, ligadura in enumerate(caso.ligaduras):
                 tipo_campo = campos[i].tipo if i < len(campos) else None
-                entrada = self._declarar_simbolo(ligadura, TipoSimbolo.VARIABLE, tipo_campo,
-                                                 caso.linea, caso.columna)
+                entrada = self._declarar_simbolo(
+                    ligadura, TipoSimbolo.VARIABLE, tipo_campo, caso.linea, caso.columna
+                )
                 if entrada is None:
                     self._manejar_duplicado(ligadura, caso.linea, caso.columna)
                 else:
@@ -1919,18 +2305,21 @@ class SemanticAnalyzer:
             self.tabla.salir_ambito()
 
     def _visitar_try(self, nodo):
-        """Verifica try/intentar ... catch/capturar genérico (Etapa 6). La
+        """Verifica try/intentar ... catch/capturar genérico (Etapa 6). La.
+
         variable del catch queda declarada con tipo 'Excepcion' (clase
         sintética siempre registrada, ver symbol_table.py), reutilizando el
-        acceso a miembro de POO para `.codigo`/`.mensaje`."""
+        acceso a miembro de POO para `.codigo`/`.mensaje`.
+        """
         self.tabla.entrar_ambito()
         for elem in nodo.bloque_try.elementos:
             self._visitar_elemento_bloque(elem)
         self.tabla.salir_ambito()
 
         self.tabla.entrar_ambito()
-        entrada = self._declarar_simbolo(nodo.nombre_catch, TipoSimbolo.VARIABLE,
-                                         'Excepcion', nodo.linea, nodo.columna)
+        entrada = self._declarar_simbolo(
+            nodo.nombre_catch, TipoSimbolo.VARIABLE, "Excepcion", nodo.linea, nodo.columna
+        )
         if entrada is None:
             self._manejar_duplicado(nodo.nombre_catch, nodo.linea, nodo.columna)
         else:
@@ -1945,9 +2334,10 @@ class SemanticAnalyzer:
             entrada = self.tabla.buscar(lvalue.nombre)
             if entrada is None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-003',
-                    f'Identificador no declarado: "{lvalue.nombre}"',
-                    lvalue.linea, lvalue.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.identificador_no_declarado", nombre=lvalue.nombre),
+                    lvalue.linea,
+                    lvalue.columna,
                 )
         elif isinstance(lvalue, ArrayLValue):
             self._visitar_expresion(lvalue.indice)
@@ -1960,9 +2350,13 @@ class SemanticAnalyzer:
         if self.en_funcion:
             if nodo.expr is None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-053',
-                    f'La función "{self.funcion_actual}" requiere return con expresión',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-053",
+                    M(
+                        "IL-SEM-053.funcion_requiere_return_expresion",
+                        funcion_actual=self.funcion_actual,
+                    ),
+                    nodo.linea,
+                    nodo.columna,
                 )
             else:
                 self._visitar_expresion(nodo.expr)
@@ -1970,9 +2364,13 @@ class SemanticAnalyzer:
         elif self.en_procedimiento:
             if nodo.expr is not None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-061',
-                    f'Procedimiento "{self.funcion_actual}" no puede retornar valor',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-061",
+                    M(
+                        "IL-SEM-061.procedimiento_no_puede_retornar",
+                        funcion_actual=self.funcion_actual,
+                    ),
+                    nodo.linea,
+                    nodo.columna,
                 )
             else:
                 self.tiene_return = True
@@ -1980,28 +2378,30 @@ class SemanticAnalyzer:
             # return en main
             if nodo.expr is not None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-023',
-                    'main no debe retornar valor',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-023", M("IL-SEM-023.main_no_debe_retornar"), nodo.linea, nodo.columna
                 )
 
     def _visitar_break(self, nodo):
-        """Verifica break. Válido dentro de un ciclo (while/for/do-while) O
-        de un switch/segun (Etapa 6) -- a diferencia de continue."""
+        """Verifica break. Válido dentro de un ciclo (while/for/do-while) O.
+
+        de un switch/segun (Etapa 6) -- a diferencia de continue.
+        """
         if not self.tabla.esta_en_loop_o_switch():
             self.error_manager.error_semantico(
-                'IL-SEM-040',
-                'break solo puede usarse dentro de un ciclo o un switch/segun',
-                nodo.linea, nodo.columna
+                "IL-SEM-040",
+                M("IL-SEM-040.break_solo_puede_usarse"),
+                nodo.linea,
+                nodo.columna,
             )
 
     def _visitar_continue(self, nodo):
         """Verifica continue."""
         if not self.tabla.esta_en_loop():
             self.error_manager.error_semantico(
-                'IL-SEM-041',
-                'continue solo puede usarse dentro de un ciclo',
-                nodo.linea, nodo.columna
+                "IL-SEM-041",
+                M("IL-SEM-041.continue_solo_puede_usarse"),
+                nodo.linea,
+                nodo.columna,
             )
 
     def _visitar_expresion(self, nodo):
@@ -2019,29 +2419,34 @@ class SemanticAnalyzer:
             if isinstance(nodo.valor, int) and not isinstance(nodo.valor, bool):
                 if nodo.valor > 2147483647 or nodo.valor < -2147483648:
                     self.error_manager.error_semantico(
-                        'IL-SEM-010',
-                        f'Literal entero fuera de rango: {nodo.valor}',
-                        nodo.linea, nodo.columna
+                        "IL-SEM-010",
+                        M("IL-SEM-010.literal_entero_fuera_rango", valor=nodo.valor),
+                        nodo.linea,
+                        nodo.columna,
                     )
         elif isinstance(nodo, Identifier):
             entrada = self.tabla.buscar(nodo.nombre)
             if entrada is None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-003',
-                    f'Identificador no declarado: "{nodo.nombre}"',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.identificador_no_declarado", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
                 )
-            elif (entrada.tipo_simbolo == TipoSimbolo.VARIABLE
-                    and not entrada.inicializado
-                    and not self.tabla.es_global(nodo.nombre)):
+            elif (
+                entrada.tipo_simbolo == TipoSimbolo.VARIABLE
+                and not entrada.inicializado
+                and not self.tabla.es_global(nodo.nombre)
+            ):
                 # IL-WARN-002: lectura de una local posiblemente sin inicializar
                 # (§5.2.2). Se avisa una sola vez por variable.
                 if nodo.nombre not in self._avisadas_sin_init:
                     self._avisadas_sin_init.add(nodo.nombre)
                     self.error_manager.advertencia(
-                        'IL-WARN-002',
-                        f'"{nodo.nombre}" puede leerse antes de ser inicializada',
-                        nodo.linea, nodo.columna
+                        "IL-WARN-002",
+                        M("IL-WARN-002.puede_leerse_antes_ser", nombre=nodo.nombre),
+                        nodo.linea,
+                        nodo.columna,
                     )
             # Antes de la Etapa 12.6, un IDENTIFICADOR bare que resolvía a
             # un PROCEDIMIENTO siempre era IL-SEM-060 ("procedimiento usado
@@ -2054,9 +2459,10 @@ class SemanticAnalyzer:
             entrada = self.tabla.buscar(nodo.nombre)
             if entrada is None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-003',
-                    f'Arreglo no declarado: "{nodo.nombre}"',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.arreglo_no_declarado", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
                 )
             else:
                 self._verificar_indices_matriz(entrada, nodo)
@@ -2065,9 +2471,10 @@ class SemanticAnalyzer:
             entrada = self.tabla.buscar(nodo.nombre)
             if entrada is None:
                 self.error_manager.error_semantico(
-                    'IL-SEM-003',
-                    f'Matriz no declarada: "{nodo.nombre}"',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.matriz_no_declarada", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
                 )
             self._visitar_expresion(nodo.fila)
             self._visitar_expresion(nodo.columna)
@@ -2083,13 +2490,22 @@ class SemanticAnalyzer:
         elif isinstance(nodo, MemberAccess):
             tipo_clase = self._visitar_receptor(nodo.receptor)
             if tipo_clase is not None:
-                self._resolver_miembro(tipo_clase, nodo.nombre_miembro, False, nodo,
-                                       receptor_estatico=self._receptor_es_estatico(nodo.receptor))
+                self._resolver_miembro(
+                    tipo_clase,
+                    nodo.nombre_miembro,
+                    False,
+                    nodo,
+                    receptor_estatico=self._receptor_es_estatico(nodo.receptor),
+                )
         elif isinstance(nodo, MethodCallExpr):
-            self._visitar_llamada_metodo(nodo.receptor, nodo.nombre_metodo,
-                                         nodo.argumentos, nodo)
+            self._visitar_llamada_metodo(nodo.receptor, nodo.nombre_metodo, nodo.argumentos, nodo)
         elif isinstance(nodo, NewExpr):
             self._visitar_new(nodo)
+        elif isinstance(nodo, NewArrayExpr):
+            self._visitar_expresion(nodo.tam)
+        elif isinstance(nodo, MemberIndexAccess):
+            self._visitar_expresion(nodo.acceso)
+            self._visitar_expresion(nodo.indice)
         elif isinstance(nodo, TernaryExpr):
             self._visitar_expresion(nodo.condicion)
             self._visitar_expresion(nodo.si_verdadero)
@@ -2098,7 +2514,8 @@ class SemanticAnalyzer:
             self._visitar_lambda(nodo)
 
     def _visitar_lambda(self, nodo):
-        """Verifica el cuerpo de un lambda (Etapa 12.6). A diferencia de
+        """Verifica el cuerpo de un lambda (Etapa 12.6). A diferencia de.
+
         una función/procedimiento de nivel superior, un lambda está
         anidado SINTÁCTICAMENTE dentro del cuerpo que lo crea -- entrar un
         ámbito nuevo aquí, sobre la pila de ámbitos YA vigente en este
@@ -2110,7 +2527,8 @@ class SemanticAnalyzer:
         `en_procedimiento`/`tiene_return` que ya usa cualquier función o
         procedimiento normal (`_visitar_funcion`/`_visitar_procedimiento`)
         -- guardado y restaurado aquí porque un lambda puede anidarse
-        dentro del cuerpo de OTRA función, y no debe pisar su contexto."""
+        dentro del cuerpo de OTRA función, y no debe pisar su contexto.
+        """
         self.tabla.entrar_ambito()
         for p in nodo.parametros:
             self._declarar_parametro(p)
@@ -2121,21 +2539,21 @@ class SemanticAnalyzer:
         en_proc_previo = self.en_procedimiento
         tiene_return_previo = self.tiene_return
 
-        self.funcion_actual = '<lambda>'
+        self.funcion_actual = "<lambda>"
         self.tipo_retorno_actual = nodo.tipo_retorno
-        self.en_funcion = nodo.tipo_retorno != 'void'
-        self.en_procedimiento = nodo.tipo_retorno == 'void'
+        self.en_funcion = nodo.tipo_retorno != "void"
+        self.en_procedimiento = nodo.tipo_retorno == "void"
         self.tiene_return = False
 
         for elem in nodo.bloque.elementos:
             self._visitar_elemento_bloque(elem)
 
-        if nodo.tipo_retorno != 'void' and not self._siempre_retorna(nodo.bloque.elementos):
+        if nodo.tipo_retorno != "void" and not self._siempre_retorna(nodo.bloque.elementos):
             self.error_manager.error_semantico(
-                'IL-SEM-050',
-                'El lambda tiene al menos una ruta de ejecución que no '
-                'alcanza ningún return',
-                nodo.linea, nodo.columna
+                "IL-SEM-050",
+                M("IL-SEM-050.lambda_tiene_menos_ruta"),
+                nodo.linea,
+                nodo.columna,
             )
 
         self.funcion_actual = funcion_previa
@@ -2153,18 +2571,19 @@ class SemanticAnalyzer:
         se quiso escribir una función y se declaró `void` (IL-SEM-051, §10.2).
         Si no devuelve nada, el error está en el uso (IL-SEM-060, §11.4.1).
         """
-        if getattr(entrada, 'retorna_valor', False):
+        if getattr(entrada, "retorna_valor", False):
             self.error_manager.error_semantico(
-                'IL-SEM-051',
-                f'"{nombre}" devuelve un valor pero está declarada con tipo '
-                f'de retorno void; declárela como función con su tipo',
-                nodo.linea, nodo.columna
+                "IL-SEM-051",
+                M("IL-SEM-051.devuelve_valor_pero_esta", nombre=nombre),
+                nodo.linea,
+                nodo.columna,
             )
         else:
             self.error_manager.error_semantico(
-                'IL-SEM-060',
-                f'Procedimiento "{nombre}" usado como expresión',
-                nodo.linea, nodo.columna
+                "IL-SEM-060",
+                M("IL-SEM-060.procedimiento_usado_como_expresion", nombre=nombre),
+                nodo.linea,
+                nodo.columna,
             )
 
     def _visitar_llamada(self, nombre, argumentos, nodo):
@@ -2179,10 +2598,15 @@ class SemanticAnalyzer:
             esperados = _ORDEN_SUPERIOR[nombre]
             if len(argumentos) != esperados:
                 self.error_manager.error_semantico(
-                    'IL-SEM-052',
-                    f'Llamada a "{nombre}": esperados {esperados} argumentos, '
-                    f'recibidos {len(argumentos)}',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-052",
+                    M(
+                        "IL-SEM-052.llamada_esperados_argumentos_recibidos",
+                        nombre=nombre,
+                        esperados=esperados,
+                        len_argumentos=len(argumentos),
+                    ),
+                    nodo.linea,
+                    nodo.columna,
                 )
             for arg in argumentos:
                 self._visitar_expresion(arg)
@@ -2194,22 +2618,28 @@ class SemanticAnalyzer:
             # (`llamada_funcion : IDENTIFICADOR '(' args ')'`), el punto de
             # decisión es semántico, no gramatical (ver checkpoint 12.5).
             var = self.tabla.buscar(nombre)
-            if var and isinstance(var.tipo_dato, str) and var.tipo_dato.startswith('funcion('):
-                num_params = var.tipo_dato[len('funcion('):var.tipo_dato.index(')')]
-                num_params = len([t for t in num_params.split(',') if t]) if num_params else 0
+            if var and isinstance(var.tipo_dato, str) and var.tipo_dato.startswith("funcion("):
+                num_params = var.tipo_dato[len("funcion(") : var.tipo_dato.index(")")]
+                num_params = len([t for t in num_params.split(",") if t]) if num_params else 0
                 if num_params != len(argumentos):
                     self.error_manager.error_semantico(
-                        'IL-SEM-052',
-                        f'Llamada a "{nombre}": esperados {num_params} argumentos, '
-                        f'recibidos {len(argumentos)}',
-                        nodo.linea, nodo.columna
+                        "IL-SEM-052",
+                        M(
+                            "IL-SEM-052.llamada_esperados_argumentos_recibidos_3",
+                            nombre=nombre,
+                            num_params=num_params,
+                            len_argumentos=len(argumentos),
+                        ),
+                        nodo.linea,
+                        nodo.columna,
                     )
             else:
                 # Podría ser una función definida después
                 self.error_manager.error_semantico(
-                    'IL-SEM-003',
-                    f'Función o procedimiento no declarado: "{nombre}"',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.funcion_procedimiento_no_declarado", nombre=nombre),
+                    nodo.linea,
+                    nodo.columna,
                 )
         else:
             # Verificar número de argumentos
@@ -2217,9 +2647,15 @@ class SemanticAnalyzer:
             num_args = len(argumentos)
             if num_params != num_args:
                 self.error_manager.error_semantico(
-                    'IL-SEM-052',
-                    f'Llamada a "{nombre}": esperados {num_params} argumentos, recibidos {num_args}',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-052",
+                    M(
+                        "IL-SEM-052.llamada_esperados_argumentos_recibidos_2",
+                        nombre=nombre,
+                        num_params=num_params,
+                        num_args=num_args,
+                    ),
+                    nodo.linea,
+                    nodo.columna,
                 )
 
         for arg in argumentos:

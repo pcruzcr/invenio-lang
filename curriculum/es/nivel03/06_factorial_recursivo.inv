@@ -1,0 +1,34 @@
+// Nivel 3 · Ejercicio 06 — Factorial recursivo
+// Objetivos:
+//   - Identificar caso base y caso recursivo
+//   - Visualizar la pila de llamadas
+//
+vacio sangria(entero nivel) {
+    para (entero i = 0; i < nivel; i++) {
+        imprimir("  ");
+    }
+}
+
+entero factorialTraza(entero n, entero nivel) {
+    sangria(nivel); imprimir("fact("); imprimir(n); imprimir(")\n");
+    si (n == 0) {
+        retornar 1;   // caso base: detiene la recursión
+    }
+    entero r = n * factorialTraza(n - 1, nivel + 1);
+    sangria(nivel); imprimir("= "); imprimir(r); imprimir("\n");
+    retornar r;
+}
+
+entero factorial(entero n) {
+    si (n == 0) {
+        retornar 1;
+    }
+    retornar n * factorial(n - 1);   // el problema se reduce en cada llamada
+}
+
+vacio main() {
+    factorialTraza(4, 0);
+    para (entero i = 0; i <= 10; i++) {
+        imprimir(i); imprimir("! = "); imprimir(factorial(i)); imprimir("\n");
+    }
+}

@@ -1,0 +1,32 @@
+// Level 3 · Exercise 04 — Variable scope
+// Learning goals:
+//   - Tell global and local variables apart
+//   - Understand shadowing
+//
+int calls = 0;
+int x = 100;
+
+void greet() {
+    calls++;   // modifies the global
+}
+
+void useLocal() {
+    int x = 1;   // local: hides the global ONLY inside this function
+    x = x + 1;
+    print("local x = "); print(x); print("\n");
+}
+
+int square(int x) {
+    return x * x;   // here x is the parameter, not the global
+}
+
+void main() {
+    greet();
+    greet();
+    greet();
+    print("calls = "); print(calls); print("\n");
+    useLocal();
+    print("square(3) = "); print(square(3)); print("\n");
+    // When useLocal returns its x disappears; the global is untouched.
+    print("global x = "); print(x); print("\n");
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N10-E01",
+  "nivel": 10,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Array-based stack",
+  "enunciado": "Implement an int stack of capacity 4 with a global array and a top index, with push (which reports when full), pop, peek and isEmpty. Push 10, 20, 30, 40, 50, peek and empty it.",
+  "objetivos": [
+    "Understand the LIFO policy (last in, first out)",
+    "Handle overflow and underflow"
+  ],
+  "pistas": [
+    "top = -1 means an empty stack.",
+    "push: top++ then store; pop: read then top--.",
+    "Before pushing check top == CAP - 1."
+  ],
+  "conceptos": [
+    "stack",
+    "LIFO",
+    "overflow"
+  ]
+}

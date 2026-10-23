@@ -1,0 +1,21 @@
+{
+  "id": "N07-E05",
+  "nivel": 7,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Caesar cipher",
+  "enunciado": "Encrypt \"ataque al amanecer\" by shifting each letter 3 positions in the alphabet (wrapping z back to a, keeping spaces), and decrypt the result to recover the message.",
+  "objetivos": [
+    "Turn letters into positions and positions into letters",
+    "Use modular arithmetic"
+  ],
+  "pistas": [
+    "A letter's position is index_of(ALPHABET, c).",
+    "The new position is (pos + k) % 26.",
+    "To decrypt, shift by 26 - k."
+  ],
+  "conceptos": [
+    "encryption",
+    "modular arithmetic"
+  ]
+}

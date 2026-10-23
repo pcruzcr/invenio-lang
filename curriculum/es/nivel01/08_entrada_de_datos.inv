@@ -1,0 +1,14 @@
+// Nivel 1 · Ejercicio 08 — Entrada de datos
+// Objetivos:
+//   - Leer valores con leer/read
+//   - Combinar datos leídos en cálculos
+//
+vacio main() {
+    texto nombre;
+    entero anio_nacimiento;
+    // leer guarda en la variable lo que escribe el usuario.
+    leer(nombre);
+    leer(anio_nacimiento);
+    imprimir("Hola, " + nombre + "\n");
+    imprimir(2026 - anio_nacimiento); imprimir("\n");
+}

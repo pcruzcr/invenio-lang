@@ -1,0 +1,22 @@
+{
+  "id": "N11-E07",
+  "nivel": 11,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Min-heap (priority queue)",
+  "enunciado": "Implement a min-heap on a global array: insert sifts the element up and extractMin sifts the new root down. Insert 15, 4, 20, 8, 1, 30, 6, showing the array, and extract every element (they come out sorted).",
+  "objetivos": [
+    "Represent a complete tree in an array",
+    "Maintain the heap property with sift-up/sift-down"
+  ],
+  "pistas": [
+    "Children of i: 2i + 1 and 2i + 2; parent of i: (i - 1) / 2.",
+    "Sift up: swap with the parent while smaller.",
+    "Sift down: swap with the smaller child while larger."
+  ],
+  "conceptos": [
+    "heap",
+    "priority queue",
+    "O(log n)"
+  ]
+}

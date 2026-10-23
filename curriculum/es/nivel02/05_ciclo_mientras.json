@@ -1,0 +1,22 @@
+{
+  "id": "N02-E05",
+  "nivel": 2,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Ciclo mientras",
+  "enunciado": "Partiendo de n = 27, aplica la regla de Collatz (si n es par n = n / 2, si no n = 3n + 1) mientras n sea distinto de 1. Muestra el número de pasos y el mayor valor alcanzado.",
+  "objetivos": [
+    "Repetir mientras una condición sea verdadera",
+    "Usar contadores y máximos dentro de un ciclo"
+  ],
+  "pistas": [
+    "No sabes de antemano cuántas vueltas habrá: por eso mientras.",
+    "Asegúrate de que n cambia en cada vuelta para que el ciclo termine.",
+    "Actualiza el máximo después de calcular el nuevo n."
+  ],
+  "conceptos": [
+    "mientras",
+    "condición de parada",
+    "contador"
+  ]
+}

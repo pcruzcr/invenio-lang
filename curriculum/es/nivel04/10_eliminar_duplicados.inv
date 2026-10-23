@@ -1,0 +1,37 @@
+// Nivel 4 · Ejercicio 10 — Eliminar duplicados de un arreglo ordenado
+// Objetivos:
+//   - Usar un índice de lectura y otro de escritura
+//   - Distinguir capacidad del arreglo y tamaño lógico
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+entero eliminarDuplicados(entero [] a, entero n) {
+    si (n == 0) {
+        retornar 0;
+    }
+    // escritura marca dónde va el siguiente valor distinto; a[0] siempre se queda.
+    entero escritura = 1;
+    para (entero i = 1; i < n; i++) {
+        si (a[i] != a[escritura - 1]) {
+            a[escritura] = a[i];
+            escritura++;
+        }
+    }
+    retornar escritura;
+}
+
+vacio main() {
+    entero [10] a = {1, 1, 2, 3, 3, 3, 4, 7, 7, 9};
+    entero nuevoTam = eliminarDuplicados(a, 10);
+    imprimir("size = "); imprimir(nuevoTam); imprimir("\n");
+    imprimirArreglo(a, nuevoTam);
+}

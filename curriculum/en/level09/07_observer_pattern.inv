@@ -1,0 +1,61 @@
+// Level 9 · Exercise 07 — Observer pattern
+// Learning goals:
+//   - Decouple who produces events from who reacts
+//   - Keep a collection of objects with a linked list
+//
+interface Observer {
+    public abstract void update(int temperature);
+}
+
+class Display implements Observer {
+    public void update(int temperature) {
+        print("  display: "); print(temperature); print("\n");
+    }
+}
+
+class Alarm implements Observer {
+    private int limit;
+    Alarm(int l) { this.limit = l; }
+    public void update(int temperature) {
+        if (temperature > this.limit) {
+            print("  ALARM! "); print(temperature); print(" > "); print(this.limit); print("\n");
+        }
+    }
+}
+
+class ObserverNode {
+    public Observer obs;
+    public ObserverNode next;
+    ObserverNode(Observer o) { this.obs = o; }
+}
+
+class Thermometer {
+    private ObserverNode firstObs;
+    private int temperature;
+
+    public void subscribe(Observer o) {
+        ObserverNode n = new ObserverNode(o);
+        n.next = this.firstObs;
+        this.firstObs = n;
+    }
+
+    public void setTemp(int t) {
+        this.temperature = t;
+        print("temp = "); print(t); print("\n");
+        ObserverNode current = this.firstObs;
+        while (current != null) {
+            Observer o = current.obs;
+            o.update(t);   // the subject does not know the concrete class
+            current = current.next;
+        }
+    }
+}
+
+void main() {
+    Thermometer thermometer = new Thermometer();
+    thermometer.subscribe(new Display());
+    thermometer.subscribe(new Alarm(30));
+    thermometer.setTemp(22);
+    thermometer.setTemp(31);
+    thermometer.setTemp(18);
+}

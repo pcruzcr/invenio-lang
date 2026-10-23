@@ -1,0 +1,22 @@
+{
+  "id": "N04-E08",
+  "nivel": 4,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Conteo de frecuencias",
+  "enunciado": "Se lanzó un dado 20 veces: {3,6,1,6,2,5,6,4,3,6,1,2,6,5,4,6,3,2,6,1}. Cuenta cuántas veces salió cada cara usando un arreglo de contadores indexado por el valor, dibuja un histograma con '#' e indica la moda.",
+  "objetivos": [
+    "Usar el valor de un dato como índice",
+    "Construir un histograma"
+  ],
+  "pistas": [
+    "Crea un arreglo de 7 contadores y usa las posiciones 1 a 6.",
+    "frecuencia[valor]++ registra un lanzamiento en una sola instrucción.",
+    "La moda es la cara con el contador más grande."
+  ],
+  "conceptos": [
+    "arreglo de contadores",
+    "histograma",
+    "moda"
+  ]
+}

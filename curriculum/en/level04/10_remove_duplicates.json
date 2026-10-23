@@ -1,0 +1,21 @@
+{
+  "id": "N04-E10",
+  "nivel": 4,
+  "numero": 10,
+  "idioma": "en",
+  "titulo": "Remove duplicates from a sorted array",
+  "enunciado": "Compact the sorted array {1, 1, 2, 3, 3, 3, 4, 7, 7, 9} in place so that the distinct values are at the beginning. Show the new size and the valid part.",
+  "objetivos": [
+    "Use a read index and a write index",
+    "Tell array capacity from logical size"
+  ],
+  "pistas": [
+    "Since it is sorted, repeated values are adjacent.",
+    "Copy a[i] to the write position only if it differs from the last written value.",
+    "The logical size is the final write position."
+  ],
+  "conceptos": [
+    "logical size",
+    "two indexes"
+  ]
+}

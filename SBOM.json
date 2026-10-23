@@ -1,0 +1,33 @@
+{
+  "dependencias": [
+    {
+      "nombre": "ply",
+      "version": "3.11"
+    },
+    {
+      "nombre": "PySide6",
+      "version": ">=6.6-opcional-gui"
+    }
+  ],
+  "ficheros_clave": [
+    {
+      "bytes": 4902,
+      "ruta": "main.py",
+      "sha256": "fb5eff7e5e3bde6a0040e18ea8b576c156fac8f08af0a0021a88ad2941ce6b02"
+    },
+    {
+      "bytes": 4958,
+      "ruta": "pyproject.toml",
+      "sha256": "2d8d2c61e12beb13233d6e3923ade4fd40ea0cda7b253b355f8e1066948ff7c6"
+    },
+    {
+      "bytes": 1065,
+      "ruta": "requirements.txt",
+      "sha256": "9028018a7dd28605f90aa3ea4f6039d3ac2e570b1e9e2c33ae370e3a613a49cc"
+    }
+  ],
+  "plataforma": "win32",
+  "producto": "inveniolang",
+  "python": "3.14.6",
+  "version": "11.0.0"
+}

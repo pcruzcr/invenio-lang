@@ -1,0 +1,21 @@
+{
+  "id": "N04-E09",
+  "nivel": 4,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Rotar un arreglo",
+  "enunciado": "Rota {10, 20, 30, 40, 50, 60} k = 2 posiciones a la izquierda (el resultado empieza en 30) usando la técnica de las tres inversiones: invertir [0, k-1], invertir [k, n-1] e invertir todo.",
+  "objetivos": [
+    "Componer una transformación a partir de otra más simple",
+    "Trabajar con subrangos de un arreglo"
+  ],
+  "pistas": [
+    "Escribe invertir(a, desde, hasta) para un subrango.",
+    "Muestra el arreglo después de cada inversión para entender el truco.",
+    "Usa k % n por si k es mayor que n."
+  ],
+  "conceptos": [
+    "rotación",
+    "subrango"
+  ]
+}

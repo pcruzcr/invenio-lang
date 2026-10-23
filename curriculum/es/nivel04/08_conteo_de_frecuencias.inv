@@ -1,0 +1,28 @@
+// Nivel 4 · Ejercicio 08 — Conteo de frecuencias
+// Objetivos:
+//   - Usar el valor de un dato como índice
+//   - Construir un histograma
+//
+vacio main() {
+    entero [20] lanzamientos = {3, 6, 1, 6, 2, 5, 6, 4, 3, 6, 1, 2, 6, 5, 4, 6, 3, 2, 6, 1};
+    entero [7] frecuencia;
+    para (entero c = 0; c < 7; c++) {
+        frecuencia[c] = 0;
+    }
+    // El valor del lanzamiento es directamente la posición de su contador.
+    para_cada (entero v : lanzamientos) {
+        frecuencia[v] = frecuencia[v] + 1;
+    }
+    entero moda = 1;
+    para (entero c = 1; c <= 6; c++) {
+        imprimir(c); imprimir(": ");
+        para (entero k = 0; k < frecuencia[c]; k++) {
+            imprimir("#");
+        }
+        imprimir(" "); imprimir(frecuencia[c]); imprimir("\n");
+        si (frecuencia[c] > frecuencia[moda]) {
+            moda = c;
+        }
+    }
+    imprimir("mode = "); imprimir(moda); imprimir("\n");
+}

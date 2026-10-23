@@ -1,0 +1,77 @@
+// Level 11 · Exercise 04 — Height, nodes and leaves
+// Learning goals:
+//   - Define tree properties recursively
+//   - See how insertion order determines the tree's shape
+//
+class Node {
+    public int value;
+    public Node left;
+    public Node right;
+    Node(int v) { this.value = v; }
+}
+
+// Recursive insertion: returns the (possibly new) root of the subtree.
+Node insert(Node r, int v) {
+    if (r == null) {
+        return new Node(v);
+    }
+    if (v < r.value) {
+        r.left = insert(r.left, v);
+    } else {
+        if (v > r.value) {
+            r.right = insert(r.right, v);
+        }
+    }
+    return r;
+}
+
+void inOrder(Node r) {
+    if (r != null) {
+        inOrder(r.left);
+        print(r.value); print(" ");
+        inOrder(r.right);
+    }
+}
+
+int height(Node r) {
+    if (r == null) {
+        return -1;
+    }
+    int hl = height(r.left);
+    int hr = height(r.right);
+    return 1 + (hl > hr ? hl : hr);
+}
+
+int countNodes(Node r) {
+    if (r == null) {
+        return 0;
+    }
+    return 1 + countNodes(r.left) + countNodes(r.right);
+}
+
+int countLeaves(Node r) {
+    if (r == null) {
+        return 0;
+    }
+    if (r.left == null && r.right == null) {
+        return 1;
+    }
+    return countLeaves(r.left) + countLeaves(r.right);
+}
+
+void report(int [] data) {
+    Node root = null;
+    for (int i = 0; i < 7; i++) {
+        root = insert(root, data[i]);
+    }
+    print("height="); print(height(root));
+    print(" nodes="); print(countNodes(root));
+    print(" leaves="); print(countLeaves(root)); print("\n");
+}
+
+void main() {
+    int [7] balanced = {4, 2, 6, 1, 3, 5, 7};
+    int [7] degenerate = {1, 2, 3, 4, 5, 6, 7};
+    report(balanced);
+    report(degenerate);
+}

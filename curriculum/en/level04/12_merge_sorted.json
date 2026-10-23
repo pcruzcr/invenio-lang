@@ -1,0 +1,21 @@
+{
+  "id": "N04-E12",
+  "nivel": 4,
+  "numero": 12,
+  "idioma": "en",
+  "titulo": "Merge two sorted arrays",
+  "enunciado": "Merge {1, 4, 9, 12} and {2, 3, 10, 15, 20} into a third sorted array, traversing both only once.",
+  "objetivos": [
+    "Traverse two arrays in parallel",
+    "Prepare the core idea of merge sort"
+  ],
+  "pistas": [
+    "Keep an index for each array and one for the result.",
+    "Copy the smaller of the two current elements.",
+    "When one runs out, copy what is left of the other."
+  ],
+  "conceptos": [
+    "merge",
+    "O(n + m)"
+  ]
+}

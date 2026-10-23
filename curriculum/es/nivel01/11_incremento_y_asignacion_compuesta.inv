@@ -1,0 +1,16 @@
+// Nivel 1 · Ejercicio 11 — Incremento y asignación compuesta
+// Objetivos:
+//   - Usar ++ y --
+//   - Usar += -= *= /= %=
+//
+vacio main() {
+    entero x = 10;
+    x++;     imprimir(x); imprimir("\n");
+    x += 5;  imprimir(x); imprimir("\n");
+    x *= 2;  imprimir(x); imprimir("\n");
+    x -= 4;  imprimir(x); imprimir("\n");
+    // 28 / 3 = 9 (división entera)
+    x /= 3;  imprimir(x); imprimir("\n");
+    x %= 5;  imprimir(x); imprimir("\n");
+    x--;     imprimir(x); imprimir("\n");
+}

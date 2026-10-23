@@ -1,0 +1,205 @@
+// structures/binary_search_tree.inv -- Binary search tree (BST)
+//
+// InvenioLang educational standard library (INV-1430).
+// Usage:   import "structures/binary_search_tree";
+//
+// Invariant: for every node, everything to its LEFT is smaller and
+// everything to its RIGHT is larger (duplicates are not stored). Thanks to
+// that, searching, inserting and removing go down ONE branch only:
+// O(height), which is O(log n) if the tree is balanced and O(n) in the
+// worst case (for example, if the values are inserted already sorted).
+//
+//              8
+//            /   \
+//           3     10
+//          / \      \
+//         1   6      14
+
+class TreeNode {
+    public int value;
+    public TreeNode left;
+    public TreeNode right;
+
+    TreeNode(int v) {
+        this.value = v;
+    }
+}
+
+class BinarySearchTree {
+    private TreeNode root;
+    private int count;
+
+    // Inserts v if it was not there. Returns true if it was inserted.
+    public bool insert(int v) {
+        if (this.contains(v)) {
+            return false;
+        }
+        this.root = this.insert_into(this.root, v);
+        this.count = this.count + 1;
+        return true;
+    }
+
+    // Iterative search: each step discards half of the tree.
+    public bool contains(int v) {
+        TreeNode current = this.root;
+        while (current != null) {
+            if (v == current.value) {
+                return true;
+            }
+            if (v < current.value) {
+                current = current.left;
+            } else {
+                current = current.right;
+            }
+        }
+        return false;
+    }
+
+    // Removes v if it was there. Returns true if it was removed.
+    public bool remove(int v) {
+        if (!this.contains(v)) {
+            return false;
+        }
+        this.root = this.remove_at(this.root, v);
+        this.count = this.count - 1;
+        return true;
+    }
+
+    // The smallest value is in the leftmost node.
+    public int minimum() {
+        if (this.root == null) {
+            throw_error("minimum: the tree is empty");
+        }
+        TreeNode current = this.root;
+        while (current.left != null) {
+            current = current.left;
+        }
+        return current.value;
+    }
+
+    // The largest value is in the rightmost node.
+    public int maximum() {
+        if (this.root == null) {
+            throw_error("maximum: the tree is empty");
+        }
+        TreeNode current = this.root;
+        while (current.right != null) {
+            current = current.right;
+        }
+        return current.value;
+    }
+
+    // Number of levels: empty tree 0, just the root 1.
+    public int height() {
+        return this.height_of(this.root);
+    }
+
+    public int size() {
+        return this.count;
+    }
+
+    public bool is_empty() {
+        return this.root == null;
+    }
+
+    // In-order traversal (left, root, right): values in SORTED order.
+    public string inorder() {
+        return "[" + this.inorder_of(this.root) + "]";
+    }
+
+    // Pre-order (root, left, right): useful to copy the tree.
+    public string preorder() {
+        return "[" + this.preorder_of(this.root) + "]";
+    }
+
+    // Post-order (left, right, root): useful to free/evaluate.
+    public string postorder() {
+        return "[" + this.postorder_of(this.root) + "]";
+    }
+
+    // ---- Recursive helpers ----
+
+    // Returns the root of the subtree with v already inserted.
+    private TreeNode insert_into(TreeNode node, int v) {
+        if (node == null) {
+            return new TreeNode(v);
+        }
+        if (v < node.value) {
+            node.left = this.insert_into(node.left, v);
+        } else {
+            node.right = this.insert_into(node.right, v);
+        }
+        return node;
+    }
+
+    // Returns the root of the subtree without v (v is in the subtree).
+    private TreeNode remove_at(TreeNode node, int v) {
+        if (v < node.value) {
+            node.left = this.remove_at(node.left, v);
+            return node;
+        }
+        if (v > node.value) {
+            node.right = this.remove_at(node.right, v);
+            return node;
+        }
+        // Found. Cases 1 and 2: at least one child is missing -> the other
+        // child (which may be null) takes its place.
+        if (node.left == null) {
+            return node.right;
+        }
+        if (node.right == null) {
+            return node.left;
+        }
+        // Case 3: two children -> copy the SUCCESSOR (the smallest of the
+        // right subtree) and then remove that successor, which has at most
+        // one child.
+        TreeNode successor = node.right;
+        while (successor.left != null) {
+            successor = successor.left;
+        }
+        node.value = successor.value;
+        node.right = this.remove_at(node.right, successor.value);
+        return node;
+    }
+
+    private int height_of(TreeNode node) {
+        if (node == null) {
+            return 0;
+        }
+        int left_val = this.height_of(node.left);
+        int right_val = this.height_of(node.right);
+        return 1 + (left_val > right_val ? left_val : right_val);
+    }
+
+    private string inorder_of(TreeNode node) {
+        if (node == null) {
+            return "";
+        }
+        return this.join(this.join(this.inorder_of(node.left), int_to_string(node.value)), this.inorder_of(node.right));
+    }
+
+    private string preorder_of(TreeNode node) {
+        if (node == null) {
+            return "";
+        }
+        return this.join(this.join(int_to_string(node.value), this.preorder_of(node.left)), this.preorder_of(node.right));
+    }
+
+    private string postorder_of(TreeNode node) {
+        if (node == null) {
+            return "";
+        }
+        return this.join(this.join(this.postorder_of(node.left), this.postorder_of(node.right)), int_to_string(node.value));
+    }
+
+    // Joins two fragments with ", " without stray commas if one is empty.
+    private string join(string a, string b) {
+        if (a == "") {
+            return b;
+        }
+        if (b == "") {
+            return a;
+        }
+        return a + ", " + b;
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N07-E03",
+  "nivel": 7,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Capitalize words",
+  "enunciado": "Turn \"  hola   mundo de  invenio \" into \"Hola Mundo De Invenio\": remove extra spaces and capitalize the first letter of each word. Also show how many words there are.",
+  "objetivos": [
+    "Detect where words start and end",
+    "Use a state flag (inside/outside a word)"
+  ],
+  "pistas": [
+    "A word starts when you see a letter while outside a word.",
+    "Before each word, except the first, add a single space.",
+    "to_upper on a single character converts it."
+  ],
+  "conceptos": [
+    "state machine",
+    "words"
+  ]
+}

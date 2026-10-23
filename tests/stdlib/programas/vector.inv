@@ -1,0 +1,18 @@
+// Ejercita estructuras/vector desde un programa (INV-1430).
+importar "estructuras/vector";
+
+vacio main() {
+    Vector v = nuevo Vector();
+    imprimir(v.capacidad()); imprimir(" "); imprimir(v.esta_vacio()); imprimir("\n");
+    para (entero i = 1; i <= 10; i++) {
+        v.agregar(i * i);
+    }
+    imprimir(v.a_texto()); imprimir(" "); imprimir(v.tamano()); imprimir("/"); imprimir(v.capacidad()); imprimir("\n");
+    v.insertar(0, -1);
+    imprimir(v.eliminar_en(5)); imprimir(" "); v.asignar(1, 100); imprimir(v.obtener(1)); imprimir(" "); imprimir(v.a_texto()); imprimir("\n");
+    intentar {
+        v.obtener(v.tamano());
+    } capturar (e) {
+        imprimir(e.codigo); imprimir("\n");
+    }
+}

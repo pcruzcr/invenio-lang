@@ -1,0 +1,41 @@
+// Nivel 5 · Ejercicio 01 — Ordenamiento burbuja
+// Objetivos:
+//   - Implementar burbuja con dos ciclos
+//   - Observar cómo el mayor 'sube' al final en cada pasada
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio intercambiar(entero [] a, entero i, entero j) {
+    entero aux = a[i];
+    a[i] = a[j];
+    a[j] = aux;
+}
+
+vacio main() {
+    entero [7] a = {64, 34, 25, 12, 22, 11, 90};
+    entero n = 7;
+    entero comparaciones = 0;
+    entero intercambios = 0;
+    para (entero p = 0; p < n - 1; p++) {
+        // Los últimos p elementos ya están en su lugar: no hace falta revisarlos.
+        para (entero j = 0; j < n - 1 - p; j++) {
+            comparaciones++;
+            si (a[j] > a[j + 1]) {
+                intercambiar(a, j, j + 1);
+                intercambios++;
+            }
+        }
+        imprimirArreglo(a, n);
+    }
+    imprimir("comparisons = "); imprimir(comparaciones); imprimir("\n");
+    imprimir("swaps = "); imprimir(intercambios); imprimir("\n");
+}

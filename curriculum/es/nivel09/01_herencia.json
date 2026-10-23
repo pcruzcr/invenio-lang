@@ -1,0 +1,23 @@
+{
+  "id": "N09-E01",
+  "nivel": 9,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Herencia",
+  "enunciado": "Crea Empleado (nombre, salario) con salarioTotal() y describir(). Crea Gerente que hereda de Empleado, agrega un bono y sobrescribe salarioTotal() sumando el bono. Muestra ambos.",
+  "objetivos": [
+    "Heredar atributos y métodos con hereda/extends",
+    "Llamar al constructor del padre con padre(...)/super(...)",
+    "Reutilizar el método del padre con padre.metodo()"
+  ],
+  "pistas": [
+    "Gerente ES-UN Empleado: tiene todo lo que tiene el empleado.",
+    "La primera instrucción del constructor hijo debe ser padre(...).",
+    "padre.salarioTotal() + este.bono evita repetir el cálculo."
+  ],
+  "conceptos": [
+    "herencia",
+    "es-un",
+    "padre/super"
+  ]
+}

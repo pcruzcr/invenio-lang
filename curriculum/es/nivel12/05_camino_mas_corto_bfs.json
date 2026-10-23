@@ -1,0 +1,22 @@
+{
+  "id": "N12-E05",
+  "nivel": 12,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Reconstruir el camino más corto",
+  "enunciado": "En un laberinto modelado como grafo (aristas 0-1, 1-2, 2-6, 0-3, 3-4, 4-5, 5-6) usa BFS guardando el padre de cada vértice para reconstruir e imprimir el camino más corto de 0 a 6 y de 0 a 5.",
+  "objetivos": [
+    "Guardar el predecesor de cada vértice",
+    "Reconstruir caminos recursivamente desde el destino"
+  ],
+  "pistas": [
+    "padreDe[v] = u cuando descubres v desde u.",
+    "El camino se obtiene al revés: del destino al origen.",
+    "Imprime recursivamente: primero el camino al padre, luego el vértice."
+  ],
+  "conceptos": [
+    "predecesor",
+    "camino mínimo",
+    "BFS"
+  ]
+}

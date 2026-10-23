@@ -1,0 +1,81 @@
+// Level 11 · Exercise 06 — Level-order traversal (BFS on trees)
+// Learning goals:
+//   - Combine a tree with a queue
+//   - Separate levels by counting how many nodes each has
+//
+class Node {
+    public int value;
+    public Node left;
+    public Node right;
+    Node(int v) { this.value = v; }
+}
+
+// Recursive insertion: returns the (possibly new) root of the subtree.
+Node insert(Node r, int v) {
+    if (r == null) {
+        return new Node(v);
+    }
+    if (v < r.value) {
+        r.left = insert(r.left, v);
+    } else {
+        if (v > r.value) {
+            r.right = insert(r.right, v);
+        }
+    }
+    return r;
+}
+
+void inOrder(Node r) {
+    if (r != null) {
+        inOrder(r.left);
+        print(r.value); print(" ");
+        inOrder(r.right);
+    }
+}
+
+class QueueNode {
+    public Node tree;
+    public QueueNode next;
+    QueueNode(Node a) { this.tree = a; }
+}
+
+QueueNode front = null;
+QueueNode rear = null;
+int queueSize = 0;
+
+void enqueue(Node a) {
+    QueueNode n = new QueueNode(a);
+    if (rear == null) { front = n; } else { rear.next = n; }
+    rear = n;
+    queueSize++;
+}
+
+Node dequeue() {
+    QueueNode n = front;
+    front = n.next;
+    if (front == null) { rear = null; }
+    queueSize--;
+    return n.tree;
+}
+
+void main() {
+    int [9] data = {8, 3, 10, 1, 6, 14, 4, 7, 13};
+    Node root = null;
+    foreach (int v : data) {
+        root = insert(root, v);
+    }
+    enqueue(root);
+    int level = 0;
+    while (queueSize > 0) {
+        int onThisLevel = queueSize;   // nodes on the current level
+        print(level); print(":");
+        for (int k = 0; k < onThisLevel; k++) {
+            Node n = dequeue();
+            print(" "); print(n.value);
+            if (n.left != null) { enqueue(n.left); }
+            if (n.right != null) { enqueue(n.right); }
+        }
+        print("\n");
+        level++;
+    }
+}

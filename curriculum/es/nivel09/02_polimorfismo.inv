@@ -1,0 +1,32 @@
+// Nivel 9 · Ejercicio 02 — Polimorfismo
+// Objetivos:
+//   - Sobrescribir métodos en subclases
+//   - Usar despacho dinámico: el método depende del objeto real
+//
+clase Animal {
+    publico texto nombre;
+    Animal(texto n) { este.nombre = n; }
+    publico texto hablar() { retornar "..."; }
+    publico texto presentar() { retornar este.nombre + " says " + este.hablar(); }
+}
+
+clase Perro hereda Animal {
+    Perro(texto n) { padre(n); }
+    publico texto hablar() { retornar "woof"; }
+}
+
+clase Gato hereda Animal {
+    Gato(texto n) { padre(n); }
+    publico texto hablar() { retornar "meow"; }
+}
+
+vacio main() {
+    Animal animales[3];
+    animales[0] = nuevo Perro("Rex");
+    animales[1] = nuevo Gato("Misu");
+    animales[2] = nuevo Animal("Nemo");
+    para (entero i = 0; i < 3; i++) {
+        // Mismo mensaje, comportamientos distintos.
+        imprimir(animales[i].presentar()); imprimir("\n");
+    }
+}

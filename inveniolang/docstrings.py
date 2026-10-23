@@ -1,4 +1,5 @@
 """Documentación y ejemplos embebidos para el menú Ayuda."""
+
 # ============================================================
 # Contenido de la documentación embebida (menú Ayuda)
 # ============================================================
@@ -328,49 +329,80 @@ _DOC_ATAJOS = """ATAJOS DE TECLADO
 
 # Ejemplos cargables desde la carpeta pruebas/
 EJEMPLOS = [
-    'hola_mundo', 'tipos', 'condicionales', 'ciclos', 'funciones',
-    'procedimientos', 'arreglos', 'matrices', 'sistema_ventas',
-    'calculadora', 'estadisticas', 'conversor',
+    "hola_mundo",
+    "tipos",
+    "condicionales",
+    "ciclos",
+    "funciones",
+    "procedimientos",
+    "arreglos",
+    "matrices",
+    "sistema_ventas",
+    "calculadora",
+    "estadisticas",
+    "conversor",
     # Apendice E (Seccion 17): faltaban en el menu, ya cubiertos por
     # conformidad.py::REFERENCIA desde la v1.0
-    'escapes', 'calculadora_es', 'guardia', 'hanoi',
+    "escapes",
+    "calculadora_es",
+    "guardia",
+    "hanoi",
     # Estructuras de Datos (InvenioLang 2.0): sin objetos y con objetos
-    'pila_arreglo', 'cola_arreglo',
-    'lista_enlazada', 'pila_enlazada', 'cola_enlazada',
-    'arbol_binario', 'arreglo_objetos',
+    "pila_arreglo",
+    "cola_arreglo",
+    "lista_enlazada",
+    "pila_enlazada",
+    "cola_enlazada",
+    "arbol_binario",
+    "arreglo_objetos",
     # Etapa 6: lenguaje estructurado completo
-    'estructurado',
+    "estructurado",
     # Etapa 7: POO completo (abstractas, estaticos, sobrecarga, genericos)
-    'poo_completo',
+    "poo_completo",
     # Etapa 8: mas estructuras de datos y algoritmos, sin y con objetos
-    'tabla_hash_arreglo', 'grafo_matriz',
-    'ordenamiento_insercion', 'ordenamiento_seleccion',
-    'busqueda_binaria', 'quicksort', 'mergesort',
-    'grafo_lista_adyacencia', 'tabla_hash_encadenada',
+    "tabla_hash_arreglo",
+    "grafo_matriz",
+    "ordenamiento_insercion",
+    "ordenamiento_seleccion",
+    "busqueda_binaria",
+    "quicksort",
+    "mergesort",
+    "grafo_lista_adyacencia",
+    "tabla_hash_encadenada",
     # Etapa 10: cierre de brechas de Fase 1/Fase 2 (sobrecarga de
     # constructores, aTexto()/toString(), monticulo, archivos)
-    'poo_extendido', 'monticulo', 'heapsort', 'archivo_io',
+    "poo_extendido",
+    "monticulo",
+    "heapsort",
+    "archivo_io",
     # Etapa 11: patrones de diseño (visibilidad de constructores + esIgual())
-    'patron_singleton', 'patron_factory', 'patron_observer',
-    'patron_strategy', 'patron_decorator',
+    "patron_singleton",
+    "patron_factory",
+    "patron_observer",
+    "patron_strategy",
+    "patron_decorator",
     # Etapa 11: algoritmos de grafos con peso
-    'dijkstra', 'kruskal', 'orden_topologico',
+    "dijkstra",
+    "kruskal",
+    "orden_topologico",
     # Etapa 11: backtracking y programacion dinamica
-    'n_reinas', 'permutaciones', 'fibonacci_memo', 'mochila',
+    "n_reinas",
+    "permutaciones",
+    "fibonacci_memo",
+    "mochila",
     # Etapa 11: lista doblemente enlazada y deque
-    'lista_doble', 'deque',
+    "lista_doble",
+    "deque",
     # Etapa 11: arbol AVL
-    'arbol_avl',
+    "arbol_avl",
     # Etapa 11: enumeraciones
-    'enumeraciones',
+    "enumeraciones",
     # Etapa 11: operadores bit a bit
-    'bit_a_bit',
+    "bit_a_bit",
     # Etapa 12: recursion de cola (TCO) -- ver comentarios del archivo
     # para el experimento con --run-ir-opt (fuera del alcance de un
     # ejemplo que solo se ejecuta desde el menu)
-    'suma_cola',
+    "suma_cola",
     # Etapa 12.9/12.10: tipos suma (enum con carga) + pattern matching
-    'tipos_suma',
+    "tipos_suma",
 ]
-
-

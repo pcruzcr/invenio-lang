@@ -1,0 +1,24 @@
+// Ejercita estructuras/grafo (BFS, DFS, Dijkstra) desde un programa (INV-1430).
+importar "estructuras/grafo";
+
+vacio main() {
+    Grafo g = nuevo Grafo(verdadero);
+    para (entero i = 0; i < 5; i++) {
+        g.agregar_vertice();
+    }
+    g.agregar_arista(0, 1, 4); g.agregar_arista(0, 2, 1); g.agregar_arista(1, 3, 1);
+    g.agregar_arista(2, 1, 2); g.agregar_arista(2, 3, 5);
+    imprimir(g.bfs(0)); imprimir(" | "); imprimir(g.dfs(0)); imprimir("\n");
+    imprimir(g.distancia_minima(0, 3)); imprimir(" | "); imprimir(g.camino_minimo(0, 3)); imprimir(" | ");
+    imprimir(g.distancia_minima(0, 4)); imprimir(" | "); imprimir(g.camino_minimo(3, 0)); imprimir("|\n");
+    imprimir(g.grado(0)); imprimir(g.tiene_arista(1, 0)); imprimir(g.cantidad_vertices()); imprimir("\n");
+    Grafo n = nuevo Grafo(falso);
+    n.agregar_vertice(); n.agregar_vertice(); n.agregar_vertice();
+    n.agregar_arista(0, 1, 7); n.agregar_arista(1, 2, 1);
+    imprimir(n.tiene_arista(1, 0)); imprimir(" "); imprimir(n.bfs(2)); imprimir(" "); imprimir(n.distancia_minima(2, 0)); imprimir("\n");
+    intentar {
+        n.agregar_arista(0, 9, 1);
+    } capturar (e) {
+        imprimir(e.codigo); imprimir("\n");
+    }
+}

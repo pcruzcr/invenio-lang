@@ -1,0 +1,22 @@
+{
+  "id": "N11-E09",
+  "nivel": 11,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Tabla hash con sondeo lineal",
+  "enunciado": "Implementa una tabla hash de capacidad 11 con arreglos paralelos claves/valores/ocupado y función h(k) = k % 11. Las colisiones se resuelven con sondeo lineal. Inserta las claves 22, 33, 5, 16, 44 con sus valores, muestra cuántos sondeos necesitó cada una y busca 33, 16 y 7.",
+  "objetivos": [
+    "Comprender la función hash y las colisiones",
+    "Implementar direccionamiento abierto con sondeo lineal"
+  ],
+  "pistas": [
+    "22, 33 y 44 caen todas en la posición 0: colisión.",
+    "Si la posición está ocupada prueba la siguiente: (p + 1) % CAP.",
+    "La búsqueda se detiene al encontrar la clave o una casilla vacía."
+  ],
+  "conceptos": [
+    "tabla hash",
+    "colisión",
+    "sondeo lineal"
+  ]
+}

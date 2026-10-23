@@ -1,0 +1,21 @@
+{
+  "id": "N05-E03",
+  "nivel": 5,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Selection sort",
+  "enunciado": "Sort {29, 10, 14, 37, 13, 5} with selection sort: in each pass find the minimum of the unsorted part and put it at the start. Show the chosen minimum and the array after each pass.",
+  "objetivos": [
+    "Implement selection sort",
+    "See that it makes at most n - 1 swaps"
+  ],
+  "pistas": [
+    "The part a[0..i-1] is already sorted.",
+    "Find the position of the minimum in a[i..n-1].",
+    "Swap a[i] with that minimum."
+  ],
+  "conceptos": [
+    "selection sort",
+    "invariant"
+  ]
+}

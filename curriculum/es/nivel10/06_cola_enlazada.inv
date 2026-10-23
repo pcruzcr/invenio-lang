@@ -1,0 +1,61 @@
+// Nivel 10 · Ejercicio 06 — Cola enlazada: simulación de turnos
+// Objetivos:
+//   - Implementar una cola con nodos y dos referencias
+//   - Mantener consistentes frente y final en los casos límite
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo siguiente;
+    Nodo(entero v) { este.valor = v; }
+}
+
+clase ColaEnlazada {
+    privado Nodo frente;
+    privado Nodo final;
+
+    publico vacio encolar(entero v) {
+        Nodo n = nuevo Nodo(v);
+        si (este.final == nulo) {
+            este.frente = n;   // cola vacía: único nodo
+        } sino {
+            Nodo f = este.final;
+            f.siguiente = n;
+        }
+        este.final = n;
+    }
+
+    publico entero desencolar() {
+        Nodo n = este.frente;
+        este.frente = n.siguiente;
+        si (este.frente == nulo) {
+            este.final = nulo;
+        }
+        retornar n.valor;
+    }
+
+    publico logico estaVacia() { retornar este.frente == nulo; }
+}
+
+ColaEnlazada fila;
+
+vacio llega(entero cliente) {
+    fila.encolar(cliente);
+    imprimir("arrives "); imprimir(cliente); imprimir("\n");
+}
+
+vacio atender() {
+    imprimir("served "); imprimir(fila.desencolar()); imprimir("\n");
+}
+
+vacio main() {
+    fila = nuevo ColaEnlazada();
+    llega(101);
+    llega(102);
+    llega(103);
+    atender();
+    llega(104);
+    llega(105);
+    mientras (!fila.estaVacia()) {
+        atender();
+    }
+}

@@ -1,0 +1,43 @@
+// Level 13 · Exercise 08 — Quick sort: the worst case matters
+// Learning goals:
+//   - Understand that average and worst case can differ a lot
+//   - Relate pivot choice to complexity
+//
+const int N = 60;
+int comparisons = 0;
+
+int partition(int [] v, int left, int right) {
+    int pivot = v[right];
+    int i = left - 1;
+    for (int j = left; j < right; j++) {
+        comparisons++;
+        if (v[j] < pivot) {
+            i++;
+            int tmp = v[i]; v[i] = v[j]; v[j] = tmp;
+        }
+    }
+    int tmp = v[i + 1]; v[i + 1] = v[right]; v[right] = tmp;
+    return i + 1;
+}
+
+void quickSort(int [] v, int left, int right) {
+    if (left < right) {
+        int p = partition(v, left, right);
+        quickSort(v, left, p - 1);
+        quickSort(v, p + 1, right);
+    }
+}
+
+void main() {
+    int [N] v;
+    // A shuffled permutation of 0..N-1 (37 and 60 are coprime): distinct values.
+    for (int i = 0; i < N; i++) { v[i] = (i * 37) % N; }
+    comparisons = 0;
+    quickSort(v, 0, N - 1);
+    print("shuffled: "); print(comparisons); print("\n");
+    // Now v is already sorted: the worst case for this pivot.
+    comparisons = 0;
+    quickSort(v, 0, N - 1);
+    print("sorted: "); print(comparisons); print("\n");
+    print("n(n-1)/2 = "); print(N * (N - 1) / 2); print("\n");
+}

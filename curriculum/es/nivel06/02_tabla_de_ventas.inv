@@ -1,0 +1,33 @@
+// Nivel 6 · Ejercicio 02 — Tabla de ventas: totales por fila y columna
+// Objetivos:
+//   - Agregar datos por filas y por columnas
+//   - Usar una matriz como tabla de datos
+//
+vacio main() {
+    entero [3][4] ventas = {{12, 15, 9, 20}, {8, 11, 14, 10}, {20, 18, 22, 25}};
+    entero total = 0;
+    entero mejor = 0;
+    entero mejorTotal = -1;
+    para (entero i = 0; i < 3; i++) {
+        // Recorrido por filas: total de la tienda i.
+        entero sumaFila = 0;
+        para (entero j = 0; j < 4; j++) {
+            sumaFila += ventas[i][j];
+        }
+        imprimir("store "); imprimir(i); imprimir(": "); imprimir(sumaFila); imprimir("\n");
+        total += sumaFila;
+        si (sumaFila > mejorTotal) {
+            mejorTotal = sumaFila;
+            mejor = i;
+        }
+    }
+    para (entero j = 0; j < 4; j++) {
+        entero sumaCol = 0;
+        para (entero i = 0; i < 3; i++) {
+            sumaCol += ventas[i][j];
+        }
+        imprimir("week "); imprimir(j); imprimir(": "); imprimir(sumaCol); imprimir("\n");
+    }
+    imprimir("total = "); imprimir(total); imprimir("\n");
+    imprimir("best store = "); imprimir(mejor); imprimir("\n");
+}

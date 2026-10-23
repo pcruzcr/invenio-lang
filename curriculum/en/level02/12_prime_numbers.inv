@@ -1,0 +1,24 @@
+// Level 2 · Exercise 12 — Prime numbers
+// Learning goals:
+//   - Combine a loop with a boolean flag
+//   - Reduce work by stopping the search at the square root
+//
+void main() {
+    int primes = 0;
+    for (int n = 2; n <= 50; n++) {
+        bool isPrime = true;
+        int d = 2;
+        while (d * d <= n && isPrime) {
+            if (n % d == 0) {
+                isPrime = false;   // we found a divisor
+            }
+            d++;
+        }
+        if (isPrime) {
+            print(n); print(" ");
+            primes++;
+        }
+    }
+    print("\n");
+    print("count = "); print(primes); print("\n");
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N03-E05",
+  "nivel": 3,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Boolean functions",
+  "enunciado": "Write isLeapYear(year) (divisible by 4 and not by 100, or divisible by 400) and show it for 1900, 2000, 2024 and 2026. Then count the leap years between 1901 and 2000.",
+  "objetivos": [
+    "Write functions that return bool",
+    "Translate a natural-language rule into a boolean expression"
+  ],
+  "pistas": [
+    "Return the boolean expression directly, without an if.",
+    "Use parentheses to make the combination of && and || clear.",
+    "Between 1901 and 2000 there should be 25."
+  ],
+  "conceptos": [
+    "boolean function",
+    "leap year"
+  ]
+}

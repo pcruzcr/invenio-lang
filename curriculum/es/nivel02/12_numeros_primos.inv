@@ -1,0 +1,24 @@
+// Nivel 2 · Ejercicio 12 — Números primos
+// Objetivos:
+//   - Combinar un ciclo con una bandera lógica
+//   - Reducir trabajo cortando la búsqueda en la raíz
+//
+vacio main() {
+    entero primos = 0;
+    para (entero n = 2; n <= 50; n++) {
+        logico esPrimo = verdadero;
+        entero d = 2;
+        mientras (d * d <= n && esPrimo) {
+            si (n % d == 0) {
+                esPrimo = falso;   // encontramos un divisor
+            }
+            d++;
+        }
+        si (esPrimo) {
+            imprimir(n); imprimir(" ");
+            primos++;
+        }
+    }
+    imprimir("\n");
+    imprimir("count = "); imprimir(primos); imprimir("\n");
+}

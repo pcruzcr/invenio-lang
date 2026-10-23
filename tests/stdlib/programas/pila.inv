@@ -1,0 +1,19 @@
+// Ejercita estructuras/pila desde un programa (INV-1430).
+importar "estructuras/pila";
+
+vacio main() {
+    Pila p = nuevo Pila();
+    imprimir(p.esta_vacia()); imprimir("\n");
+    para (entero i = 1; i <= 4; i++) {
+        p.apilar(i * 10);
+    }
+    imprimir(p.a_texto()); imprimir(" tamano="); imprimir(p.tamano()); imprimir("\n");
+    imprimir(p.cima_valor()); imprimir(" "); imprimir(p.desapilar()); imprimir(" "); imprimir(p.desapilar()); imprimir("\n");
+    imprimir(p.a_texto()); imprimir(" "); imprimir(p.esta_vacia()); imprimir("\n");
+    p.desapilar(); p.desapilar();
+    intentar {
+        p.desapilar();
+    } capturar (e) {
+        imprimir(e.codigo); imprimir("\n");
+    }
+}

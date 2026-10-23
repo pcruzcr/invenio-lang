@@ -1,0 +1,25 @@
+// Nivel 5 · Ejercicio 08 — Ordenar registros con arreglos paralelos
+// Objetivos:
+//   - Mantener sincronizados arreglos paralelos
+//   - Entender la estabilidad de un ordenamiento
+//   - Ordenar de forma descendente
+//
+vacio main() {
+    texto [5] nombres = {"Ana", "Luis", "Eva", "Juan", "Sofi"};
+    entero [5] puntos = {85, 92, 85, 70, 92};
+    para (entero i = 1; i < 5; i++) {
+        entero clave = puntos[i];
+        texto claveNombre = nombres[i];
+        entero j = i - 1;
+        mientras (j >= 0 && puntos[j] < clave) {
+            puntos[j + 1] = puntos[j];
+            nombres[j + 1] = nombres[j];   // el nombre viaja con su puntaje
+            j--;
+        }
+        puntos[j + 1] = clave;
+        nombres[j + 1] = claveNombre;
+    }
+    para (entero i = 0; i < 5; i++) {
+        imprimir(i + 1); imprimir(". "); imprimir(nombres[i]); imprimir(" "); imprimir(puntos[i]); imprimir("\n");
+    }
+}

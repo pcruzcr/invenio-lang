@@ -1,0 +1,21 @@
+{
+  "id": "N07-E01",
+  "nivel": 7,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Contar vocales, consonantes y espacios",
+  "enunciado": "Recorre la frase \"El codigo es poesia\" carácter a carácter y cuenta vocales, consonantes y espacios. Usa indice_de sobre cadenas de referencia para clasificar cada carácter.",
+  "objetivos": [
+    "Recorrer una cadena con caracter_en",
+    "Clasificar caracteres con una cadena de referencia"
+  ],
+  "pistas": [
+    "Pasa la frase a minúsculas primero para no duplicar casos.",
+    "indice_de(\"aeiou\", c) >= 0 indica que c es vocal.",
+    "Las consonantes son letras que no son vocales."
+  ],
+  "conceptos": [
+    "recorrido de cadena",
+    "clasificación"
+  ]
+}

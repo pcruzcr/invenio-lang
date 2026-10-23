@@ -1,0 +1,22 @@
+{
+  "id": "N13-E07",
+  "nivel": 13,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Pair with a given sum: O(n²) versus O(n)",
+  "enunciado": "In the sorted array a[i] = 3i + 1 (n = 300) look for two positions whose sum is 1787, and another search with no solution (sum 3). Compare brute force (every pair) with two pointers moving in from the ends, counting comparisons.",
+  "objetivos": [
+    "Take advantage of sorted data",
+    "Apply the two-pointer technique to reduce complexity"
+  ],
+  "pistas": [
+    "If a[i] + a[j] is too small, move i forward; if too large, move j back.",
+    "Each step discards one element forever: at most n steps.",
+    "Brute force with no solution tries n(n-1)/2 pairs."
+  ],
+  "conceptos": [
+    "two pointers",
+    "O(n)",
+    "O(n²)"
+  ]
+}

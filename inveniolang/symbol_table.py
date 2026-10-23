@@ -1,12 +1,18 @@
 # Módulo de Tabla de Símbolos de InvenioLang 1.0
 # Implementa la gestión de ámbitos y almacenamiento de símbolos (§5.5, §14)
 # Soporta tres niveles de alcance: global, función y bloque interno
+# Patrones aplicados: Observer (cambios de ámbito), Flyweight (compartir
+# tipos), Strategy (resolución de sobrecarga), Memento (snapshot para debug)
+from __future__ import annotations
 
 from enum import Enum, auto
+
+from .patterns import Caretaker, Memento, Subject
 
 
 class TipoSimbolo(Enum):
     """Clasificación de los símbolos en la tabla."""
+
     VARIABLE = auto()
     CONSTANTE = auto()
     FUNCION = auto()
@@ -59,8 +65,10 @@ class SymbolEntry:
         self.es_constante = False  # Etapa 11: arreglo declarado con const (IL-SEM-031)
 
     def __repr__(self):
-        return (f"{self.nombre}: {self.tipo_simbolo.name}({self.tipo_dato}) "
-                f"[L{self.linea}:C{self.columna}]")
+        return (
+            f"{self.nombre}: {self.tipo_simbolo.name}({self.tipo_dato}) "
+            f"[L{self.linea}:C{self.columna}]"
+        )
 
 
 class MiembroInfo:
@@ -78,8 +86,17 @@ class MiembroInfo:
 class MetodoInfo(MiembroInfo):
     """Informacion de un metodo: agrega la firma (tipos de parametros)."""
 
-    def __init__(self, nombre, visibilidad, tipo_retorno, params_tipos, linea, columna,
-                es_estatico=False, es_abstracto=False):
+    def __init__(
+        self,
+        nombre,
+        visibilidad,
+        tipo_retorno,
+        params_tipos,
+        linea,
+        columna,
+        es_estatico=False,
+        es_abstracto=False,
+    ):
         super().__init__(nombre, visibilidad, tipo_retorno, linea, columna, es_estatico)
         self.params_tipos = params_tipos  # list[str]
         self.es_abstracto = es_abstracto  # Etapa 7: sin cuerpo, la subclase debe implementarlo
@@ -94,8 +111,17 @@ class ClaseInfo:
     no se apoya en `buscar()`, que recorre la pila de ambitos léxicos.
     """
 
-    def __init__(self, nombre, padre, linea, columna, es_abstracta=False, es_enum=False,
-                interfaces=None, es_interfaz=False):
+    def __init__(
+        self,
+        nombre,
+        padre,
+        linea,
+        columna,
+        es_abstracta=False,
+        es_enum=False,
+        interfaces=None,
+        es_interfaz=False,
+    ):
         self.nombre = nombre
         self.padre = padre  # str o None
         self.linea = linea
@@ -106,49 +132,108 @@ class ClaseInfo:
         self.es_interfaz = es_interfaz  # Etapa 12.3: 'interfaz X {...}'
         self.atributos = {}  # nombre -> MiembroInfo (instancia o estatico)
         self.metodos = {}  # nombre -> list[MetodoInfo] (Etapa 7: sobrecarga)
-        self.constructores = []  # list[MetodoInfo] (Etapa 10: sobrecarga; vacia = implicito, 0 args)
+        # list[MetodoInfo] (Etapa 10: sobrecarga; vacía = implícito, 0 args)
+        self.constructores = []
         self.estado_estatico = {}  # Etapa 7: nombre_attr_estatico -> valor (interpreter.py)
 
     def __repr__(self):
         return f"ClaseInfo({self.nombre}, hereda={self.padre})"
 
 
-class SymbolTable:
+class SymbolTable(Subject):
     """Tabla de símbolos con soporte de alcance léxico estático por bloques.
 
     Mantiene una pila de ámbitos. Cada ámbito es un diccionario nombre -> SymbolEntry.
     El ámbito 0 es siempre el global. Los ámbitos se crean al entrar en un bloque
     y se destruyen al salir.
+
+    Patrones: Subject/Observer (notifica cambios de ámbito a debugger/IDE),
+    Strategy (resolución de sobrecarga), Memento (snapshot), Flyweight (tipos),
+    Optimizado con caché de ancestros y búsqueda O(1) en hot path.
     """
 
     def __init__(self):
-        self.ambitos = [{}]  # Pila de ámbitos, índice 0 = global
-        self.nombres_funciones = {}  # Acceso rápido a funciones/procedimientos
+        super().__init__()
+        self.ambitos: list[dict[str, SymbolEntry]] = [{}]  # Pila de ámbitos, índice 0 = global
+        self.nombres_funciones: dict[str, SymbolEntry] = (
+            {}
+        )  # Acceso rápido a funciones/procedimientos
         self.loop_actual = 0  # Contador de profundidad de bucles anidados (while/for/do-while)
         self.switch_actual = 0  # Contador de profundidad de switch anidados (Etapa 6)
-        self.clases = {}  # nombre -> ClaseInfo (POO, InvenioLang 2.0)
+        self.clases: dict[str, ClaseInfo] = {}  # nombre -> ClaseInfo (POO, InvenioLang 2.0)
+        self._ancestros_cache: dict[str, list[str] | None] = {}
+        self._caretaker = Caretaker(max_mementos=20)
         self._registrar_clase_excepcion()
 
     def _registrar_clase_excepcion(self):
-        """Clase sintética 'Excepcion' (Etapa 6, try/catch genérico): siempre
+        """Clase sintética 'Excepcion' (Etapa 6, try/catch genérico): siempre.
+
         disponible sin que el usuario la declare, con dos campos públicos de
         solo lectura `codigo` y `mensaje` -- reutiliza el mecanismo de
         acceso a miembro que ya existe para POO en vez de un tipo nuevo. Un
         `clase Excepcion {...}` del usuario reporta IL-POO-001 (duplicado),
-        igual que redeclarar cualquier otra clase reservada."""
-        info = ClaseInfo('Excepcion', None, 0, 0)
-        info.atributos['codigo'] = MiembroInfo('codigo', 'publico', 'string', 0, 0)
-        info.atributos['mensaje'] = MiembroInfo('mensaje', 'publico', 'string', 0, 0)
-        self.clases['Excepcion'] = info
+        igual que redeclarar cualquier otra clase reservada.
+        """
+        info = ClaseInfo("Excepcion", None, 0, 0)
+        info.atributos["codigo"] = MiembroInfo("codigo", "publico", "string", 0, 0)
+        info.atributos["mensaje"] = MiembroInfo("mensaje", "publico", "string", 0, 0)
+        # INV-1404: los mismos campos con nombre en inglés, para que un
+        # programa escrito (o traducido) en inglés use `e.code`/`e.message`.
+        info.atributos["code"] = MiembroInfo("code", "publico", "string", 0, 0)
+        info.atributos["message"] = MiembroInfo("message", "publico", "string", 0, 0)
+        self.clases["Excepcion"] = info
 
     def entrar_ambito(self):
-        """Entra en un nuevo ámbito (nuevo bloque)."""
+        """Entra en un nuevo ámbito (nuevo bloque). Observer + Memento."""
         self.ambitos.append({})
+        self.notify("ambito_entrada", self.profundidad_ambito())
 
     def salir_ambito(self):
         """Sale del ámbito actual."""
         if len(self.ambitos) > 1:
             self.ambitos.pop()
+            self.notify("ambito_salida", self.profundidad_ambito())
+
+    def ambito(self):
+        """Contextmanager que garantiza balance entrar/salir.
+
+        Robusto, cohesivo, testeable. Uso:
+            with tabla.ambito():
+                ...
+        """
+        from contextlib import contextmanager
+
+        @contextmanager
+        def _ctx():
+            self.entrar_ambito()
+            try:
+                yield self
+            finally:
+                self.salir_ambito()
+
+        return _ctx()
+
+    def snapshot(self) -> Memento:
+        """Memento — guarda estado para debug/time-travel."""
+        import copy
+
+        state = {
+            "ambitos": copy.deepcopy(self.ambitos),
+            "loop": self.loop_actual,
+            "switch": self.switch_actual,
+        }
+        m = Memento(state)
+        self._caretaker.save(m)
+        return m
+
+    def restore(self, memento: Memento) -> None:
+        """Restaura una instantánea guardada."""
+        state = memento.get_state()
+        self.ambitos = state["ambitos"]
+        self.loop_actual = state["loop"]
+        self.switch_actual = state["switch"]
+        self._ancestros_cache.clear()
+        self.notify("restaurado", None)
 
     def ambito_actual(self):
         """Retorna el diccionario del ámbito actual."""
@@ -184,8 +269,10 @@ class SymbolTable:
         return self.ambito_actual().get(nombre)
 
     def hay_externo(self, nombre):
-        """Indica si el identificador ya está declarado en algún ámbito externo
-        (no en el actual). Se usa para detectar ocultamiento (IL-WARN-001 §3.5.3)."""
+        """Indica si el identificador ya está declarado en algún ámbito externo.
+
+        (no en el actual). Se usa para detectar ocultamiento (IL-WARN-001 §3.5.3).
+        """
         for ambito in self.ambitos[:-1]:
             if nombre in ambito:
                 return True
@@ -215,14 +302,18 @@ class SymbolTable:
         return resultado
 
     def esta_en_loop(self):
-        """Indica si estamos dentro de un bucle (while/for/do-while) -- lo
-        único que satisface `continue` (§9, Etapa 6)."""
+        """Indica si estamos dentro de un bucle (while/for/do-while) -- lo.
+
+        único que satisface `continue` (§9, Etapa 6).
+        """
         return self.loop_actual > 0
 
     def esta_en_loop_o_switch(self):
-        """Indica si `break` es válido aquí: dentro de un bucle O de un
+        """Indica si `break` es válido aquí: dentro de un bucle O de un.
+
         switch/segun (Etapa 6) -- a diferencia de `continue`, que un switch
-        NO satisface."""
+        NO satisface.
+        """
         return self.loop_actual > 0 or self.switch_actual > 0
 
     def marcar_inicializado(self, nombre):
@@ -235,50 +326,76 @@ class SymbolTable:
     # POO (InvenioLang 2.0 -- docs/InvenioLang_2.0_POO.md)
     # ============================================================
 
-    def declarar_clase(self, nombre, padre, linea, columna, es_abstracta=False,
-                       interfaces=None, es_interfaz=False):
-        """Registra una clase nueva. Retorna la ClaseInfo creada, o None si
-        el nombre ya estaba declarado (IL-POO-001, a cargo del llamador)."""
+    def declarar_clase(
+        self, nombre, padre, linea, columna, es_abstracta=False, interfaces=None, es_interfaz=False
+    ):
+        """Registra una clase nueva. Retorna la ClaseInfo creada, o None si.
+
+        el nombre ya estaba declarado (IL-POO-001, a cargo del llamador).
+        """
         if nombre in self.clases:
             return None
-        info = ClaseInfo(nombre, padre, linea, columna, es_abstracta=es_abstracta,
-                         interfaces=interfaces, es_interfaz=es_interfaz)
+        info = ClaseInfo(
+            nombre,
+            padre,
+            linea,
+            columna,
+            es_abstracta=es_abstracta,
+            interfaces=interfaces,
+            es_interfaz=es_interfaz,
+        )
         self.clases[nombre] = info
+        self._ancestros_cache.clear()
+        self.notify("clase_declarada", nombre)
         return info
 
     def buscar_clase(self, nombre):
-        """Retorna la ClaseInfo de `nombre`, o None si no es una clase
-        declarada."""
+        """Retorna la ClaseInfo de `nombre`, o None si no es una clase.
+
+        declarada.
+        """
         return self.clases.get(nombre)
 
     def es_clase(self, nombre):
+        """Indica es clase."""
         return nombre in self.clases
 
     def cadena_ancestros(self, nombre):
-        """Lista de nombres de clase desde `nombre` hasta la raiz de su
+        """Lista de nombres de clase desde `nombre` hasta la raiz de su.
+
         jerarquia (`nombre` incluido). Retorna None si hay un ciclo de
         herencia o un padre inexistente -- el llamador (semantic.py) debe
         validar esos dos casos (IL-POO-002/003) ANTES de apoyarse en el
-        resultado de este metodo para otra cosa."""
+        resultado de este metodo para otra cosa.
+
+        Optimizado con caché Flyweight (invalida en declarar_clase).
+        """
+        if nombre in self._ancestros_cache:
+            return self._ancestros_cache[nombre]
         vistos = []
         actual = nombre
         while actual is not None:
             if actual in vistos:
+                self._ancestros_cache[nombre] = None
                 return None  # herencia circular
             vistos.append(actual)
             info = self.clases.get(actual)
             if info is None:
+                self._ancestros_cache[nombre] = None
                 return None  # padre inexistente
             actual = info.padre
+        self._ancestros_cache[nombre] = vistos
         return vistos
 
     def es_subtipo_clase(self, hijo, ancestro):
-        """True si `hijo` es `ancestro`, desciende de el (upcasting, §3
+        """True si `hijo` es `ancestro`, desciende de el (upcasting, §3.
+
         regla 9 de la spec de POO), o `ancestro` es una interfaz que
         `hijo` (o cualquiera de sus ancestros por `hereda`) implementa
         (Etapa 12.3) -- una clase que implementa una interfaz "es" esa
         interfaz para efectos de asignacion/paso de argumentos, igual que
-        Java/C#/Kotlin."""
+        Java/C#/Kotlin.
+        """
         cadena = self.cadena_ancestros(hijo)
         if cadena is None:
             return False
@@ -290,10 +407,12 @@ class SymbolTable:
         return False
 
     def resolver_atributo(self, nombre_clase, nombre_atributo):
-        """Busca `nombre_atributo` en `nombre_clase` y su cadena de
+        """Busca `nombre_atributo` en `nombre_clase` y su cadena de.
+
         ancestros (el mas derivado que lo declara gana, pero en InvenioLang
         2.0 los atributos no se redeclaran entre padre e hijo -- ver
-        IL-POO-004). Retorna (nombre_clase_declarante, MiembroInfo) o None."""
+        IL-POO-004). Retorna (nombre_clase_declarante, MiembroInfo) o None.
+        """
         for clase in self.cadena_ancestros(nombre_clase) or []:
             info = self.clases[clase]
             if nombre_atributo in info.atributos:
@@ -301,7 +420,8 @@ class SymbolTable:
         return None
 
     def resolver_metodo(self, nombre_clase, nombre_metodo, tipos_args=None):
-        """Busca `nombre_metodo` en `nombre_clase` y su cadena de
+        """Busca `nombre_metodo` en `nombre_clase` y su cadena de.
+
         ancestros, devolviendo la implementacion MAS DERIVADA visible desde
         `nombre_clase` (la cadena ya va del mas derivado al mas base).
         Retorna (nombre_clase_declarante, MetodoInfo) o None.
@@ -322,7 +442,8 @@ class SymbolTable:
         igual de buena (ambigua). La sobrecarga se resuelve SOLO dentro de
         la clase que primero declara ese nombre en la cadena: una subclase
         que redeclara el nombre no hereda las sobrecargas del padre, igual
-        que ya pasa con la sobrescritura simple."""
+        que ya pasa con la sobrescritura simple.
+        """
         for clase in self.cadena_ancestros(nombre_clase) or []:
             info = self.clases[clase]
             candidatos = info.metodos.get(nombre_metodo)
@@ -335,10 +456,12 @@ class SymbolTable:
         return None
 
     def resolver_metodo_todos(self, nombre_clase, nombre_metodo):
-        """Todas las sobrecargas de `nombre_metodo` visibles desde
+        """Todas las sobrecargas de `nombre_metodo` visibles desde.
+
         `nombre_clase` (para diagnosticos de aridad -- semantic.py, que no
         conoce tipos de argumentos). Retorna (clase_declarante,
-        list[MetodoInfo]) o None."""
+        list[MetodoInfo]) o None.
+        """
         for clase in self.cadena_ancestros(nombre_clase) or []:
             info = self.clases[clase]
             candidatos = info.metodos.get(nombre_metodo)
@@ -347,7 +470,8 @@ class SymbolTable:
         return None
 
     def resolver_constructor(self, nombre_clase, tipos_args=None):
-        """Busca el constructor de `nombre_clase` que coincide con
+        """Busca el constructor de `nombre_clase` que coincide con.
+
         `tipos_args` (Etapa 10: sobrecarga de constructores). A diferencia
         de resolver_metodo, NO camina la cadena de herencia -- cada clase
         tiene sus propios constructores, nunca hereda los del padre (ya era
@@ -360,7 +484,8 @@ class SymbolTable:
         primero, si no compatible por promoción/upcasting; None si ninguna
         coincide o hay ambigüedad. Si la clase no declara NINGÚN
         constructor, retorna None -- el llamador debe tratar eso como el
-        constructor implícito de 0 argumentos (mismo criterio que antes)."""
+        constructor implícito de 0 argumentos (mismo criterio que antes).
+        """
         info = self.clases.get(nombre_clase)
         if info is None or not info.constructores:
             return None
@@ -369,39 +494,48 @@ class SymbolTable:
         return self._elegir_sobrecarga(info.constructores, tipos_args)
 
     def resolver_constructor_todos(self, nombre_clase):
-        """Todas las sobrecargas de constructor de `nombre_clase` (para
+        """Todas las sobrecargas de constructor de `nombre_clase` (para.
+
         diagnósticos de aridad en semantic.py). Retorna list[MetodoInfo]
-        (vacía si no declara ninguno -- constructor implícito)."""
+        (vacía si no declara ninguno -- constructor implícito).
+        """
         info = self.clases.get(nombre_clase)
         return list(info.constructores) if info is not None else []
 
     def _elegir_sobrecarga(self, candidatos, tipos_args):
-        """candidatos: list[MetodoInfo] con el mismo nombre. Retorna el que
-        coincide con `tipos_args`, o None si ninguno o si hay ambiguedad."""
+        """candidatos: list[MetodoInfo] con el mismo nombre. Retorna el que.
+
+        coincide con `tipos_args`, o None si ninguno o si hay ambiguedad.
+        """
         exactas = [m for m in candidatos if m.params_tipos == tipos_args]
         if len(exactas) == 1:
             return exactas[0]
         if exactas:
             return None
         compatibles = [
-            m for m in candidatos
+            m
+            for m in candidatos
             if len(m.params_tipos) == len(tipos_args)
-            and all(self._tipo_compatible_simple(esp, real)
-                   for esp, real in zip(m.params_tipos, tipos_args))
+            and all(
+                self._tipo_compatible_simple(esp, real)
+                for esp, real in zip(m.params_tipos, tipos_args, strict=True)
+            )
         ]
         return compatibles[0] if len(compatibles) == 1 else None
 
     def _tipo_compatible_simple(self, esperado, real):
-        """Version reducida de TypeChecker._compatible -- solo lo que hace
+        """Version reducida de TypeChecker._compatible -- solo lo que hace.
+
         falta para elegir sobrecarga (promocion int->float, upcasting de
         clases, nulo). symbol_table.py no depende de type_checker.py, asi
-        que se duplica esta regla simple en vez de importar de ahi."""
+        que se duplica esta regla simple en vez de importar de ahi.
+        """
         if esperado == real:
             return True
-        if esperado == 'float' and real == 'int':
+        if esperado == "float" and real == "int":
             return True
         if self.es_clase(esperado) and self.es_clase(real):
             return self.es_subtipo_clase(real, esperado)
-        if real == 'null' and self.es_clase(esperado):
+        if real == "null" and self.es_clase(esperado):
             return True
         return False

@@ -1,0 +1,34 @@
+// Nivel 4 · Ejercicio 11 — Sumas prefijas
+// Objetivos:
+//   - Precalcular para responder consultas rápido
+//   - Razonar con índices desplazados
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio main() {
+    entero [7] a = {5, 2, 8, 1, 9, 3, 7};
+    entero [8] prefijos;
+    // prefijos[i] = suma de los i primeros elementos (prefijos[0] es la suma vacía).
+    prefijos[0] = 0;
+    para (entero i = 0; i < 7; i++) {
+        prefijos[i + 1] = prefijos[i] + a[i];
+    }
+    imprimirArreglo(prefijos, 8);
+    entero [3] desde = {1, 0, 4};
+    entero [3] hasta = {3, 6, 5};
+    para (entero q = 0; q < 3; q++) {
+        entero i = desde[q];
+        entero j = hasta[q];
+        imprimir("sum["); imprimir(i); imprimir(", "); imprimir(j); imprimir("] = ");
+        imprimir(prefijos[j + 1] - prefijos[i]); imprimir("\n");
+    }
+}

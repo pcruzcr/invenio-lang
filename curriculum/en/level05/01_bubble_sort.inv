@@ -1,0 +1,41 @@
+// Level 5 · Exercise 01 — Bubble sort
+// Learning goals:
+//   - Implement bubble sort with two loops
+//   - Watch how the largest element 'bubbles' to the end on each pass
+//
+void printArray(int [] a, int n) {
+    print("[");
+    for (int i = 0; i < n; i++) {
+        print(a[i]);
+        if (i < n - 1) {
+            print(", ");
+        }
+    }
+    print("]\n");
+}
+
+void swap(int [] a, int i, int j) {
+    int tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+}
+
+void main() {
+    int [7] a = {64, 34, 25, 12, 22, 11, 90};
+    int n = 7;
+    int comparisons = 0;
+    int swaps = 0;
+    for (int p = 0; p < n - 1; p++) {
+        // The last p elements are already in place: no need to check them.
+        for (int j = 0; j < n - 1 - p; j++) {
+            comparisons++;
+            if (a[j] > a[j + 1]) {
+                swap(a, j, j + 1);
+                swaps++;
+            }
+        }
+        printArray(a, n);
+    }
+    print("comparisons = "); print(comparisons); print("\n");
+    print("swaps = "); print(swaps); print("\n");
+}

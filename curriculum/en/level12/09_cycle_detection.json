@@ -1,0 +1,22 @@
+{
+  "id": "N12-E09",
+  "nivel": 12,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Cycle detection in directed graphs",
+  "enunciado": "Use DFS with three colors (WHITE unvisited, GRAY on the recursion stack, BLACK finished) to decide whether a directed graph has cycles. Test with 0->1, 1->2, 2->3 (no cycle) and then add 3->1.",
+  "objetivos": [
+    "Detect back edges",
+    "Use richer visit states than a bool"
+  ],
+  "pistas": [
+    "An edge to a GRAY vertex closes a cycle.",
+    "When you finish exploring a vertex, paint it BLACK.",
+    "An edge to a BLACK vertex does not indicate a cycle."
+  ],
+  "conceptos": [
+    "cycle",
+    "back edge",
+    "DFS"
+  ]
+}

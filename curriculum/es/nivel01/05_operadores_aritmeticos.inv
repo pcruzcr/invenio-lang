@@ -1,0 +1,19 @@
+// Nivel 1 · Ejercicio 05 — Operadores aritméticos
+// Objetivos:
+//   - Usar + - * / %
+//   - Distinguir división entera y división real
+//
+vacio main() {
+    entero a = 17;
+    entero b = 5;
+    imprimir("a + b = "); imprimir(a + b); imprimir("\n");
+    imprimir("a - b = "); imprimir(a - b); imprimir("\n");
+    imprimir("a * b = "); imprimir(a * b); imprimir("\n");
+    // Entre enteros, / trunca: 17 / 5 = 3 y sobran 2.
+    imprimir("a / b = "); imprimir(a / b); imprimir("\n");
+    imprimir("a % b = "); imprimir(a % b); imprimir("\n");
+    // Con reales se conserva la parte decimal.
+    imprimir("17.0 / 5.0 = "); imprimir(17.0 / 5.0); imprimir("\n");
+    // Comprobación: (a / b) * b + a % b siempre vale a.
+    imprimir((a / b) * b + a % b); imprimir("\n");
+}

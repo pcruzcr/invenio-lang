@@ -4,11 +4,12 @@ Se ejecuta como script: python test_lexer_errors.py
 La funcion auxiliar se llama `verificar` (no `test`) para que pytest no la
 recolecte como caso de prueba y falle pidiendo fixtures inexistentes.
 """
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(__file__))
-from inveniolang.lexer import Lexer
 from inveniolang.errors import ErrorManager
+from inveniolang.lexer import Lexer
 
 
 def verificar(nombre, codigo, errores_esperados):
@@ -17,7 +18,7 @@ def verificar(nombre, codigo, errores_esperados):
     lex = Lexer(em)
     lex.build()
     lex.tokenizar(codigo)
-    codigos_reales = sorted(set(e.codigo for e in em.errores))
+    codigos_reales = sorted({e.codigo for e in em.errores})
     codigos_esperados = sorted(errores_esperados)
 
     if codigos_reales == codigos_esperados:

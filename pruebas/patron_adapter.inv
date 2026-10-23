@@ -1,0 +1,16 @@
+// patron_adapter.inv - Adapter: adapta interfaz vieja a nueva.
+clase ImpresoraVieja {
+    publico texto imprimirViejo(texto t) { return "viejo:" + t; }
+}
+clase Adaptador {
+    privado ImpresoraVieja vieja;
+    Adaptador() { this.vieja = nuevo ImpresoraVieja(); }
+    publico texto mostrar(texto t) {
+        ImpresoraVieja v = this.vieja;
+        return "adapter:" + v.imprimirViejo(t);
+    }
+}
+void main() {
+    Adaptador a = nuevo Adaptador();
+    imprimir(a.mostrar("Hola"));
+}

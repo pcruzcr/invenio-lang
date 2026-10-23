@@ -35,3 +35,14 @@ desktop.ini
 # --- Archivos temporales de trabajo ---
 *.log
 *.tmp
+
+# --- Cobertura ---
+.coverage
+htmlcov/
+
+# --- Estudio web: lo genera scripts/empaquetar_web.py (INV-4201) ---
+web/estudio/generado/
+
+# --- Extensión de VS Code: dependencias de npm ---
+vscode-extension/node_modules/
+*.vsix

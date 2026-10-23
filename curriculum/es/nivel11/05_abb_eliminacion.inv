@@ -1,0 +1,77 @@
+// Nivel 11 · Ejercicio 05 — Eliminación en un ABB
+// Objetivos:
+//   - Distinguir los tres casos de eliminación
+//   - Mantener la propiedad de ABB tras eliminar
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo izq;
+    publico Nodo der;
+    Nodo(entero v) { este.valor = v; }
+}
+
+// Inserción recursiva: devuelve la raíz (posiblemente nueva) del subárbol.
+Nodo insertar(Nodo r, entero v) {
+    si (r == nulo) {
+        retornar nuevo Nodo(v);
+    }
+    si (v < r.valor) {
+        r.izq = insertar(r.izq, v);
+    } sino {
+        si (v > r.valor) {
+            r.der = insertar(r.der, v);
+        }
+    }
+    retornar r;
+}
+
+vacio inorden(Nodo r) {
+    si (r != nulo) {
+        inorden(r.izq);
+        imprimir(r.valor); imprimir(" ");
+        inorden(r.der);
+    }
+}
+
+Nodo eliminarNodo(Nodo r, entero v) {
+    si (r == nulo) {
+        retornar nulo;
+    }
+    si (v < r.valor) {
+        r.izq = eliminarNodo(r.izq, v);
+        retornar r;
+    }
+    si (v > r.valor) {
+        r.der = eliminarNodo(r.der, v);
+        retornar r;
+    }
+    // Encontrado. Casos 1 y 2: cero o un hijo.
+    si (r.izq == nulo) {
+        retornar r.der;
+    }
+    si (r.der == nulo) {
+        retornar r.izq;
+    }
+    // Caso 3: dos hijos. El sucesor es el mínimo del subárbol derecho.
+    Nodo sucesor = r.der;
+    mientras (sucesor.izq != nulo) {
+        sucesor = sucesor.izq;
+    }
+    r.valor = sucesor.valor;
+    r.der = eliminarNodo(r.der, sucesor.valor);
+    retornar r;
+}
+
+vacio main() {
+    entero [7] datos = {50, 30, 70, 20, 40, 60, 80};
+    Nodo raiz = nulo;
+    para_cada (entero v : datos) {
+        raiz = insertar(raiz, v);
+    }
+    entero [3] borrar = {20, 30, 50};
+    para_cada (entero v : borrar) {
+        raiz = eliminarNodo(raiz, v);
+        imprimir("-"); imprimir(v); imprimir(": "); inorden(raiz);
+        imprimir("(root "); imprimir(raiz.valor); imprimir(")\n");
+    }
+}

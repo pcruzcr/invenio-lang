@@ -1,0 +1,22 @@
+{
+  "id": "N09-E07",
+  "nivel": 9,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Observer pattern",
+  "enunciado": "A Thermometer (subject) notifies its observers whenever the temperature changes: a Display that shows it and an Alarm that only reacts above a limit. Observers are kept in a linked list. Change the temperature to 22, 31 and 18.",
+  "objetivos": [
+    "Decouple who produces events from who reacts",
+    "Keep a collection of objects with a linked list"
+  ],
+  "pistas": [
+    "Observer is an interface with update(temperature).",
+    "subscribe adds a node at the head of the list.",
+    "Class attributes cannot be arrays: hence the linked list."
+  ],
+  "conceptos": [
+    "Observer",
+    "event",
+    "loose coupling"
+  ]
+}

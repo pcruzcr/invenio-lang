@@ -1,0 +1,16 @@
+// Level 1 · Exercise 07 — Relational and logical operators
+// Learning goals:
+//   - Compare values with < > <= >= == !=
+//   - Combine conditions with && || !
+//
+void main() {
+    int x = 8;
+    print(x > 5); print("\n");
+    print(x == 10); print("\n");
+    print(x != 10); print("\n");
+    // Is x in the interval [8, 10)?
+    print(x >= 8 && x < 10); print("\n");
+    // Is x outside the interval [0, 7]?
+    print(x < 0 || x > 7); print("\n");
+    print(!(x > 5)); print("\n");
+}

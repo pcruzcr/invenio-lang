@@ -1,0 +1,38 @@
+// Level 6 · Exercise 07 — Properties: symmetric and identity
+// Learning goals:
+//   - Check a property over all elements
+//   - Exit as soon as a counterexample is found
+//
+const int N = 3;
+
+bool isSymmetric(int [][] m, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < i; j++) {
+            if (m[i][j] != m[j][i]) {
+                return false;   // counterexample found
+            }
+        }
+    }
+    return true;
+}
+
+bool isIdentity(int [][] m, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            int expected = i == j ? 1 : 0;
+            if (m[i][j] != expected) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void main() {
+    int [N][N] I = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    int [N][N] S = {{2, 7, 3}, {7, 4, 5}, {3, 5, 6}};
+    int [N][N] X = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    print(isSymmetric(I, N)); print(" "); print(isIdentity(I, N)); print("\n");
+    print(isSymmetric(S, N)); print(" "); print(isIdentity(S, N)); print("\n");
+    print(isSymmetric(X, N)); print(" "); print(isIdentity(X, N)); print("\n");
+}

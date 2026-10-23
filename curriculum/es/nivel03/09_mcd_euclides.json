@@ -1,0 +1,21 @@
+{
+  "id": "N03-E09",
+  "nivel": 3,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Máximo común divisor (Euclides)",
+  "enunciado": "Implementa mcd(a, b) recursivo con el algoritmo de Euclides (mcd(a, 0) = a; mcd(a, b) = mcd(b, a % b)) y mcm(a, b) = a / mcd(a, b) * b. Muestra los resultados para (48, 18), (17, 5) y (100, 75), y simplifica la fracción 84/126.",
+  "objetivos": [
+    "Traducir una definición matemática recursiva a código",
+    "Reutilizar mcd para resolver otros problemas"
+  ],
+  "pistas": [
+    "El segundo argumento disminuye en cada llamada.",
+    "Divide antes de multiplicar en mcm para evitar desbordes.",
+    "Para simplificar a/b divide ambos entre mcd(a, b)."
+  ],
+  "conceptos": [
+    "algoritmo de Euclides",
+    "recursión"
+  ]
+}

@@ -1,0 +1,61 @@
+// Level 10 · Exercise 06 — Linked queue: turn simulation
+// Learning goals:
+//   - Implement a queue with nodes and two references
+//   - Keep front and rear consistent in edge cases
+//
+class Node {
+    public int value;
+    public Node next;
+    Node(int v) { this.value = v; }
+}
+
+class LinkedQueue {
+    private Node front;
+    private Node rear;
+
+    public void enqueue(int v) {
+        Node n = new Node(v);
+        if (this.rear == null) {
+            this.front = n;   // empty queue: single node
+        } else {
+            Node f = this.rear;
+            f.next = n;
+        }
+        this.rear = n;
+    }
+
+    public int dequeue() {
+        Node n = this.front;
+        this.front = n.next;
+        if (this.front == null) {
+            this.rear = null;
+        }
+        return n.value;
+    }
+
+    public bool isEmpty() { return this.front == null; }
+}
+
+LinkedQueue line;
+
+void arrive(int customer) {
+    line.enqueue(customer);
+    print("arrives "); print(customer); print("\n");
+}
+
+void serve() {
+    print("served "); print(line.dequeue()); print("\n");
+}
+
+void main() {
+    line = new LinkedQueue();
+    arrive(101);
+    arrive(102);
+    arrive(103);
+    serve();
+    arrive(104);
+    arrive(105);
+    while (!line.isEmpty()) {
+        serve();
+    }
+}

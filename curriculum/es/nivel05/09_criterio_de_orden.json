@@ -1,0 +1,21 @@
+{
+  "id": "N05-E09",
+  "nivel": 5,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Criterio de orden intercambiable",
+  "enunciado": "Escribe un único ordenamiento por inserción que use una variable de tipo funcion antes(x, y) para decidir el orden. Ordena {15, 3, 42, 8, 23} de forma ascendente, descendente y por último dígito.",
+  "objetivos": [
+    "Separar el algoritmo del criterio de comparación",
+    "Usar funciones como valores"
+  ],
+  "pistas": [
+    "El algoritmo solo pregunta si la clave va antes(clave, a[j]).",
+    "Cambia la función guardada en la variable antes de cada llamada.",
+    "Es la misma idea que el patrón Strategy de la POO."
+  ],
+  "conceptos": [
+    "función como valor",
+    "comparador"
+  ]
+}

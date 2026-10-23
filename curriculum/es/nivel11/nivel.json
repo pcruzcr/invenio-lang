@@ -1,0 +1,15 @@
+{
+  "nivel": 11,
+  "titulo": "Árboles, montículos y tablas hash",
+  "descripcion": "Estructuras no lineales y de acceso rápido: árboles binarios de búsqueda (inserción, recorridos, altura, eliminación), AVL, montículos y tablas hash.",
+  "temas": [
+    "árbol binario de búsqueda",
+    "recorridos pre/in/post/niveles",
+    "altura y conteos recursivos",
+    "eliminación en ABB",
+    "árbol AVL y rotaciones",
+    "montículo binario",
+    "tablas hash: sondeo lineal y encadenamiento"
+  ],
+  "idioma": "es"
+}

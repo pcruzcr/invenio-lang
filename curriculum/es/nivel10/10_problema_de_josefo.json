@@ -1,0 +1,21 @@
+{
+  "id": "N10-E10",
+  "nivel": 10,
+  "numero": 10,
+  "idioma": "es",
+  "titulo": "Problema de Josefo con lista circular",
+  "enunciado": "Siete personas (1 a 7) forman un círculo; empezando por la 1 se cuenta de 3 en 3 y se elimina a quien le toca. Usa una lista circular enlazada (el último apunta al primero) para mostrar el orden de eliminación y el sobreviviente.",
+  "objetivos": [
+    "Construir una lista circular",
+    "Eliminar nodos mientras se recorre"
+  ],
+  "pistas": [
+    "Cierra el círculo: ultimo.siguiente = primero.",
+    "Mantén una referencia al nodo ANTERIOR al actual para poder eliminar.",
+    "Termina cuando un nodo se apunta a sí mismo."
+  ],
+  "conceptos": [
+    "lista circular",
+    "simulación"
+  ]
+}

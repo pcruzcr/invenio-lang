@@ -1,0 +1,57 @@
+// Level 10 · Exercise 03 — Balanced brackets
+// Learning goals:
+//   - Apply a stack to a real compiler problem
+//   - Detect the three kinds of error: wrong closer, closer without opener
+//   - and opener without closer
+//
+class TextNode {
+    public string value;
+    public TextNode next;
+    TextNode(string v) { this.value = v; }
+}
+
+class TextStack {
+    private TextNode head;
+    public void push(string v) {
+        TextNode n = new TextNode(v);
+        n.next = this.head;
+        this.head = n;
+    }
+    public string pop() {
+        TextNode n = this.head;
+        this.head = n.next;
+        return n.value;
+    }
+    public bool isEmpty() { return this.head == null; }
+}
+
+const string OPENERS = "([{";
+const string CLOSERS = ")]}";
+
+bool balanced(string s) {
+    TextStack p = new TextStack();
+    for (int i = 0; i < text_length(s); i++) {
+        string c = char_at(s, i);
+        if (index_of(OPENERS, c) >= 0) {
+            p.push(c);
+        } else {
+            int k = index_of(CLOSERS, c);
+            if (k >= 0) {
+                if (p.isEmpty()) {
+                    return false;   // closer without opener
+                }
+                if (p.pop() != char_at(OPENERS, k)) {
+                    return false;   // not its partner
+                }
+            }
+        }
+    }
+    return p.isEmpty();   // unclosed openers
+}
+
+void main() {
+    string [5] expressions = {"{a[(b+c)*d]}", "(a+b]", "((x)", "x+y)", "[{()()}]"};
+    foreach (string e : expressions) {
+        print(e); print(" -> "); print(balanced(e)); print("\n");
+    }
+}

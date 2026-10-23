@@ -1,0 +1,21 @@
+{
+  "id": "N11-E05",
+  "nivel": 11,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Eliminación en un ABB",
+  "enunciado": "Implementa eliminarNodo(raiz, v) cubriendo los tres casos: hoja, un hijo y dos hijos (reemplazando por el sucesor en orden). Partiendo de 50, 30, 70, 20, 40, 60, 80, elimina 20, 30 y 50 mostrando el recorrido en orden tras cada eliminación.",
+  "objetivos": [
+    "Distinguir los tres casos de eliminación",
+    "Mantener la propiedad de ABB tras eliminar"
+  ],
+  "pistas": [
+    "Hoja: se reemplaza por nulo.",
+    "Un hijo: el hijo ocupa su lugar.",
+    "Dos hijos: copia el mínimo del subárbol derecho y elimínalo de allí."
+  ],
+  "conceptos": [
+    "eliminación",
+    "sucesor en orden"
+  ]
+}

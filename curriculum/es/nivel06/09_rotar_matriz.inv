@@ -1,0 +1,42 @@
+// Nivel 6 · Ejercicio 09 — Rotar una matriz 90 grados
+// Objetivos:
+//   - Componer transformaciones de matrices
+//   - Reutilizar la transpuesta en el lugar
+//
+constante entero N = 3;
+
+vacio imprimirMatriz(entero [][] m, entero filas, entero columnas) {
+    para (entero i = 0; i < filas; i++) {
+        para (entero j = 0; j < columnas; j++) {
+            imprimir(m[i][j]);
+            si (j < columnas - 1) {
+                imprimir("\t");
+            }
+        }
+        imprimir("\n");
+    }
+}
+
+vacio main() {
+    entero [N][N] m = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    para (entero i = 0; i < N; i++) {
+        para (entero j = i + 1; j < N; j++) {
+            entero aux = m[i][j];
+            m[i][j] = m[j][i];
+            m[j][i] = aux;
+        }
+    }
+    // Paso 2: invertir cada fila (espejo horizontal).
+    para (entero i = 0; i < N; i++) {
+        entero izq = 0;
+        entero der = N - 1;
+        mientras (izq < der) {
+            entero aux = m[i][izq];
+            m[i][izq] = m[i][der];
+            m[i][der] = aux;
+            izq++;
+            der--;
+        }
+    }
+    imprimirMatriz(m, N, N);
+}

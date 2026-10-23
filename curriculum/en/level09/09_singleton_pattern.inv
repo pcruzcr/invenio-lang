@@ -1,0 +1,44 @@
+// Level 9 · Exercise 09 — Singleton pattern
+// Learning goals:
+//   - Guarantee a single instance with a private constructor
+//   - Combine static attributes and methods
+//
+class Logger {
+    private static Logger instance;
+    private int lines;
+
+    private constructor Logger() {
+        this.lines = 0;
+    }
+
+    public static Logger getInstance() {
+        if (Logger.instance == null) {
+            Logger.instance = new Logger();   // only the first time
+        }
+        return Logger.instance;
+    }
+
+    public void log(string msg) {
+        this.lines = this.lines + 1;
+        print("["); print(this.lines); print("] "); print(msg); print("\n");
+    }
+}
+
+void loadData() {
+    Logger r = Logger.getInstance();
+    r.log("loading data");
+}
+
+void saveData() {
+    Logger r = Logger.getInstance();
+    r.log("saving data");
+}
+
+void main() {
+    loadData();
+    saveData();
+    Logger a = Logger.getInstance();
+    Logger b = Logger.getInstance();
+    a.log("done");
+    print(a == b); print("\n");
+}

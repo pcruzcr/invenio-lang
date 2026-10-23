@@ -1,0 +1,22 @@
+{
+  "id": "N11-E04",
+  "nivel": 11,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Altura, nodos y hojas",
+  "enunciado": "Escribe funciones recursivas altura (un árbol vacío mide -1), contarNodos y contarHojas. Aplícalas a un ABB equilibrado (4, 2, 6, 1, 3, 5, 7) y a uno degenerado (1, 2, 3, 4, 5, 6, 7).",
+  "objetivos": [
+    "Definir propiedades del árbol recursivamente",
+    "Ver cómo el orden de inserción determina la forma del árbol"
+  ],
+  "pistas": [
+    "altura(r) = 1 + máximo(altura(izq), altura(der)).",
+    "Una hoja no tiene hijos.",
+    "Insertar datos ordenados crea una 'lista': altura n - 1."
+  ],
+  "conceptos": [
+    "altura",
+    "hoja",
+    "árbol degenerado"
+  ]
+}

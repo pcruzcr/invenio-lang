@@ -1,0 +1,51 @@
+// Nivel 10 · Ejercicio 09 — Lista ordenada
+// Objetivos:
+//   - Mantener un invariante de orden en una estructura enlazada
+//   - Insertar en medio de una lista
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo siguiente;
+    Nodo(entero v) { este.valor = v; }
+}
+
+clase ListaOrdenada {
+    privado Nodo cabeza;
+
+    publico vacio insertarOrdenado(entero v) {
+        Nodo n = nuevo Nodo(v);
+        Nodo c = este.cabeza;
+        si (c == nulo || v < c.valor) {
+            n.siguiente = c;   // nuevo primer nodo
+            este.cabeza = n;
+            retornar;
+        }
+        // El acceso a miembros es de un solo nivel: usamos una variable para el siguiente.
+        Nodo actual = c;
+        Nodo sig = actual.siguiente;
+        mientras (sig != nulo && sig.valor <= v) {
+            actual = sig;
+            sig = actual.siguiente;
+        }
+        n.siguiente = actual.siguiente;
+        actual.siguiente = n;
+    }
+
+    publico vacio imprimirLista() {
+        Nodo actual = este.cabeza;
+        mientras (actual != nulo) {
+            imprimir(actual.valor); imprimir(" ");
+            actual = actual.siguiente;
+        }
+        imprimir("\n");
+    }
+}
+
+vacio main() {
+    ListaOrdenada l = nuevo ListaOrdenada();
+    entero [7] datos = {42, 7, 19, 3, 42, 25, 1};
+    para_cada (entero v : datos) {
+        l.insertarOrdenado(v);
+        l.imprimirLista();
+    }
+}

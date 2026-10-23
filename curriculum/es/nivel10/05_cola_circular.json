@@ -1,0 +1,22 @@
+{
+  "id": "N10-E05",
+  "nivel": 10,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Cola circular con arreglo",
+  "enunciado": "Implementa una cola FIFO de capacidad 4 con un arreglo circular (índices frente y final que dan la vuelta con %). Encola 1, 2, 3, desencola dos, encola 4, 5, 6 y 7 (el 7 no cabe) y vacía la cola mostrando el índice del frente.",
+  "objetivos": [
+    "Entender la política FIFO (primero en entrar, primero en salir)",
+    "Reutilizar el espacio de un arreglo con aritmética modular"
+  ],
+  "pistas": [
+    "Lleva un contador de elementos para distinguir vacía de llena.",
+    "final = (frente + cantidad) % CAP es donde se encola.",
+    "Al desencolar: frente = (frente + 1) % CAP."
+  ],
+  "conceptos": [
+    "cola",
+    "FIFO",
+    "buffer circular"
+  ]
+}

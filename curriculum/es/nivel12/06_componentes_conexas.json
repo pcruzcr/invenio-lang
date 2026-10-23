@@ -1,0 +1,21 @@
+{
+  "id": "N12-E06",
+  "nivel": 12,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Componentes conexas",
+  "enunciado": "Un grafo de 7 vértices tiene las aristas 0-1, 1-2, 3-4 y 5-6. Etiqueta cada vértice con el número de su componente usando DFS y muestra cuántas componentes hay y qué vértices forman cada una.",
+  "objetivos": [
+    "Lanzar recorridos desde cada vértice no visitado",
+    "Etiquetar vértices por componente"
+  ],
+  "pistas": [
+    "Cada vez que encuentres un vértice sin etiqueta, empieza una componente nueva.",
+    "El DFS desde ese vértice etiqueta toda su componente.",
+    "Usa -1 como 'sin etiqueta'."
+  ],
+  "conceptos": [
+    "componente conexa",
+    "DFS"
+  ]
+}

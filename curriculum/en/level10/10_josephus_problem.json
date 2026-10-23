@@ -1,0 +1,21 @@
+{
+  "id": "N10-E10",
+  "nivel": 10,
+  "numero": 10,
+  "idioma": "en",
+  "titulo": "Josephus problem with a circular list",
+  "enunciado": "Seven people (1 to 7) stand in a circle; starting at person 1 you count in steps of 3 and remove whoever is reached. Use a circular linked list (the last node points to the first) to show the removal order and the survivor.",
+  "objetivos": [
+    "Build a circular list",
+    "Remove nodes while traversing"
+  ],
+  "pistas": [
+    "Close the circle: last.next = first.",
+    "Keep a reference to the node BEFORE the current one so you can remove.",
+    "Stop when a node points to itself."
+  ],
+  "conceptos": [
+    "circular list",
+    "simulation"
+  ]
+}

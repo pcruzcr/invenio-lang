@@ -1,0 +1,12 @@
+// Nivel 1 · Ejercicio 01 — Hola, mundo
+// Objetivos:
+//   - Conocer la estructura mínima de un programa (vacio main)
+//   - Usar imprimir y el salto de línea \n
+//
+// Todo programa InvenioLang empieza en main.
+vacio main() {
+    // imprimir escribe el texto tal cual; "\n" es el salto de línea.
+    imprimir("Hola, mundo\n");
+    imprimir("InvenioLang");
+    imprimir("\n");
+}

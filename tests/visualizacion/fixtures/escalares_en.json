@@ -1,0 +1,338 @@
+{
+ "version": 1,
+ "idioma": "en",
+ "fuente": "void main() {\n    int age = 15;\n    float height = 1.72;\n    string name = \"Ana\";\n    bool adult = age >= 18;\n    char initial = 'A';\n    print(name + \" is \" + int_to_string(age));\n    print(\"\\n\");\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 2,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 2,
+     "variables": {
+      "age": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 15
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "age",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 2,
+   "linea": 3,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 3,
+     "variables": {
+      "age": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 15
+       }
+      },
+      "height": {
+       "tipo": "float",
+       "valor": {
+        "t": "escalar",
+        "tipo": "float",
+        "v": 1.72
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "height",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 3,
+   "linea": 4,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 4,
+     "variables": {
+      "age": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 15
+       }
+      },
+      "height": {
+       "tipo": "float",
+       "valor": {
+        "t": "escalar",
+        "tipo": "float",
+        "v": 1.72
+       }
+      },
+      "name": {
+       "tipo": "string",
+       "valor": {
+        "t": "escalar",
+        "tipo": "string",
+        "v": "Ana"
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "name",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 4,
+   "linea": 5,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 5,
+     "variables": {
+      "age": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 15
+       }
+      },
+      "height": {
+       "tipo": "float",
+       "valor": {
+        "t": "escalar",
+        "tipo": "float",
+        "v": 1.72
+       }
+      },
+      "name": {
+       "tipo": "string",
+       "valor": {
+        "t": "escalar",
+        "tipo": "string",
+        "v": "Ana"
+       }
+      },
+      "adult": {
+       "tipo": "bool",
+       "valor": {
+        "t": "escalar",
+        "tipo": "bool",
+        "v": false
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "age",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "adult",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 5,
+   "linea": 6,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 6,
+     "variables": {
+      "age": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 15
+       }
+      },
+      "height": {
+       "tipo": "float",
+       "valor": {
+        "t": "escalar",
+        "tipo": "float",
+        "v": 1.72
+       }
+      },
+      "name": {
+       "tipo": "string",
+       "valor": {
+        "t": "escalar",
+        "tipo": "string",
+        "v": "Ana"
+       }
+      },
+      "adult": {
+       "tipo": "bool",
+       "valor": {
+        "t": "escalar",
+        "tipo": "bool",
+        "v": false
+       }
+      },
+      "initial": {
+       "tipo": "char",
+       "valor": {
+        "t": "escalar",
+        "tipo": "char",
+        "v": "A"
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "initial",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 6,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "age": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 15
+       }
+      },
+      "height": {
+       "tipo": "float",
+       "valor": {
+        "t": "escalar",
+        "tipo": "float",
+        "v": 1.72
+       }
+      },
+      "name": {
+       "tipo": "string",
+       "valor": {
+        "t": "escalar",
+        "tipo": "string",
+        "v": "Ana"
+       }
+      },
+      "adult": {
+       "tipo": "bool",
+       "valor": {
+        "t": "escalar",
+        "tipo": "bool",
+        "v": false
+       }
+      },
+      "initial": {
+       "tipo": "char",
+       "valor": {
+        "t": "escalar",
+        "tipo": "char",
+        "v": "A"
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "name",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "lee",
+     "var": "age",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [
+    "Ana is 15"
+   ],
+   "estructuras": []
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "Ana is 15"
+ ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N05-E04",
+  "nivel": 5,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Insertion sort",
+  "enunciado": "Sort {12, 11, 13, 5, 6, 7} with insertion sort: take each element (the key) and shift the larger ones to the right until its place is found. Show the key and the array after inserting it.",
+  "objetivos": [
+    "Implement insertion sort with shifts",
+    "Relate it to sorting cards in your hand"
+  ],
+  "pistas": [
+    "Save the key before shifting: it will be overwritten.",
+    "Shift while j >= 0 and a[j] > key.",
+    "The key goes into a[j + 1]."
+  ],
+  "conceptos": [
+    "insertion sort",
+    "shift"
+  ]
+}

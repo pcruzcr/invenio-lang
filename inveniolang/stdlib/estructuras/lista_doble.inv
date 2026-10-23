@@ -1,0 +1,146 @@
+// estructuras/lista_doble.inv -- Lista doblemente enlazada
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "estructuras/lista_doble";
+//
+// Idea: cada nodo conoce al ANTERIOR y al SIGUIENTE, y la lista recuerda
+// sus dos extremos. Así se agrega y se quita en O(1) por ambos lados y se
+// puede recorrer en los dos sentidos (a cambio de un enlace más por nodo).
+//
+//      nulo <- [ 1 ] <-> [ 2 ] <-> [ 3 ] -> nulo
+//              cabeza              cola
+
+clase NodoDoble {
+    publico entero valor;
+    publico NodoDoble anterior;
+    publico NodoDoble siguiente;
+
+    NodoDoble(entero v) {
+        este.valor = v;
+    }
+}
+
+clase ListaDoble {
+    privado NodoDoble cabeza;
+    privado NodoDoble cola;
+    privado entero cantidad;
+
+    // O(1)
+    publico vacio agregar_al_inicio(entero v) {
+        NodoDoble nodo = nuevo NodoDoble(v);
+        si (este.cabeza == nulo) {
+            este.cola = nodo;
+        } sino {
+            NodoDoble primero = este.cabeza;
+            primero.anterior = nodo;
+            nodo.siguiente = primero;
+        }
+        este.cabeza = nodo;
+        este.cantidad = este.cantidad + 1;
+    }
+
+    // O(1)
+    publico vacio agregar_al_final(entero v) {
+        NodoDoble nodo = nuevo NodoDoble(v);
+        si (este.cola == nulo) {
+            este.cabeza = nodo;
+        } sino {
+            NodoDoble ultimo = este.cola;
+            ultimo.siguiente = nodo;
+            nodo.anterior = ultimo;
+        }
+        este.cola = nodo;
+        este.cantidad = este.cantidad + 1;
+    }
+
+    // Quita y devuelve el primer elemento. O(1).
+    publico entero quitar_primero() {
+        si (este.cabeza == nulo) {
+            lanzar_error("quitar_primero: la lista está vacía");
+        }
+        NodoDoble primero = este.cabeza;
+        este.cabeza = primero.siguiente;
+        si (este.cabeza == nulo) {
+            este.cola = nulo;
+        } sino {
+            NodoDoble nuevo_primero = este.cabeza;
+            nuevo_primero.anterior = nulo;
+        }
+        este.cantidad = este.cantidad - 1;
+        retornar primero.valor;
+    }
+
+    // Quita y devuelve el último elemento. O(1) gracias al enlace anterior.
+    publico entero quitar_ultimo() {
+        si (este.cola == nulo) {
+            lanzar_error("quitar_ultimo: la lista está vacía");
+        }
+        NodoDoble ultimo = este.cola;
+        este.cola = ultimo.anterior;
+        si (este.cola == nulo) {
+            este.cabeza = nulo;
+        } sino {
+            NodoDoble nuevo_ultimo = este.cola;
+            nuevo_ultimo.siguiente = nulo;
+        }
+        este.cantidad = este.cantidad - 1;
+        retornar ultimo.valor;
+    }
+
+    // Valor de la posición pos. Recorre desde el extremo más cercano,
+    // así que nunca da más de n/2 pasos.
+    publico entero obtener(entero pos) {
+        si (pos < 0 || pos >= este.cantidad) {
+            lanzar_error("obtener: posición fuera de rango");
+        }
+        NodoDoble actual;
+        si (pos < este.cantidad / 2) {
+            actual = este.cabeza;
+            para (entero i = 0; i < pos; i++) {
+                actual = actual.siguiente;
+            }
+        } sino {
+            actual = este.cola;
+            para (entero i = este.cantidad - 1; i > pos; i--) {
+                actual = actual.anterior;
+            }
+        }
+        retornar actual.valor;
+    }
+
+    publico entero tamano() {
+        retornar este.cantidad;
+    }
+
+    publico logico esta_vacia() {
+        retornar este.cantidad == 0;
+    }
+
+    // De la cabeza a la cola, p. ej. "[1, 2, 3]".
+    publico texto a_texto() {
+        texto s = "[";
+        NodoDoble actual = este.cabeza;
+        mientras (actual != nulo) {
+            s = s + entero_a_texto(actual.valor);
+            si (actual.siguiente != nulo) {
+                s = s + ", ";
+            }
+            actual = actual.siguiente;
+        }
+        retornar s + "]";
+    }
+
+    // De la cola a la cabeza, p. ej. "[3, 2, 1]".
+    publico texto a_texto_inverso() {
+        texto s = "[";
+        NodoDoble actual = este.cola;
+        mientras (actual != nulo) {
+            s = s + entero_a_texto(actual.valor);
+            si (actual.anterior != nulo) {
+                s = s + ", ";
+            }
+            actual = actual.anterior;
+        }
+        retornar s + "]";
+    }
+}

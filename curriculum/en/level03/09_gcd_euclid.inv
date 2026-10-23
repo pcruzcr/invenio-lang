@@ -1,0 +1,32 @@
+// Level 3 · Exercise 09 — Greatest common divisor (Euclid)
+// Learning goals:
+//   - Translate a recursive mathematical definition into code
+//   - Reuse gcd to solve other problems
+//
+int gcd(int a, int b) {
+    if (b == 0) {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+
+// Dividing before multiplying keeps the numbers small.
+int lcm(int a, int b) {
+    return a / gcd(a, b) * b;
+}
+
+void show(int a, int b) {
+    print("gcd("); print(a); print(", "); print(b); print(") = "); print(gcd(a, b));
+    print("  lcm = "); print(lcm(a, b)); print("\n");
+}
+
+void main() {
+    show(48, 18);
+    show(17, 5);
+    show(100, 75);
+    int num = 84;
+    int den = 126;
+    int g = gcd(num, den);
+    print(num); print("/"); print(den); print(" = ");
+    print(num / g); print("/"); print(den / g); print("\n");
+}

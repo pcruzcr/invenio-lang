@@ -1,0 +1,22 @@
+{
+  "id": "N05-E06",
+  "nivel": 5,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Quick sort (ordenamiento rápido)",
+  "enunciado": "Ordena {10, 80, 30, 90, 40, 50, 70} con quick sort usando la partición de Lomuto (pivote = último elemento). Muestra el pivote y el arreglo tras cada partición.",
+  "objetivos": [
+    "Implementar la partición alrededor de un pivote",
+    "Ordenar recursivamente cada lado"
+  ],
+  "pistas": [
+    "Tras particionar, el pivote queda en su posición definitiva.",
+    "i marca el final de la zona de elementos menores que el pivote.",
+    "Ordena recursivamente a la izquierda y a la derecha del pivote."
+  ],
+  "conceptos": [
+    "quick sort",
+    "pivote",
+    "partición"
+  ]
+}

@@ -1,0 +1,32 @@
+// Nivel 7 · Ejercicio 08 — Compresión RLE
+// Objetivos:
+//   - Detectar corridas de caracteres iguales
+//   - Cerrar correctamente el último grupo
+//
+texto comprimir(texto s) {
+    si (longitud_texto(s) == 0) {
+        retornar "";
+    }
+    texto r = "";
+    texto actual = caracter_en(s, 0);
+    entero veces = 1;
+    para (entero i = 1; i < longitud_texto(s); i++) {
+        texto c = caracter_en(s, i);
+        si (c == actual) {
+            veces++;
+        } sino {
+            r = r + actual + entero_a_texto(veces);   // emitir el grupo terminado
+            actual = c;
+            veces = 1;
+        }
+    }
+    retornar r + actual + entero_a_texto(veces);   // último grupo pendiente
+}
+
+vacio main() {
+    texto s = "aaabccddddde";
+    texto z = comprimir(s);
+    imprimir(z); imprimir("\n");
+    imprimir(longitud_texto(s)); imprimir(" -> "); imprimir(longitud_texto(z)); imprimir("\n");
+    imprimir(comprimir("abc")); imprimir("\n");
+}

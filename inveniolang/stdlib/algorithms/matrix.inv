@@ -1,0 +1,96 @@
+// algorithms/matrix.inv -- Integer matrix utilities
+//
+// InvenioLang educational standard library (INV-1430).
+// Usage:   import "algorithms/matrix";
+//
+// Matrices are passed by reference (int[][] m) together with their
+// dimensions: rows and cols. Results are written into a target matrix
+// declared by the caller with the right size.
+
+// Puts value in every cell.
+void fill_matrix(int[][] m, int rows, int cols, int value) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            m[i][j] = value;
+        }
+    }
+}
+
+// n x n identity matrix: ones on the diagonal, zeros elsewhere.
+void identity_matrix(int[][] m, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            m[i][j] = i == j ? 1 : 0;
+        }
+    }
+}
+
+// result = a + b (all three rows x cols).
+void add_matrices(int[][] a, int[][] b, int[][] result, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            result[i][j] = a[i][j] + b[i][j];
+        }
+    }
+}
+
+// result = a x b, with a rows x n, b n x cols and result rows x cols.
+// Each cell is the dot product of a row of a and a column of b.
+// O(rows * n * cols).
+void multiply_matrices(int[][] a, int[][] b, int[][] result, int rows, int n, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            int total_sum = 0;
+            for (int k = 0; k < n; k++) {
+                total_sum = total_sum + a[i][k] * b[k][j];
+            }
+            result[i][j] = total_sum;
+        }
+    }
+}
+
+// t = transpose of m (m rows x cols, t cols x rows): rows become
+// columns.
+void transpose_matrix(int[][] m, int[][] t, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            t[j][i] = m[i][j];
+        }
+    }
+}
+
+// Sum of the main diagonal of a square n x n matrix.
+int matrix_trace(int[][] m, int n) {
+    int total_sum = 0;
+    for (int i = 0; i < n; i++) {
+        total_sum = total_sum + m[i][i];
+    }
+    return total_sum;
+}
+
+// true if m (n x n) equals its transpose.
+bool is_symmetric(int[][] m, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (m[i][j] != m[j][i]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// Text of the matrix, one row per line with space-separated values.
+string matrix_to_text(int[][] m, int rows, int cols) {
+    string s = "";
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            s = s + int_to_string(m[i][j]);
+            if (j < cols - 1) {
+                s = s + " ";
+            }
+        }
+        s = s + "\n";
+    }
+    return s;
+}

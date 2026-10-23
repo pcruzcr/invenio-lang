@@ -1,0 +1,50 @@
+// Nivel 8 · Ejercicio 04 — Fracciones: aTexto y objetos inmutables
+// Objetivos:
+//   - Personalizar la representación con aTexto/toString
+//   - Diseñar objetos inmutables que devuelven objetos nuevos
+//
+entero mcd(entero a, entero b) {
+    si (b == 0) {
+        retornar a;
+    }
+    retornar mcd(b, a % b);
+}
+
+clase Fraccion {
+    privado entero numerador;
+    privado entero denominador;
+
+    Fraccion(entero n, entero d) {
+        entero g = mcd(n, d);
+        este.numerador = n / g;
+        este.denominador = d / g;
+    }
+
+    publico entero num() { retornar este.numerador; }
+    publico entero den() { retornar este.denominador; }
+
+    // No modifica este objeto: crea y devuelve uno nuevo.
+    publico Fraccion sumarF(Fraccion otra) {
+        retornar nuevo Fraccion(este.numerador * otra.den() + otra.num() * este.denominador,
+                                este.denominador * otra.den());
+    }
+
+    publico Fraccion multiplicarF(Fraccion otra) {
+        retornar nuevo Fraccion(este.numerador * otra.num(), este.denominador * otra.den());
+    }
+
+    publico texto aTexto() {
+        retornar entero_a_texto(este.numerador) + "/" + entero_a_texto(este.denominador);
+    }
+}
+
+vacio main() {
+    Fraccion a = nuevo Fraccion(1, 2);
+    Fraccion b = nuevo Fraccion(1, 3);
+    imprimir(a.sumarF(b)); imprimir("\n");
+    Fraccion c = nuevo Fraccion(2, 4);
+    Fraccion d = nuevo Fraccion(6, 9);
+    imprimir(c); imprimir(" * "); imprimir(d); imprimir(" = "); imprimir(c.multiplicarF(d)); imprimir("\n");
+    Fraccion e = nuevo Fraccion(3, 4);
+    imprimir(e.sumarF(nuevo Fraccion(1, 4))); imprimir("\n");
+}

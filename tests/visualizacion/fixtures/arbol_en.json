@@ -1,0 +1,726 @@
+{
+ "version": 1,
+ "idioma": "en",
+ "fuente": "import \"structures/binary_search_tree\";\n\nvoid main() {\n    BinarySearchTree t = new BinarySearchTree();\n    int [8] data = {50, 30, 70, 20, 40, 60, 80, 35};\n    for (int i = 0; i < 8; i++) {\n        t.insert(data[i]);\n    }\n    print(t.inorder());\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "t": {
+       "tipo": "BinarySearchTree",
+       "valor": {
+        "t": "ref",
+        "id": 9
+       }
+      },
+      "data": {
+       "tipo": "int[8]",
+       "valor": {
+        "t": "ref",
+        "id": 8
+       }
+      },
+      "i": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 6
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "100": {
+     "id": 100,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 50
+      },
+      "left": {
+       "t": "ref",
+       "id": 101
+      },
+      "right": {
+       "t": "ref",
+       "id": 102
+      }
+     }
+    },
+    "101": {
+     "id": 101,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 30
+      },
+      "left": {
+       "t": "ref",
+       "id": 103
+      },
+      "right": {
+       "t": "ref",
+       "id": 104
+      }
+     }
+    },
+    "102": {
+     "id": 102,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 70
+      },
+      "left": {
+       "t": "ref",
+       "id": 105
+      },
+      "right": {
+       "t": "ref",
+       "id": 106
+      }
+     }
+    },
+    "103": {
+     "id": 103,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 20
+      },
+      "left": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "right": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "104": {
+     "id": 104,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 40
+      },
+      "left": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "right": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "105": {
+     "id": 105,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 60
+      },
+      "left": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "right": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "106": {
+     "id": 106,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 80
+      },
+      "left": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "right": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "9": {
+     "id": 9,
+     "tipo": "objeto",
+     "clase": "BinarySearchTree",
+     "elementos": [],
+     "campos": {
+      "root": {
+       "t": "ref",
+       "id": 100
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 7
+      }
+     }
+    },
+    "8": {
+     "id": 8,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 50
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 30
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 70
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 20
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 40
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 60
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 80
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 35
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "data",
+     "nodo": 8,
+     "indices": [
+      6
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arbol_binario",
+     "raiz": 9,
+     "etiqueta": "t",
+     "nodos": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106
+     ],
+     "aristas": [
+      [
+       9,
+       100,
+       "root"
+      ],
+      [
+       100,
+       101,
+       "left"
+      ],
+      [
+       100,
+       102,
+       "right"
+      ],
+      [
+       101,
+       103,
+       "left"
+      ],
+      [
+       101,
+       104,
+       "right"
+      ],
+      [
+       102,
+       105,
+       "left"
+      ],
+      [
+       102,
+       106,
+       "right"
+      ]
+     ]
+    },
+    {
+     "forma": "arreglo",
+     "raiz": 8,
+     "etiqueta": "data",
+     "nodos": [
+      8
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "t": {
+       "tipo": "BinarySearchTree",
+       "valor": {
+        "t": "ref",
+        "id": 9
+       }
+      },
+      "data": {
+       "tipo": "int[8]",
+       "valor": {
+        "t": "ref",
+        "id": 8
+       }
+      },
+      "i": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 7
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "BinarySearchTree.insert",
+     "linea": 40,
+     "variables": {
+      "this": {
+       "tipo": "BinarySearchTree",
+       "valor": {
+        "t": "ref",
+        "id": 9
+       }
+      },
+      "v": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 35
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "100": {
+     "id": 100,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 50
+      },
+      "left": {
+       "t": "ref",
+       "id": 101
+      },
+      "right": {
+       "t": "ref",
+       "id": 102
+      }
+     }
+    },
+    "101": {
+     "id": 101,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 30
+      },
+      "left": {
+       "t": "ref",
+       "id": 103
+      },
+      "right": {
+       "t": "ref",
+       "id": 104
+      }
+     }
+    },
+    "102": {
+     "id": 102,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 70
+      },
+      "left": {
+       "t": "ref",
+       "id": 105
+      },
+      "right": {
+       "t": "ref",
+       "id": 106
+      }
+     }
+    },
+    "103": {
+     "id": 103,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 20
+      },
+      "left": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "right": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "104": {
+     "id": 104,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 40
+      },
+      "left": {
+       "t": "ref",
+       "id": 107
+      },
+      "right": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "105": {
+     "id": 105,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 60
+      },
+      "left": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "right": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "106": {
+     "id": 106,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 80
+      },
+      "left": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "right": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "107": {
+     "id": 107,
+     "tipo": "objeto",
+     "clase": "TreeNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 35
+      },
+      "left": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "right": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "9": {
+     "id": 9,
+     "tipo": "objeto",
+     "clase": "BinarySearchTree",
+     "elementos": [],
+     "campos": {
+      "root": {
+       "t": "ref",
+       "id": 100
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 8
+      }
+     }
+    },
+    "8": {
+     "id": 8,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 50
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 30
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 70
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 20
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 40
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 60
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 80
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 35
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": null,
+     "nodo": 104,
+     "indices": [],
+     "campo": "value"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 104,
+     "indices": [],
+     "campo": "left"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arbol_binario",
+     "raiz": 9,
+     "etiqueta": "t",
+     "nodos": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107
+     ],
+     "aristas": [
+      [
+       9,
+       100,
+       "root"
+      ],
+      [
+       100,
+       101,
+       "left"
+      ],
+      [
+       100,
+       102,
+       "right"
+      ],
+      [
+       101,
+       103,
+       "left"
+      ],
+      [
+       101,
+       104,
+       "right"
+      ],
+      [
+       102,
+       105,
+       "left"
+      ],
+      [
+       102,
+       106,
+       "right"
+      ],
+      [
+       104,
+       107,
+       "left"
+      ]
+     ]
+    },
+    {
+     "forma": "arreglo",
+     "raiz": 8,
+     "etiqueta": "data",
+     "nodos": [
+      8
+     ],
+     "aristas": []
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": []
+}

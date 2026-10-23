@@ -1,0 +1,22 @@
+{
+  "id": "N05-E02",
+  "nivel": 5,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Burbuja optimizada",
+  "enunciado": "Mejora la burbuja para que termine cuando una pasada no haga ningún intercambio. Ordena {1, 2, 3, 5, 4, 6, 7, 8} y {8, 7, 6, 5, 4, 3, 2, 1} y muestra cuántas pasadas y comparaciones necesitó cada caso.",
+  "objetivos": [
+    "Usar una bandera para detectar que el arreglo ya está ordenado",
+    "Comparar el mejor y el peor caso"
+  ],
+  "pistas": [
+    "Pon huboCambio = falso al iniciar cada pasada.",
+    "Si al terminar la pasada sigue en falso, ya está ordenado.",
+    "Un arreglo casi ordenado termina en muy pocas pasadas."
+  ],
+  "conceptos": [
+    "bandera",
+    "mejor caso",
+    "peor caso"
+  ]
+}

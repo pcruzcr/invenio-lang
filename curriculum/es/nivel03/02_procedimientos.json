@@ -1,0 +1,21 @@
+{
+  "id": "N03-E02",
+  "nivel": 3,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Procedimientos",
+  "enunciado": "Escribe un procedimiento linea(simbolo, n) que imprima n veces el símbolo y un salto de línea, y otro marco(texto) que imprima el texto enmarcado por líneas de '=' de su misma longitud + 4.",
+  "objetivos": [
+    "Distinguir procedimientos (vacio) de funciones",
+    "Evitar repetir código con subprogramas"
+  ],
+  "pistas": [
+    "Un procedimiento hace algo pero no devuelve valor.",
+    "Llama a linea dos veces desde marco.",
+    "Usa longitud_texto / text_length para saber cuántos '=' imprimir."
+  ],
+  "conceptos": [
+    "procedimiento",
+    "reutilización"
+  ]
+}

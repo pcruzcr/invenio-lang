@@ -1,0 +1,30 @@
+// patron_command.inv - Command via interfaz Comando.
+interfaz Comando {
+    publico abstracto texto ejecutar();
+}
+clase Luz {
+    publico texto encender() { return "on"; }
+    publico texto apagar() { return "off"; }
+}
+clase CmdOn implementa Comando {
+    privado Luz l;
+    CmdOn(Luz x) { this.l = x; }
+    publico texto ejecutar() {
+        Luz y = this.l;
+        return "cmd:" + y.encender();
+    }
+}
+clase CmdOff implementa Comando {
+    privado Luz l;
+    CmdOff(Luz x) { this.l = x; }
+    publico texto ejecutar() {
+        Luz y = this.l;
+        return "cmd:" + y.apagar();
+    }
+}
+void main() {
+    Luz l = nuevo Luz();
+    Comando a = nuevo CmdOn(l);
+    Comando b = nuevo CmdOff(l);
+    imprimir(a.ejecutar()); imprimir(" "); imprimir(b.ejecutar());
+}

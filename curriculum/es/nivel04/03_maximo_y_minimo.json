@@ -1,0 +1,22 @@
+{
+  "id": "N04-E03",
+  "nivel": 4,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Máximo, mínimo y sus posiciones",
+  "enunciado": "En {31, -4, 57, 12, 57, -9, 0} encuentra el mayor y el menor con sus posiciones (la primera aparición), y el segundo mayor distinto del mayor.",
+  "objetivos": [
+    "Guardar posiciones además de valores",
+    "Resolver variantes del problema del máximo"
+  ],
+  "pistas": [
+    "Empieza suponiendo que el elemento 0 es el mayor y el menor.",
+    "Usa > (no >=) para quedarte con la primera aparición.",
+    "Para el segundo mayor ignora los valores iguales al mayor."
+  ],
+  "conceptos": [
+    "máximo",
+    "mínimo",
+    "posición"
+  ]
+}

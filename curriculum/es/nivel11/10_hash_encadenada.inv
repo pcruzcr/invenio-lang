@@ -1,0 +1,72 @@
+// Nivel 11 · Ejercicio 10 — Tabla hash con encadenamiento
+// Objetivos:
+//   - Resolver colisiones con listas enlazadas
+//   - Escribir una función hash para textos
+//   - Actualizar el valor si la clave ya existe
+//
+constante entero CUBETAS = 5;
+constante texto ALFABETO = "abcdefghijklmnopqrstuvwxyz";
+
+clase NodoHash {
+    publico texto clave;
+    publico entero valor;
+    publico NodoHash siguiente;
+    NodoHash(texto k, entero v) { este.clave = k; este.valor = v; }
+}
+
+entero hashTexto(texto s) {
+    entero suma = 0;
+    para (entero i = 0; i < longitud_texto(s); i++) {
+        suma += indice_de(ALFABETO, caracter_en(s, i)) + 1;
+    }
+    retornar suma % CUBETAS;
+}
+
+vacio poner(NodoHash [] cubetas, texto k, entero v) {
+    entero b = hashTexto(k);
+    NodoHash n = cubetas[b];
+    mientras (n != nulo) {
+        si (n.clave == k) {
+            n.valor = v;   // la clave ya existía: actualizar
+            retornar;
+        }
+        n = n.siguiente;
+    }
+    NodoHash nuevoNodo = nuevo NodoHash(k, v);
+    nuevoNodo.siguiente = cubetas[b];
+    cubetas[b] = nuevoNodo;
+}
+
+entero obtener(NodoHash [] cubetas, texto k) {
+    NodoHash n = cubetas[hashTexto(k)];
+    mientras (n != nulo) {
+        si (n.clave == k) {
+            retornar n.valor;
+        }
+        n = n.siguiente;
+    }
+    retornar -1;
+}
+
+vacio main() {
+    NodoHash cubetas[CUBETAS];
+    para (entero i = 0; i < CUBETAS; i++) {
+        cubetas[i] = nulo;
+    }
+    texto [6] nombres = {"ana", "luis", "eva", "juan", "sofi", "leo"};
+    entero [6] edades = {20, 31, 18, 25, 22, 40};
+    para (entero i = 0; i < 6; i++) {
+        poner(cubetas, nombres[i], edades[i]);
+    }
+    poner(cubetas, "eva", 19);
+    para (entero b = 0; b < CUBETAS; b++) {
+        imprimir(b); imprimir(":");
+        NodoHash n = cubetas[b];
+        mientras (n != nulo) {
+            imprimir(" "); imprimir(n.clave); imprimir("="); imprimir(n.valor);
+            n = n.siguiente;
+        }
+        imprimir("\n");
+    }
+    imprimir(obtener(cubetas, "eva")); imprimir(" "); imprimir(obtener(cubetas, "max")); imprimir("\n");
+}

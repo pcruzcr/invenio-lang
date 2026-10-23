@@ -1,0 +1,20 @@
+// patron_memento.inv - Memento guarda/restaura estado.
+clase Recuerdo {
+    publico entero e;
+    Recuerdo(entero x) { this.e = x; }
+}
+clase Origen {
+    publico entero e;
+    Origen() { this.e = 0; }
+    publico Recuerdo guardar() { return nuevo Recuerdo(this.e); }
+    publico void restaurar(Recuerdo m) { this.e = m.e; }
+}
+void main() {
+    Origen o = nuevo Origen();
+    o.e = 1;
+    Recuerdo m = o.guardar();
+    o.e = 2;
+    imprimir("mem:"); imprimir(o.e); imprimir(" ");
+    o.restaurar(m);
+    imprimir(o.e);
+}

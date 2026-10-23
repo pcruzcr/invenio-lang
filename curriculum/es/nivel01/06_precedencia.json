@@ -1,0 +1,22 @@
+{
+  "id": "N01-E06",
+  "nivel": 1,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Precedencia de operadores",
+  "enunciado": "Evalúa y muestra: 2 + 3 * 4, (2 + 3) * 4, 20 - 6 / 2, (20 - 6) / 2, 2 * 3 % 4 y -2 * -3. Antes de ejecutar, predice cada resultado.",
+  "objetivos": [
+    "Aplicar la precedencia: unarios, luego * / %, luego + -",
+    "Usar paréntesis para cambiar el orden"
+  ],
+  "pistas": [
+    "* / % se evalúan antes que + -.",
+    "Operadores del mismo nivel se evalúan de izquierda a derecha.",
+    "2 * 3 % 4 es (2 * 3) % 4."
+  ],
+  "conceptos": [
+    "precedencia",
+    "asociatividad",
+    "paréntesis"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "N08-E02",
+  "nivel": 8,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Encapsulation: bank account",
+  "enunciado": "Create BankAccount with a private balance. deposit(amount) only accepts positive amounts and withdraw(amount) only if there is enough balance; both return bool. Run a sequence of operations and show the result of each and the final balance.",
+  "objetivos": [
+    "Hide state with private",
+    "Validate inside methods to keep the object consistent",
+    "Expose reading through a getter method"
+  ],
+  "pistas": [
+    "From main you cannot write account.balance = -100: the attribute is private.",
+    "Each method decides whether the operation is valid.",
+    "Returning a bool lets the caller know whether it worked."
+  ],
+  "conceptos": [
+    "encapsulation",
+    "private",
+    "invariant",
+    "getter"
+  ]
+}

@@ -1,0 +1,31 @@
+// Level 6 · Exercise 06 — Diagonals
+// Learning goals:
+//   - Traverse diagonals with a single loop
+//   - Describe matrix regions with conditions on i and j
+//
+const int N = 4;
+
+void main() {
+    int [N][N] m;
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            m[i][j] = i * N + j;
+        }
+    }
+    int mainDiag = 0;
+    int antiDiag = 0;
+    for (int i = 0; i < N; i++) {
+        // On the main diagonal row == column; on the anti-diagonal row + column == N - 1.
+        mainDiag += m[i][i];
+        antiDiag += m[i][N - 1 - i];
+    }
+    int above = 0;
+    for (int i = 0; i < N; i++) {
+        for (int j = i + 1; j < N; j++) {
+            above += m[i][j];
+        }
+    }
+    print("main = "); print(mainDiag); print("\n");
+    print("anti = "); print(antiDiag); print("\n");
+    print("upper = "); print(above); print("\n");
+}

@@ -1,0 +1,14 @@
+{
+  "nivel": 6,
+  "titulo": "Matrices",
+  "descripcion": "Two-dimensional arrays: row and column traversals, linear algebra operations and table problems.",
+  "temas": [
+    "declaration and row/column traversal",
+    "matrix addition and product",
+    "transpose",
+    "diagonals",
+    "properties: symmetry, identity",
+    "matrices as data tables"
+  ],
+  "idioma": "en"
+}

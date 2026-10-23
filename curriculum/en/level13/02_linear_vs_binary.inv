@@ -1,0 +1,40 @@
+// Level 13 · Exercise 02 — Linear versus binary search
+// Learning goals:
+//   - Compare O(n) with O(log n) with real data
+//   - Analyze the worst case
+//
+const int MAX = 1000;
+int [MAX] a;
+
+int linearWorst(int n, int x) {
+    int c = 0;
+    for (int i = 0; i < n; i++) {
+        c++;
+        if (a[i] == x) { return c; }
+    }
+    return c;
+}
+
+int binaryWorst(int n, int x) {
+    int c = 0;
+    int left = 0;
+    int right = n - 1;
+    while (left <= right) {
+        int mid = (left + right) / 2;
+        c++;
+        if (a[mid] == x) { return c; }
+        if (a[mid] < x) { left = mid + 1; } else { right = mid - 1; }
+    }
+    return c;
+}
+
+void main() {
+    for (int i = 0; i < MAX; i++) {
+        a[i] = 2 * i;
+    }
+    print("n\tlinear\tbinary\n");
+    for (int n = 10; n <= MAX; n = n * 10) {
+        int x = 2 * n + 1;   // larger than all: worst case
+        print(n); print("\t"); print(linearWorst(n, x)); print("\t"); print(binaryWorst(n, x)); print("\n");
+    }
+}

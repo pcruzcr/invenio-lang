@@ -1,0 +1,170 @@
+{
+ "version": 1,
+ "idioma": "en",
+ "fuente": "void main() {\n    int [3] v = {1, 2, 3};\n    int i = 3;\n    print(v[i]);\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 2,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 2,
+     "variables": {
+      "v": {
+       "tipo": "int[3]",
+       "valor": {
+        "t": "ref",
+        "id": 1
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "1": {
+     "id": 1,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 1
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 2
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 3
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "v",
+     "nodo": 1,
+     "indices": [
+      0
+     ],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "v",
+     "nodo": 1,
+     "indices": [
+      1
+     ],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "v",
+     "nodo": 1,
+     "indices": [
+      2
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arreglo",
+     "raiz": 1,
+     "etiqueta": "v",
+     "nodos": [
+      1
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 3,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 3,
+     "variables": {
+      "v": {
+       "tipo": "int[3]",
+       "valor": {
+        "t": "ref",
+        "id": 1
+       }
+      },
+      "i": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 3
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "1": {
+     "id": 1,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 1
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 2
+      },
+      {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 3
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "i",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arreglo",
+     "raiz": 1,
+     "etiqueta": "v",
+     "nodos": [
+      1
+     ],
+     "aristas": []
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": "[IL-EJE-010] Index out of range: 3 (size 3) — line 4",
+ "salida": []
+}

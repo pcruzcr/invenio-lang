@@ -1,0 +1,22 @@
+{
+  "id": "N13-E01",
+  "nivel": 13,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Órdenes de crecimiento",
+  "enunciado": "Para n = 8, 16, 32 y 64 cuenta cuántas veces se ejecuta el cuerpo de cuatro ciclos típicos: uno que divide n a la mitad (log n), uno simple (n), uno que repite la mitad n veces (n log n) y dos anidados (n²). Muestra una tabla.",
+  "objetivos": [
+    "Contar operaciones en lugar de medir tiempo",
+    "Reconocer patrones de código con su orden de crecimiento"
+  ],
+  "pistas": [
+    "Cuando n se duplica, log n suma 1, n se duplica y n² se cuadruplica.",
+    "Un ciclo que hace i = i * 2 da log2(n) vueltas.",
+    "Compara las columnas fila a fila."
+  ],
+  "conceptos": [
+    "notación O",
+    "O(log n)",
+    "O(n²)"
+  ]
+}

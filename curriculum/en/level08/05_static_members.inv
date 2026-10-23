@@ -1,0 +1,30 @@
+// Level 8 · Exercise 05 — Static members
+// Learning goals:
+//   - Tell instance attributes from class attributes
+//   - Access static members with ClassName.member
+//
+class Ticket {
+    public static int nextId = 1;
+    public int id;
+    public string reason;
+
+    Ticket(string m) {
+        this.id = Ticket.nextId;   // take the shared value
+        Ticket.nextId = Ticket.nextId + 1;
+        this.reason = m;
+    }
+
+    public static int created() {
+        return Ticket.nextId - 1;
+    }
+}
+
+void main() {
+    Ticket a = new Ticket("login");
+    Ticket b = new Ticket("wifi");
+    Ticket c = new Ticket("printer");
+    print(a.id); print(" "); print(a.reason); print("\n");
+    print(b.id); print(" "); print(b.reason); print("\n");
+    print(c.id); print(" "); print(c.reason); print("\n");
+    print("created = "); print(Ticket.created()); print("\n");
+}

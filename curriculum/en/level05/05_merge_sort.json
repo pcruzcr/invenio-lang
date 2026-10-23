@@ -1,0 +1,22 @@
+{
+  "id": "N05-E05",
+  "nivel": 5,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Merge sort",
+  "enunciado": "Sort {38, 27, 43, 3, 9, 82, 10, 5} with recursive merge sort. Show every merge (\"merge [lo..hi]\" and the resulting subarray).",
+  "objetivos": [
+    "Apply divide and conquer",
+    "Reuse the merge of two sorted arrays"
+  ],
+  "pistas": [
+    "Split into halves until each part has one element.",
+    "Merge using a temporary array.",
+    "Copy the temporary array back into a[lo..hi]."
+  ],
+  "conceptos": [
+    "merge sort",
+    "divide and conquer",
+    "O(n log n)"
+  ]
+}

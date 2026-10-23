@@ -1,0 +1,22 @@
+{
+  "id": "N03-E12",
+  "nivel": 3,
+  "numero": 12,
+  "idioma": "en",
+  "titulo": "Functions as values",
+  "enunciado": "Store functions in variables of function type and use them with map, filter and reduce over {3, 8, 1, 6, 5}: twice each element, the even ones and the total sum.",
+  "objetivos": [
+    "Treat functions as values",
+    "Use higher-order functions: map, filter, reduce"
+  ],
+  "pistas": [
+    "function(int x) int f; declares a variable that holds a function.",
+    "filter writes into the output array and returns how many elements passed.",
+    "reduce(array, f, initial) combines all elements from left to right."
+  ],
+  "conceptos": [
+    "first-class function",
+    "higher order",
+    "lambda"
+  ]
+}

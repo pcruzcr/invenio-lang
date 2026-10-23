@@ -1,0 +1,53 @@
+// Level 10 · Exercise 02 — Linked stack
+// Learning goals:
+//   - Implement a stack with linked nodes
+//   - Use a stack to reverse sequences
+//
+class Node {
+    public int value;
+    public Node next;
+    Node(int v) { this.value = v; }
+}
+
+class LinkedStack {
+    private Node head;
+    private int count;
+
+    public void push(int v) {
+        Node n = new Node(v);
+        n.next = this.head;   // the new node points to the old top
+        this.head = n;
+        this.count = this.count + 1;
+    }
+
+    public int pop() {
+        Node n = this.head;
+        this.head = n.next;
+        this.count = this.count - 1;
+        return n.value;
+    }
+
+    public bool isEmpty() { return this.head == null; }
+    public int size() { return this.count; }
+}
+
+void main() {
+    LinkedStack p = new LinkedStack();
+    for (int i = 1; i <= 6; i++) {
+        p.push(i);
+    }
+    print("size = "); print(p.size()); print("\n");
+    while (!p.isEmpty()) {
+        print(p.pop()); print(" ");
+    }
+    print("\n");
+    int n = 156;
+    while (n > 0) {
+        p.push(n % 2);
+        n = n / 2;
+    }
+    while (!p.isEmpty()) {
+        print(p.pop());
+    }
+    print("\n");
+}

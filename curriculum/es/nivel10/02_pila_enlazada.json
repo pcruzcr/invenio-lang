@@ -1,0 +1,22 @@
+{
+  "id": "N10-E02",
+  "nivel": 10,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Pila enlazada",
+  "enunciado": "Implementa la clase PilaEnlazada con nodos (sin límite de capacidad) y úsala para invertir el orden de los números 1 a 6 y para convertir 156 a base 2.",
+  "objetivos": [
+    "Implementar una pila con nodos enlazados",
+    "Usar una pila para invertir secuencias"
+  ],
+  "pistas": [
+    "El tope es la cabeza de la lista: apilar inserta al inicio.",
+    "desapilar mueve la cabeza a su siguiente.",
+    "Los restos de dividir entre 2 salen al revés: apílalos."
+  ],
+  "conceptos": [
+    "pila",
+    "nodo",
+    "lista enlazada"
+  ]
+}

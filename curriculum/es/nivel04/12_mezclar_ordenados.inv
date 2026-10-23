@@ -1,0 +1,38 @@
+// Nivel 4 · Ejercicio 12 — Mezclar dos arreglos ordenados
+// Objetivos:
+//   - Recorrer dos arreglos en paralelo
+//   - Preparar la idea central de merge sort
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio main() {
+    entero [4] a = {1, 4, 9, 12};
+    entero [5] b = {2, 3, 10, 15, 20};
+    entero [9] c;
+    entero i = 0;
+    entero j = 0;
+    entero k = 0;
+    mientras (i < 4 && j < 5) {
+        si (a[i] <= b[j]) {
+            c[k] = a[i];
+            i++;
+        } sino {
+            c[k] = b[j];
+            j++;
+        }
+        k++;
+    }
+    // Solo uno de estos dos ciclos copiará algo.
+    mientras (i < 4) { c[k] = a[i]; i++; k++; }
+    mientras (j < 5) { c[k] = b[j]; j++; k++; }
+    imprimirArreglo(c, 9);
+}

@@ -1,0 +1,49 @@
+// Nivel 9 · Ejercicio 03 — Clases abstractas
+// Objetivos:
+//   - Declarar clases y métodos abstractos
+//   - Obligar a las subclases a implementar un contrato
+//
+// No se puede crear una Figura genérica: solo figuras concretas.
+abstracta clase Figura {
+    publico abstracto real area();
+    publico abstracto texto nombre();
+
+    publico texto describir() {
+        retornar este.nombre() + " " + real_a_texto(este.area());
+    }
+}
+
+clase Circulo hereda Figura {
+    privado real radio;
+    Circulo(real r) { este.radio = r; }
+    publico real area() { retornar 3.0 * este.radio * este.radio; }
+    publico texto nombre() { retornar "circle"; }
+}
+
+clase Cuadrado hereda Figura {
+    privado real lado;
+    Cuadrado(real l) { este.lado = l; }
+    publico real area() { retornar este.lado * este.lado; }
+    publico texto nombre() { retornar "square"; }
+}
+
+clase Triangulo hereda Figura {
+    privado real base;
+    privado real altura;
+    Triangulo(real b, real h) { este.base = b; este.altura = h; }
+    publico real area() { retornar este.base * este.altura / 2.0; }
+    publico texto nombre() { retornar "triangle"; }
+}
+
+vacio main() {
+    Figura figuras[3];
+    figuras[0] = nuevo Circulo(2.0);
+    figuras[1] = nuevo Cuadrado(3.0);
+    figuras[2] = nuevo Triangulo(4.0, 5.0);
+    real total = 0.0;
+    para (entero i = 0; i < 3; i++) {
+        imprimir(figuras[i].describir()); imprimir("\n");
+        total = total + figuras[i].area();
+    }
+    imprimir("total = "); imprimir(total); imprimir("\n");
+}

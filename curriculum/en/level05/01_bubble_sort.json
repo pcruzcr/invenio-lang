@@ -1,0 +1,22 @@
+{
+  "id": "N05-E01",
+  "nivel": 5,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Bubble sort",
+  "enunciado": "Sort {64, 34, 25, 12, 22, 11, 90} with bubble sort. Show the array at the end of each pass and the total number of comparisons and swaps.",
+  "objetivos": [
+    "Implement bubble sort with two loops",
+    "Watch how the largest element 'bubbles' to the end on each pass"
+  ],
+  "pistas": [
+    "Compare neighbours a[j] and a[j + 1].",
+    "After pass p, the last p + 1 elements are already in place.",
+    "That is why the inner loop goes up to n - 1 - p."
+  ],
+  "conceptos": [
+    "bubble sort",
+    "comparison",
+    "O(n²)"
+  ]
+}

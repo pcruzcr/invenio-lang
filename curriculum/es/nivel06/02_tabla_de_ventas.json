@@ -1,0 +1,21 @@
+{
+  "id": "N06-E02",
+  "nivel": 6,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Tabla de ventas: totales por fila y columna",
+  "enunciado": "Una matriz de 3 tiendas x 4 semanas guarda ventas: {{12, 15, 9, 20}, {8, 11, 14, 10}, {20, 18, 22, 25}}. Muestra el total de cada tienda, el total de cada semana, el total general y la tienda con más ventas.",
+  "objetivos": [
+    "Agregar datos por filas y por columnas",
+    "Usar una matriz como tabla de datos"
+  ],
+  "pistas": [
+    "El total de la tienda i suma toda la fila i.",
+    "El total de la semana j suma toda la columna j.",
+    "Reutiliza el patrón del máximo sobre los totales por fila."
+  ],
+  "conceptos": [
+    "totales por fila",
+    "totales por columna"
+  ]
+}

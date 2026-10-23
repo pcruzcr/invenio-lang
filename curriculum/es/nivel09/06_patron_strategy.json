@@ -1,0 +1,22 @@
+{
+  "id": "N09-E06",
+  "nivel": 9,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Patrón Strategy",
+  "enunciado": "Un Pedido calcula su costo de envío delegando en una EstrategiaEnvio intercambiable: EnvioNormal (5 + 2 por kg), EnvioExpress (15 + 3 por kg) y EnvioGratis (0). Cambia la estrategia en tiempo de ejecución para un pedido de 4 kg.",
+  "objetivos": [
+    "Encapsular algoritmos intercambiables detrás de una abstracción",
+    "Preferir composición a condicionales sobre el tipo"
+  ],
+  "pistas": [
+    "El Pedido no sabe qué estrategia concreta usa.",
+    "Agregar una nueva estrategia no obliga a tocar Pedido.",
+    "Recuerda: EstrategiaEnvio e = este.estrategia; retornar e.costo(...);"
+  ],
+  "conceptos": [
+    "Strategy",
+    "composición",
+    "abierto/cerrado"
+  ]
+}

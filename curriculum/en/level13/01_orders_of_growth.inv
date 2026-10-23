@@ -1,0 +1,48 @@
+// Level 13 · Exercise 01 — Orders of growth
+// Learning goals:
+//   - Count operations instead of measuring time
+//   - Recognize code patterns and their order of growth
+//
+int opsLog(int n) {
+    int ops = 0;
+    int i = 1;
+    while (i < n) {
+        ops++;
+        i = i * 2;   // doubles towards n: log2(n) iterations
+    }
+    return ops;
+}
+
+int opsLinear(int n) {
+    int ops = 0;
+    for (int i = 0; i < n; i++) {
+        ops++;
+    }
+    return ops;
+}
+
+int opsNLogN(int n) {
+    int ops = 0;
+    for (int k = 0; k < n; k++) {
+        ops += opsLog(n);
+    }
+    return ops;
+}
+
+int opsQuadratic(int n) {
+    int ops = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            ops++;
+        }
+    }
+    return ops;
+}
+
+void main() {
+    print("n\tlog n\tn\tn log n\tn^2\n");
+    for (int n = 8; n <= 64; n = n * 2) {
+        print(n); print("\t"); print(opsLog(n)); print("\t"); print(opsLinear(n)); print("\t");
+        print(opsNLogN(n)); print("\t"); print(opsQuadratic(n)); print("\n");
+    }
+}

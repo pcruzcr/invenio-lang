@@ -1,0 +1,97 @@
+// Level 11 · Exercise 08 — AVL tree: insertion with rotations
+// Learning goals:
+//   - Keep a tree balanced automatically
+//   - Apply single and double rotations
+//
+class Node {
+    public int value;
+    public int h;
+    public Node left;
+    public Node right;
+    Node(int v) { this.value = v; this.h = 0; }
+}
+
+int nodeHeight(Node n) {
+    if (n == null) { return -1; }
+    return n.h;
+}
+
+void updateHeight(Node n) {
+    int a = nodeHeight(n.left);
+    int b = nodeHeight(n.right);
+    n.h = 1 + (a > b ? a : b);
+}
+
+int balanceFactor(Node n) {
+    return nodeHeight(n.left) - nodeHeight(n.right);
+}
+
+Node rotateRight(Node y) {
+    print("  rotate right at "); print(y.value); print("\n");
+    Node x = y.left;
+    y.left = x.right;
+    x.right = y;
+    updateHeight(y);
+    updateHeight(x);
+    return x;
+}
+
+Node rotateLeft(Node x) {
+    print("  rotate left at "); print(x.value); print("\n");
+    Node y = x.right;
+    x.right = y.left;
+    y.left = x;
+    updateHeight(x);
+    updateHeight(y);
+    return y;
+}
+
+Node insert(Node r, int v) {
+    if (r == null) {
+        return new Node(v);
+    }
+    if (v < r.value) {
+        r.left = insert(r.left, v);
+    } else {
+        r.right = insert(r.right, v);
+    }
+    updateHeight(r);
+    int b = balanceFactor(r);
+    if (b > 1) {
+        if (balanceFactor(r.left) < 0) {
+            r.left = rotateLeft(r.left);   // left-right case: double rotation
+        }
+        return rotateRight(r);
+    }
+    if (b < -1) {
+        if (balanceFactor(r.right) > 0) {
+            r.right = rotateRight(r.right);   // right-left case
+        }
+        return rotateLeft(r);
+    }
+    return r;
+}
+
+void preOrder(Node r) {
+    if (r != null) {
+        print(r.value); print(" ");
+        preOrder(r.left);
+        preOrder(r.right);
+    }
+}
+
+void main() {
+    Node root = null;
+    for (int v = 1; v <= 7; v++) {
+        print("insert "); print(v); print("\n");
+        root = insert(root, v);
+    }
+    print("preorder: "); preOrder(root); print("\n");
+    print("height = "); print(nodeHeight(root)); print("\n");
+    print("double: ");
+    Node other = null;
+    other = insert(other, 30);
+    other = insert(other, 10);
+    other = insert(other, 20);
+    preOrder(other); print("\n");
+}

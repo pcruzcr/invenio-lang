@@ -1,0 +1,36 @@
+// Level 9 · Exercise 10 — Template Method pattern
+// Learning goals:
+//   - Fix the skeleton of an algorithm in the parent class
+//   - Let subclasses fill in the variable steps
+//
+abstract class Drink {
+    public void prepare() {
+        // The algorithm skeleton: the order never changes.
+        this.boilWater();
+        this.brew();
+        this.addExtras();
+        print("  serve\n");
+    }
+
+    public void boilWater() { print("  boil water\n"); }
+    public abstract void brew();
+    public void addExtras() { }   // optional hook
+}
+
+class Coffee extends Drink {
+    public void brew() { print("  drip coffee\n"); }
+    public void addExtras() { print("  add milk\n"); }
+}
+
+class Tea extends Drink {
+    public void brew() { print("  steep tea\n"); }
+}
+
+void main() {
+    print("coffee:\n");
+    Drink coffee = new Coffee();
+    coffee.prepare();
+    print("tea:\n");
+    Drink tea = new Tea();
+    tea.prepare();
+}

@@ -1,0 +1,37 @@
+// Nivel 4 · Ejercicio 09 — Rotar un arreglo
+// Objetivos:
+//   - Componer una transformación a partir de otra más simple
+//   - Trabajar con subrangos de un arreglo
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio invertir(entero [] a, entero desde, entero hasta) {
+    mientras (desde < hasta) {
+        entero aux = a[desde];
+        a[desde] = a[hasta];
+        a[hasta] = aux;
+        desde++;
+        hasta--;
+    }
+}
+
+vacio main() {
+    entero [6] a = {10, 20, 30, 40, 50, 60};
+    entero n = 6;
+    entero k = 8 % n;   // rotar 8 equivale a rotar 2
+    invertir(a, 0, k - 1);
+    imprimirArreglo(a, n);
+    invertir(a, k, n - 1);
+    imprimirArreglo(a, n);
+    invertir(a, 0, n - 1);
+    imprimirArreglo(a, n);
+}

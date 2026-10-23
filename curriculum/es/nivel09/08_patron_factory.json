@@ -1,0 +1,21 @@
+{
+  "id": "N09-E08",
+  "nivel": 9,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Patrón Factory",
+  "enunciado": "Escribe una FabricaFiguras con un método estático crear(tipo, medida) que devuelva un Circulo, un Cuadrado o nulo según el texto recibido. El cliente solo conoce la clase abstracta Figura.",
+  "objetivos": [
+    "Centralizar la creación de objetos",
+    "Programar contra la abstracción, no contra clases concretas"
+  ],
+  "pistas": [
+    "El cliente nunca escribe nuevo Circulo(...).",
+    "Usa segun sobre el texto del tipo.",
+    "Devuelve nulo para un tipo desconocido y compruébalo en el cliente."
+  ],
+  "conceptos": [
+    "Factory",
+    "creación de objetos"
+  ]
+}

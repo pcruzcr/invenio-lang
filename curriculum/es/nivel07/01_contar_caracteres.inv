@@ -1,0 +1,31 @@
+// Nivel 7 · Ejercicio 01 — Contar vocales, consonantes y espacios
+// Objetivos:
+//   - Recorrer una cadena con caracter_en
+//   - Clasificar caracteres con una cadena de referencia
+//
+constante texto VOCALES = "aeiou";
+constante texto ALFABETO = "abcdefghijklmnopqrstuvwxyz";
+
+vacio main() {
+    texto frase = minusculas("El codigo es poesia");
+    entero vocales = 0;
+    entero consonantes = 0;
+    entero espacios = 0;
+    para (entero i = 0; i < longitud_texto(frase); i++) {
+        texto c = caracter_en(frase, i);   // un carácter es un texto de longitud 1
+        si (indice_de(VOCALES, c) >= 0) {
+            vocales++;
+        } sino {
+            si (indice_de(ALFABETO, c) >= 0) {
+                consonantes++;
+            } sino {
+                si (c == " ") {
+                    espacios++;
+                }
+            }
+        }
+    }
+    imprimir("vowels = "); imprimir(vocales); imprimir("\n");
+    imprimir("consonants = "); imprimir(consonantes); imprimir("\n");
+    imprimir("spaces = "); imprimir(espacios); imprimir("\n");
+}

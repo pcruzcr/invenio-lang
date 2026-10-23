@@ -1,0 +1,19 @@
+// Level 2 · Exercise 09 — break and continue
+// Learning goals:
+//   - Skip an iteration with continue
+//   - Leave a loop with break
+//
+void main() {
+    for (int n = 1; n <= 20; n++) {
+        // continue skips the rest of the body, but the for's n++ still runs.
+        if (n % 3 == 0) {
+            continue;
+        }
+        if (n > 10 && n % 7 == 0) {
+            print("| stop at "); print(n);
+            break;
+        }
+        print(n); print(" ");
+    }
+    print("\n");
+}

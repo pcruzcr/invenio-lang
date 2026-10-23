@@ -1,0 +1,21 @@
+{
+  "id": "N06-E05",
+  "nivel": 6,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Transpose of a matrix",
+  "enunciado": "Compute the transpose of a 2x3 matrix into another 3x2 matrix, and then transpose a 3x3 square matrix in place by swapping only the elements above the diagonal.",
+  "objetivos": [
+    "Swap rows and columns",
+    "Transpose in place without undoing the work"
+  ],
+  "pistas": [
+    "T[j][i] = M[i][j].",
+    "In place, only go over j > i.",
+    "If you go over the whole matrix, each pair is swapped twice and returns to its place."
+  ],
+  "conceptos": [
+    "transpose",
+    "in place"
+  ]
+}

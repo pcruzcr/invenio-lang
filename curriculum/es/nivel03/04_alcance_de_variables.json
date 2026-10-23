@@ -1,0 +1,22 @@
+{
+  "id": "N03-E04",
+  "nivel": 3,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Alcance de variables",
+  "enunciado": "Usa una variable global llamadas que cuente cuántas veces se invoca una función, y muestra que una variable local con el mismo nombre que una global la oculta dentro de su bloque.",
+  "objetivos": [
+    "Diferenciar variables globales y locales",
+    "Entender el ocultamiento (shadowing)"
+  ],
+  "pistas": [
+    "Una global se declara fuera de toda función.",
+    "Dentro de una función, una local o un parámetro con el mismo nombre tapa a la global.",
+    "Abusar de globales hace el código difícil de seguir: úsalas con moderación."
+  ],
+  "conceptos": [
+    "alcance",
+    "variable global",
+    "ocultamiento"
+  ]
+}

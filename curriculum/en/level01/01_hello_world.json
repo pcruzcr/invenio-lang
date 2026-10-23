@@ -1,0 +1,22 @@
+{
+  "id": "N01-E01",
+  "nivel": 1,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Hello, world",
+  "enunciado": "Write a program that shows two lines: \"Hola, mundo\" and \"InvenioLang\". Each print writes exactly what it receives; the line break is written as \"\\n\".",
+  "objetivos": [
+    "Know the minimal structure of a program (void main)",
+    "Use print and the \\n line break"
+  ],
+  "pistas": [
+    "Every program starts running in main.",
+    "print(\"text\") does not add a line break on its own.",
+    "Add print(\"\\n\") or include \\n inside the text."
+  ],
+  "conceptos": [
+    "program",
+    "main",
+    "output"
+  ]
+}

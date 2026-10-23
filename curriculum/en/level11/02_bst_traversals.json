@@ -1,0 +1,22 @@
+{
+  "id": "N11-E02",
+  "nivel": 11,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Tree traversals",
+  "enunciado": "With the BST built from 8, 3, 10, 1, 6, 14, 4, 7, 13 show the pre-order, in-order and post-order traversals.",
+  "objetivos": [
+    "Implement the three depth-first traversals",
+    "Relate each traversal to its uses"
+  ],
+  "pistas": [
+    "Pre-order: root, left, right (useful to copy the tree).",
+    "Post-order: left, right, root (useful to free or evaluate).",
+    "Only the place where the root is printed changes."
+  ],
+  "conceptos": [
+    "pre-order",
+    "in-order",
+    "post-order"
+  ]
+}

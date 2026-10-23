@@ -1,0 +1,24 @@
+{
+  "id": "N08-E02",
+  "nivel": 8,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Encapsulamiento: cuenta bancaria",
+  "enunciado": "Crea CuentaBancaria con saldo privado. depositar(monto) solo acepta montos positivos y retirar(monto) solo si hay saldo suficiente; ambos retornan logico. Ejecuta una secuencia de operaciones y muestra el resultado de cada una y el saldo final.",
+  "objetivos": [
+    "Ocultar el estado con privado",
+    "Validar dentro de los métodos para mantener el objeto consistente",
+    "Exponer lectura con un método obtenedor (getter)"
+  ],
+  "pistas": [
+    "Desde main no se puede escribir cuenta.saldo = -100: el atributo es privado.",
+    "Cada método decide si la operación es válida.",
+    "Retornar un logico permite al llamador saber si funcionó."
+  ],
+  "conceptos": [
+    "encapsulamiento",
+    "privado",
+    "invariante",
+    "getter"
+  ]
+}

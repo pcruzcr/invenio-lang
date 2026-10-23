@@ -1,0 +1,22 @@
+{
+  "id": "N04-E01",
+  "nivel": 4,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Declarar y recorrer un arreglo",
+  "enunciado": "Declara un arreglo de 6 enteros con {4, 8, 15, 16, 23, 42}. Muéstralo con un procedimiento imprimirArreglo, recórrelo al revés y muestra los elementos en posiciones pares.",
+  "objetivos": [
+    "Declarar e inicializar arreglos",
+    "Recorrer con índices hacia adelante, hacia atrás y con saltos"
+  ],
+  "pistas": [
+    "Los índices válidos van de 0 a tamaño - 1.",
+    "Al revés: para (entero i = N - 1; i >= 0; i--).",
+    "Posiciones pares: avanza con i = i + 2."
+  ],
+  "conceptos": [
+    "arreglo",
+    "índice",
+    "recorrido"
+  ]
+}

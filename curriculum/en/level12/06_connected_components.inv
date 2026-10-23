@@ -1,0 +1,59 @@
+// Level 12 · Exercise 06 — Connected components
+// Learning goals:
+//   - Start traversals from every unvisited vertex
+//   - Label vertices by component
+//
+const int N = 7;
+int [N][N] adj;
+
+void addEdge(int a, int b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;   // undirected: the relation goes both ways
+}
+
+void clearGraph() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            adj[i][j] = 0;
+        }
+    }
+}
+
+int [N] component;
+
+void label(int u, int c) {
+    component[u] = c;
+    for (int v = 0; v < N; v++) {
+        if (adj[u][v] == 1 && component[v] == -1) {
+            label(v, c);
+        }
+    }
+}
+
+void main() {
+    clearGraph();
+    addEdge(0, 1);
+    addEdge(1, 2);
+    addEdge(3, 4);
+    addEdge(5, 6);
+    for (int i = 0; i < N; i++) {
+        component[i] = -1;
+    }
+    int total = 0;
+    for (int i = 0; i < N; i++) {
+        if (component[i] == -1) {
+            label(i, total);   // new component
+            total++;
+        }
+    }
+    print("components = "); print(total); print("\n");
+    for (int c = 0; c < total; c++) {
+        print(c); print(":");
+        for (int i = 0; i < N; i++) {
+            if (component[i] == c) {
+                print(" "); print(i);
+            }
+        }
+        print("\n");
+    }
+}

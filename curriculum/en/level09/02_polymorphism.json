@@ -1,0 +1,22 @@
+{
+  "id": "N09-E02",
+  "nivel": 9,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Polymorphism",
+  "enunciado": "Create Animal with speak() and introduce(), and subclasses Dog and Cat that override speak(). Store different animals in an Animal array and call introduce() on each.",
+  "objetivos": [
+    "Override methods in subclasses",
+    "Use dynamic dispatch: the method depends on the real object"
+  ],
+  "pistas": [
+    "A variable of type Animal can hold a Dog (upcasting).",
+    "introduce() is written only once, in Animal.",
+    "Each animal answers speak() in its own way."
+  ],
+  "conceptos": [
+    "polymorphism",
+    "overriding",
+    "dynamic dispatch"
+  ]
+}

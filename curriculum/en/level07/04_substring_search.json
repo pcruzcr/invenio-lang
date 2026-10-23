@@ -1,0 +1,21 @@
+{
+  "id": "N07-E04",
+  "nivel": 7,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Substring search",
+  "enunciado": "Implement naive search findSubstring(text, pattern, from) and use it to list all positions of \"ana\" in \"bananas y ananas\". Compare the first one with index_of.",
+  "objetivos": [
+    "Compare a pattern at every possible position",
+    "Find overlapping occurrences"
+  ],
+  "pistas": [
+    "Candidate positions go from 'from' to n - m.",
+    "Compare character by character and give up at the first mismatch.",
+    "For the next occurrence search from the found position + 1."
+  ],
+  "conceptos": [
+    "pattern search",
+    "overlap"
+  ]
+}

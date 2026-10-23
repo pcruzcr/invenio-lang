@@ -1,0 +1,21 @@
+{
+  "id": "N01-E11",
+  "nivel": 1,
+  "numero": 11,
+  "idioma": "en",
+  "titulo": "Increment and compound assignment",
+  "enunciado": "Start from x = 10. Apply in order: x++, x += 5, x *= 2, x -= 4, x /= 3, x %= 5, x--. Show x after each step.",
+  "objetivos": [
+    "Use ++ and --",
+    "Use += -= *= /= %="
+  ],
+  "pistas": [
+    "x += 5 is the same as x = x + 5.",
+    "x /= 3 with ints is integer division.",
+    "Trace the values on paper before running."
+  ],
+  "conceptos": [
+    "increment",
+    "compound assignment"
+  ]
+}

@@ -1,0 +1,36 @@
+// kmp.inv - Algoritmo KMP: prefijo + busqueda O(n+m).
+void prefijo(texto pat, int [] pi, int m) {
+    pi[0] = 0;
+    int k = 0;
+    para (int i = 1; i < m; i++) {
+        mientras (k > 0 && caracter_en(pat, i) != caracter_en(pat, k)) {
+            k = pi[k - 1];
+        }
+        si (caracter_en(pat, i) == caracter_en(pat, k)) { k = k + 1; }
+        pi[i] = k;
+    }
+}
+
+int buscarKmp(texto txt, texto pat) {
+    int n = longitud_texto(txt);
+    int m = longitud_texto(pat);
+    int [20] pi;
+    prefijo(pat, pi, m);
+    int k = 0;
+    para (int i = 0; i < n; i++) {
+        mientras (k > 0 && caracter_en(txt, i) != caracter_en(pat, k)) {
+            k = pi[k - 1];
+        }
+        si (caracter_en(txt, i) == caracter_en(pat, k)) { k = k + 1; }
+        si (k == m) { return i - m + 1; }
+    }
+    return -1;
+}
+
+void main() {
+    texto t = "ababaababc";
+    texto p = "ababc";
+    imprimir("pos="); imprimir(buscarKmp(t, p)); imprimir("\n");
+    imprimir("pos2="); imprimir(buscarKmp(t, "ab")); imprimir("\n");
+    imprimir("pos3="); imprimir(buscarKmp(t, "zz")); imprimir("\n");
+}

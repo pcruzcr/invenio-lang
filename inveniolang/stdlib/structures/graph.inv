@@ -1,0 +1,279 @@
+// structures/graph.inv -- Graph with adjacency lists: BFS, DFS and Dijkstra
+//
+// InvenioLang educational standard library (INV-1430).
+// Usage:   import "structures/graph";
+//
+// Representation: each VERTEX (numbered 0, 1, 2, ... in the order it is
+// added) keeps the list of its outgoing EDGES. It takes O(V + E) memory,
+// much less than a V x V matrix when the graph has few edges.
+//
+//
+//   0: -> 1 (weight 4) -> 2 (weight 1)
+//   1: -> 3 (weight 1)
+//   2: -> 1 (weight 2) -> 3 (weight 5)
+//   3:
+//
+// This module in turn imports the library Queue (for BFS).
+
+import "queue";
+
+// Value meaning "not reached yet" in Dijkstra. It is large but far from
+// the int limit, so adding a weight to it cannot overflow.
+//
+const int GRAPH_INFINITY = 1000000000;
+
+// An outgoing edge: which vertex it goes to and how much it costs.
+class EdgeNode {
+    public int target;
+    public int weight;
+    public EdgeNode next;
+
+    EdgeNode(int d, int p, EdgeNode rest) {
+        this.target = d;
+        this.weight = p;
+        this.next = rest;
+    }
+}
+
+// A vertex with its edge list and the data used by the traversals.
+class VertexNode {
+    public int id;
+    public EdgeNode edges;
+    public VertexNode next;
+    public bool visited;
+    public int distance;
+    public int prev;
+
+    VertexNode(int n) {
+        this.id = n;
+    }
+}
+
+class Graph {
+    private bool directed;
+    private VertexNode first;
+    private VertexNode last;
+    private int count;
+
+    // directed = false: every edge is added in both directions.
+    Graph(bool is_directed) {
+        this.directed = is_directed;
+    }
+
+    // Adds a new vertex and returns its number.
+    public int add_vertex() {
+        VertexNode v = new VertexNode(this.count);
+        if (this.first == null) {
+            this.first = v;
+        } else {
+            VertexNode list_tail = this.last;
+            list_tail.next = v;
+        }
+        this.last = v;
+        this.count = this.count + 1;
+        return v.id;
+    }
+
+    // Adds the edge u -> v with its weight (>= 0, required by Dijkstra).
+    public void add_edge(int u, int v, int weight) {
+        if (weight < 0) {
+            throw_error("add_edge: the weight cannot be negative");
+        }
+        VertexNode source = this.vertex(u);
+        this.vertex(v);  // checks that the target exists
+        source.edges = new EdgeNode(v, weight, source.edges);
+        if (!this.directed && u != v) {
+            VertexNode target = this.vertex(v);
+            target.edges = new EdgeNode(u, weight, target.edges);
+        }
+    }
+
+    public bool has_edge(int u, int v) {
+        VertexNode source = this.vertex(u);
+        EdgeNode a = source.edges;
+        while (a != null) {
+            if (a.target == v) {
+                return true;
+            }
+            a = a.next;
+        }
+        return false;
+    }
+
+    // Number of edges leaving u.
+    public int degree(int u) {
+        int g = 0;
+        VertexNode source = this.vertex(u);
+        EdgeNode a = source.edges;
+        while (a != null) {
+            g = g + 1;
+            a = a.next;
+        }
+        return g;
+    }
+
+    public int vertex_count() {
+        return this.count;
+    }
+
+    // BREADTH-first traversal from source: first the neighbors at distance
+    // 1, then those at distance 2, ... Uses a queue (FIFO). O(V + E).
+    // Returns the visiting order, e.g. "0 2 1 3".
+    public string bfs(int source) {
+        this.reset();
+        string order = "";
+        Queue pending = new Queue();
+        VertexNode start = this.vertex(source);
+        start.visited = true;
+        pending.enqueue(source);
+        while (!pending.is_empty()) {
+            VertexNode current = this.vertex(pending.dequeue());
+            order = this.append_to_order(order, current.id);
+            EdgeNode a = this.edges_in_order(current.edges);
+            while (a != null) {
+                VertexNode neighbor = this.vertex(a.target);
+                if (!neighbor.visited) {
+                    neighbor.visited = true;
+                    pending.enqueue(a.target);
+                }
+                a = a.next;
+            }
+        }
+        return order;
+    }
+
+    // DEPTH-first traversal from source: follows a path to the bottom
+    // before backtracking (recursive; the stack is the call stack).
+    // O(V + E). Returns the visiting order.
+    public string dfs(int source) {
+        this.reset();
+        return this.dfs_from(this.vertex(source), "");
+    }
+
+    // Length of the shortest path from source to target (Dijkstra's
+    // algorithm, weights >= 0), or -1 if target is unreachable. O(V^2).
+    public int shortest_distance(int source, int target) {
+        this.dijkstra(source);
+        VertexNode end = this.vertex(target);
+        if (end.distance == GRAPH_INFINITY) {
+            return -1;
+        }
+        return end.distance;
+    }
+
+    // Shortest path as text ("0 2 1 3"), or "" if there is no path.
+    public string shortest_path(int source, int target) {
+        this.dijkstra(source);
+        VertexNode current = this.vertex(target);
+        if (current.distance == GRAPH_INFINITY) {
+            return "";
+        }
+        // Rebuilt backwards following "prev" and then reversed.
+        string path = int_to_string(current.id);
+        while (current.prev != -1) {
+            current = this.vertex(current.prev);
+            path = int_to_string(current.id) + " " + path;
+        }
+        return path;
+    }
+
+    // ---- Dijkstra ----
+    // 1. Every distance is INFINITY except the source's (0).
+    // 2. Repeat: pick the UNVISITED vertex with the smallest distance,
+    //    mark it and "relax" its edges: if going through it reaches a
+    //    neighbor more cheaply, update that neighbor's distance.
+    private void dijkstra(int source) {
+        this.reset();
+        VertexNode start = this.vertex(source);
+        start.distance = 0;
+        VertexNode current = this.closest_unvisited();
+        while (current != null) {
+            current.visited = true;
+            EdgeNode a = current.edges;
+            while (a != null) {
+                VertexNode neighbor = this.vertex(a.target);
+                int candidate = current.distance + a.weight;
+                if (!neighbor.visited && candidate < neighbor.distance) {
+                    neighbor.distance = candidate;
+                    neighbor.prev = current.id;
+                }
+                a = a.next;
+            }
+            current = this.closest_unvisited();
+        }
+    }
+
+    // Unvisited vertex with the smallest finite distance, or null.
+    private VertexNode closest_unvisited() {
+        VertexNode best = null;
+        VertexNode v = this.first;
+        while (v != null) {
+            if (!v.visited && v.distance != GRAPH_INFINITY) {
+                // || short-circuits: if best is null, best.distance is not
+                // read.
+                if (best == null || v.distance < best.distance) {
+                    best = v;
+                }
+            }
+            v = v.next;
+        }
+        return best;
+    }
+
+    private string dfs_from(VertexNode v, string order) {
+        v.visited = true;
+        string result = this.append_to_order(order, v.id);
+        EdgeNode a = this.edges_in_order(v.edges);
+        while (a != null) {
+            VertexNode neighbor = this.vertex(a.target);
+            if (!neighbor.visited) {
+                result = this.dfs_from(neighbor, result);
+            }
+            a = a.next;
+        }
+        return result;
+    }
+
+    // Edges are stored from newest to oldest; so that the traversals
+    // visit the neighbors in the order they were added, a reversed copy
+    // is used.
+    private EdgeNode edges_in_order(EdgeNode edge_list) {
+        EdgeNode reversed_list = null;
+        EdgeNode a = edge_list;
+        while (a != null) {
+            reversed_list = new EdgeNode(a.target, a.weight, reversed_list);
+            a = a.next;
+        }
+        return reversed_list;
+    }
+
+    private void reset() {
+        VertexNode v = this.first;
+        while (v != null) {
+            v.visited = false;
+            v.distance = GRAPH_INFINITY;
+            v.prev = -1;
+            v = v.next;
+        }
+    }
+
+    private string append_to_order(string order, int id) {
+        if (order == "") {
+            return int_to_string(id);
+        }
+        return order + " " + int_to_string(id);
+    }
+
+    // Vertex number n (error if it does not exist). O(V).
+    private VertexNode vertex(int n) {
+        VertexNode v = this.first;
+        while (v != null) {
+            if (v.id == n) {
+                return v;
+            }
+            v = v.next;
+        }
+        throw_error("vertex " + int_to_string(n) + " does not exist");
+        return null;
+    }
+}

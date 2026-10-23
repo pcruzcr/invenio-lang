@@ -1,0 +1,22 @@
+{
+  "id": "N13-E06",
+  "nivel": 13,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Subarreglo de suma máxima: O(n²) frente a O(n)",
+  "enunciado": "Encuentra la mayor suma de un subarreglo contiguo de {-2, 1, -3, 4, -1, 2, 1, -5, 4} con fuerza bruta (todas las parejas i, j) y con el algoritmo de Kadane, contando las operaciones de cada uno. Repite con un arreglo pseudoaleatorio de 200 elementos.",
+  "objetivos": [
+    "Rediseñar un algoritmo para bajar su orden",
+    "Verificar que ambas versiones dan el mismo resultado"
+  ],
+  "pistas": [
+    "Fuerza bruta: para cada inicio i, acumula la suma hasta cada fin j.",
+    "Kadane: la mejor suma que termina en i es max(a[i], mejor_en_i-1 + a[i]).",
+    "Con 200 elementos la diferencia de operaciones es de dos órdenes de magnitud."
+  ],
+  "conceptos": [
+    "Kadane",
+    "O(n)",
+    "O(n²)"
+  ]
+}

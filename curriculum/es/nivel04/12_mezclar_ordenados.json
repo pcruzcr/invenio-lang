@@ -1,0 +1,21 @@
+{
+  "id": "N04-E12",
+  "nivel": 4,
+  "numero": 12,
+  "idioma": "es",
+  "titulo": "Mezclar dos arreglos ordenados",
+  "enunciado": "Mezcla {1, 4, 9, 12} y {2, 3, 10, 15, 20} en un tercer arreglo ordenado recorriendo ambos una sola vez.",
+  "objetivos": [
+    "Recorrer dos arreglos en paralelo",
+    "Preparar la idea central de merge sort"
+  ],
+  "pistas": [
+    "Mantén un índice para cada arreglo y otro para el resultado.",
+    "Copia el menor de los dos elementos actuales.",
+    "Al acabarse uno, copia lo que queda del otro."
+  ],
+  "conceptos": [
+    "mezcla",
+    "O(n + m)"
+  ]
+}

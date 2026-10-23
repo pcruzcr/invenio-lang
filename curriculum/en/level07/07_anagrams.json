@@ -1,0 +1,21 @@
+{
+  "id": "N07-E07",
+  "nivel": 7,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Anagrams",
+  "enunciado": "Two words are anagrams if they have the same letters with the same frequency. Use an array of 26 counters to decide whether these are anagrams: (\"roma\", \"amor\"), (\"listen\", \"silent\") and (\"casa\", \"cosa\").",
+  "objetivos": [
+    "Combine strings with counting arrays",
+    "Solve in O(n) a problem that seems to need sorting"
+  ],
+  "pistas": [
+    "Add 1 for each letter of the first word and subtract 1 for each letter of the second.",
+    "They are anagrams if all counters end at 0.",
+    "If the lengths differ, you already know the answer."
+  ],
+  "conceptos": [
+    "anagram",
+    "counting array"
+  ]
+}

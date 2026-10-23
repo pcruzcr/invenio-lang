@@ -1,0 +1,37 @@
+// Nivel 8 · Ejercicio 09 — Enumeraciones
+// Objetivos:
+//   - Representar un conjunto cerrado de valores con enum
+//   - Usar emparejar/match exhaustivo
+//
+// Un enum enumera TODOS los valores posibles: no existe un cuarto color.
+enumeracion Semaforo { ROJO, VERDE, AMARILLO }
+
+Semaforo siguienteColor(Semaforo s) {
+    Semaforo r = Semaforo.ROJO;
+    emparejar (s) {
+        caso ROJO: r = Semaforo.VERDE;
+        caso VERDE: r = Semaforo.AMARILLO;
+        caso AMARILLO: r = Semaforo.ROJO;
+    }
+    retornar r;
+}
+
+texto nombreColor(Semaforo s) {
+    texto n = "";
+    emparejar (s) {
+        caso ROJO: n = "RED";
+        caso VERDE: n = "GREEN";
+        caso AMARILLO: n = "YELLOW";
+    }
+    retornar n;
+}
+
+vacio main() {
+    Semaforo s = Semaforo.ROJO;
+    para (entero i = 0; i < 5; i++) {
+        imprimir(nombreColor(s)); imprimir(" -> ");
+        s = siguienteColor(s);
+    }
+    imprimir(nombreColor(s)); imprimir("\n");
+    imprimir(s == Semaforo.VERDE); imprimir("\n");
+}

@@ -1,0 +1,36 @@
+// Nivel 9 · Ejercicio 10 — Patrón Template Method
+// Objetivos:
+//   - Fijar el esqueleto de un algoritmo en la clase padre
+//   - Dejar que las subclases rellenen los pasos variables
+//
+abstracta clase Bebida {
+    publico vacio preparar() {
+        // El esqueleto del algoritmo: el orden no cambia.
+        este.hervirAgua();
+        este.infusionar();
+        este.agregarExtras();
+        imprimir("  serve\n");
+    }
+
+    publico vacio hervirAgua() { imprimir("  boil water\n"); }
+    publico abstracto vacio infusionar();
+    publico vacio agregarExtras() { }   // gancho opcional
+}
+
+clase Cafe hereda Bebida {
+    publico vacio infusionar() { imprimir("  drip coffee\n"); }
+    publico vacio agregarExtras() { imprimir("  add milk\n"); }
+}
+
+clase Te hereda Bebida {
+    publico vacio infusionar() { imprimir("  steep tea\n"); }
+}
+
+vacio main() {
+    imprimir("coffee:\n");
+    Bebida cafe = nuevo Cafe();
+    cafe.preparar();
+    imprimir("tea:\n");
+    Bebida te = nuevo Te();
+    te.preparar();
+}

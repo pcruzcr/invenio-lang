@@ -1,0 +1,21 @@
+{
+  "id": "N03-E10",
+  "nivel": 3,
+  "numero": 10,
+  "idioma": "en",
+  "titulo": "Towers of Hanoi",
+  "enunciado": "Solve the Towers of Hanoi for 3 disks showing each move (\"disk d: X -> Y\") and the total number of moves. Then show the total for 10 disks without printing the moves.",
+  "objetivos": [
+    "Trust recursion: solve n using the solution for n - 1",
+    "Relate the recursion to 2^n - 1 moves"
+  ],
+  "pistas": [
+    "Move n - 1 disks to the spare peg, disk n to the target and the n - 1 on top.",
+    "Base case: with 0 disks there is nothing to do.",
+    "Use a bool parameter to decide whether to print."
+  ],
+  "conceptos": [
+    "recursion",
+    "divide and conquer"
+  ]
+}

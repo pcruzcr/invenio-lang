@@ -1,0 +1,22 @@
+{
+  "id": "N07-E08",
+  "nivel": 7,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Compresión RLE",
+  "enunciado": "Comprime \"aaabccddddde\" con codificación por longitud de corridas (RLE): cada grupo de letras iguales consecutivas se escribe como letra + cantidad (\"a3b1c2d5e1\"). Muestra también el tamaño antes y después.",
+  "objetivos": [
+    "Detectar corridas de caracteres iguales",
+    "Cerrar correctamente el último grupo"
+  ],
+  "pistas": [
+    "Lleva la letra actual y cuántas veces se ha repetido.",
+    "Cuando cambia la letra, emite el grupo anterior.",
+    "Al terminar el ciclo queda un grupo pendiente por emitir."
+  ],
+  "conceptos": [
+    "RLE",
+    "corrida",
+    "compresión"
+  ]
+}

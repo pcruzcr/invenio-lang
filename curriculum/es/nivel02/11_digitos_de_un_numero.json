@@ -1,0 +1,21 @@
+{
+  "id": "N02-E11",
+  "nivel": 2,
+  "numero": 11,
+  "idioma": "es",
+  "titulo": "Dígitos de un número",
+  "enunciado": "Para n = 90471 calcula la cantidad de dígitos, la suma de sus dígitos y el número invertido (17409), separando los dígitos con % 10 y / 10.",
+  "objetivos": [
+    "Extraer dígitos con % 10 y / 10",
+    "Construir un número dígito a dígito"
+  ],
+  "pistas": [
+    "n % 10 es el último dígito; n / 10 lo quita.",
+    "Repite mientras n > 0.",
+    "invertido = invertido * 10 + dígito."
+  ],
+  "conceptos": [
+    "descomposición en dígitos",
+    "mientras"
+  ]
+}

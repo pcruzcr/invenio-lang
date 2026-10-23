@@ -1,0 +1,31 @@
+// Level 2 · Exercise 02 — Grade with else-if
+// Learning goals:
+//   - Chain mutually exclusive conditions
+//   - Order conditions from most to least restrictive
+//
+string letter(int grade) {
+    // Each branch is only tested if the previous ones failed.
+    if (grade >= 90) {
+        return "A";
+    } else {
+        if (grade >= 80) {
+            return "B";
+        } else {
+            if (grade >= 70) {
+                return "C";
+            } else {
+                if (grade >= 60) {
+                    return "D";
+                }
+            }
+        }
+    }
+    return "F";
+}
+
+void main() {
+    int [5] grades = {95, 83, 71, 64, 40};
+    for (int i = 0; i < 5; i++) {
+        print(grades[i]); print(" -> "); print(letter(grades[i])); print("\n");
+    }
+}

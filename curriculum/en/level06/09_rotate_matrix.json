@@ -1,0 +1,21 @@
+{
+  "id": "N06-E09",
+  "nivel": 6,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Rotate a matrix 90 degrees",
+  "enunciado": "Rotate the matrix {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}} 90 degrees clockwise using two in-place steps: transpose and then reverse each row.",
+  "objetivos": [
+    "Compose matrix transformations",
+    "Reuse the in-place transpose"
+  ],
+  "pistas": [
+    "After transposing, the first row is the original first column.",
+    "Reversing each row is a horizontal mirror.",
+    "Transpose + mirror = clockwise rotation."
+  ],
+  "conceptos": [
+    "rotation",
+    "composition"
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "name": "inveniolang-vscode",
+  "displayName": "InvenioLang",
+  "description": "%descripcion%",
+  "version": "0.2.0",
+  "publisher": "universidad-invenio",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.82.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Education"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:inveniolang"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "inveniolang",
+        "aliases": [
+          "InvenioLang",
+          "inveniolang"
+        ],
+        "extensions": [
+          ".inv"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "inveniolang",
+        "scopeName": "source.inveniolang",
+        "path": "./syntaxes/inveniolang.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "inveniolang.ejecutar",
+        "title": "%comando.ejecutar%",
+        "category": "InvenioLang"
+      },
+      {
+        "command": "inveniolang.trazarHtml",
+        "title": "%comando.trazarHtml%",
+        "category": "InvenioLang"
+      },
+      {
+        "command": "inveniolang.flujoSvg",
+        "title": "%comando.flujoSvg%",
+        "category": "InvenioLang"
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "inveniolang.ejecutar",
+          "when": "editorLangId == inveniolang"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "inveniolang.ejecutar",
+          "when": "editorLangId == inveniolang"
+        },
+        {
+          "command": "inveniolang.trazarHtml",
+          "when": "editorLangId == inveniolang"
+        },
+        {
+          "command": "inveniolang.flujoSvg",
+          "when": "editorLangId == inveniolang"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "InvenioLang",
+      "properties": {
+        "inveniolang.python": {
+          "type": "string",
+          "default": "python",
+          "description": "%config.python%"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "node --test pruebas/*.test.mjs"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "l10n": "./l10n"
+}

@@ -1,0 +1,31 @@
+// Nivel 2 · Ejercicio 02 — Calificación con si-sino-si
+// Objetivos:
+//   - Encadenar condiciones excluyentes
+//   - Ordenar las condiciones de la más restrictiva a la menos
+//
+texto letra(entero nota) {
+    // Cada rama solo se prueba si las anteriores fallaron.
+    si (nota >= 90) {
+        retornar "A";
+    } sino {
+        si (nota >= 80) {
+            retornar "B";
+        } sino {
+            si (nota >= 70) {
+                retornar "C";
+            } sino {
+                si (nota >= 60) {
+                    retornar "D";
+                }
+            }
+        }
+    }
+    retornar "F";
+}
+
+vacio main() {
+    entero [5] notas = {95, 83, 71, 64, 40};
+    para (entero i = 0; i < 5; i++) {
+        imprimir(notas[i]); imprimir(" -> "); imprimir(letra(notas[i])); imprimir("\n");
+    }
+}

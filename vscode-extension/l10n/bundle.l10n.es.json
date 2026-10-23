@@ -1,0 +1,7 @@
+{
+  "Open an InvenioLang (.inv) file first.": "Abre primero un archivo InvenioLang (.inv).",
+  "Save the program to a .inv file first.": "Guarda primero el programa en un archivo .inv.",
+  "InvenioLang could not generate the file:\n{0}": "InvenioLang no pudo generar el archivo:\n{0}",
+  "Created {0}": "Creado {0}",
+  "Could not start the InvenioLang language server with “{0}”. Check the inveniolang.python setting.\n{1}": "No se pudo iniciar el servidor de lenguaje de InvenioLang con «{0}». Revisa el ajuste inveniolang.python.\n{1}"
+}

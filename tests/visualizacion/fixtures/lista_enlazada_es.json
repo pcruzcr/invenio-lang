@@ -1,0 +1,360 @@
+{
+ "version": 1,
+ "idioma": "es",
+ "fuente": "importar \"estructuras/lista_enlazada\";\n\nvacio main() {\n    ListaEnlazada l = nuevo ListaEnlazada();\n    l.agregar_al_final(3);\n    l.agregar_al_final(6);\n    l.agregar_al_final(9);\n    imprimir(l.obtener(1));\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 4,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 4,
+     "variables": {
+      "l": {
+       "tipo": "ListaEnlazada",
+       "valor": {
+        "t": "ref",
+        "id": 5
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "5": {
+     "id": 5,
+     "tipo": "objeto",
+     "clase": "ListaEnlazada",
+     "elementos": [],
+     "campos": {
+      "cabeza": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 0
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "l",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "lista_enlazada",
+     "raiz": 5,
+     "etiqueta": "l",
+     "nodos": [],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "l": {
+       "tipo": "ListaEnlazada",
+       "valor": {
+        "t": "ref",
+        "id": 5
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "ListaEnlazada.agregar_al_final",
+     "linea": 40,
+     "variables": {
+      "este": {
+       "tipo": "ListaEnlazada",
+       "valor": {
+        "t": "ref",
+        "id": 5
+       }
+      },
+      "actual": {
+       "tipo": "NodoLista",
+       "valor": {
+        "t": "ref",
+        "id": 61
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "60": {
+     "id": 60,
+     "tipo": "objeto",
+     "clase": "NodoLista",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 3
+      },
+      "siguiente": {
+       "t": "ref",
+       "id": 61
+      }
+     }
+    },
+    "61": {
+     "id": 61,
+     "tipo": "objeto",
+     "clase": "NodoLista",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 6
+      },
+      "siguiente": {
+       "t": "ref",
+       "id": 62
+      }
+     }
+    },
+    "62": {
+     "id": 62,
+     "tipo": "objeto",
+     "clase": "NodoLista",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 9
+      },
+      "siguiente": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "5": {
+     "id": 5,
+     "tipo": "objeto",
+     "clase": "ListaEnlazada",
+     "elementos": [],
+     "campos": {
+      "cabeza": {
+       "t": "ref",
+       "id": 60
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 3
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "actual",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 61,
+     "indices": [],
+     "campo": "siguiente"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "lista_enlazada",
+     "raiz": 5,
+     "etiqueta": "l",
+     "nodos": [
+      60,
+      61,
+      62
+     ],
+     "aristas": [
+      [
+       5,
+       60,
+       "cabeza"
+      ],
+      [
+       60,
+       61,
+       "siguiente"
+      ],
+      [
+       61,
+       62,
+       "siguiente"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "linea": 8,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 8,
+     "variables": {
+      "l": {
+       "tipo": "ListaEnlazada",
+       "valor": {
+        "t": "ref",
+        "id": 5
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "60": {
+     "id": 60,
+     "tipo": "objeto",
+     "clase": "NodoLista",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 3
+      },
+      "siguiente": {
+       "t": "ref",
+       "id": 61
+      }
+     }
+    },
+    "61": {
+     "id": 61,
+     "tipo": "objeto",
+     "clase": "NodoLista",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 6
+      },
+      "siguiente": {
+       "t": "ref",
+       "id": 62
+      }
+     }
+    },
+    "62": {
+     "id": 62,
+     "tipo": "objeto",
+     "clase": "NodoLista",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 9
+      },
+      "siguiente": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "5": {
+     "id": 5,
+     "tipo": "objeto",
+     "clase": "ListaEnlazada",
+     "elementos": [],
+     "campos": {
+      "cabeza": {
+       "t": "ref",
+       "id": 60
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 3
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": null,
+     "nodo": 61,
+     "indices": [],
+     "campo": "valor"
+    }
+   ],
+   "salida_nueva": [
+    "6"
+   ],
+   "estructuras": [
+    {
+     "forma": "lista_enlazada",
+     "raiz": 5,
+     "etiqueta": "l",
+     "nodos": [
+      60,
+      61,
+      62
+     ],
+     "aristas": [
+      [
+       5,
+       60,
+       "cabeza"
+      ],
+      [
+       60,
+       61,
+       "siguiente"
+      ],
+      [
+       61,
+       62,
+       "siguiente"
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "6"
+ ]
+}

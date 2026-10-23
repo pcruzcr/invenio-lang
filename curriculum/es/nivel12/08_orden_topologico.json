@@ -1,0 +1,22 @@
+{
+  "id": "N12-E08",
+  "nivel": 12,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Orden topológico (Kahn)",
+  "enunciado": "Seis cursos tienen prerrequisitos (arista a -> b: a antes de b): 0->2, 1->2, 1->3, 2->4, 3->4, 4->5. Calcula un orden válido para cursarlos con el algoritmo de Kahn (siempre el menor vértice disponible primero).",
+  "objetivos": [
+    "Modelar dependencias con un grafo dirigido",
+    "Implementar el algoritmo de Kahn con grados de entrada"
+  ],
+  "pistas": [
+    "gradoEntrada[v] = cuántas aristas llegan a v.",
+    "Un vértice está disponible cuando su grado de entrada es 0.",
+    "Al tomar u, resta 1 al grado de entrada de sus sucesores."
+  ],
+  "conceptos": [
+    "orden topológico",
+    "grafo dirigido acíclico",
+    "grado de entrada"
+  ]
+}

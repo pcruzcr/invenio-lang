@@ -1,0 +1,38 @@
+// Nivel 5 · Ejercicio 03 — Ordenamiento por selección
+// Objetivos:
+//   - Implementar selección
+//   - Ver que hace a lo sumo n - 1 intercambios
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio intercambiar(entero [] a, entero i, entero j) {
+    entero aux = a[i];
+    a[i] = a[j];
+    a[j] = aux;
+}
+
+vacio main() {
+    entero [6] a = {29, 10, 14, 37, 13, 5};
+    entero n = 6;
+    para (entero i = 0; i < n - 1; i++) {
+        // Buscar el mínimo de la parte no ordenada a[i..n-1].
+        entero posMenor = i;
+        para (entero j = i + 1; j < n; j++) {
+            si (a[j] < a[posMenor]) {
+                posMenor = j;
+            }
+        }
+        imprimir("min = "); imprimir(a[posMenor]); imprimir("  ");
+        intercambiar(a, i, posMenor);
+        imprimirArreglo(a, n);
+    }
+}

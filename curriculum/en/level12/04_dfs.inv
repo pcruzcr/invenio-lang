@@ -1,0 +1,67 @@
+// Level 12 · Exercise 04 — Depth-first search (DFS)
+// Learning goals:
+//   - Implement recursive DFS
+//   - Replace recursion with an explicit stack
+//
+const int N = 7;
+int [N][N] adj;
+
+void addEdge(int a, int b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;   // undirected: the relation goes both ways
+}
+
+void clearGraph() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            adj[i][j] = 0;
+        }
+    }
+}
+
+bool [N] visited;
+
+void dfsRec(int u) {
+    visited[u] = true;
+    print(" "); print(u);
+    for (int v = 0; v < N; v++) {
+        if (adj[u][v] == 1 && !visited[v]) {
+            dfsRec(v);   // goes as deep as possible before backtracking
+        }
+    }
+}
+
+void main() {
+    clearGraph();
+    addEdge(0, 1);
+    addEdge(0, 2);
+    addEdge(1, 3);
+    addEdge(2, 3);
+    addEdge(3, 4);
+    addEdge(4, 5);
+    for (int i = 0; i < N; i++) { visited[i] = false; }
+    print("recursive:");
+    dfsRec(0);
+    print("\n");
+
+    for (int i = 0; i < N; i++) { visited[i] = false; }
+    int [32] stack;
+    int top = 0;
+    stack[0] = 0;
+    print("stack:    ");
+    while (top >= 0) {
+        int u = stack[top];
+        top--;
+        if (!visited[u]) {
+            visited[u] = true;
+            print(" "); print(u);
+            for (int v = N - 1; v >= 0; v--) {
+                if (adj[u][v] == 1 && !visited[v]) {
+                    top++;
+                    stack[top] = v;
+                }
+            }
+        }
+    }
+    print("\n");
+}

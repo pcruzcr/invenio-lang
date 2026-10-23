@@ -1,0 +1,63 @@
+// Level 5 · Exercise 05 — Merge sort
+// Learning goals:
+//   - Apply divide and conquer
+//   - Reuse the merge of two sorted arrays
+//
+void printArray(int [] a, int n) {
+    print("[");
+    for (int i = 0; i < n; i++) {
+        print(a[i]);
+        if (i < n - 1) {
+            print(", ");
+        }
+    }
+    print("]\n");
+}
+
+void swap(int [] a, int i, int j) {
+    int tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+}
+
+const int MAXN = 16;
+
+void merge(int [] a, int left, int mid, int right) {
+    int [MAXN] tmp;
+    int i = left;
+    int j = mid + 1;
+    int k = left;
+    while (i <= mid && j <= right) {
+        if (a[i] <= a[j]) {   // <= keeps equal items in order (stable)
+            tmp[k] = a[i];
+            i++;
+        } else {
+            tmp[k] = a[j];
+            j++;
+        }
+        k++;
+    }
+    while (i <= mid) { tmp[k] = a[i]; i++; k++; }
+    while (j <= right) { tmp[k] = a[j]; j++; k++; }
+    print("merge ["); print(left); print(".."); print(right); print("]: ");
+    for (int x = left; x <= right; x++) {
+        a[x] = tmp[x];
+        print(a[x]); print(" ");
+    }
+    print("\n");
+}
+
+void mergeSort(int [] a, int left, int right) {
+    if (left < right) {
+        int mid = (left + right) / 2;
+        mergeSort(a, left, mid);
+        mergeSort(a, mid + 1, right);
+        merge(a, left, mid, right);
+    }
+}
+
+void main() {
+    int [8] a = {38, 27, 43, 3, 9, 82, 10, 5};
+    mergeSort(a, 0, 7);
+    printArray(a, 8);
+}

@@ -1,17 +1,18 @@
-# InvenioLang 1.0 - Punto de entrada principal
+# InvenioLang 11 - Punto de entrada principal
 # Curso: TIIT2002.2 Lenguajes Formales II
 # Universidad Invenio
 #
 # Permite ejecutar el compilador en modo GUI o CLI
 #
 # Uso:
-#   python main.py                     # Modo GUI (por defecto)
+#   python main.py                     # Modo GUI (por defecto, PySide6)
 #   python main.py <archivo.inv>      # Modo CLI
 #   python main.py --cli <archivo.inv> # Modo CLI (explícito)
 #   python main.py --gui              # Modo GUI (explícito)
 #   python main.py --tokens <archivo> # Mostrar tokens
 #   python main.py --ast <archivo>    # Mostrar AST
 #   python main.py --help             # Ayuda
+#   python main.py --version          # Versión
 
 import sys
 
@@ -45,21 +46,31 @@ def main():
         from inveniolang.cli import main as cli_main
         return cli_main()
 
-    if len(sys.argv) < 2 or '--gui' in sys.argv:
+    # INV-5001: `--gui-tk` solo también abre la GUI; antes exigía `--gui` y
+    # caía al CLI, que rechazaba la opción como desconocida.
+    if len(sys.argv) < 2 or '--gui' in sys.argv or '--gui-tk' in sys.argv:
         # GUI principal: PySide6 (Qt). Si no está disponible, respaldo a Tk.
         if '--gui-tk' in sys.argv:
-            from inveniolang.gui import main as gui_main
+            from inveniolang.gui_tk import main as gui_main
             gui_main()
             return 0
         try:
             from inveniolang.gui_qt import main as gui_main
         except Exception:
-            from inveniolang.gui import main as gui_main
+            from inveniolang.gui_tk import main as gui_main
         gui_main()
         return 0
 
+    if '--version' in sys.argv:
+        # INV-4408: la versión sale de la fuente única (_version.py); antes
+        # estaba escrita a mano aquí y se quedaba atrás en cada versión.
+        from inveniolang._version import __version__
+        print(f"InvenioLang {__version__}")
+        return 0
+
     if '--help' in sys.argv:
-        print("InvenioLang 1.0 - Compilador Educativo")
+        from inveniolang._version import __version__
+        print(f"InvenioLang {__version__} - Compilador Educativo")
         print("Universidad Invenio - TIIT2002.2 Lenguajes Formales II")
         print("")
         print("Uso:")
@@ -70,7 +81,10 @@ def main():
         print("  python main.py --step <archivo.inv>        Mostrar traza de ejecución")
         print("  python main.py --tokens <archivo>          Mostrar tokens")
         print("  python main.py --ast <archivo>             Mostrar AST")
+        print("  python main.py --ir <archivo>              Código intermedio (TAC)")
+        print("  python main.py --target <archivo>          Código objetivo")
         print("  python main.py --help                      Esta ayuda")
+        print("  python main.py --version                   Versión")
         print("")
         print("Opciones:")
         print("  --gui        Iniciar interfaz gráfica (PySide6)")
@@ -80,6 +94,10 @@ def main():
         print("  --step       Mostrar la traza (línea, variables, pila) por instrucción")
         print("  --tokens     Mostrar el análisis léxico")
         print("  --ast        Mostrar el AST")
+        print("  --ir         Mostrar código intermedio (ver --help CLI para más flags)")
+        print("  --target     Mostrar código objetivo")
+        print("  --json       Salida de errores en JSON (CLI)")
+        print("  --version    Mostrar versión")
         print("  --help       Mostrar esta ayuda")
         return 0
 

@@ -1,0 +1,22 @@
+{
+  "id": "N13-E05",
+  "nivel": 13,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Best, worst and average case: insertion sort",
+  "enunciado": "Count the comparisons of insertion sort with n = 40 for an already sorted input, a reversed one and a pseudo-random one. Relate the results to n - 1 and n(n-1)/2.",
+  "objetivos": [
+    "Tell best, worst and average case apart",
+    "See that the same algorithm can be O(n) or O(n²) depending on the input"
+  ],
+  "pistas": [
+    "Count a comparison every time a[j] > key is evaluated.",
+    "Sorted: each key is compared only once.",
+    "Reversed: each key goes through the whole sorted part."
+  ],
+  "conceptos": [
+    "best case",
+    "worst case",
+    "average case"
+  ]
+}

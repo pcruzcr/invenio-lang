@@ -1,0 +1,494 @@
+{
+ "version": 1,
+ "idioma": "en",
+ "fuente": "import \"structures/stack\";\n\nvoid main() {\n    Stack s = new Stack();\n    s.push(10);\n    s.push(20);\n    s.push(30);\n    print(s.pop());\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 4,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 4,
+     "variables": {
+      "s": {
+       "tipo": "Stack",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "3": {
+     "id": 3,
+     "tipo": "objeto",
+     "clase": "Stack",
+     "elementos": [],
+     "campos": {
+      "top": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "s",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "pila",
+     "raiz": 3,
+     "etiqueta": "s",
+     "nodos": [],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 5,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 5,
+     "variables": {
+      "s": {
+       "tipo": "Stack",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Stack.push",
+     "linea": 30,
+     "variables": {
+      "this": {
+       "tipo": "Stack",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      },
+      "v": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 10
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "20": {
+     "id": 20,
+     "tipo": "objeto",
+     "clase": "StackNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 10
+      },
+      "below": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "3": {
+     "id": 3,
+     "tipo": "objeto",
+     "clase": "Stack",
+     "elementos": [],
+     "campos": {
+      "top": {
+       "t": "ref",
+       "id": 20
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 1
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "v",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 3,
+     "indices": [],
+     "campo": "top"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "pila",
+     "raiz": 3,
+     "etiqueta": "s",
+     "nodos": [
+      20
+     ],
+     "aristas": [
+      [
+       3,
+       20,
+       "top"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "s": {
+       "tipo": "Stack",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Stack.push",
+     "linea": 31,
+     "variables": {
+      "this": {
+       "tipo": "Stack",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      },
+      "v": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 30
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "20": {
+     "id": 20,
+     "tipo": "objeto",
+     "clase": "StackNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 10
+      },
+      "below": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "21": {
+     "id": 21,
+     "tipo": "objeto",
+     "clase": "StackNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 20
+      },
+      "below": {
+       "t": "ref",
+       "id": 20
+      }
+     }
+    },
+    "22": {
+     "id": 22,
+     "tipo": "objeto",
+     "clase": "StackNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 30
+      },
+      "below": {
+       "t": "ref",
+       "id": 21
+      }
+     }
+    },
+    "3": {
+     "id": 3,
+     "tipo": "objeto",
+     "clase": "Stack",
+     "elementos": [],
+     "campos": {
+      "top": {
+       "t": "ref",
+       "id": 22
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 3
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": null,
+     "nodo": 3,
+     "indices": [],
+     "campo": "count"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 3,
+     "indices": [],
+     "campo": "count"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "pila",
+     "raiz": 3,
+     "etiqueta": "s",
+     "nodos": [
+      22,
+      21,
+      20
+     ],
+     "aristas": [
+      [
+       3,
+       22,
+       "top"
+      ],
+      [
+       22,
+       21,
+       "below"
+      ],
+      [
+       21,
+       20,
+       "below"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "linea": 8,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 8,
+     "variables": {
+      "s": {
+       "tipo": "Stack",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Stack.pop",
+     "linea": 44,
+     "variables": {
+      "this": {
+       "tipo": "Stack",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      },
+      "old_top": {
+       "tipo": "StackNode",
+       "valor": {
+        "t": "ref",
+        "id": 22
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "20": {
+     "id": 20,
+     "tipo": "objeto",
+     "clase": "StackNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 10
+      },
+      "below": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "21": {
+     "id": 21,
+     "tipo": "objeto",
+     "clase": "StackNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 20
+      },
+      "below": {
+       "t": "ref",
+       "id": 20
+      }
+     }
+    },
+    "3": {
+     "id": 3,
+     "tipo": "objeto",
+     "clase": "Stack",
+     "elementos": [],
+     "campos": {
+      "top": {
+       "t": "ref",
+       "id": 21
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 2
+      }
+     }
+    },
+    "22": {
+     "id": 22,
+     "tipo": "objeto",
+     "clase": "StackNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 30
+      },
+      "below": {
+       "t": "ref",
+       "id": 21
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": null,
+     "nodo": 22,
+     "indices": [],
+     "campo": "value"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 3,
+     "indices": [],
+     "campo": "top"
+    }
+   ],
+   "salida_nueva": [
+    "30"
+   ],
+   "estructuras": [
+    {
+     "forma": "pila",
+     "raiz": 3,
+     "etiqueta": "s",
+     "nodos": [
+      21,
+      20
+     ],
+     "aristas": [
+      [
+       3,
+       21,
+       "top"
+      ],
+      [
+       21,
+       20,
+       "below"
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "30"
+ ]
+}

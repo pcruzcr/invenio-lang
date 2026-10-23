@@ -1,0 +1,42 @@
+// Nivel 9 · Ejercicio 04 — Interfaces
+// Objetivos:
+//   - Declarar interfaces e implementarlas
+//   - Implementar varias interfaces en una clase
+//   - Agrupar objetos por capacidad, no por herencia
+//
+interfaz Volador {
+    publico abstracto texto volar();
+}
+
+interfaz Nadador {
+    publico abstracto texto nadar();
+}
+
+clase Pato implementa Volador, Nadador {
+    publico texto volar() { retornar "duck flies low"; }
+    publico texto nadar() { retornar "duck paddles"; }
+}
+
+clase Avion implementa Volador {
+    publico texto volar() { retornar "plane flies high"; }
+}
+
+clase Pez implementa Nadador {
+    publico texto nadar() { retornar "fish dives"; }
+}
+
+vacio main() {
+    Pato pato = nuevo Pato();
+    Volador voladores[2];
+    voladores[0] = pato;
+    voladores[1] = nuevo Avion();
+    Nadador nadadores[2];
+    nadadores[0] = pato;   // el mismo pato, visto como Nadador
+    nadadores[1] = nuevo Pez();
+    para (entero i = 0; i < 2; i++) {
+        imprimir(voladores[i].volar()); imprimir("\n");
+    }
+    para (entero i = 0; i < 2; i++) {
+        imprimir(nadadores[i].nadar()); imprimir("\n");
+    }
+}

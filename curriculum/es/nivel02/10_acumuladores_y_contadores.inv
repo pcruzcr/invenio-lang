@@ -1,0 +1,29 @@
+// Nivel 2 · Ejercicio 10 — Acumuladores y contadores
+// Objetivos:
+//   - Acumular una suma dentro de un ciclo
+//   - Contar elementos que cumplen una condición
+//   - Inicializar el máximo con el primer dato
+//
+vacio main() {
+    entero n;
+    leer(n);
+    entero suma = 0;
+    entero positivos = 0;
+    entero mayor = 0;
+    para (entero i = 0; i < n; i++) {
+        entero x;
+        leer(x);
+        suma += x;
+        si (x > 0) {
+            positivos++;
+        }
+        // El primer dato inicializa el mayor: así funciona aunque todos sean negativos.
+        si (i == 0 || x > mayor) {
+            mayor = x;
+        }
+    }
+    imprimir("sum = "); imprimir(suma); imprimir("\n");
+    imprimir("average = "); imprimir(entero_a_real(suma) / entero_a_real(n)); imprimir("\n");
+    imprimir("positives = "); imprimir(positivos); imprimir("\n");
+    imprimir("max = "); imprimir(mayor); imprimir("\n");
+}

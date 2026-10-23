@@ -1,0 +1,27 @@
+// Level 3 · Exercise 01 — Functions with return values
+// Learning goals:
+//   - Declare functions with a return type and parameters
+//   - Reuse one function from another
+//
+int square(int x) {
+    return x * x;
+}
+
+int max2(int a, int b) {
+    return a > b ? a : b;
+}
+
+// A function can use other functions: that is how a problem is divided.
+int max3(int a, int b, int c) {
+    return max2(max2(a, b), c);
+}
+
+float rectangleArea(float b, float h) {
+    return b * h;
+}
+
+void main() {
+    print(square(9)); print("\n");
+    print(max3(4, 11, 7)); print("\n");
+    print(rectangleArea(2.5, 4.0)); print("\n");
+}

@@ -1,0 +1,16 @@
+// Nivel 1 · Ejercicio 07 — Operadores relacionales y lógicos
+// Objetivos:
+//   - Comparar valores con < > <= >= == !=
+//   - Combinar condiciones con && || !
+//
+vacio main() {
+    entero x = 8;
+    imprimir(x > 5); imprimir("\n");
+    imprimir(x == 10); imprimir("\n");
+    imprimir(x != 10); imprimir("\n");
+    // ¿x está en el intervalo [8, 10)?
+    imprimir(x >= 8 && x < 10); imprimir("\n");
+    // ¿x está fuera del intervalo [0, 7]?
+    imprimir(x < 0 || x > 7); imprimir("\n");
+    imprimir(!(x > 5)); imprimir("\n");
+}

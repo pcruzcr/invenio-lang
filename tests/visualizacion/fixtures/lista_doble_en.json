@@ -1,0 +1,472 @@
+{
+ "version": 1,
+ "idioma": "en",
+ "fuente": "import \"structures/doubly_linked_list\";\n\nvoid main() {\n    DoublyLinkedList d = new DoublyLinkedList();\n    d.add_last(\"ana\");\n    d.add_last(\"ben\");\n    d.add_first(\"cora\");\n    print(d.backwards());\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 6,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 6,
+     "variables": {
+      "d": {
+       "tipo": "DoublyLinkedList",
+       "valor": {
+        "t": "ref",
+        "id": 6
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "80": {
+     "id": 80,
+     "tipo": "objeto",
+     "clase": "DoubleNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "string",
+       "v": "ana"
+      },
+      "previous": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "next": {
+       "t": "ref",
+       "id": 81
+      }
+     }
+    },
+    "81": {
+     "id": 81,
+     "tipo": "objeto",
+     "clase": "DoubleNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "string",
+       "v": "ben"
+      },
+      "previous": {
+       "t": "ref",
+       "id": 80
+      },
+      "next": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "6": {
+     "id": 6,
+     "tipo": "objeto",
+     "clase": "DoublyLinkedList",
+     "elementos": [],
+     "campos": {
+      "head": {
+       "t": "ref",
+       "id": 80
+      },
+      "tail": {
+       "t": "ref",
+       "id": 81
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 2
+      }
+     }
+    }
+   },
+   "accesos": [],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "lista_doble",
+     "raiz": 6,
+     "etiqueta": "d",
+     "nodos": [
+      80,
+      81
+     ],
+     "aristas": [
+      [
+       6,
+       80,
+       "head"
+      ],
+      [
+       6,
+       81,
+       "tail"
+      ],
+      [
+       80,
+       81,
+       "next"
+      ],
+      [
+       81,
+       80,
+       "previous"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "d": {
+       "tipo": "DoublyLinkedList",
+       "valor": {
+        "t": "ref",
+        "id": 6
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "DoublyLinkedList.add_first",
+     "linea": 52,
+     "variables": {
+      "this": {
+       "tipo": "DoublyLinkedList",
+       "valor": {
+        "t": "ref",
+        "id": 6
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "82": {
+     "id": 82,
+     "tipo": "objeto",
+     "clase": "DoubleNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "string",
+       "v": "cora"
+      },
+      "previous": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "next": {
+       "t": "ref",
+       "id": 80
+      }
+     }
+    },
+    "80": {
+     "id": 80,
+     "tipo": "objeto",
+     "clase": "DoubleNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "string",
+       "v": "ana"
+      },
+      "previous": {
+       "t": "ref",
+       "id": 82
+      },
+      "next": {
+       "t": "ref",
+       "id": 81
+      }
+     }
+    },
+    "81": {
+     "id": 81,
+     "tipo": "objeto",
+     "clase": "DoubleNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "string",
+       "v": "ben"
+      },
+      "previous": {
+       "t": "ref",
+       "id": 80
+      },
+      "next": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "6": {
+     "id": 6,
+     "tipo": "objeto",
+     "clase": "DoublyLinkedList",
+     "elementos": [],
+     "campos": {
+      "head": {
+       "t": "ref",
+       "id": 82
+      },
+      "tail": {
+       "t": "ref",
+       "id": 81
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 3
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 80,
+     "indices": [],
+     "campo": "previous"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 6,
+     "indices": [],
+     "campo": "head"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "lista_doble",
+     "raiz": 6,
+     "etiqueta": "d",
+     "nodos": [
+      82,
+      80,
+      81
+     ],
+     "aristas": [
+      [
+       6,
+       82,
+       "head"
+      ],
+      [
+       6,
+       81,
+       "tail"
+      ],
+      [
+       82,
+       80,
+       "next"
+      ],
+      [
+       80,
+       82,
+       "previous"
+      ],
+      [
+       80,
+       81,
+       "next"
+      ],
+      [
+       81,
+       80,
+       "previous"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "linea": 8,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 8,
+     "variables": {
+      "d": {
+       "tipo": "DoublyLinkedList",
+       "valor": {
+        "t": "ref",
+        "id": 6
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "82": {
+     "id": 82,
+     "tipo": "objeto",
+     "clase": "DoubleNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "string",
+       "v": "cora"
+      },
+      "previous": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "next": {
+       "t": "ref",
+       "id": 80
+      }
+     }
+    },
+    "80": {
+     "id": 80,
+     "tipo": "objeto",
+     "clase": "DoubleNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "string",
+       "v": "ana"
+      },
+      "previous": {
+       "t": "ref",
+       "id": 82
+      },
+      "next": {
+       "t": "ref",
+       "id": 81
+      }
+     }
+    },
+    "81": {
+     "id": 81,
+     "tipo": "objeto",
+     "clase": "DoubleNode",
+     "elementos": [],
+     "campos": {
+      "value": {
+       "t": "escalar",
+       "tipo": "string",
+       "v": "ben"
+      },
+      "previous": {
+       "t": "ref",
+       "id": 80
+      },
+      "next": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "6": {
+     "id": 6,
+     "tipo": "objeto",
+     "clase": "DoublyLinkedList",
+     "elementos": [],
+     "campos": {
+      "head": {
+       "t": "ref",
+       "id": 82
+      },
+      "tail": {
+       "t": "ref",
+       "id": 81
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 3
+      }
+     }
+    }
+   },
+   "accesos": [],
+   "salida_nueva": [
+    "ben, ana, cora"
+   ],
+   "estructuras": [
+    {
+     "forma": "lista_doble",
+     "raiz": 6,
+     "etiqueta": "d",
+     "nodos": [
+      82,
+      80,
+      81
+     ],
+     "aristas": [
+      [
+       6,
+       82,
+       "head"
+      ],
+      [
+       6,
+       81,
+       "tail"
+      ],
+      [
+       82,
+       80,
+       "next"
+      ],
+      [
+       80,
+       82,
+       "previous"
+      ],
+      [
+       80,
+       81,
+       "next"
+      ],
+      [
+       81,
+       80,
+       "previous"
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "ben, ana, cora"
+ ]
+}

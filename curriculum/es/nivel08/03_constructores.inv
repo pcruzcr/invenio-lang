@@ -1,0 +1,38 @@
+// Nivel 8 · Ejercicio 03 — Sobrecarga de constructores
+// Objetivos:
+//   - Ofrecer varias formas de crear un objeto
+//   - Distinguir sobrecargas por número de parámetros
+//
+clase Punto {
+    publico entero x;
+    publico entero y;
+
+    // Tres constructores: se elige uno según los argumentos de nuevo.
+    Punto() { este.x = 0; este.y = 0; }
+    Punto(entero v) { este.x = v; este.y = v; }
+    Punto(entero a, entero b) { este.x = a; este.y = b; }
+
+    publico vacio trasladar(entero dx, entero dy) {
+        este.x = este.x + dx;
+        este.y = este.y + dy;
+    }
+
+    publico entero distancia2(Punto otro) {
+        entero dx = este.x - otro.x;
+        entero dy = este.y - otro.y;
+        retornar dx * dx + dy * dy;
+    }
+
+    publico texto aTexto() {
+        retornar "(" + entero_a_texto(este.x) + ", " + entero_a_texto(este.y) + ")";
+    }
+}
+
+vacio main() {
+    Punto origen = nuevo Punto();
+    Punto p1 = nuevo Punto(2);
+    Punto p2 = nuevo Punto(3, -4);
+    p1.trasladar(1, 0);
+    imprimir(origen); imprimir(" "); imprimir(p1); imprimir(" "); imprimir(p2); imprimir("\n");
+    imprimir(p1.distancia2(origen)); imprimir(" "); imprimir(p2.distancia2(origen)); imprimir("\n");
+}

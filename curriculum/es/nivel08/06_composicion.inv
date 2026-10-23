@@ -1,0 +1,54 @@
+// Nivel 8 · Ejercicio 06 — Composición: un auto tiene un motor
+// Objetivos:
+//   - Construir objetos a partir de otros objetos (relación tiene-un)
+//   - Delegar trabajo en el objeto contenido
+//
+clase Motor {
+    publico entero potencia;
+    publico logico encendido;
+
+    Motor(entero hp) {
+        este.potencia = hp;
+        este.encendido = falso;
+    }
+
+    publico vacio arrancar() {
+        este.encendido = verdadero;
+    }
+}
+
+clase Auto {
+    publico texto marca;
+    publico Motor motor;
+    publico entero kilometraje;
+
+    Auto(texto m, entero hp) {
+        este.marca = m;
+        este.motor = nuevo Motor(hp);   // el auto crea y posee su motor
+        este.kilometraje = 0;
+    }
+
+    publico vacio arrancar() {
+        Motor m = este.motor;   // delegar en el motor
+        m.arrancar();
+    }
+
+    publico logico conducir(entero km) {
+        Motor m = este.motor;
+        si (!m.encendido) {
+            retornar falso;
+        }
+        este.kilometraje = este.kilometraje + km;
+        retornar verdadero;
+    }
+}
+
+vacio main() {
+    Auto a = nuevo Auto("Tico", 90);
+    imprimir(a.conducir(50)); imprimir(" "); imprimir(a.kilometraje); imprimir("\n");
+    a.arrancar();
+    imprimir(a.conducir(50)); imprimir(" "); imprimir(a.kilometraje); imprimir("\n");
+    a.conducir(25);
+    Motor m = a.motor;
+    imprimir(a.marca); imprimir(" "); imprimir(m.potencia); imprimir("hp "); imprimir(a.kilometraje); imprimir("km\n");
+}

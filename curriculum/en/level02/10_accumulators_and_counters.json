@@ -1,0 +1,23 @@
+{
+  "id": "N02-E10",
+  "nivel": 2,
+  "numero": 10,
+  "idioma": "en",
+  "titulo": "Accumulators and counters",
+  "enunciado": "Read a count n and then n ints. Show the sum, the average (float), how many are positive and the largest.",
+  "objetivos": [
+    "Accumulate a sum inside a loop",
+    "Count elements that meet a condition",
+    "Initialize the maximum with the first value"
+  ],
+  "pistas": [
+    "Initialize sum and counter to 0 before the loop.",
+    "For the average convert the sum to float before dividing.",
+    "The largest starts as the first number read, not 0."
+  ],
+  "conceptos": [
+    "accumulator",
+    "counter",
+    "maximum"
+  ]
+}

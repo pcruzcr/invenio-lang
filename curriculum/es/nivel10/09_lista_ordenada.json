@@ -1,0 +1,21 @@
+{
+  "id": "N10-E09",
+  "nivel": 10,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Lista ordenada",
+  "enunciado": "Implementa ListaOrdenada cuya operación insertarOrdenado(v) coloca cada valor en su lugar para que la lista siempre esté ordenada. Inserta 42, 7, 19, 3, 42, 25, 1 mostrando la lista tras cada inserción.",
+  "objetivos": [
+    "Mantener un invariante de orden en una estructura enlazada",
+    "Insertar en medio de una lista"
+  ],
+  "pistas": [
+    "Busca el primer nodo cuyo valor sea mayor que v.",
+    "Inserta antes de él: necesitas el nodo anterior.",
+    "Insertar al inicio es un caso especial."
+  ],
+  "conceptos": [
+    "invariante",
+    "inserción ordenada"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N01-E12",
+  "nivel": 1,
+  "numero": 12,
+  "idioma": "es",
+  "titulo": "Conversor de temperatura",
+  "enunciado": "Lee una temperatura en grados Celsius (real) y muestra su equivalente en Fahrenheit (F = C * 9 / 5 + 32) y en Kelvin (K = C + 273.15).",
+  "objetivos": [
+    "Resolver un problema completo: entrada, proceso y salida",
+    "Escribir fórmulas con reales"
+  ],
+  "pistas": [
+    "Lee en una variable real.",
+    "Usa 9.0 / 5.0 para evitar la división entera.",
+    "Muestra cada resultado con su unidad."
+  ],
+  "conceptos": [
+    "entrada-proceso-salida",
+    "fórmula"
+  ]
+}

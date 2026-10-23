@@ -1,0 +1,279 @@
+// estructuras/grafo.inv -- Grafo con lista de adyacencia: BFS, DFS y Dijkstra
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "estructuras/grafo";
+//
+// Representación: cada VÉRTICE (numerado 0, 1, 2, ... en el orden en que
+// se agrega) guarda la lista de sus ARISTAS de salida. Ocupa O(V + A)
+// memoria, mucho menos que una matriz V x V cuando el grafo tiene pocas
+// aristas.
+//
+//   0: -> 1 (peso 4) -> 2 (peso 1)
+//   1: -> 3 (peso 1)
+//   2: -> 1 (peso 2) -> 3 (peso 5)
+//   3:
+//
+// Este módulo importa a su vez la Cola de la biblioteca (para BFS).
+
+importar "cola";
+
+// Valor que representa "todavía no alcanzado" en Dijkstra. Se usa uno
+// grande pero lejos del límite de entero para que sumarle un peso no
+// desborde.
+constante entero INFINITO_GRAFO = 1000000000;
+
+// Una arista de salida: hacia qué vértice va y cuánto cuesta.
+clase NodoArista {
+    publico entero destino;
+    publico entero peso;
+    publico NodoArista siguiente;
+
+    NodoArista(entero d, entero p, NodoArista resto) {
+        este.destino = d;
+        este.peso = p;
+        este.siguiente = resto;
+    }
+}
+
+// Un vértice con su lista de aristas y los datos que usan los recorridos.
+clase NodoVertice {
+    publico entero id;
+    publico NodoArista aristas;
+    publico NodoVertice siguiente;
+    publico logico visitado;
+    publico entero distancia;
+    publico entero previo;
+
+    NodoVertice(entero n) {
+        este.id = n;
+    }
+}
+
+clase Grafo {
+    privado logico dirigido;
+    privado NodoVertice primero;
+    privado NodoVertice ultimo;
+    privado entero cantidad;
+
+    // dirigido = falso: cada arista se agrega en los dos sentidos.
+    Grafo(logico es_dirigido) {
+        este.dirigido = es_dirigido;
+    }
+
+    // Agrega un vértice nuevo y devuelve su número.
+    publico entero agregar_vertice() {
+        NodoVertice v = nuevo NodoVertice(este.cantidad);
+        si (este.primero == nulo) {
+            este.primero = v;
+        } sino {
+            NodoVertice cola_lista = este.ultimo;
+            cola_lista.siguiente = v;
+        }
+        este.ultimo = v;
+        este.cantidad = este.cantidad + 1;
+        retornar v.id;
+    }
+
+    // Agrega la arista u -> v con su peso (>= 0, lo exige Dijkstra).
+    publico vacio agregar_arista(entero u, entero v, entero peso) {
+        si (peso < 0) {
+            lanzar_error("agregar_arista: el peso no puede ser negativo");
+        }
+        NodoVertice origen = este.vertice(u);
+        este.vertice(v);  // valida que el destino exista
+        origen.aristas = nuevo NodoArista(v, peso, origen.aristas);
+        si (!este.dirigido && u != v) {
+            NodoVertice destino = este.vertice(v);
+            destino.aristas = nuevo NodoArista(u, peso, destino.aristas);
+        }
+    }
+
+    publico logico tiene_arista(entero u, entero v) {
+        NodoVertice origen = este.vertice(u);
+        NodoArista a = origen.aristas;
+        mientras (a != nulo) {
+            si (a.destino == v) {
+                retornar verdadero;
+            }
+            a = a.siguiente;
+        }
+        retornar falso;
+    }
+
+    // Cantidad de aristas que salen de u.
+    publico entero grado(entero u) {
+        entero g = 0;
+        NodoVertice origen = este.vertice(u);
+        NodoArista a = origen.aristas;
+        mientras (a != nulo) {
+            g = g + 1;
+            a = a.siguiente;
+        }
+        retornar g;
+    }
+
+    publico entero cantidad_vertices() {
+        retornar este.cantidad;
+    }
+
+    // Recorrido en ANCHURA desde origen: primero los vecinos a distancia 1,
+    // luego los de distancia 2, ... Usa una cola (FIFO). O(V + A).
+    // Devuelve el orden de visita, p. ej. "0 2 1 3".
+    publico texto bfs(entero origen) {
+        este.reiniciar();
+        texto orden = "";
+        Cola pendientes = nuevo Cola();
+        NodoVertice inicio = este.vertice(origen);
+        inicio.visitado = verdadero;
+        pendientes.encolar(origen);
+        mientras (!pendientes.esta_vacia()) {
+            NodoVertice actual = este.vertice(pendientes.desencolar());
+            orden = este.agregar_a_orden(orden, actual.id);
+            NodoArista a = este.aristas_ordenadas(actual.aristas);
+            mientras (a != nulo) {
+                NodoVertice vecino = este.vertice(a.destino);
+                si (!vecino.visitado) {
+                    vecino.visitado = verdadero;
+                    pendientes.encolar(a.destino);
+                }
+                a = a.siguiente;
+            }
+        }
+        retornar orden;
+    }
+
+    // Recorrido en PROFUNDIDAD desde origen: se avanza por un camino hasta
+    // el fondo antes de retroceder (recursivo, la pila es la de llamadas).
+    // O(V + A). Devuelve el orden de visita.
+    publico texto dfs(entero origen) {
+        este.reiniciar();
+        retornar este.dfs_desde(este.vertice(origen), "");
+    }
+
+    // Longitud del camino más corto de origen a destino (algoritmo de
+    // Dijkstra, pesos >= 0), o -1 si destino no es alcanzable. O(V^2).
+    publico entero distancia_minima(entero origen, entero destino) {
+        este.dijkstra(origen);
+        NodoVertice fin = este.vertice(destino);
+        si (fin.distancia == INFINITO_GRAFO) {
+            retornar -1;
+        }
+        retornar fin.distancia;
+    }
+
+    // Camino más corto como texto ("0 2 1 3"), o "" si no hay camino.
+    publico texto camino_minimo(entero origen, entero destino) {
+        este.dijkstra(origen);
+        NodoVertice actual = este.vertice(destino);
+        si (actual.distancia == INFINITO_GRAFO) {
+            retornar "";
+        }
+        // Se reconstruye hacia atrás siguiendo "previo" y se invierte.
+        texto camino = entero_a_texto(actual.id);
+        mientras (actual.previo != -1) {
+            actual = este.vertice(actual.previo);
+            camino = entero_a_texto(actual.id) + " " + camino;
+        }
+        retornar camino;
+    }
+
+    // ---- Dijkstra ----
+    // 1. Todas las distancias valen INFINITO salvo la del origen (0).
+    // 2. Repetir: elegir el vértice NO visitado con menor distancia,
+    //    marcarlo y "relajar" sus aristas: si pasando por él se llega
+    //    más barato a un vecino, actualizar la distancia del vecino.
+    privado vacio dijkstra(entero origen) {
+        este.reiniciar();
+        NodoVertice inicio = este.vertice(origen);
+        inicio.distancia = 0;
+        NodoVertice actual = este.mas_cercano_no_visitado();
+        mientras (actual != nulo) {
+            actual.visitado = verdadero;
+            NodoArista a = actual.aristas;
+            mientras (a != nulo) {
+                NodoVertice vecino = este.vertice(a.destino);
+                entero candidata = actual.distancia + a.peso;
+                si (!vecino.visitado && candidata < vecino.distancia) {
+                    vecino.distancia = candidata;
+                    vecino.previo = actual.id;
+                }
+                a = a.siguiente;
+            }
+            actual = este.mas_cercano_no_visitado();
+        }
+    }
+
+    // Vértice no visitado con la menor distancia finita, o nulo.
+    privado NodoVertice mas_cercano_no_visitado() {
+        NodoVertice mejor = nulo;
+        NodoVertice v = este.primero;
+        mientras (v != nulo) {
+            si (!v.visitado && v.distancia != INFINITO_GRAFO) {
+                // || evalúa en cortocircuito: si mejor es nulo no se lee
+                // mejor.distancia.
+                si (mejor == nulo || v.distancia < mejor.distancia) {
+                    mejor = v;
+                }
+            }
+            v = v.siguiente;
+        }
+        retornar mejor;
+    }
+
+    privado texto dfs_desde(NodoVertice v, texto orden) {
+        v.visitado = verdadero;
+        texto resultado = este.agregar_a_orden(orden, v.id);
+        NodoArista a = este.aristas_ordenadas(v.aristas);
+        mientras (a != nulo) {
+            NodoVertice vecino = este.vertice(a.destino);
+            si (!vecino.visitado) {
+                resultado = este.dfs_desde(vecino, resultado);
+            }
+            a = a.siguiente;
+        }
+        retornar resultado;
+    }
+
+    // Las aristas se guardan de la más nueva a la más vieja; para que los
+    // recorridos visiten a los vecinos en el orden en que se agregaron se
+    // usa una copia invertida.
+    privado NodoArista aristas_ordenadas(NodoArista lista) {
+        NodoArista invertida = nulo;
+        NodoArista a = lista;
+        mientras (a != nulo) {
+            invertida = nuevo NodoArista(a.destino, a.peso, invertida);
+            a = a.siguiente;
+        }
+        retornar invertida;
+    }
+
+    privado vacio reiniciar() {
+        NodoVertice v = este.primero;
+        mientras (v != nulo) {
+            v.visitado = falso;
+            v.distancia = INFINITO_GRAFO;
+            v.previo = -1;
+            v = v.siguiente;
+        }
+    }
+
+    privado texto agregar_a_orden(texto orden, entero id) {
+        si (orden == "") {
+            retornar entero_a_texto(id);
+        }
+        retornar orden + " " + entero_a_texto(id);
+    }
+
+    // Vértice número n (error si no existe). O(V).
+    privado NodoVertice vertice(entero n) {
+        NodoVertice v = este.primero;
+        mientras (v != nulo) {
+            si (v.id == n) {
+                retornar v;
+            }
+            v = v.siguiente;
+        }
+        lanzar_error("el vértice " + entero_a_texto(n) + " no existe");
+        retornar nulo;
+    }
+}

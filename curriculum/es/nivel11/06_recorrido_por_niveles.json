@@ -1,0 +1,22 @@
+{
+  "id": "N11-E06",
+  "nivel": 11,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Recorrido por niveles (BFS en árboles)",
+  "enunciado": "Recorre por niveles el ABB de 8, 3, 10, 1, 6, 14, 4, 7, 13 usando una cola de nodos, imprimiendo cada nivel en su propia línea.",
+  "objetivos": [
+    "Combinar un árbol con una cola",
+    "Separar niveles contando cuántos nodos tiene cada uno"
+  ],
+  "pistas": [
+    "Encola la raíz; mientras la cola no esté vacía, saca un nodo y encola sus hijos.",
+    "Al empezar un nivel, el tamaño de la cola es el número de nodos de ese nivel.",
+    "La cola guarda referencias a Nodo, no valores."
+  ],
+  "conceptos": [
+    "recorrido por niveles",
+    "BFS",
+    "cola"
+  ]
+}

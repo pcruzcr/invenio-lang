@@ -1,0 +1,21 @@
+{
+  "id": "N11-E05",
+  "nivel": 11,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "BST deletion",
+  "enunciado": "Implement deleteNode(root, v) covering the three cases: leaf, one child and two children (replacing with the in-order successor). Starting from 50, 30, 70, 20, 40, 60, 80, delete 20, 30 and 50 showing the in-order traversal after each deletion.",
+  "objetivos": [
+    "Tell the three deletion cases apart",
+    "Preserve the BST property after deleting"
+  ],
+  "pistas": [
+    "Leaf: replace it with null.",
+    "One child: the child takes its place.",
+    "Two children: copy the minimum of the right subtree and delete it from there."
+  ],
+  "conceptos": [
+    "deletion",
+    "in-order successor"
+  ]
+}

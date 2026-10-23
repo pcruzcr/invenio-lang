@@ -1,0 +1,43 @@
+// Nivel 13 · Ejercicio 08 — Quick sort: el peor caso importa
+// Objetivos:
+//   - Entender que el promedio y el peor caso pueden diferir mucho
+//   - Relacionar la elección del pivote con la complejidad
+//
+constante entero N = 60;
+entero comparaciones = 0;
+
+entero particion(entero [] v, entero izq, entero der) {
+    entero pivote = v[der];
+    entero i = izq - 1;
+    para (entero j = izq; j < der; j++) {
+        comparaciones++;
+        si (v[j] < pivote) {
+            i++;
+            entero aux = v[i]; v[i] = v[j]; v[j] = aux;
+        }
+    }
+    entero aux = v[i + 1]; v[i + 1] = v[der]; v[der] = aux;
+    retornar i + 1;
+}
+
+vacio quickSort(entero [] v, entero izq, entero der) {
+    si (izq < der) {
+        entero p = particion(v, izq, der);
+        quickSort(v, izq, p - 1);
+        quickSort(v, p + 1, der);
+    }
+}
+
+vacio main() {
+    entero [N] v;
+    // Una permutación desordenada de 0..N-1 (37 y 60 son coprimos): valores distintos.
+    para (entero i = 0; i < N; i++) { v[i] = (i * 37) % N; }
+    comparaciones = 0;
+    quickSort(v, 0, N - 1);
+    imprimir("shuffled: "); imprimir(comparaciones); imprimir("\n");
+    // Ahora v ya está ordenado: el peor caso para este pivote.
+    comparaciones = 0;
+    quickSort(v, 0, N - 1);
+    imprimir("sorted: "); imprimir(comparaciones); imprimir("\n");
+    imprimir("n(n-1)/2 = "); imprimir(N * (N - 1) / 2); imprimir("\n");
+}

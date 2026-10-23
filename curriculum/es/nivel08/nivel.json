@@ -1,0 +1,17 @@
+{
+  "nivel": 8,
+  "titulo": "POO I: clases y objetos",
+  "descripcion": "Programación II: modelar entidades con clases, proteger su estado (encapsulamiento), construir objetos de varias formas y combinarlos.",
+  "temas": [
+    "clases, atributos y métodos",
+    "encapsulamiento: publico/privado",
+    "constructores y sobrecarga",
+    "aTexto/toString y esIgual/equals",
+    "miembros estáticos",
+    "composición",
+    "arreglos de objetos",
+    "referencias y nulo",
+    "enumeraciones"
+  ],
+  "idioma": "es"
+}

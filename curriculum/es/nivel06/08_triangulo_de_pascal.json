@@ -1,0 +1,21 @@
+{
+  "id": "N06-E08",
+  "nivel": 6,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Triángulo de Pascal",
+  "enunciado": "Construye en una matriz las primeras 7 filas del triángulo de Pascal (cada número es la suma de los dos de arriba) y muéstralas.",
+  "objetivos": [
+    "Calcular cada celda a partir de celdas ya calculadas",
+    "Introducir la programación dinámica"
+  ],
+  "pistas": [
+    "Los extremos de cada fila valen 1.",
+    "p[i][j] = p[i-1][j-1] + p[i-1][j].",
+    "La fila i tiene i + 1 elementos."
+  ],
+  "conceptos": [
+    "programación dinámica",
+    "coeficientes binomiales"
+  ]
+}

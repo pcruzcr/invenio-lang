@@ -1,0 +1,24 @@
+// patron_facade.inv - Facade: una fachada simple sobre subsistemas.
+clase Motor {
+    publico texto encender() { return "motor;"; }
+}
+clase Luces {
+    publico texto encender() { return "luces;"; }
+}
+clase FachadaAuto {
+    privado Motor m;
+    privado Luces l;
+    FachadaAuto() {
+        this.m = nuevo Motor();
+        this.l = nuevo Luces();
+    }
+    publico texto iniciar() {
+        Motor x = this.m;
+        Luces y = this.l;
+        return "facade:" + x.encender() + y.encender();
+    }
+}
+void main() {
+    FachadaAuto f = nuevo FachadaAuto();
+    imprimir(f.iniciar());
+}

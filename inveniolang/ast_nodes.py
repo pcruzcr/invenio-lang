@@ -1,12 +1,111 @@
 # Módulo de nodos del Árbol de Sintaxis Abstracta (AST) de InvenioLang 1.0
 # Define todas las clases de nodos utilizadas en el AST
+# Patrones aplicados: Composite (jerarquía AST), Visitor (doble despacho),
+# Factory (creación centralizada), Memento (snapshot para debug)
+from __future__ import annotations
 
-class ASTNode:
-    """Clase base para todos los nodos del AST."""
+from collections.abc import Callable
+from typing import Any, Optional
+
+from .patterns import RegistryFactory, Visitable, Visitor
+
+__all__ = [
+    "Any",
+    "Callable",
+    "Optional",
+    "RegistryFactory",
+    "Visitable",
+    "Visitor",
+    "ASTFactory",
+    "ASTNode",
+    "ASTVisitor",
+    "ASTWalker",
+    "ArrayAccess",
+    "ArrayDecl",
+    "ArrayLValue",
+    "AssignStmt",
+    "AttrDecl",
+    "BinaryOp",
+    "Bloque",
+    "BreakStmt",
+    "CallStmt",
+    "Caso",
+    "CasoMatch",
+    "ClassDecl",
+    "ConstDecl",
+    "ConstructorDecl",
+    "ContinueStmt",
+    "Declaracion",
+    "DoWhileStmt",
+    "EnumDecl",
+    "EnumMiembro",
+    "Expresion",
+    "ForEachStmt",
+    "ForInit",
+    "ForInitAsig",
+    "ForInitIncDec",
+    "ForInitVar",
+    "ForStmt",
+    "FunctionCall",
+    "FunctionDecl",
+    "Identifier",
+    "IfStmt",
+    "ImportDecl",
+    "IncDecStmt",
+    "Instruccion",
+    "LValue",
+    "LambdaExpr",
+    "Literal",
+    "MainDecl",
+    "MatchStmt",
+    "MatrixAccess",
+    "MatrixDecl",
+    "MatrixLValue",
+    "MemberAccess",
+    "MemberIndexAccess",
+    "MemberIndexLValue",
+    "MemberLValue",
+    "MethodCallExpr",
+    "MethodCallStmt",
+    "MethodDecl",
+    "NewArrayExpr",
+    "NewExpr",
+    "NullExpr",
+    "Parametro",
+    "PrintStmt",
+    "ProcedureDecl",
+    "Program",
+    "ReadStmt",
+    "ReturnStmt",
+    "Subrutina",
+    "SuperCallStmt",
+    "SuperExpr",
+    "SwitchStmt",
+    "TernaryExpr",
+    "ThisExpr",
+    "TipoNodo",
+    "TryStmt",
+    "UnaryOp",
+    "VarDecl",
+    "VarLValue",
+    "WhileStmt",
+]
+
+
+class ASTNode(Visitable):
+    """Clase base para todos los nodos del AST. Composite + Visitable."""
 
     def __init__(self, linea=1, columna=1):
         self.linea = linea
         self.columna = columna
+
+    def accept(self, visitor: Visitor) -> Any:
+        """Visitor — doble despacho optimizado (evita isinstance en analizadores)."""
+        return visitor.visit(self)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Memento ligero — serialización para debug/snapshot."""
+        return {"type": self.__class__.__name__, "linea": self.linea, "columna": self.columna}
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
@@ -15,6 +114,7 @@ class ASTNode:
 # ============================================================
 # Nodos del programa
 # ============================================================
+
 
 class Program(ASTNode):
     """Nodo raiz del AST. Representa un programa completo.
@@ -36,14 +136,38 @@ class Program(ASTNode):
         self.declaraciones_posteriores = []
         self.clases = []
         self.enums = []
+        # INV-1420: instrucciones `importar "ruta";` en orden de aparicion.
+        # El enlazador (modulos.py) las resuelve y agrega aqui las
+        # declaraciones de los modulos; `modulos` guarda las rutas cargadas.
+        self.importaciones = []
+        self.modulos = []
+        # INV-4404: nombre mostrado de cada módulo -> ruta real, para que
+        # `--step` pueda citar la línea de código de un archivo importado.
+        self.rutas_modulos = {}
 
     def __repr__(self):
         return f"Program(main={self.main is not None}, subrutinas={len(self.subrutinas)})"
 
 
+class ImportDecl(ASTNode):
+    """`importar "ruta";` / `import "path";` (INV-1420).
+
+    Atributos:
+        ruta: texto literal de la ruta tal como se escribio (sin comillas)
+    """
+
+    def __init__(self, ruta, linea=1, columna=1):
+        super().__init__(linea, columna)
+        self.ruta = ruta
+
+    def __repr__(self):
+        return f"ImportDecl({self.ruta!r})"
+
+
 # ============================================================
 # Nodos de tipos
 # ============================================================
+
 
 class TipoNodo(ASTNode):
     """Representa un tipo de dato."""
@@ -60,12 +184,13 @@ class TipoNodo(ASTNode):
 # Nodos de declaraciones
 # ============================================================
 
+
 class Declaracion(ASTNode):
     """Clase base para declaraciones."""
 
 
 class VarDecl(Declaracion):
-    """Declaracion de variable: tipo nombre [= expresion]"""
+    """Declaracion de variable: tipo nombre [= expresion]."""
 
     def __init__(self, tipo, nombre, init_expr=None, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -78,7 +203,7 @@ class VarDecl(Declaracion):
 
 
 class ConstDecl(Declaracion):
-    """Declaracion de constante: const tipo nombre = expresion"""
+    """Declaracion de constante: const tipo nombre = expresion."""
 
     def __init__(self, tipo, nombre, init_expr, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -91,15 +216,14 @@ class ConstDecl(Declaracion):
 
 
 class ArrayDecl(Declaracion):
-    """Declaracion de arreglo: tipo[tam] nombre [= { ... }]
+    """Declaracion de arreglo: tipo[tam] nombre [= { ... }].
 
     `es_constante` (Etapa 11): const tipo[tam] nombre = { ... } -- un
     arreglo inmutable, sus elementos no se pueden reasignar despues de la
     inicializacion (IL-SEM-031, mismo codigo que una constante escalar).
     """
 
-    def __init__(self, tipo, tam, nombre, init_exprs=None, linea=1, columna=1,
-                es_constante=False):
+    def __init__(self, tipo, tam, nombre, init_exprs=None, linea=1, columna=1, es_constante=False):
         # `es_constante` va AL FINAL a propósito: p_decl_arreglo/
         # p_decl_arreglo_postfijo/p_decl_arreglo_clase ya construyen
         # ArrayDecl posicionalmente como (tipo, tam, nombre, init_exprs,
@@ -119,7 +243,7 @@ class ArrayDecl(Declaracion):
 
 
 class MatrixDecl(Declaracion):
-    """Declaracion de matriz: tipo[filas][cols] nombre [= { {...}, ... }]"""
+    """Declaracion de matriz: tipo[filas][cols] nombre [= { {...}, ... }]."""
 
     def __init__(self, tipo, filas, cols, nombre, init_filas=None, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -136,6 +260,7 @@ class MatrixDecl(Declaracion):
 # ============================================================
 # Nodos de funciones y procedimientos
 # ============================================================
+
 
 class Parametro(ASTNode):
     """Parametro de funcion o procedimiento."""
@@ -160,7 +285,7 @@ class Subrutina(ASTNode):
 
 
 class FunctionDecl(Subrutina):
-    """Declaracion de funcion: tipo_retorno nombre(params) { bloque }"""
+    """Declaracion de funcion: tipo_retorno nombre(params) { bloque }."""
 
     def __init__(self, tipo_retorno, nombre, parametros, bloque, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -174,28 +299,28 @@ class FunctionDecl(Subrutina):
 
 
 class ProcedureDecl(Subrutina):
-    """Declaracion de procedimiento: void nombre(params) { bloque }"""
+    """Declaracion de procedimiento: void nombre(params) { bloque }."""
 
     def __init__(self, nombre, parametros, bloque, linea=1, columna=1):
         super().__init__(linea, columna)
         self.nombre = nombre
         self.parametros = parametros
         self.bloque = bloque
-        self.tipo_retorno = 'void'
+        self.tipo_retorno = "void"
 
     def __repr__(self):
         return f"ProcedureDecl({self.nombre}, params={len(self.parametros)})"
 
 
 class MainDecl(Subrutina):
-    """Declaracion de la funcion main: void main() { bloque }"""
+    """Declaracion de la funcion main: void main() { bloque }."""
 
     def __init__(self, bloque, linea=1, columna=1):
         super().__init__(linea, columna)
-        self.nombre = 'main'
+        self.nombre = "main"
         self.bloque = bloque
         self.parametros = []
-        self.tipo_retorno = 'void'
+        self.tipo_retorno = "void"
 
     def __repr__(self):
         return "MainDecl()"
@@ -205,8 +330,9 @@ class MainDecl(Subrutina):
 # Nodos de bloques e instrucciones
 # ============================================================
 
+
 class Bloque(ASTNode):
-    """Bloque de codigo: { elemento* }"""
+    """Bloque de codigo: { elemento* }."""
 
     def __init__(self, elementos=None, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -221,7 +347,7 @@ class Instruccion(ASTNode):
 
 
 class AssignStmt(Instruccion):
-    """Instruccion de asignacion: lvalue op_asig expresion"""
+    """Instruccion de asignacion: lvalue op_asig expresion."""
 
     def __init__(self, lvalue, operador, expr, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -234,7 +360,7 @@ class AssignStmt(Instruccion):
 
 
 class IncDecStmt(Instruccion):
-    """Instruccion de incremento/decremento: ++id, id++, --id, id--"""
+    """Instruccion de incremento/decremento: ++id, id++, --id, id--."""
 
     def __init__(self, nombre, operador, es_prefijo, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -248,7 +374,7 @@ class IncDecStmt(Instruccion):
 
 
 class PrintStmt(Instruccion):
-    """Instruccion de salida: print(expresion)"""
+    """Instruccion de salida: print(expresion)."""
 
     def __init__(self, expr, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -259,7 +385,7 @@ class PrintStmt(Instruccion):
 
 
 class ReadStmt(Instruccion):
-    """Instruccion de entrada: read(identificador)"""
+    """Instruccion de entrada: read(identificador)."""
 
     def __init__(self, nombre, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -270,7 +396,7 @@ class ReadStmt(Instruccion):
 
 
 class IfStmt(Instruccion):
-    """Instruccion condicional: if(cond) { then } [ else { sino } ]"""
+    """Instruccion condicional: if(cond) { then } [ else { sino } ]."""
 
     def __init__(self, condicion, bloque_then, bloque_else=None, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -283,7 +409,7 @@ class IfStmt(Instruccion):
 
 
 class WhileStmt(Instruccion):
-    """Instruccion while: while(cond) { bloque }"""
+    """Instruccion while: while(cond) { bloque }."""
 
     def __init__(self, condicion, bloque, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -295,7 +421,7 @@ class WhileStmt(Instruccion):
 
 
 class ForStmt(Instruccion):
-    """Instruccion for: for(init; cond; act) { bloque }"""
+    """Instruccion for: for(init; cond; act) { bloque }."""
 
     def __init__(self, init_stmt, cond_expr, act_stmt, bloque, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -309,15 +435,14 @@ class ForStmt(Instruccion):
 
 
 class ForEachStmt(Instruccion):
-    """Instruccion foreach/para_cada (Etapa 12.1):
-    para_cada (tipo nombre : arreglo) { bloque }
+    """Recorre un arreglo sin índice explícito (Etapa 12.1).
 
     Recorre `arreglo` de principio a fin, ligando `nombre` (declarado con
     `tipo`) al elemento actual en cada iteracion, dentro de un ambito
     propio por iteracion (igual que el cuerpo de cualquier ciclo). No es
     azucar sintactica desarmada en el parser -- se ejecuta con un helper
     dedicado en cada capa (ver interpreter.py::_ejecutar_foreach,
-    flowchart.py, ir.py) porque desazucararlo de verdad requeriria una
+    flujo/extraccion.py, ir.py) porque desazucararlo de verdad requeriria una
     forma de conocer en tiempo de ejecucion la longitud de un arreglo
     pasado por referencia (un parametro), que hoy no existe como
     expresion de InvenioLang -- mas simple y de igual riesgo mantenerlo
@@ -338,7 +463,7 @@ class ForEachStmt(Instruccion):
 
 
 class ReturnStmt(Instruccion):
-    """Instruccion return: return [expresion]"""
+    """Instruccion return: return [expresion]."""
 
     def __init__(self, expr=None, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -378,6 +503,7 @@ class CallStmt(Instruccion):
 # Nodos de expresiones
 # ============================================================
 
+
 class Expresion(ASTNode):
     """Clase base para expresiones."""
 
@@ -387,7 +513,7 @@ class ForInit(ASTNode):
 
 
 class ForInitVar(ForInit):
-    """Declaracion de variable en for: tipo nombre [= expr]"""
+    """Declaracion de variable en for: tipo nombre [= expr]."""
 
     def __init__(self, tipo, nombre, init_expr=None, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -397,7 +523,7 @@ class ForInitVar(ForInit):
 
 
 class ForInitAsig(ForInit):
-    """Asignacion en for: lvalue operador expresion"""
+    """Asignacion en for: lvalue operador expresion."""
 
     def __init__(self, lvalue, operador, expr, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -417,7 +543,7 @@ class ForInitIncDec(ForInit):
 
 
 class BinaryOp(Expresion):
-    """Operacion binaria: izquierda operador derecha"""
+    """Operacion binaria: izquierda operador derecha."""
 
     def __init__(self, operador, izquierda, derecha, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -430,7 +556,7 @@ class BinaryOp(Expresion):
 
 
 class UnaryOp(Expresion):
-    """Operacion unaria: operador operando (prefija o postfija)"""
+    """Operacion unaria: operador operando (prefija o postfija)."""
 
     def __init__(self, operador, operando, es_prefijo=True, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -466,7 +592,7 @@ class Identifier(Expresion):
 
 
 class ArrayAccess(Expresion):
-    """Acceso a arreglo: nombre[indice]"""
+    """Acceso a arreglo: nombre[indice]."""
 
     def __init__(self, nombre, indice, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -478,7 +604,7 @@ class ArrayAccess(Expresion):
 
 
 class MatrixAccess(Expresion):
-    """Acceso a matriz: nombre[fila][columna]"""
+    """Acceso a matriz: nombre[fila][columna]."""
 
     def __init__(self, nombre, fila, columna, linea=1, col=1):
         super().__init__(linea, col)
@@ -505,6 +631,7 @@ class FunctionCall(Expresion):
 # ============================================================
 # Nodos de L-value
 # ============================================================
+
 
 class LValue(ASTNode):
     """Clase base para L-values (lado izquierdo de asignacion)."""
@@ -546,6 +673,20 @@ class MatrixLValue(LValue):
         return f"MatrixLValue({self.nombre}[...][...])"
 
 
+class MemberIndexLValue(LValue):
+    """Destino `este.datos[i] = v` (INV-1440), ver MemberIndexAccess."""
+
+    def __init__(self, receptor, nombre_miembro, indice, linea=1, columna=1):
+        super().__init__(linea, columna)
+        self.receptor = receptor
+        self.nombre_miembro = nombre_miembro
+        self.indice = indice
+        self.acceso = MemberAccess(receptor, nombre_miembro, linea, columna)
+
+    def __repr__(self):
+        return f"MemberIndexLValue(...->{self.nombre_miembro}[...])"
+
+
 class MemberLValue(LValue):
     """L-value de acceso a miembro: receptor.nombre (POO, InvenioLang 2.0).
 
@@ -566,12 +707,16 @@ class MemberLValue(LValue):
 # Nodos de POO (InvenioLang 2.0 -- docs/InvenioLang_2.0_POO.md)
 # ============================================================
 
-class AttrDecl(ASTNode):
-    """Declaracion de atributo dentro de una clase:
-    visibilidad [estatico] tipo nombre [= expr]; (estatico: Etapa 7)"""
 
-    def __init__(self, visibilidad, tipo, nombre, init_expr=None,
-                es_estatico=False, linea=1, columna=1):
+class AttrDecl(ASTNode):
+    """Atributo de clase con visibilidad y valor opcional.
+
+    visibilidad [estatico] tipo nombre [= expr]; (estatico: Etapa 7)
+    """
+
+    def __init__(
+        self, visibilidad, tipo, nombre, init_expr=None, es_estatico=False, linea=1, columna=1
+    ):
         super().__init__(linea, columna)
         self.visibilidad = visibilidad  # 'publico' | 'privado'
         self.tipo = tipo
@@ -580,18 +725,30 @@ class AttrDecl(ASTNode):
         self.es_estatico = es_estatico
 
     def __repr__(self):
-        prefijo = 'estatico ' if self.es_estatico else ''
+        prefijo = "estatico " if self.es_estatico else ""
         return f"AttrDecl({self.visibilidad} {prefijo}{self.nombre}: {self.tipo})"
 
 
 class MethodDecl(ASTNode):
-    """Declaracion de metodo: visibilidad [estatico|abstracto] tipo_retorno
+    """Declaracion de metodo: visibilidad [estatico|abstracto] tipo_retorno.
+
     nombre(params) { bloque } -- `bloque` es None solo si `es_abstracto`
     (entonces la declaracion termina en ';', sin cuerpo). `estatico` y
-    `abstracto` son mutuamente excluyentes (Etapa 7)."""
+    `abstracto` son mutuamente excluyentes (Etapa 7).
+    """
 
-    def __init__(self, visibilidad, tipo_retorno, nombre, parametros, bloque,
-                es_estatico=False, es_abstracto=False, linea=1, columna=1):
+    def __init__(
+        self,
+        visibilidad,
+        tipo_retorno,
+        nombre,
+        parametros,
+        bloque,
+        es_estatico=False,
+        es_abstracto=False,
+        linea=1,
+        columna=1,
+    ):
         super().__init__(linea, columna)
         self.visibilidad = visibilidad
         self.tipo_retorno = tipo_retorno
@@ -602,7 +759,7 @@ class MethodDecl(ASTNode):
         self.es_abstracto = es_abstracto
 
     def __repr__(self):
-        prefijo = 'estatico ' if self.es_estatico else 'abstracto ' if self.es_abstracto else ''
+        prefijo = "estatico " if self.es_estatico else "abstracto " if self.es_abstracto else ""
         return f"MethodDecl({self.visibilidad} {prefijo}{self.nombre}: {self.tipo_retorno})"
 
 
@@ -622,8 +779,7 @@ class ConstructorDecl(ASTNode):
     clase, ver IL-POO-030).
     """
 
-    def __init__(self, nombre, parametros, bloque, visibilidad='publico',
-                linea=1, columna=1):
+    def __init__(self, nombre, parametros, bloque, visibilidad="publico", linea=1, columna=1):
         super().__init__(linea, columna)
         self.nombre = nombre
         self.parametros = parametros
@@ -635,7 +791,8 @@ class ConstructorDecl(ASTNode):
 
 
 class ClassDecl(ASTNode):
-    """Declaracion de clase: [abstracta] clase Nombre[<T>] [hereda Padre] { miembro* }
+    """Declaracion de clase: [abstracta] clase Nombre[<T>] [hereda Padre] { miembro* }.
+
     (abstracta: Etapa 7 -- no instanciable, puede tener metodos sin cuerpo).
 
     `parametro_tipo` (Etapa 7, genericos): nombre del parametro de tipo
@@ -649,9 +806,20 @@ class ClassDecl(ASTNode):
     acotado, ver docs/InvenioLang_2.0_POO.md.
     """
 
-    def __init__(self, nombre, padre, atributos, metodos, constructores,
-                es_abstracta=False, parametro_tipo=None, linea=1, columna=1,
-                interfaces=None, es_interfaz=False):
+    def __init__(
+        self,
+        nombre,
+        padre,
+        atributos,
+        metodos,
+        constructores,
+        es_abstracta=False,
+        parametro_tipo=None,
+        linea=1,
+        columna=1,
+        interfaces=None,
+        es_interfaz=False,
+    ):
         # `interfaces`/`es_interfaz` van AL FINAL a proposito (Etapa 12.3) --
         # mismo criterio documentado en ArrayDecl.__init__ (symbol_table.py/
         # ir.py): insertar parametros nuevos antes de linea/columna
@@ -665,12 +833,14 @@ class ClassDecl(ASTNode):
         self.es_abstracta = es_abstracta
         self.parametro_tipo = parametro_tipo
         self.interfaces = interfaces if interfaces else []  # list[str] (Etapa 12.3)
-        self.es_interfaz = es_interfaz  # Etapa 12.3: 'interfaz X {...}' (alias de "abstracta clase" con todos los metodos abstractos, solo para mensajes mas claros)
+        self.es_interfaz = es_interfaz
+        # Etapa 12.3: 'interfaz X {...}' (alias de "abstracta clase" con todos los metodos
+        # abstractos, solo para mensajes mas claros)
 
     def __repr__(self):
-        prefijo = 'interfaz ' if self.es_interfaz else 'abstracta ' if self.es_abstracta else ''
-        generico = f'<{self.parametro_tipo}>' if self.parametro_tipo else ''
-        implementa = f' implementa {",".join(self.interfaces)}' if self.interfaces else ''
+        prefijo = "interfaz " if self.es_interfaz else "abstracta " if self.es_abstracta else ""
+        generico = f"<{self.parametro_tipo}>" if self.parametro_tipo else ""
+        implementa = f" implementa {','.join(self.interfaces)}" if self.interfaces else ""
         return f"ClassDecl({prefijo}{self.nombre}{generico}, hereda={self.padre}{implementa})"
 
 
@@ -704,9 +874,11 @@ class EnumDecl(ASTNode):
 
 
 class EnumMiembro(ASTNode):
-    """Un miembro de un enum (Etapa 12.9/12.10): bare (`Rojo`, sin carga,
+    """Miembro de enum, puro o con carga (tipo suma).
+
     forma de la Etapa 11.8 sin cambios) o con carga (`Circulo(entero
-    radio)`, tipo suma -- parametros no vacio)."""
+    radio)`, tipo suma -- parametros no vacio).
+    """
 
     def __init__(self, nombre, parametros=None, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -715,6 +887,7 @@ class EnumMiembro(ASTNode):
 
     @property
     def tiene_carga(self):
+        """Indica tiene carga."""
         return len(self.parametros) > 0
 
     def __repr__(self):
@@ -731,26 +904,30 @@ class ThisExpr(Expresion):
 
 
 class NullExpr(Expresion):
-    """Referencia nula: nulo / null -- ausencia de objeto (Estructuras de
+    """Referencia nula: nulo / null -- ausencia de objeto (Estructuras de.
+
     Datos, InvenioLang 2.0). Solo asignable/comparable contra un tipo de
-    clase, nunca contra un primitivo."""
+    clase, nunca contra un primitivo.
+    """
 
     def __repr__(self):
         return "NullExpr()"
 
 
 class SuperExpr(Expresion):
-    """Marcador de receptor 'padre'/'super' -- solo valido como receptor de
+    """Marcador de receptor 'padre'/'super' -- solo valido como receptor de.
+
     un acceso a miembro (padre.metodo(...) / padre.campo), nunca como valor
     independiente. No confundir con SuperCallStmt (llamada al constructor
-    del padre)."""
+    del padre).
+    """
 
     def __repr__(self):
         return "SuperExpr()"
 
 
 class NewExpr(Expresion):
-    """Instanciacion: nuevo/new NombreClase(argumentos)"""
+    """Instanciacion: nuevo/new NombreClase(argumentos)."""
 
     def __init__(self, nombre_clase, argumentos, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -762,14 +939,16 @@ class NewExpr(Expresion):
 
 
 class MemberAccess(Expresion):
-    """Acceso a miembro como expresion: receptor.nombre_miembro (o
+    """Acceso a miembro como expresion: receptor.nombre_miembro (o.
+
     receptor?.nombre_miembro, Etapa 12.2: acceso seguro -- si el receptor
     es nulo, toda la expresion vale nulo en vez de lanzar IL-EJE-010).
 
     `es_seguro` va AL FINAL de la firma a proposito (ver ir.py/
     symbol_table.py::SymbolEntry -- la Etapa 11.10 dejo documentado por
     que: insertar un parametro nuevo en medio desalinea las llamadas
-    posicionales existentes)."""
+    posicionales existentes).
+    """
 
     def __init__(self, receptor, nombre_miembro, linea=1, columna=1, es_seguro=False):
         super().__init__(linea, columna)
@@ -781,12 +960,49 @@ class MemberAccess(Expresion):
         return f"MemberAccess(...->{self.nombre_miembro}, seguro={self.es_seguro})"
 
 
-class MethodCallExpr(Expresion):
-    """Llamada a metodo como expresion: receptor.nombre_metodo(argumentos)
-    (o receptor?.nombre_metodo(...), Etapa 12.2)."""
+class NewArrayExpr(Expresion):
+    """Arreglo dinámico: `nuevo entero[n]` (INV-1440).
 
-    def __init__(self, receptor, nombre_metodo, argumentos, linea=1, columna=1,
-                es_seguro=False):
+    Crea en ejecución un arreglo de `tam` elementos (expresión entera
+    cualquiera, no solo una constante) con el valor por defecto del tipo. Su
+    tipo estático es "<tipo>[]" y solo puede guardarse en un atributo
+    arreglo (`privado entero[] datos;`) o pasarse a un parámetro `entero[]`.
+    """
+
+    def __init__(self, tipo, tam, linea=1, columna=1):
+        super().__init__(linea, columna)
+        self.tipo = tipo
+        self.tam = tam
+
+    def __repr__(self):
+        return f"NewArrayExpr({self.tipo}[...])"
+
+
+class MemberIndexAccess(Expresion):
+    """Elemento de un atributo arreglo: `este.datos[i]` / `obj.datos[i]` (INV-1440).
+
+    `acceso` es el MemberAccess del arreglo completo, para reutilizar la
+    resolución de miembros (visibilidad, estáticos, nulos) ya existente.
+    """
+
+    def __init__(self, receptor, nombre_miembro, indice, linea=1, columna=1):
+        super().__init__(linea, columna)
+        self.receptor = receptor
+        self.nombre_miembro = nombre_miembro
+        self.indice = indice
+        self.acceso = MemberAccess(receptor, nombre_miembro, linea, columna)
+
+    def __repr__(self):
+        return f"MemberIndexAccess(...->{self.nombre_miembro}[...])"
+
+
+class MethodCallExpr(Expresion):
+    """Llamada a metodo como expresion: receptor.nombre_metodo(argumentos).
+
+    (o receptor?.nombre_metodo(...), Etapa 12.2).
+    """
+
+    def __init__(self, receptor, nombre_metodo, argumentos, linea=1, columna=1, es_seguro=False):
         super().__init__(linea, columna)
         self.receptor = receptor
         self.nombre_metodo = nombre_metodo
@@ -794,15 +1010,19 @@ class MethodCallExpr(Expresion):
         self.es_seguro = es_seguro
 
     def __repr__(self):
-        return f"MethodCallExpr(...->{self.nombre_metodo}, args={len(self.argumentos)}, seguro={self.es_seguro})"
+        return (
+            f"MethodCallExpr(...->{self.nombre_metodo}, args={len(self.argumentos)}, "
+            f"seguro={self.es_seguro})"
+        )
 
 
 class MethodCallStmt(Instruccion):
-    """Llamada a metodo como instruccion: receptor.nombre_metodo(argumentos);
-    (o receptor?.nombre_metodo(...), Etapa 12.2)."""
+    """Llamada a método como instrucción.
 
-    def __init__(self, receptor, nombre_metodo, argumentos, linea=1, columna=1,
-                es_seguro=False):
+    (o receptor?.nombre_metodo(...), Etapa 12.2).
+    """
+
+    def __init__(self, receptor, nombre_metodo, argumentos, linea=1, columna=1, es_seguro=False):
         super().__init__(linea, columna)
         self.receptor = receptor
         self.nombre_metodo = nombre_metodo
@@ -810,13 +1030,18 @@ class MethodCallStmt(Instruccion):
         self.es_seguro = es_seguro
 
     def __repr__(self):
-        return f"MethodCallStmt(...->{self.nombre_metodo}, args={len(self.argumentos)}, seguro={self.es_seguro})"
+        return (
+            f"MethodCallStmt(...->{self.nombre_metodo}, args={len(self.argumentos)}, "
+            f"seguro={self.es_seguro})"
+        )
 
 
 class SuperCallStmt(Instruccion):
-    """Llamada al constructor del padre: padre/super(argumentos); -- solo
+    """Llamada al constructor del padre: padre/super(argumentos); -- solo.
+
     valida como primera instruccion de un constructor (§5 de la spec de
-    POO)."""
+    POO).
+    """
 
     def __init__(self, argumentos, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -830,9 +1055,12 @@ class SuperCallStmt(Instruccion):
 # Nodos de Etapa 6 (lenguaje estructurado completo)
 # ============================================================
 
+
 class Caso(ASTNode):
-    """Un case dentro de un switch: case valor: bloque (sin break implicito
-    -- cae al siguiente case si el bloque no termina en break/return)."""
+    """Un case dentro de un switch: case valor: bloque (sin break implicito.
+
+    -- cae al siguiente case si el bloque no termina en break/return).
+    """
 
     def __init__(self, valor, bloque, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -844,7 +1072,7 @@ class Caso(ASTNode):
 
 
 class SwitchStmt(Instruccion):
-    """Instruccion switch/segun: switch(expr) { case v: ... [default: ...] }"""
+    """Instruccion switch/segun: switch(expr) { case v: ... [default: ...] }."""
 
     def __init__(self, expr, casos, bloque_default=None, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -857,13 +1085,15 @@ class SwitchStmt(Instruccion):
 
 
 class CasoMatch(ASTNode):
-    """Un caso dentro de emparejar/match (Etapa 12.9/12.10):
+    """Caso con ligaduras en emparejar/match.
+
     `caso Variante: bloque` (enum puro o variante sin carga) o
     `caso Variante(id1, id2): bloque` (liga cada campo de la variante a un
     nombre nuevo, con alcance propio, dentro del bloque). A diferencia de
     Caso (switch), NO hay fallthrough -- cada caso de emparejar es
     exhaustivo y excluyente por construccion (instanceof de la variante),
-    asi que no hace falta -- ni existe -- un break implicito o explicito."""
+    asi que no hace falta -- ni existe -- un break implicito o explicito.
+    """
 
     def __init__(self, nombre_variante, ligaduras, bloque, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -876,13 +1106,15 @@ class CasoMatch(ASTNode):
 
 
 class MatchStmt(Instruccion):
-    """Instruccion emparejar/match (Etapa 12.9/12.10): pattern matching
+    """Instruccion emparejar/match (Etapa 12.9/12.10): pattern matching.
+
     sobre un valor de tipo enum (puro o tipo suma con carga). Construccion
     deliberadamente SEPARADA de switch (ver docs/InvenioLang_GramaticaFormal.md
     -- mezclar destructuring de tipos suma con la semantica de fallthrough
     de switch/case seria confuso). semantic.py valida exhaustividad: deben
     cubrirse todas las variantes declaradas del enum, o existir un
-    caso_comodin (`caso _:`)."""
+    caso_comodin (`caso _:`).
+    """
 
     def __init__(self, expr, casos, caso_comodin=None, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -895,7 +1127,7 @@ class MatchStmt(Instruccion):
 
 
 class DoWhileStmt(Instruccion):
-    """Instruccion do/hacer ... while/mientras: do { bloque } while(cond);"""
+    """Ciclo do-while: ejecuta al menos una vez."""
 
     def __init__(self, bloque, condicion, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -907,7 +1139,7 @@ class DoWhileStmt(Instruccion):
 
 
 class TernaryExpr(Expresion):
-    """Operador ternario: condicion ? si_verdadero : si_falso"""
+    """Operador ternario: condicion ? si_verdadero : si_falso."""
 
     def __init__(self, condicion, si_verdadero, si_falso, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -920,7 +1152,8 @@ class TernaryExpr(Expresion):
 
 
 class LambdaExpr(Expresion):
-    """Funcion de primera clase / lambda (Etapa 12.6):
+    """Función anónima de primera clase (Etapa 12.6).
+
     funcion(tipo1 nombre1, tipo2 nombre2) tipoRetorno { bloque }
 
     `tipo_retorno` es 'void' o un tipo primitivo/clase, igual que
@@ -931,7 +1164,8 @@ class LambdaExpr(Expresion):
     Representa un TIPO estructural (no nominal, la unica excepcion
     deliberada en un lenguaje nominal en todo lo demas): dos valores
     funcion son de "el mismo tipo" si coinciden exactamente en tipos de
-    parametro y de retorno -- ver type_checker.py::_tipo_funcion_str."""
+    parametro y de retorno -- ver type_checker.py::_tipo_funcion_str.
+    """
 
     def __init__(self, parametros, tipo_retorno, bloque, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -940,15 +1174,17 @@ class LambdaExpr(Expresion):
         self.bloque = bloque
 
     def __repr__(self):
-        tipos = ','.join(p.tipo for p in self.parametros)
+        tipos = ",".join(p.tipo for p in self.parametros)
         return f"LambdaExpr(({tipos}) -> {self.tipo_retorno})"
 
 
 class TryStmt(Instruccion):
-    """Manejo de excepciones generico: try/intentar { bloque } catch/capturar
+    """Manejo de excepciones generico: try/intentar { bloque } catch/capturar.
+
     (nombre) { bloque_catch } -- `nombre` queda ligado a una instancia
     sintetica de la clase Excepcion (campos codigo/mensaje) si el bloque try
-    levanta un error de ejecucion del catalogo IL-EJE-*."""
+    levanta un error de ejecucion del catalogo IL-EJE-*.
+    """
 
     def __init__(self, bloque_try, nombre_catch, bloque_catch, linea=1, columna=1):
         super().__init__(linea, columna)
@@ -958,3 +1194,162 @@ class TryStmt(Instruccion):
 
     def __repr__(self):
         return f"TryStmt(catch={self.nombre_catch})"
+
+
+# ============================================================
+# Visitor base para AST — Template para semantic/type_checker/interpreter
+# ============================================================
+
+
+class ASTVisitor(Visitor):
+    """Visitor base optimizado para recorridos AST. Cada visit_* es Strategy.
+
+    intercambiable; agregar nueva operación no modifica nodos (OCP).
+    """
+
+    def visit_Program(self, node: Program) -> Any:
+        """Visita un nodo Program del AST."""
+        return self.generic_visit(node)
+
+    def visit_Bloque(self, node: Bloque) -> Any:
+        """Visita un nodo Bloque del AST."""
+        return self.generic_visit(node)
+
+    def visit_VarDecl(self, node: VarDecl) -> Any:
+        """Visita un nodo VarDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_ConstDecl(self, node: ConstDecl) -> Any:
+        """Visita un nodo ConstDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_ArrayDecl(self, node: ArrayDecl) -> Any:
+        """Visita un nodo ArrayDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_MatrixDecl(self, node: MatrixDecl) -> Any:
+        """Visita un nodo MatrixDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_FunctionDecl(self, node: FunctionDecl) -> Any:
+        """Visita un nodo FunctionDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_ProcedureDecl(self, node: ProcedureDecl) -> Any:
+        """Visita un nodo ProcedureDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_MainDecl(self, node: MainDecl) -> Any:
+        """Visita un nodo MainDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_ClassDecl(self, node: ClassDecl) -> Any:
+        """Visita un nodo ClassDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_EnumDecl(self, node: EnumDecl) -> Any:
+        """Visita un nodo EnumDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_ImportDecl(self, node: ImportDecl) -> Any:
+        """Visita un nodo ImportDecl del AST (INV-1420)."""
+        return self.generic_visit(node)
+
+    def visit_NewArrayExpr(self, node: NewArrayExpr) -> Any:
+        """Visita un nodo NewArrayExpr del AST (INV-1440)."""
+        return self.generic_visit(node)
+
+    def visit_MemberIndexAccess(self, node: MemberIndexAccess) -> Any:
+        """Visita un nodo MemberIndexAccess del AST (INV-1440)."""
+        return self.generic_visit(node)
+
+    def visit_MemberIndexLValue(self, node: MemberIndexLValue) -> Any:
+        """Visita un nodo MemberIndexLValue del AST (INV-1440)."""
+        return self.generic_visit(node)
+
+
+# ============================================================
+# Factory — Creación centralizada de nodos AST (optimiza validación
+# y permite pooling futuro; evita new disperso en parser)
+# ============================================================
+
+
+class ASTFactory(RegistryFactory):
+    """Factory Registry para nodos AST.
+
+    Uso: factory = ASTFactory.get_default() node = factory.create('VarDecl', tipo='int', nombre='x',
+    linea=1)
+    """
+
+    _default: ASTFactory | None = None
+
+    @classmethod
+    def get_default(cls) -> ASTFactory:
+        """Retorna la instancia compartida."""
+        if cls._default is None:
+            cls._default = cls()
+            cls._default._register_defaults()
+        return cls._default
+
+    def _register_defaults(self) -> None:
+        self.register("Program", lambda **k: Program(**k))
+        self.register("VarDecl", lambda **k: VarDecl(**k))
+        self.register("ConstDecl", lambda **k: ConstDecl(**k))
+        self.register("ArrayDecl", lambda **k: ArrayDecl(**k))
+        self.register("MatrixDecl", lambda **k: MatrixDecl(**k))
+        self.register("Bloque", lambda **k: Bloque(**k))
+        self.register("IfStmt", lambda **k: IfStmt(**k))
+        self.register("WhileStmt", lambda **k: WhileStmt(**k))
+        self.register("ForStmt", lambda **k: ForStmt(**k))
+        self.register("ReturnStmt", lambda **k: ReturnStmt(**k))
+        self.register("BinaryOp", lambda **k: BinaryOp(**k))
+        self.register("Literal", lambda **k: Literal(**k))
+        self.register("Identifier", lambda **k: Identifier(**k))
+
+
+# ============================================================
+# Composite helper — utilidades para recorrer/optimizar árbol
+# ============================================================
+
+
+class ASTWalker:
+    """Walker genérico optimizado con iteración sin recursión profunda.
+
+    (evita RecursionError en árboles muy profundos).
+    """
+
+    @staticmethod
+    def walk(node: ASTNode, func: Callable[[ASTNode], None]) -> None:
+        """Recorre el AST sin recursión profunda."""
+        stack = [node]
+        visited = set()
+        while stack:
+            cur = stack.pop()
+            if id(cur) in visited:
+                continue
+            visited.add(id(cur))
+            func(cur)
+            for attr in (
+                "elementos",
+                "bloque",
+                "bloque_then",
+                "bloque_else",
+                "subrutinas",
+                "clases",
+                "enums",
+                "main",
+                "declaraciones_globales",
+                "declaraciones_posteriores",
+            ):
+                val = getattr(cur, attr, None)
+                if isinstance(val, list):
+                    stack.extend(reversed(val))
+                elif isinstance(val, ASTNode):
+                    stack.append(val)
+
+    @staticmethod
+    def count_nodes(node: ASTNode) -> int:
+        """Cuenta los nodos del AST."""
+        c = [0]
+        ASTWalker.walk(node, lambda n: c.__setitem__(0, c[0] + 1))
+        return c[0]

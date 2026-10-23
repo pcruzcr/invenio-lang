@@ -1,0 +1,29 @@
+// Level 3 · Exercise 10 — Towers of Hanoi
+// Learning goals:
+//   - Trust recursion: solve n using the solution for n - 1
+//   - Relate the recursion to 2^n - 1 moves
+//
+int moves = 0;
+
+void hanoi(int n, string source, string target, string spare, bool showSteps) {
+    if (n == 0) {
+        return;
+    }
+    // 1) Move the top n - 1 disks out of the way onto the spare peg.
+    hanoi(n - 1, source, spare, target, showSteps);
+    // 2) Move disk n, which is now free, to the target.
+    moves++;
+    if (showSteps) {
+        print("disk "); print(n); print(": "); print(source + " -> " + target + "\n");
+    }
+    // 3) Put the n - 1 disks back on top of disk n.
+    hanoi(n - 1, spare, target, source, showSteps);
+}
+
+void main() {
+    hanoi(3, "A", "C", "B", true);
+    print("moves = "); print(moves); print("\n");
+    moves = 0;
+    hanoi(10, "A", "C", "B", false);
+    print("moves(10) = "); print(moves); print("\n");
+}

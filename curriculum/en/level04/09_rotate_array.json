@@ -1,0 +1,21 @@
+{
+  "id": "N04-E09",
+  "nivel": 4,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Rotate an array",
+  "enunciado": "Rotate {10, 20, 30, 40, 50, 60} k = 2 positions to the left (the result starts with 30) using the three-reversal technique: reverse [0, k-1], reverse [k, n-1] and reverse everything.",
+  "objetivos": [
+    "Build a transformation out of a simpler one",
+    "Work with subranges of an array"
+  ],
+  "pistas": [
+    "Write reverse(a, from, to) for a subrange.",
+    "Show the array after each reversal to understand the trick.",
+    "Use k % n in case k is larger than n."
+  ],
+  "conceptos": [
+    "rotation",
+    "subrange"
+  ]
+}

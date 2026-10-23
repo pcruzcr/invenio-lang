@@ -1,0 +1,21 @@
+{
+  "id": "N10-E09",
+  "nivel": 10,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Sorted list",
+  "enunciado": "Implement SortedList whose insertSorted(v) operation puts each value in its place so the list is always sorted. Insert 42, 7, 19, 3, 42, 25, 1 showing the list after each insertion.",
+  "objetivos": [
+    "Maintain an ordering invariant in a linked structure",
+    "Insert in the middle of a list"
+  ],
+  "pistas": [
+    "Find the first node whose value is larger than v.",
+    "Insert before it: you need the previous node.",
+    "Inserting at the front is a special case."
+  ],
+  "conceptos": [
+    "invariant",
+    "sorted insertion"
+  ]
+}

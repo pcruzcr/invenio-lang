@@ -1,0 +1,22 @@
+{
+  "id": "N09-E03",
+  "nivel": 9,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Abstract classes",
+  "enunciado": "Define the abstract class Shape with the abstract method area() and a concrete method describe(). Implement Circle, Square and Triangle. Compute the total area of an array of shapes.",
+  "objetivos": [
+    "Declare abstract classes and methods",
+    "Force subclasses to implement a contract"
+  ],
+  "pistas": [
+    "An abstract class cannot be instantiated with new.",
+    "An abstract method has no body: it ends with ;",
+    "describe() can call area() even though it is abstract."
+  ],
+  "conceptos": [
+    "abstract class",
+    "abstract method",
+    "contract"
+  ]
+}

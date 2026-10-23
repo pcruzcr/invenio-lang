@@ -1,0 +1,50 @@
+// Nivel 5 · Ejercicio 02 — Burbuja optimizada
+// Objetivos:
+//   - Usar una bandera para detectar que el arreglo ya está ordenado
+//   - Comparar el mejor y el peor caso
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio intercambiar(entero [] a, entero i, entero j) {
+    entero aux = a[i];
+    a[i] = a[j];
+    a[j] = aux;
+}
+
+vacio burbuja(entero [] a, entero n) {
+    entero pasadas = 0;
+    entero comparaciones = 0;
+    logico huboCambio = verdadero;
+    entero p = 0;
+    mientras (huboCambio) {
+        // Si una pasada completa no intercambia nada, el arreglo ya está ordenado.
+        huboCambio = falso;
+        pasadas++;
+        para (entero j = 0; j < n - 1 - p; j++) {
+            comparaciones++;
+            si (a[j] > a[j + 1]) {
+                intercambiar(a, j, j + 1);
+                huboCambio = verdadero;
+            }
+        }
+        p++;
+    }
+    imprimirArreglo(a, n);
+    imprimir("passes = "); imprimir(pasadas); imprimir(", comparisons = "); imprimir(comparaciones); imprimir("\n");
+}
+
+vacio main() {
+    entero [8] casiOrdenado = {1, 2, 3, 5, 4, 6, 7, 8};
+    entero [8] alReves = {8, 7, 6, 5, 4, 3, 2, 1};
+    burbuja(casiOrdenado, 8);
+    burbuja(alReves, 8);
+}

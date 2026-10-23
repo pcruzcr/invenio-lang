@@ -1,0 +1,22 @@
+{
+  "id": "N12-E07",
+  "nivel": 12,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Weighted shortest paths: Dijkstra",
+  "enunciado": "Given a weighted graph (0-1:4, 0-2:1, 2-1:2, 1-3:5, 2-3:8, 3-4:3, 4-5:2), run Dijkstra from 0 and show the minimum distance to each vertex together with the path.",
+  "objetivos": [
+    "Implement Dijkstra with a weight matrix",
+    "Understand edge relaxation"
+  ],
+  "pistas": [
+    "At each step pick the unvisited vertex with the smallest distance.",
+    "Relax: if dist[u] + w < dist[v], update dist[v] and its parent.",
+    "Use a large value as infinity and 0 in the matrix for 'no edge'."
+  ],
+  "conceptos": [
+    "Dijkstra",
+    "relaxation",
+    "greedy algorithm"
+  ]
+}

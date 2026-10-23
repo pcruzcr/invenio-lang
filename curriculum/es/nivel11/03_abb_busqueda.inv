@@ -1,0 +1,69 @@
+// Nivel 11 · Ejercicio 03 — Búsqueda, mínimo y máximo en un ABB
+// Objetivos:
+//   - Buscar en un ABB descartando un subárbol en cada paso
+//   - Relacionar la altura con el costo de búsqueda
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo izq;
+    publico Nodo der;
+    Nodo(entero v) { este.valor = v; }
+}
+
+// Inserción recursiva: devuelve la raíz (posiblemente nueva) del subárbol.
+Nodo insertar(Nodo r, entero v) {
+    si (r == nulo) {
+        retornar nuevo Nodo(v);
+    }
+    si (v < r.valor) {
+        r.izq = insertar(r.izq, v);
+    } sino {
+        si (v > r.valor) {
+            r.der = insertar(r.der, v);
+        }
+    }
+    retornar r;
+}
+
+vacio inorden(Nodo r) {
+    si (r != nulo) {
+        inorden(r.izq);
+        imprimir(r.valor); imprimir(" ");
+        inorden(r.der);
+    }
+}
+
+logico buscar(Nodo r, entero v) {
+    Nodo actual = r;
+    imprimir("path:");
+    mientras (actual != nulo) {
+        imprimir(" "); imprimir(actual.valor);
+        si (v == actual.valor) {
+            imprimir("\n");
+            retornar verdadero;
+        }
+        si (v < actual.valor) {
+            actual = actual.izq;
+        } sino {
+            actual = actual.der;
+        }
+    }
+    imprimir(" (null)\n");
+    retornar falso;
+}
+
+vacio main() {
+    entero [9] datos = {8, 3, 10, 1, 6, 14, 4, 7, 13};
+    Nodo raiz = nulo;
+    para_cada (entero v : datos) {
+        raiz = insertar(raiz, v);
+    }
+    imprimir(buscar(raiz, 7)); imprimir("\n");
+    imprimir(buscar(raiz, 5)); imprimir("\n");
+    Nodo m = raiz;
+    mientras (m.izq != nulo) { m = m.izq; }
+    imprimir("min = "); imprimir(m.valor); imprimir("\n");
+    m = raiz;
+    mientras (m.der != nulo) { m = m.der; }
+    imprimir("max = "); imprimir(m.valor); imprimir("\n");
+}

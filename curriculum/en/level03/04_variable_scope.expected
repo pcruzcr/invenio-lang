@@ -1,0 +1,4 @@
+calls = 3
+local x = 2
+square(3) = 9
+global x = 100

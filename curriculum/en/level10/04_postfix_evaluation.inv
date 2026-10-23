@@ -1,0 +1,50 @@
+// Level 10 · Exercise 04 — Evaluating postfix expressions
+// Learning goals:
+//   - Evaluate parenthesis-free expressions with a stack
+//   - Respect operand order when popping
+//
+const int CAP = 16;
+int [CAP] stack;
+int top = -1;
+
+void push(int v) { top++; stack[top] = v; }
+int pop() { int v = stack[top]; top--; return v; }
+
+void showStack() {
+    print("  [");
+    for (int i = 0; i <= top; i++) {
+        print(" "); print(stack[i]);
+    }
+    print(" ]\n");
+}
+
+int evalPostfix(string [] tokens, int n, bool trace) {
+    top = -1;
+    for (int i = 0; i < n; i++) {
+        string tok = tokens[i];
+        if (tok == "+" || tok == "-" || tok == "*" || tok == "/") {
+            int b = pop();   // the second operand comes out first
+            int a = pop();
+            switch (tok) {
+                case "+": push(a + b); break;
+                case "-": push(a - b); break;
+                case "*": push(a * b); break;
+                case "/": push(a / b); break;
+            }
+        } else {
+            push(string_to_int(tok));
+        }
+        if (trace) {
+            print(tok); showStack();
+        }
+    }
+    return pop();
+}
+
+void main() {
+    string [5] e1 = {"3", "4", "+", "2", "*"};
+    print(evalPostfix(e1, 5, false)); print("\n");
+    string [9] e2 = {"5", "1", "2", "+", "4", "*", "+", "3", "-"};
+    int r = evalPostfix(e2, 9, true);
+    print("= "); print(r); print("\n");
+}

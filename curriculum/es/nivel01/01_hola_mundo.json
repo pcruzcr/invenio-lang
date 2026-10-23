@@ -1,0 +1,22 @@
+{
+  "id": "N01-E01",
+  "nivel": 1,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Hola, mundo",
+  "enunciado": "Escribe un programa que muestre dos líneas: «Hola, mundo» y «InvenioLang». Cada imprimir escribe exactamente lo que recibe; el salto de línea se escribe con \"\\n\".",
+  "objetivos": [
+    "Conocer la estructura mínima de un programa (vacio main)",
+    "Usar imprimir y el salto de línea \\n"
+  ],
+  "pistas": [
+    "Todo programa empieza a ejecutarse en main.",
+    "imprimir(\"texto\") no agrega salto de línea por sí solo.",
+    "Agrega imprimir(\"\\n\") o incluye \\n dentro del texto."
+  ],
+  "conceptos": [
+    "programa",
+    "main",
+    "salida"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "N09-E04",
+  "nivel": 9,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Interfaces",
+  "enunciado": "Define the interfaces Flyer (fly()) and Swimmer (swim()). Duck implements both, Plane only Flyer and Fish only Swimmer. Go through an array of Flyer and another of Swimmer.",
+  "objetivos": [
+    "Declare and implement interfaces",
+    "Implement several interfaces in one class",
+    "Group objects by capability, not by inheritance"
+  ],
+  "pistas": [
+    "An interface only declares abstract methods.",
+    "class Duck implements Flyer, Swimmer { ... }",
+    "A Duck can be stored both in a Flyer array and in a Swimmer array."
+  ],
+  "conceptos": [
+    "interface",
+    "implements",
+    "capability"
+  ]
+}

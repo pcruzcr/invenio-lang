@@ -1,0 +1,53 @@
+// Nivel 10 · Ejercicio 02 — Pila enlazada
+// Objetivos:
+//   - Implementar una pila con nodos enlazados
+//   - Usar una pila para invertir secuencias
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo siguiente;
+    Nodo(entero v) { este.valor = v; }
+}
+
+clase PilaEnlazada {
+    privado Nodo cabeza;
+    privado entero tam;
+
+    publico vacio apilar(entero v) {
+        Nodo n = nuevo Nodo(v);
+        n.siguiente = este.cabeza;   // el nuevo nodo apunta al antiguo tope
+        este.cabeza = n;
+        este.tam = este.tam + 1;
+    }
+
+    publico entero desapilar() {
+        Nodo n = este.cabeza;
+        este.cabeza = n.siguiente;
+        este.tam = este.tam - 1;
+        retornar n.valor;
+    }
+
+    publico logico estaVacia() { retornar este.cabeza == nulo; }
+    publico entero tamano() { retornar este.tam; }
+}
+
+vacio main() {
+    PilaEnlazada p = nuevo PilaEnlazada();
+    para (entero i = 1; i <= 6; i++) {
+        p.apilar(i);
+    }
+    imprimir("size = "); imprimir(p.tamano()); imprimir("\n");
+    mientras (!p.estaVacia()) {
+        imprimir(p.desapilar()); imprimir(" ");
+    }
+    imprimir("\n");
+    entero n = 156;
+    mientras (n > 0) {
+        p.apilar(n % 2);
+        n = n / 2;
+    }
+    mientras (!p.estaVacia()) {
+        imprimir(p.desapilar());
+    }
+    imprimir("\n");
+}

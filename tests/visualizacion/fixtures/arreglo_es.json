@@ -1,0 +1,606 @@
+{
+ "version": 1,
+ "idioma": "es",
+ "fuente": "vacio main() {\n    entero [4] a = {5, 1, 4, 2};\n    para (entero i = 0; i < 3; i++) {\n        para (entero j = 0; j < 3 - i; j++) {\n            si (a[j] > a[j + 1]) {\n                entero tmp = a[j];\n                a[j] = a[j + 1];\n                a[j + 1] = tmp;\n            }\n        }\n    }\n    imprimir(a[0]); imprimir(\"\\n\");\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 2,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 2,
+     "variables": {
+      "a": {
+       "tipo": "entero[4]",
+       "valor": {
+        "t": "ref",
+        "id": 1
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "1": {
+     "id": 1,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 5
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 1
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 4
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 2
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      0
+     ],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      1
+     ],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      2
+     ],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      3
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arreglo",
+     "raiz": 1,
+     "etiqueta": "a",
+     "nodos": [
+      1
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 5,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 5,
+     "variables": {
+      "a": {
+       "tipo": "entero[4]",
+       "valor": {
+        "t": "ref",
+        "id": 1
+       }
+      },
+      "i": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      },
+      "j": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "1": {
+     "id": 1,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 5
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 1
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 4
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 2
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "j",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "lee",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      0
+     ],
+     "campo": null
+    },
+    {
+     "op": "lee",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      1
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arreglo",
+     "raiz": 1,
+     "etiqueta": "a",
+     "nodos": [
+      1
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "linea": 6,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 6,
+     "variables": {
+      "a": {
+       "tipo": "entero[4]",
+       "valor": {
+        "t": "ref",
+        "id": 1
+       }
+      },
+      "i": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      },
+      "j": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      },
+      "tmp": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 5
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "1": {
+     "id": 1,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 5
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 1
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 4
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 2
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      0
+     ],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "tmp",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arreglo",
+     "raiz": 1,
+     "etiqueta": "a",
+     "nodos": [
+      1
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "a": {
+       "tipo": "entero[4]",
+       "valor": {
+        "t": "ref",
+        "id": 1
+       }
+      },
+      "i": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      },
+      "j": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      },
+      "tmp": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 5
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "1": {
+     "id": 1,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 1
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 1
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 4
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 2
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      1
+     ],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      0
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arreglo",
+     "raiz": 1,
+     "etiqueta": "a",
+     "nodos": [
+      1
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "linea": 8,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 8,
+     "variables": {
+      "a": {
+       "tipo": "entero[4]",
+       "valor": {
+        "t": "ref",
+        "id": 1
+       }
+      },
+      "i": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      },
+      "j": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      },
+      "tmp": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 5
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "1": {
+     "id": 1,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 1
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 5
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 4
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 2
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "tmp",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      1
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arreglo",
+     "raiz": 1,
+     "etiqueta": "a",
+     "nodos": [
+      1
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "linea": 12,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 12,
+     "variables": {
+      "a": {
+       "tipo": "entero[4]",
+       "valor": {
+        "t": "ref",
+        "id": 1
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "1": {
+     "id": 1,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 1
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 2
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 4
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 5
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "a",
+     "nodo": 1,
+     "indices": [
+      0
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [
+    "1"
+   ],
+   "estructuras": [
+    {
+     "forma": "arreglo",
+     "raiz": 1,
+     "etiqueta": "a",
+     "nodos": [
+      1
+     ],
+     "aristas": []
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "1"
+ ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N04-E02",
+  "nivel": 4,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Suma, promedio y valores sobre el promedio",
+  "enunciado": "Lee 6 notas reales en un arreglo, calcula la suma y el promedio y muestra cuántas y cuáles notas quedan por encima del promedio.",
+  "objetivos": [
+    "Llenar un arreglo con datos leídos",
+    "Recorrer dos veces: una para calcular y otra para comparar"
+  ],
+  "pistas": [
+    "No puedes saber qué notas superan el promedio hasta haberlas leído todas.",
+    "Por eso las guardas en un arreglo.",
+    "Segundo recorrido: compara cada nota con el promedio."
+  ],
+  "conceptos": [
+    "arreglo",
+    "acumulador",
+    "dos pasadas"
+  ]
+}

@@ -1,0 +1,46 @@
+// Nivel 13 · Ejercicio 05 — Mejor, peor y caso promedio: inserción
+// Objetivos:
+//   - Distinguir mejor, peor y caso promedio
+//   - Ver que un mismo algoritmo puede ser O(n) u O(n²) según la entrada
+//
+// Generador pseudoaleatorio congruencial lineal: siempre la misma secuencia,
+// para que la salida sea reproducible.
+entero semilla = 7;
+
+entero aleatorio(entero limite) {
+    semilla = (semilla * 1103 + 12345) % 65536;
+    retornar semilla % limite;
+}
+
+constante entero N = 40;
+
+entero compInsercion(entero [] a, entero n) {
+    entero c = 0;
+    para (entero i = 1; i < n; i++) {
+        entero clave = a[i];
+        entero j = i - 1;
+        logico seguir = verdadero;
+        mientras (j >= 0 && seguir) {
+            c++;
+            si (a[j] > clave) {
+                a[j + 1] = a[j];
+                j--;
+            } sino {
+                seguir = falso;
+            }
+        }
+        a[j + 1] = clave;
+    }
+    retornar c;
+}
+
+vacio main() {
+    entero [N] a;
+    para (entero i = 0; i < N; i++) { a[i] = i; }
+    imprimir("sorted:   "); imprimir(compInsercion(a, N)); imprimir("\n");
+    para (entero i = 0; i < N; i++) { a[i] = N - i; }
+    imprimir("reversed: "); imprimir(compInsercion(a, N)); imprimir("\n");
+    para (entero i = 0; i < N; i++) { a[i] = aleatorio(1000); }
+    imprimir("random:   "); imprimir(compInsercion(a, N)); imprimir("\n");
+    imprimir("n-1 = "); imprimir(N - 1); imprimir(", n(n-1)/2 = "); imprimir(N * (N - 1) / 2); imprimir("\n");
+}

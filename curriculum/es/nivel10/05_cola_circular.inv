@@ -1,0 +1,46 @@
+// Nivel 10 · Ejercicio 05 — Cola circular con arreglo
+// Objetivos:
+//   - Entender la política FIFO (primero en entrar, primero en salir)
+//   - Reutilizar el espacio de un arreglo con aritmética modular
+//
+constante entero CAP = 4;
+entero [CAP] cola;
+entero frente = 0;
+entero cantidad = 0;
+
+logico encolar(entero v) {
+    si (cantidad == CAP) {
+        retornar falso;
+    }
+    cola[(frente + cantidad) % CAP] = v;   // da la vuelta al llegar al final
+    cantidad++;
+    retornar verdadero;
+}
+
+entero desencolar() {
+    entero v = cola[frente];
+    frente = (frente + 1) % CAP;
+    cantidad--;
+    retornar v;
+}
+
+vacio intentar_encolar(entero v) {
+    si (!encolar(v)) {
+        imprimir("full: "); imprimir(v); imprimir("\n");
+    }
+}
+
+vacio main() {
+    intentar_encolar(1);
+    intentar_encolar(2);
+    intentar_encolar(3);
+    imprimir("out "); imprimir(desencolar()); imprimir("\n");
+    imprimir("out "); imprimir(desencolar()); imprimir("\n");
+    intentar_encolar(4);
+    intentar_encolar(5);
+    intentar_encolar(6);
+    intentar_encolar(7);
+    mientras (cantidad > 0) {
+        imprimir("front="); imprimir(frente); imprimir(" out "); imprimir(desencolar()); imprimir("\n");
+    }
+}

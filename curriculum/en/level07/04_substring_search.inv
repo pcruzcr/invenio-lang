@@ -1,0 +1,31 @@
+// Level 7 · Exercise 04 — Substring search
+// Learning goals:
+//   - Compare a pattern at every possible position
+//   - Find overlapping occurrences
+//
+int findSubstring(string txt, string pattern, int from) {
+    int n = text_length(txt);
+    int m = text_length(pattern);
+    for (int i = from; i <= n - m; i++) {
+        int j = 0;
+        while (j < m && char_at(txt, i + j) == char_at(pattern, j)) {
+            j++;
+        }
+        if (j == m) {
+            return i;   // all characters matched
+        }
+    }
+    return -1;
+}
+
+void main() {
+    string txt = "bananas y ananas";
+    string pattern = "ana";
+    int p = findSubstring(txt, pattern, 0);
+    while (p != -1) {
+        print(p); print(" ");
+        p = findSubstring(txt, pattern, p + 1);
+    }
+    print("\n");
+    print(index_of(txt, pattern)); print("\n");
+}

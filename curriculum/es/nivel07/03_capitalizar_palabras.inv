@@ -1,0 +1,31 @@
+// Nivel 7 · Ejercicio 03 — Capitalizar palabras
+// Objetivos:
+//   - Detectar inicio y fin de palabras
+//   - Usar una bandera de estado (dentro/fuera de palabra)
+//
+vacio main() {
+    texto s = "  hola   mundo de  invenio ";
+    texto r = "";
+    logico enPalabra = falso;
+    entero palabras = 0;
+    para (entero i = 0; i < longitud_texto(s); i++) {
+        texto c = caracter_en(s, i);
+        si (c == " ") {
+            enPalabra = falso;
+        } sino {
+            si (!enPalabra) {
+                // Inicio de palabra: separador (si no es la primera) y mayúscula.
+                si (palabras > 0) {
+                    r = r + " ";
+                }
+                r = r + mayusculas(c);
+                palabras++;
+                enPalabra = verdadero;
+            } sino {
+                r = r + c;
+            }
+        }
+    }
+    imprimir("["); imprimir(r); imprimir("]\n");
+    imprimir("words = "); imprimir(palabras); imprimir("\n");
+}

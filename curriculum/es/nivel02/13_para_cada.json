@@ -1,0 +1,21 @@
+{
+  "id": "N02-E13",
+  "nivel": 2,
+  "numero": 13,
+  "idioma": "es",
+  "titulo": "Recorrido con para_cada",
+  "enunciado": "Dado el arreglo de temperaturas {21, 25, 19, 30, 27, 18}, usa para_cada/foreach para mostrarlas, contar los días calurosos (>= 25) y calcular la suma.",
+  "objetivos": [
+    "Recorrer una colección sin manejar índices",
+    "Saber cuándo conviene para y cuándo para_cada"
+  ],
+  "pistas": [
+    "para_cada (entero t : temps) visita cada elemento en orden.",
+    "No necesitas la posición, solo el valor.",
+    "Si necesitaras el índice, usarías un para clásico."
+  ],
+  "conceptos": [
+    "para_cada",
+    "recorrido"
+  ]
+}

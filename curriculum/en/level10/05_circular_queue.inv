@@ -1,0 +1,46 @@
+// Level 10 · Exercise 05 — Circular array queue
+// Learning goals:
+//   - Understand the FIFO policy (first in, first out)
+//   - Reuse array space with modular arithmetic
+//
+const int CAP = 4;
+int [CAP] queue;
+int front = 0;
+int count = 0;
+
+bool enqueue(int v) {
+    if (count == CAP) {
+        return false;
+    }
+    queue[(front + count) % CAP] = v;   // wraps around at the end
+    count++;
+    return true;
+}
+
+int dequeue() {
+    int v = queue[front];
+    front = (front + 1) % CAP;
+    count--;
+    return v;
+}
+
+void tryEnqueue(int v) {
+    if (!enqueue(v)) {
+        print("full: "); print(v); print("\n");
+    }
+}
+
+void main() {
+    tryEnqueue(1);
+    tryEnqueue(2);
+    tryEnqueue(3);
+    print("out "); print(dequeue()); print("\n");
+    print("out "); print(dequeue()); print("\n");
+    tryEnqueue(4);
+    tryEnqueue(5);
+    tryEnqueue(6);
+    tryEnqueue(7);
+    while (count > 0) {
+        print("front="); print(front); print(" out "); print(dequeue()); print("\n");
+    }
+}

@@ -1,0 +1,18 @@
+// Nivel 2 · Ejercicio 01 — Par o impar
+// Objetivos:
+//   - Tomar decisiones con si / sino
+//   - Usar % para comprobar divisibilidad
+//
+vacio main() {
+    para (entero i = 0; i < 3; i++) {
+        entero n;
+        leer(n);
+        imprimir(n); imprimir(": ");
+        // Comparamos con 0: funciona también con negativos.
+        si (n % 2 == 0) {
+            imprimir("EVEN\n");
+        } sino {
+            imprimir("ODD\n");
+        }
+    }
+}

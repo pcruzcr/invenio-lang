@@ -1,0 +1,428 @@
+{
+ "version": 1,
+ "idioma": "en",
+ "fuente": "import \"structures/graph\";\n\nvoid main() {\n    Graph g = new Graph(false);\n    for (int i = 0; i < 4; i++) { g.add_vertex(); }\n    g.add_edge(0, 1, 7);\n    g.add_edge(0, 2, 9);\n    g.add_edge(1, 2, 10);\n    g.add_edge(2, 3, 2);\n    print(g.dfs(0));\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 11,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 11,
+     "variables": {
+      "g": {
+       "tipo": "Graph",
+       "valor": {
+        "t": "ref",
+        "id": 10
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Graph.dfs",
+     "linea": 120,
+     "variables": {
+      "this": {
+       "tipo": "Graph",
+       "valor": {
+        "t": "ref",
+        "id": 10
+       }
+      },
+      "source": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 0
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "200": {
+     "id": 200,
+     "tipo": "objeto",
+     "clase": "VertexNode",
+     "elementos": [],
+     "campos": {
+      "id": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      },
+      "visited": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": true
+      },
+      "distance": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      }
+     }
+    },
+    "201": {
+     "id": 201,
+     "tipo": "objeto",
+     "clase": "VertexNode",
+     "elementos": [],
+     "campos": {
+      "id": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 1
+      },
+      "visited": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": true
+      },
+      "distance": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      }
+     }
+    },
+    "202": {
+     "id": 202,
+     "tipo": "objeto",
+     "clase": "VertexNode",
+     "elementos": [],
+     "campos": {
+      "id": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 2
+      },
+      "visited": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": false
+      },
+      "distance": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      }
+     }
+    },
+    "203": {
+     "id": 203,
+     "tipo": "objeto",
+     "clase": "VertexNode",
+     "elementos": [],
+     "campos": {
+      "id": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 3
+      },
+      "visited": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": false
+      },
+      "distance": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      }
+     }
+    },
+    "10": {
+     "id": 10,
+     "tipo": "objeto",
+     "clase": "Graph",
+     "elementos": [],
+     "campos": {
+      "directed": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": false
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 4
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": null,
+     "nodo": 201,
+     "indices": [],
+     "campo": "visited"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 201,
+     "indices": [],
+     "campo": "visited"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "grafo",
+     "raiz": 10,
+     "etiqueta": "g",
+     "nodos": [
+      200,
+      201,
+      202,
+      203
+     ],
+     "aristas": [
+      [
+       200,
+       201,
+       "7"
+      ],
+      [
+       201,
+       200,
+       "7"
+      ],
+      [
+       200,
+       202,
+       "9"
+      ],
+      [
+       202,
+       200,
+       "9"
+      ],
+      [
+       201,
+       202,
+       "10"
+      ],
+      [
+       202,
+       201,
+       "10"
+      ],
+      [
+       202,
+       203,
+       "2"
+      ],
+      [
+       203,
+       202,
+       "2"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 11,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 11,
+     "variables": {
+      "g": {
+       "tipo": "Graph",
+       "valor": {
+        "t": "ref",
+        "id": 10
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "200": {
+     "id": 200,
+     "tipo": "objeto",
+     "clase": "VertexNode",
+     "elementos": [],
+     "campos": {
+      "id": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      },
+      "visited": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": true
+      },
+      "distance": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      }
+     }
+    },
+    "201": {
+     "id": 201,
+     "tipo": "objeto",
+     "clase": "VertexNode",
+     "elementos": [],
+     "campos": {
+      "id": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 1
+      },
+      "visited": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": true
+      },
+      "distance": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      }
+     }
+    },
+    "202": {
+     "id": 202,
+     "tipo": "objeto",
+     "clase": "VertexNode",
+     "elementos": [],
+     "campos": {
+      "id": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 2
+      },
+      "visited": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": false
+      },
+      "distance": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      }
+     }
+    },
+    "203": {
+     "id": 203,
+     "tipo": "objeto",
+     "clase": "VertexNode",
+     "elementos": [],
+     "campos": {
+      "id": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 3
+      },
+      "visited": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": false
+      },
+      "distance": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 0
+      }
+     }
+    },
+    "10": {
+     "id": 10,
+     "tipo": "objeto",
+     "clase": "Graph",
+     "elementos": [],
+     "campos": {
+      "directed": {
+       "t": "escalar",
+       "tipo": "bool",
+       "v": false
+      },
+      "count": {
+       "t": "escalar",
+       "tipo": "int",
+       "v": 4
+      }
+     }
+    }
+   },
+   "accesos": [],
+   "salida_nueva": [
+    "0 1 2 3"
+   ],
+   "estructuras": [
+    {
+     "forma": "grafo",
+     "raiz": 10,
+     "etiqueta": "g",
+     "nodos": [
+      200,
+      201,
+      202,
+      203
+     ],
+     "aristas": [
+      [
+       200,
+       201,
+       "7"
+      ],
+      [
+       201,
+       200,
+       "7"
+      ],
+      [
+       200,
+       202,
+       "9"
+      ],
+      [
+       202,
+       200,
+       "9"
+      ],
+      [
+       201,
+       202,
+       "10"
+      ],
+      [
+       202,
+       201,
+       "10"
+      ],
+      [
+       202,
+       203,
+       "2"
+      ],
+      [
+       203,
+       202,
+       "2"
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "0 1 2 3"
+ ]
+}

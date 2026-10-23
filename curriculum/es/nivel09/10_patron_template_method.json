@@ -1,0 +1,21 @@
+{
+  "id": "N09-E10",
+  "nivel": 9,
+  "numero": 10,
+  "idioma": "es",
+  "titulo": "Patrón Template Method",
+  "enunciado": "La clase abstracta Bebida define preparar() con pasos fijos (hervir agua, infusionar, servir) y pasos que cada subclase personaliza (infusionar, agregarExtras). Implementa Cafe y Te y prepara ambos.",
+  "objetivos": [
+    "Fijar el esqueleto de un algoritmo en la clase padre",
+    "Dejar que las subclases rellenen los pasos variables"
+  ],
+  "pistas": [
+    "preparar() llama a los demás métodos en orden.",
+    "Los pasos comunes se implementan una sola vez en Bebida.",
+    "agregarExtras puede tener una versión por defecto que no hace nada."
+  ],
+  "conceptos": [
+    "Template Method",
+    "gancho"
+  ]
+}

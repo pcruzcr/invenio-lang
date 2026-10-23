@@ -1,0 +1,22 @@
+{
+  "id": "N12-E07",
+  "nivel": 12,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Caminos mínimos con pesos: Dijkstra",
+  "enunciado": "Dado un grafo con pesos (0-1:4, 0-2:1, 2-1:2, 1-3:5, 2-3:8, 3-4:3, 4-5:2), aplica Dijkstra desde 0 y muestra la distancia mínima a cada vértice junto con el camino.",
+  "objetivos": [
+    "Implementar Dijkstra con matriz de pesos",
+    "Entender la relajación de aristas"
+  ],
+  "pistas": [
+    "En cada paso elige el vértice no visitado con menor distancia.",
+    "Relajar: si dist[u] + w < dist[v], actualiza dist[v] y su padre.",
+    "Usa un valor grande como infinito y 0 en la matriz para 'sin arista'."
+  ],
+  "conceptos": [
+    "Dijkstra",
+    "relajación",
+    "algoritmo voraz"
+  ]
+}

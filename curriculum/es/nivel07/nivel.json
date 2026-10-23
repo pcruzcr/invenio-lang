@@ -1,0 +1,15 @@
+{
+  "nivel": 7,
+  "titulo": "Cadenas de caracteres",
+  "descripcion": "Procesar texto carácter a carácter: contar, buscar, transformar, cifrar y comprimir cadenas.",
+  "temas": [
+    "recorrido carácter a carácter",
+    "búsqueda de subcadenas",
+    "transformaciones (mayúsculas, inversión)",
+    "palabras y separadores",
+    "cifrado César",
+    "conversión número-texto",
+    "compresión RLE"
+  ],
+  "idioma": "es"
+}

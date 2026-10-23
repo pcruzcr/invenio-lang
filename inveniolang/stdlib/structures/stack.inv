@@ -1,0 +1,77 @@
+// structures/stack.inv -- Stack (LIFO: last in, first out)
+//
+// InvenioLang educational standard library (INV-1430).
+// Usage:   import "structures/stack";
+//
+// Idea: each element is stored in a node that points to the node below it.
+// The stack only remembers the TOP; push and pop always work there, which
+// is why both operations cost O(1) no matter how many elements there are.
+//
+//      top -> [ 3 ] -> [ 2 ] -> [ 1 ] -> null
+
+// A stack node: a value and the link to the node underneath.
+class StackNode {
+    public int value;
+    public StackNode below;
+
+    StackNode(int v, StackNode next) {
+        this.value = v;
+        this.below = next;
+    }
+}
+
+class Stack {
+    private StackNode top;
+    private int count;
+
+    // Puts v on top of all the others. O(1).
+    public void push(int v) {
+        this.top = new StackNode(v, this.top);
+        this.count = this.count + 1;
+    }
+
+    // Removes and returns the top element. O(1).
+    // Error IL-EJE-060 if the stack is empty.
+    public int pop() {
+        if (this.top == null) {
+            throw_error("pop: the stack is empty");
+        }
+        // InvenioLang accesses members one level at a time (a.b, not a.b.c):
+        // the top node is stored in a variable first.
+        StackNode top_node = this.top;
+        this.top = top_node.below;
+        this.count = this.count - 1;
+        return top_node.value;
+    }
+
+    // Returns the top WITHOUT removing it. O(1).
+    public int peek() {
+        if (this.top == null) {
+            throw_error("peek: the stack is empty");
+        }
+        StackNode top_node = this.top;
+        return top_node.value;
+    }
+
+    public bool is_empty() {
+        return this.top == null;
+    }
+
+    public int size() {
+        return this.count;
+    }
+
+    // From the top to the bottom, e.g. "[3, 2, 1]".
+    public string to_text() {
+        string s = "[";
+        StackNode current = this.top;
+        while (current != null) {
+            s = s + int_to_string(current.value);
+            if (current.below != null) {
+                s = s + ", ";
+            }
+            current = current.below;
+        }
+        return s + "]";
+    }
+}

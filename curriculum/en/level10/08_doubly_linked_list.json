@@ -1,0 +1,21 @@
+{
+  "id": "N10-E08",
+  "nivel": 10,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Doubly linked list",
+  "enunciado": "Implement DoublyLinkedList with head and tail references, nodes with previous and next, pushBack, remove(v) and forward and backward traversals. Remove a middle node, the head and the tail, showing both traversals.",
+  "objetivos": [
+    "Maintain links in both directions",
+    "Remove in O(1) once the node is known"
+  ],
+  "pistas": [
+    "Each node points to its previous and its next.",
+    "When removing adjust two links: previous.next and next.previous.",
+    "If the node is the head or the tail, update those references too."
+  ],
+  "conceptos": [
+    "doubly linked list",
+    "backward traversal"
+  ]
+}

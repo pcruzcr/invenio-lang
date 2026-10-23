@@ -1,0 +1,21 @@
+{
+  "id": "N04-E11",
+  "nivel": 4,
+  "numero": 11,
+  "idioma": "en",
+  "titulo": "Prefix sums",
+  "enunciado": "Compute the prefix-sum array of {5, 2, 8, 1, 9, 3, 7} (prefix[i] = sum of a[0..i-1], with prefix[0] = 0) and use it to answer the sum of the ranges [1, 3], [0, 6] and [4, 5] with a single subtraction each.",
+  "objetivos": [
+    "Precompute to answer queries fast",
+    "Reason with shifted indexes"
+  ],
+  "pistas": [
+    "prefix has n + 1 positions.",
+    "prefix[i + 1] = prefix[i] + a[i].",
+    "sum(i..j) = prefix[j + 1] - prefix[i]."
+  ],
+  "conceptos": [
+    "prefix sum",
+    "precomputation"
+  ]
+}

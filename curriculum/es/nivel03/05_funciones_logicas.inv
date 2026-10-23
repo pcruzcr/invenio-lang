@@ -1,0 +1,23 @@
+// Nivel 3 · Ejercicio 05 — Funciones lógicas
+// Objetivos:
+//   - Escribir funciones que retornan logico
+//   - Traducir una regla del lenguaje natural a una expresión lógica
+//
+// La regla completa cabe en una sola expresión lógica.
+logico esBisiesto(entero anio) {
+    retornar (anio % 4 == 0 && anio % 100 != 0) || anio % 400 == 0;
+}
+
+vacio main() {
+    entero [4] anios = {1900, 2000, 2024, 2026};
+    para_cada (entero a : anios) {
+        imprimir(a); imprimir(": "); imprimir(esBisiesto(a)); imprimir("\n");
+    }
+    entero cuenta = 0;
+    para (entero a = 1901; a <= 2000; a++) {
+        si (esBisiesto(a)) {
+            cuenta++;
+        }
+    }
+    imprimir("leap years 1901-2000: "); imprimir(cuenta); imprimir("\n");
+}

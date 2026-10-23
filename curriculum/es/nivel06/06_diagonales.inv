@@ -1,0 +1,31 @@
+// Nivel 6 · Ejercicio 06 — Diagonales
+// Objetivos:
+//   - Recorrer diagonales con un solo ciclo
+//   - Describir regiones de la matriz con condiciones sobre i y j
+//
+constante entero N = 4;
+
+vacio main() {
+    entero [N][N] m;
+    para (entero i = 0; i < N; i++) {
+        para (entero j = 0; j < N; j++) {
+            m[i][j] = i * N + j;
+        }
+    }
+    entero diagPrincipal = 0;
+    entero diagSecundaria = 0;
+    para (entero i = 0; i < N; i++) {
+        // En la diagonal principal fila == columna; en la secundaria fila + columna == N - 1.
+        diagPrincipal += m[i][i];
+        diagSecundaria += m[i][N - 1 - i];
+    }
+    entero sobre = 0;
+    para (entero i = 0; i < N; i++) {
+        para (entero j = i + 1; j < N; j++) {
+            sobre += m[i][j];
+        }
+    }
+    imprimir("main = "); imprimir(diagPrincipal); imprimir("\n");
+    imprimir("anti = "); imprimir(diagSecundaria); imprimir("\n");
+    imprimir("upper = "); imprimir(sobre); imprimir("\n");
+}

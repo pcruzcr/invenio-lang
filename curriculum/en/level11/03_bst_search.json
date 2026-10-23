@@ -1,0 +1,22 @@
+{
+  "id": "N11-E03",
+  "nivel": 11,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Search, minimum and maximum in a BST",
+  "enunciado": "In the BST of 8, 3, 10, 1, 6, 14, 4, 7, 13 search for 7 and 5 showing the path followed, and find the minimum and maximum by going only left or only right.",
+  "objetivos": [
+    "Search a BST discarding a subtree at each step",
+    "Relate height to search cost"
+  ],
+  "pistas": [
+    "Compare with the root and go down one side only.",
+    "The minimum is the leftmost node.",
+    "The cost is proportional to the height, not to the number of nodes."
+  ],
+  "conceptos": [
+    "BST search",
+    "path",
+    "O(h)"
+  ]
+}

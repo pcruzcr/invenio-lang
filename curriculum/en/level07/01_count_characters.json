@@ -1,0 +1,21 @@
+{
+  "id": "N07-E01",
+  "nivel": 7,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Count vowels, consonants and spaces",
+  "enunciado": "Go through the sentence \"El codigo es poesia\" character by character and count vowels, consonants and spaces. Use index_of on reference strings to classify each character.",
+  "objetivos": [
+    "Traverse a string with char_at",
+    "Classify characters with a reference string"
+  ],
+  "pistas": [
+    "Convert the sentence to lower case first to avoid duplicate cases.",
+    "index_of(\"aeiou\", c) >= 0 means c is a vowel.",
+    "Consonants are letters that are not vowels."
+  ],
+  "conceptos": [
+    "string traversal",
+    "classification"
+  ]
+}

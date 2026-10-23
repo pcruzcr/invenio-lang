@@ -1,0 +1,24 @@
+{
+  "id": "N08-E08",
+  "nivel": 8,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "References, null and equality",
+  "enunciado": "Show that two variables can refer to the same object (aliasing), that == compares identity unless the class defines equals, and how to use null safely with != and ??.",
+  "objetivos": [
+    "Understand that a class variable holds a reference",
+    "Define value equality with equals",
+    "Avoid null reference errors"
+  ],
+  "pistas": [
+    "Assigning an object to another variable does NOT copy it.",
+    "Without equals, two objects with the same data are different for ==.",
+    "Before using a reference that may be null, compare it with null."
+  ],
+  "conceptos": [
+    "reference",
+    "aliasing",
+    "null",
+    "equality"
+  ]
+}

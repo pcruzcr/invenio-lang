@@ -1,0 +1,35 @@
+// Level 3 · Exercise 07 — Fibonacci: recursive and iterative
+// Learning goals:
+//   - Write a recursion with two calls
+//   - See why naive recursion repeats work
+//
+int calls = 0;
+
+int fib(int n) {
+    calls++;
+    if (n < 2) {
+        return n;
+    }
+    return fib(n - 1) + fib(n - 2);
+}
+
+int fibIter(int n) {
+    int a = 0;   // fib(i)
+    int b = 1;   // fib(i + 1)
+    for (int i = 0; i < n; i++) {
+        int newTerm = a + b;
+        a = b;
+        b = newTerm;
+    }
+    return a;
+}
+
+void main() {
+    for (int i = 0; i < 15; i++) {
+        print(fibIter(i)); print(" ");
+    }
+    print("\n");
+    print(fib(20)); print(" == "); print(fibIter(20)); print("\n");
+    // The recursive version recomputes the same values a huge number of times.
+    print("calls = "); print(calls); print("\n");
+}

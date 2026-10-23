@@ -1,0 +1,72 @@
+// Level 11 · Exercise 10 — Hash table with chaining
+// Learning goals:
+//   - Resolve collisions with linked lists
+//   - Write a hash function for strings
+//   - Update the value if the key already exists
+//
+const int BUCKETS = 5;
+const string ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+
+class HashNode {
+    public string key;
+    public int value;
+    public HashNode next;
+    HashNode(string k, int v) { this.key = k; this.value = v; }
+}
+
+int hashText(string s) {
+    int sum = 0;
+    for (int i = 0; i < text_length(s); i++) {
+        sum += index_of(ALPHABET, char_at(s, i)) + 1;
+    }
+    return sum % BUCKETS;
+}
+
+void put(HashNode [] buckets, string k, int v) {
+    int b = hashText(k);
+    HashNode n = buckets[b];
+    while (n != null) {
+        if (n.key == k) {
+            n.value = v;   // the key existed: update
+            return;
+        }
+        n = n.next;
+    }
+    HashNode newNode = new HashNode(k, v);
+    newNode.next = buckets[b];
+    buckets[b] = newNode;
+}
+
+int get(HashNode [] buckets, string k) {
+    HashNode n = buckets[hashText(k)];
+    while (n != null) {
+        if (n.key == k) {
+            return n.value;
+        }
+        n = n.next;
+    }
+    return -1;
+}
+
+void main() {
+    HashNode buckets[BUCKETS];
+    for (int i = 0; i < BUCKETS; i++) {
+        buckets[i] = null;
+    }
+    string [6] names = {"ana", "luis", "eva", "juan", "sofi", "leo"};
+    int [6] ages = {20, 31, 18, 25, 22, 40};
+    for (int i = 0; i < 6; i++) {
+        put(buckets, names[i], ages[i]);
+    }
+    put(buckets, "eva", 19);
+    for (int b = 0; b < BUCKETS; b++) {
+        print(b); print(":");
+        HashNode n = buckets[b];
+        while (n != null) {
+            print(" "); print(n.key); print("="); print(n.value);
+            n = n.next;
+        }
+        print("\n");
+    }
+    print(get(buckets, "eva")); print(" "); print(get(buckets, "max")); print("\n");
+}

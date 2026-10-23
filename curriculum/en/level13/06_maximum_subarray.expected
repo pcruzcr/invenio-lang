@@ -1,0 +1,2 @@
+n=9 brute=6 (45 ops) kadane=6 (8 ops)
+n=200 brute=94 (20100 ops) kadane=94 (199 ops)

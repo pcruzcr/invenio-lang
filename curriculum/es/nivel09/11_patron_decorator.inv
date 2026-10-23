@@ -1,0 +1,44 @@
+// Nivel 9 · Ejercicio 11 — Patrón Decorator
+// Objetivos:
+//   - Agregar responsabilidades envolviendo objetos
+//   - Combinar decoradores en cualquier orden
+//
+abstracta clase Texto {
+    publico abstracto texto renderizar();
+}
+
+clase TextoSimple hereda Texto {
+    privado texto contenido;
+    TextoSimple(texto c) { este.contenido = c; }
+    publico texto renderizar() { retornar este.contenido; }
+}
+
+clase Negrita hereda Texto {
+    privado Texto envuelto;
+    Negrita(Texto t) { este.envuelto = t; }
+    publico texto renderizar() {
+        Texto t = este.envuelto;
+        retornar "*" + t.renderizar() + "*";
+    }
+}
+
+clase Subrayado hereda Texto {
+    privado Texto envuelto;
+    Subrayado(Texto t) { este.envuelto = t; }
+    publico texto renderizar() {
+        Texto t = este.envuelto;
+        retornar "_" + t.renderizar() + "_";
+    }
+}
+
+vacio main() {
+    Texto base = nuevo TextoSimple("hola");
+    Texto a = nuevo Negrita(base);
+    Texto b = nuevo Subrayado(a);
+    // Los decoradores se apilan: cada capa envuelve a la anterior.
+    Texto c = nuevo Negrita(nuevo Negrita(nuevo Subrayado(base)));
+    imprimir(base.renderizar()); imprimir("\n");
+    imprimir(a.renderizar()); imprimir("\n");
+    imprimir(b.renderizar()); imprimir("\n");
+    imprimir(c.renderizar()); imprimir("\n");
+}

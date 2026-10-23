@@ -1,0 +1,21 @@
+{
+  "id": "N03-E09",
+  "nivel": 3,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Greatest common divisor (Euclid)",
+  "enunciado": "Implement a recursive gcd(a, b) with Euclid's algorithm (gcd(a, 0) = a; gcd(a, b) = gcd(b, a % b)) and lcm(a, b) = a / gcd(a, b) * b. Show the results for (48, 18), (17, 5) and (100, 75), and simplify the fraction 84/126.",
+  "objetivos": [
+    "Translate a recursive mathematical definition into code",
+    "Reuse gcd to solve other problems"
+  ],
+  "pistas": [
+    "The second argument shrinks on every call.",
+    "Divide before multiplying in lcm to avoid overflow.",
+    "To simplify a/b divide both by gcd(a, b)."
+  ],
+  "conceptos": [
+    "Euclid's algorithm",
+    "recursion"
+  ]
+}

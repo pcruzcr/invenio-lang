@@ -1,0 +1,21 @@
+{
+  "id": "N01-E11",
+  "nivel": 1,
+  "numero": 11,
+  "idioma": "es",
+  "titulo": "Incremento y asignación compuesta",
+  "enunciado": "Parte de x = 10. Aplica en orden: x++, x += 5, x *= 2, x -= 4, x /= 3, x %= 5, x--. Muestra x después de cada paso.",
+  "objetivos": [
+    "Usar ++ y --",
+    "Usar += -= *= /= %="
+  ],
+  "pistas": [
+    "x += 5 equivale a x = x + 5.",
+    "x /= 3 con enteros es división entera.",
+    "Sigue los valores en papel antes de ejecutar."
+  ],
+  "conceptos": [
+    "incremento",
+    "asignación compuesta"
+  ]
+}

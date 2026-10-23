@@ -1,0 +1,21 @@
+{
+  "id": "N08-E05",
+  "nivel": 8,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Static members",
+  "enunciado": "Create the class Ticket where each object receives a consecutive id taken from a shared static counter. Add a static method created() that tells how many tickets exist. Create three tickets and show their ids and the total.",
+  "objetivos": [
+    "Tell instance attributes from class attributes",
+    "Access static members with ClassName.member"
+  ],
+  "pistas": [
+    "A static attribute exists only once, shared by all objects.",
+    "In the constructor: this.id = Ticket.nextId and then increment.",
+    "A static method cannot use this."
+  ],
+  "conceptos": [
+    "static",
+    "class attribute"
+  ]
+}

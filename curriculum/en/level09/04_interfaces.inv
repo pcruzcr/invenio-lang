@@ -1,0 +1,42 @@
+// Level 9 · Exercise 04 — Interfaces
+// Learning goals:
+//   - Declare and implement interfaces
+//   - Implement several interfaces in one class
+//   - Group objects by capability, not by inheritance
+//
+interface Flyer {
+    public abstract string fly();
+}
+
+interface Swimmer {
+    public abstract string swim();
+}
+
+class Duck implements Flyer, Swimmer {
+    public string fly() { return "duck flies low"; }
+    public string swim() { return "duck paddles"; }
+}
+
+class Plane implements Flyer {
+    public string fly() { return "plane flies high"; }
+}
+
+class Fish implements Swimmer {
+    public string swim() { return "fish dives"; }
+}
+
+void main() {
+    Duck duck = new Duck();
+    Flyer flyers[2];
+    flyers[0] = duck;
+    flyers[1] = new Plane();
+    Swimmer swimmers[2];
+    swimmers[0] = duck;   // the same duck, seen as a Swimmer
+    swimmers[1] = new Fish();
+    for (int i = 0; i < 2; i++) {
+        print(flyers[i].fly()); print("\n");
+    }
+    for (int i = 0; i < 2; i++) {
+        print(swimmers[i].swim()); print("\n");
+    }
+}

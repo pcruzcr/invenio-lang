@@ -1,0 +1,23 @@
+{
+  "id": "N02-E03",
+  "nivel": 2,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Selección múltiple con segun",
+  "enunciado": "Para los meses 1 a 12 muestra cuántos días tienen (año no bisiesto) usando segun/switch. Agrupa los casos que comparten resultado.",
+  "objetivos": [
+    "Usar segun / caso / por_defecto",
+    "Aprovechar casos agrupados (caída en cascada)",
+    "Terminar cada grupo con romper"
+  ],
+  "pistas": [
+    "Varios caso seguidos sin instrucciones comparten el mismo bloque.",
+    "Sin romper, la ejecución sigue con el caso siguiente.",
+    "Febrero es el único mes con 28 días."
+  ],
+  "conceptos": [
+    "segun",
+    "caída en cascada",
+    "romper"
+  ]
+}

@@ -1,0 +1,132 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      # INV-4413: las pruebas del estudio web y de la extensión VS Code se
+      # ejecutan con `node --test`; las de la GUI Qt sin pantalla.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      - name: Calidad de código — flake8 (PEP 8, bloqueante)
+        run: |
+          pip install flake8
+          flake8 inveniolang/
+      - name: Tipos estáticos — mypy (bloqueante)
+        run: |
+          pip install mypy
+          mypy inveniolang --config-file mypy.ini
+      - name: Conformidad 1.0 + 2.0 + 11 (408 casos)
+        run: python pruebas/conformidad.py
+      - name: Lexer 28 casos
+        run: python test_lexer_errors.py
+      - name: Audit general
+        run: python _audit.py <<< ""
+      # INV-1204: todos los niveles, versión es y en, con comparación es==en;
+      # el runner sale con código != 0 si cualquier ejercicio falla.
+      - name: Curriculum (13 niveles, es + en)
+        run: python curriculum/runner.py todos --version ambas
+      - name: CLI flags smoke
+        run: |
+          python main.py --check pruebas/hola_mundo.inv
+          python main.py --tokens pruebas/hola_mundo.inv > /dev/null
+          python main.py --ast pruebas/hola_mundo.inv > /dev/null
+          python main.py --ir pruebas/hola_mundo.inv > /dev/null
+          python main.py --check pruebas/estructurado.inv
+          python main.py --check pruebas/poo_completo.inv
+      - name: Coverage (>80% bloqueante)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          pip install pytest-cov
+          pytest --cov=inveniolang --cov-report=term-missing --cov-fail-under=80 -q
+      # INV-1033: se quitaron pasos que no verificaban nada (`sandbox --help ||
+      # echo ok`, "Mutation smoke" que solo hacía echo, import de ds_visualizer).
+      - name: Herramientas documentadas
+        run: |
+          python -m inveniolang.grammar_validator
+          python main.py --cli --complejidad pruebas/mergesort.inv
+          python main.py --cli --ssa pruebas/ciclos.inv > /dev/null
+          python -m inveniolang.cli trazar pruebas/ciclos.inv --texto > /dev/null
+          python -m inveniolang.cli flujo pruebas/ciclos.inv --texto > /dev/null
+          python -m inveniolang.cli bloques pruebas/ciclos.inv --texto > /dev/null
+          python scripts/empaquetar_web.py && python scripts/empaquetar_web.py --comprobar
+          python scripts/limpiar_obsoletos.py
+          python scripts/verify_release.py
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: flake8 (PEP 8) — bloqueante
+        run: |
+          pip install flake8
+          flake8 inveniolang/
+      - name: ruff — bloqueante (configuración de pyproject)
+        run: |
+          pip install ruff
+          ruff check .
+      - name: black — sin cambios de formato pendientes
+        run: |
+          pip install black
+          black inveniolang --check --extend-exclude "gui_qt.py|gui_tk.py|parsetab.py|parser.py"
+      - name: mypy — bloqueante
+        run: |
+          pip install mypy
+          mypy inveniolang --config-file mypy.ini
+
+  supplychain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar deps mínimas
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: SBOM determinista
+        run: python -m inveniolang.sbom --check
+
+  portable-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar deps mínimas
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Conformidad portable
+        run: python pruebas/conformidad.py
+      - name: Puerta AAA+ portable
+        run: python -m pytest tests/test_aaa.py tests/test_estructuras_ext.py -q

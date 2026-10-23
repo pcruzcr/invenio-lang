@@ -1,0 +1,15 @@
+{
+  "nivel": 2,
+  "titulo": "Control flow: decisions and loops",
+  "descripcion": "Structured programming: choose between paths (if, switch, ternary) and repeat (while, do-while, for, foreach).",
+  "temas": [
+    "if / else and else-if chains",
+    "switch / case",
+    "ternary operator",
+    "while, do-while, for",
+    "break and continue",
+    "nested loops",
+    "accumulators and counters"
+  ],
+  "idioma": "en"
+}

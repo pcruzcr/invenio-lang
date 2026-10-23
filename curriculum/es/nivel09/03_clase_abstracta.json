@@ -1,0 +1,22 @@
+{
+  "id": "N09-E03",
+  "nivel": 9,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Clases abstractas",
+  "enunciado": "Define la clase abstracta Figura con el método abstracto area() y un método concreto describir(). Implementa Circulo, Cuadrado y Triangulo. Calcula el área total de un arreglo de figuras.",
+  "objetivos": [
+    "Declarar clases y métodos abstractos",
+    "Obligar a las subclases a implementar un contrato"
+  ],
+  "pistas": [
+    "Una clase abstracta no puede instanciarse con nuevo.",
+    "Un método abstracto no tiene cuerpo: termina en ;",
+    "describir() puede llamar a area() aunque esta sea abstracta."
+  ],
+  "conceptos": [
+    "clase abstracta",
+    "método abstracto",
+    "contrato"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N01-E10",
+  "nivel": 1,
+  "numero": 10,
+  "idioma": "es",
+  "titulo": "Cadenas básicas",
+  "enunciado": "Con s = \"Programacion\" muestra: su longitud, s en mayúsculas, los primeros 3 caracteres, el carácter en la posición 4 y s concatenada con \" I\".",
+  "objetivos": [
+    "Usar la librería de cadenas",
+    "Entender que las posiciones empiezan en 0"
+  ],
+  "pistas": [
+    "longitud_texto / text_length devuelve cuántos caracteres hay.",
+    "subcadena(s, i, j) / substring devuelve desde i hasta j-1.",
+    "caracter_en / char_at usa índices desde 0."
+  ],
+  "conceptos": [
+    "cadena",
+    "índice",
+    "subcadena"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "nivel": 3,
+  "titulo": "Funciones, procedimientos y recursión",
+  "descripcion": "Descomponer un problema en subprogramas reutilizables, pasar parámetros y resolver problemas que se definen en términos de sí mismos.",
+  "temas": [
+    "funciones con retorno",
+    "procedimientos (vacio)",
+    "paso por valor y por referencia (arreglos)",
+    "alcance de variables",
+    "recursión: caso base y caso recursivo",
+    "funciones como valores"
+  ],
+  "idioma": "es"
+}

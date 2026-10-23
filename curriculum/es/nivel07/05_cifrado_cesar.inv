@@ -1,0 +1,27 @@
+// Nivel 7 · Ejercicio 05 — Cifrado César
+// Objetivos:
+//   - Convertir letras en posiciones y posiciones en letras
+//   - Usar aritmética modular
+//
+constante texto ALFABETO = "abcdefghijklmnopqrstuvwxyz";
+
+texto cifrar(texto s, entero k) {
+    texto r = "";
+    para (entero i = 0; i < longitud_texto(s); i++) {
+        texto c = caracter_en(s, i);
+        entero pos = indice_de(ALFABETO, c);
+        si (pos < 0) {
+            r = r + c;   // no es letra: se copia igual
+        } sino {
+            r = r + caracter_en(ALFABETO, (pos + k) % 26);
+        }
+    }
+    retornar r;
+}
+
+vacio main() {
+    texto mensaje = "ataque al amanecer";
+    texto cifrado = cifrar(mensaje, 3);
+    imprimir(cifrado); imprimir("\n");
+    imprimir(cifrar(cifrado, 26 - 3)); imprimir("\n");
+}

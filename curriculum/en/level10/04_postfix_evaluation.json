@@ -1,0 +1,21 @@
+{
+  "id": "N10-E04",
+  "nivel": 10,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Evaluating postfix expressions",
+  "enunciado": "Evaluate postfix (reverse Polish) expressions whose tokens come in a string array: \"3 4 + 2 *\" and \"5 1 2 + 4 * + 3 -\". Show the stack after each token of the second one.",
+  "objetivos": [
+    "Evaluate parenthesis-free expressions with a stack",
+    "Respect operand order when popping"
+  ],
+  "pistas": [
+    "A number is pushed.",
+    "An operator pops b, then a, and pushes a op b.",
+    "At the end the stack holds a single value: the result."
+  ],
+  "conceptos": [
+    "postfix notation",
+    "stack"
+  ]
+}

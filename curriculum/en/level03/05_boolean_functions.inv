@@ -1,0 +1,23 @@
+// Level 3 · Exercise 05 — Boolean functions
+// Learning goals:
+//   - Write functions that return bool
+//   - Translate a natural-language rule into a boolean expression
+//
+// The whole rule fits in a single boolean expression.
+bool isLeapYear(int year) {
+    return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+}
+
+void main() {
+    int [4] years = {1900, 2000, 2024, 2026};
+    foreach (int a : years) {
+        print(a); print(": "); print(isLeapYear(a)); print("\n");
+    }
+    int count = 0;
+    for (int a = 1901; a <= 2000; a++) {
+        if (isLeapYear(a)) {
+            count++;
+        }
+    }
+    print("leap years 1901-2000: "); print(count); print("\n");
+}

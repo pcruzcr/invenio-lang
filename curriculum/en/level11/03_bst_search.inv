@@ -1,0 +1,69 @@
+// Level 11 · Exercise 03 — Search, minimum and maximum in a BST
+// Learning goals:
+//   - Search a BST discarding a subtree at each step
+//   - Relate height to search cost
+//
+class Node {
+    public int value;
+    public Node left;
+    public Node right;
+    Node(int v) { this.value = v; }
+}
+
+// Recursive insertion: returns the (possibly new) root of the subtree.
+Node insert(Node r, int v) {
+    if (r == null) {
+        return new Node(v);
+    }
+    if (v < r.value) {
+        r.left = insert(r.left, v);
+    } else {
+        if (v > r.value) {
+            r.right = insert(r.right, v);
+        }
+    }
+    return r;
+}
+
+void inOrder(Node r) {
+    if (r != null) {
+        inOrder(r.left);
+        print(r.value); print(" ");
+        inOrder(r.right);
+    }
+}
+
+bool contains(Node r, int v) {
+    Node current = r;
+    print("path:");
+    while (current != null) {
+        print(" "); print(current.value);
+        if (v == current.value) {
+            print("\n");
+            return true;
+        }
+        if (v < current.value) {
+            current = current.left;
+        } else {
+            current = current.right;
+        }
+    }
+    print(" (null)\n");
+    return false;
+}
+
+void main() {
+    int [9] data = {8, 3, 10, 1, 6, 14, 4, 7, 13};
+    Node root = null;
+    foreach (int v : data) {
+        root = insert(root, v);
+    }
+    print(contains(root, 7)); print("\n");
+    print(contains(root, 5)); print("\n");
+    Node m = root;
+    while (m.left != null) { m = m.left; }
+    print("min = "); print(m.value); print("\n");
+    m = root;
+    while (m.right != null) { m = m.right; }
+    print("max = "); print(m.value); print("\n");
+}

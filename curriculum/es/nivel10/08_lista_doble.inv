@@ -1,0 +1,73 @@
+// Nivel 10 · Ejercicio 08 — Lista doblemente enlazada
+// Objetivos:
+//   - Mantener enlaces en ambos sentidos
+//   - Eliminar en O(1) conociendo el nodo
+//
+clase NodoDoble {
+    publico entero valor;
+    publico NodoDoble anterior;
+    publico NodoDoble siguiente;
+    NodoDoble(entero v) { este.valor = v; }
+}
+
+clase ListaDoble {
+    privado NodoDoble cabeza;
+    privado NodoDoble cola;
+
+    publico vacio insertarFinal(entero v) {
+        NodoDoble n = nuevo NodoDoble(v);
+        si (este.cola == nulo) {
+            este.cabeza = n;
+        } sino {
+            NodoDoble c = este.cola;
+            c.siguiente = n;
+            n.anterior = c;
+        }
+        este.cola = n;
+    }
+
+    publico vacio eliminar(entero v) {
+        NodoDoble n = este.cabeza;
+        mientras (n != nulo && n.valor != v) {
+            n = n.siguiente;
+        }
+        si (n == nulo) {
+            retornar;
+        }
+        NodoDoble a = n.anterior;
+        NodoDoble s = n.siguiente;
+        si (a == nulo) { este.cabeza = s; } sino { a.siguiente = s; }
+        si (s == nulo) { este.cola = a; } sino { s.anterior = a; }
+    }
+
+    publico vacio imprimirAdelante() {
+        NodoDoble n = este.cabeza;
+        mientras (n != nulo) {
+            imprimir(n.valor); imprimir(" ");
+            n = n.siguiente;
+        }
+        imprimir("| ");
+    }
+
+    publico vacio imprimirAtras() {
+        NodoDoble n = este.cola;
+        mientras (n != nulo) {
+            imprimir(n.valor); imprimir(" ");
+            n = n.anterior;   // gracias al enlace hacia atrás
+        }
+        imprimir("\n");
+    }
+}
+
+vacio main() {
+    ListaDoble l = nuevo ListaDoble();
+    para (entero i = 1; i <= 5; i++) {
+        l.insertarFinal(i * 10);
+    }
+    l.imprimirAdelante(); l.imprimirAtras();
+    l.eliminar(30);
+    l.imprimirAdelante(); l.imprimirAtras();
+    l.eliminar(10);
+    l.eliminar(50);
+    l.imprimirAdelante(); l.imprimirAtras();
+}

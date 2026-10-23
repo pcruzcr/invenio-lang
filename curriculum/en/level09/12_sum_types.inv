@@ -1,0 +1,30 @@
+// Level 9 · Exercise 12 — Sum types and match
+// Learning goals:
+//   - Model a closed set of variants carrying data
+//   - Destructure variants with match
+//
+// Each variant carries its own data; Point carries none.
+enum Form {
+    Circle(int radius),
+    Rect(int width, int tall),
+    Point
+}
+
+int formArea(Form f) {
+    int r = 0;
+    match (f) {
+        case Circle(rad): r = 3 * rad * rad;
+        case Rect(w, h): r = w * h;
+        case Point: r = 0;
+    }
+    return r;
+}
+
+void main() {
+    Form a = new Circle(2);
+    Form b = new Rect(3, 5);
+    Form c = new Point();
+    print(formArea(a)); print(" ");
+    print(formArea(b)); print(" ");
+    print(formArea(c)); print("\n");
+}

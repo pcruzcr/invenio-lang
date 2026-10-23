@@ -1,0 +1,28 @@
+// Level 3 · Exercise 03 — Pass by value and by reference
+// Learning goals:
+//   - Understand pass by value
+//   - Understand that arrays are shared by reference
+//
+void doubleValue(int x) {
+    x = x * 2;   // only the local copy changes
+    print("inside: "); print(x); print("\n");
+}
+
+void doubleArray(int [] a, int n) {
+    for (int i = 0; i < n; i++) {
+        a[i] = a[i] * 2;   // modifies the original array
+    }
+}
+
+void main() {
+    int v = 5;
+    doubleValue(v);
+    print("after: "); print(v); print("\n");
+
+    int [3] nums = {1, 2, 3};
+    doubleArray(nums, 3);
+    foreach (int e : nums) {
+        print(e); print(" ");
+    }
+    print("\n");
+}

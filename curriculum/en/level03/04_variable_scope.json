@@ -1,0 +1,22 @@
+{
+  "id": "N03-E04",
+  "nivel": 3,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Variable scope",
+  "enunciado": "Use a global variable calls that counts how many times a function is invoked, and show that a local variable with the same name as a global one hides it inside its block.",
+  "objetivos": [
+    "Tell global and local variables apart",
+    "Understand shadowing"
+  ],
+  "pistas": [
+    "A global is declared outside every function.",
+    "Inside a function, a local or a parameter with the same name hides the global.",
+    "Overusing globals makes code hard to follow: use them sparingly."
+  ],
+  "conceptos": [
+    "scope",
+    "global variable",
+    "shadowing"
+  ]
+}

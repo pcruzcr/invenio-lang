@@ -1,0 +1,21 @@
+{
+  "id": "N08-E03",
+  "nivel": 8,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Constructor overloading",
+  "enunciado": "Create the class Point with three constructors: no arguments (origin), one value (point on the diagonal (v, v)) and two values (x, y). Add translate(dx, dy) and distanceSq(other) (squared distance). Show the three points and their distances to the origin.",
+  "objetivos": [
+    "Offer several ways to create an object",
+    "Tell overloads apart by number of parameters"
+  ],
+  "pistas": [
+    "All constructors are named after the class; their parameters differ.",
+    "new Point() calls the zero-parameter one.",
+    "A method can receive another object of its own class."
+  ],
+  "conceptos": [
+    "overloading",
+    "constructor"
+  ]
+}

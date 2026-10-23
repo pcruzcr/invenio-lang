@@ -1,0 +1,21 @@
+// Nivel 2 · Ejercicio 11 — Dígitos de un número
+// Objetivos:
+//   - Extraer dígitos con % 10 y / 10
+//   - Construir un número dígito a dígito
+//
+vacio main() {
+    entero n = 90471;
+    entero digitos = 0;
+    entero suma = 0;
+    entero invertido = 0;
+    mientras (n > 0) {
+        entero digito = n % 10;   // último dígito
+        digitos++;
+        suma += digito;
+        invertido = invertido * 10 + digito;
+        n = n / 10;               // quitar el último dígito
+    }
+    imprimir("digits = "); imprimir(digitos); imprimir("\n");
+    imprimir("sum = "); imprimir(suma); imprimir("\n");
+    imprimir("reversed = "); imprimir(invertido); imprimir("\n");
+}

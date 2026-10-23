@@ -1,0 +1,7 @@
+temp = 22
+  display: 22
+temp = 31
+  ALARM! 31 > 30
+  display: 31
+temp = 18
+  display: 18

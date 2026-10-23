@@ -1,0 +1,22 @@
+{
+  "id": "N13-E08",
+  "nivel": 13,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Quick sort: el peor caso importa",
+  "enunciado": "Cuenta las comparaciones de quick sort (pivote = último) con n = 60 sobre una permutación desordenada y sobre una entrada ya ordenada. Explica por qué la entrada ordenada lo vuelve O(n²) y compara con n(n-1)/2.",
+  "objetivos": [
+    "Entender que el promedio y el peor caso pueden diferir mucho",
+    "Relacionar la elección del pivote con la complejidad"
+  ],
+  "pistas": [
+    "Con datos ordenados, el último elemento es siempre el máximo.",
+    "Entonces cada partición deja n - 1 elementos de un lado y 0 del otro.",
+    "Elegir el pivote al azar o la mediana de tres evita ese caso."
+  ],
+  "conceptos": [
+    "quick sort",
+    "peor caso",
+    "pivote"
+  ]
+}

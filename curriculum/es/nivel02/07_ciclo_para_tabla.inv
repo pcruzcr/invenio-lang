@@ -1,0 +1,13 @@
+// Nivel 2 · Ejercicio 07 — Ciclo para: tabla de multiplicar
+// Objetivos:
+//   - Usar para con inicialización, condición y actualización
+//   - Recorrer un rango conocido de valores
+//
+constante entero TABLA = 7;
+
+vacio main() {
+    // para (inicio; condición; actualización)
+    para (entero i = 1; i <= 10; i++) {
+        imprimir(TABLA); imprimir(" x "); imprimir(i); imprimir(" = "); imprimir(TABLA * i); imprimir("\n");
+    }
+}

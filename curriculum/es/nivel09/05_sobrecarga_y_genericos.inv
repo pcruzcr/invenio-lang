@@ -1,0 +1,31 @@
+// Nivel 9 · Ejercicio 05 — Sobrecarga de métodos y genéricos
+// Objetivos:
+//   - Sobrecargar métodos por número y tipo de parámetros
+//   - Escribir una clase genérica reutilizable
+//
+clase Calculadora {
+    publico entero sumar(entero a, entero b) { retornar a + b; }
+    publico entero sumar(entero a, entero b, entero c) { retornar a + b + c; }
+    publico real sumar(real a, real b) { retornar a + b; }
+}
+
+// T es un parámetro de tipo: se fija al crear la caja (entero, texto...).
+clase Caja<T> {
+    privado T contenido;
+    publico vacio guardar(T v) { este.contenido = v; }
+    publico T obtener() { retornar este.contenido; }
+}
+
+vacio main() {
+    Calculadora calc = nuevo Calculadora();
+    imprimir(calc.sumar(2, 3)); imprimir("\n");
+    imprimir(calc.sumar(2, 3, 4)); imprimir("\n");
+    imprimir(calc.sumar(2.5, 0.25)); imprimir("\n");
+
+    Caja<entero> numeros = nuevo Caja<entero>();
+    numeros.guardar(42);
+    Caja<texto> palabras = nuevo Caja<texto>();
+    palabras.guardar("generic");
+    imprimir(numeros.obtener() + 1); imprimir("\n");
+    imprimir(palabras.obtener() + "!"); imprimir("\n");
+}

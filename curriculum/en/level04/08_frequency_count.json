@@ -1,0 +1,22 @@
+{
+  "id": "N04-E08",
+  "nivel": 4,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Frequency counting",
+  "enunciado": "A die was rolled 20 times: {3,6,1,6,2,5,6,4,3,6,1,2,6,5,4,6,3,2,6,1}. Count how many times each face came up using an array of counters indexed by value, draw a histogram with '#' and state the mode.",
+  "objetivos": [
+    "Use a data value as an index",
+    "Build a histogram"
+  ],
+  "pistas": [
+    "Create an array of 7 counters and use positions 1 to 6.",
+    "frequency[value]++ records a roll in a single statement.",
+    "The mode is the face with the largest counter."
+  ],
+  "conceptos": [
+    "counter array",
+    "histogram",
+    "mode"
+  ]
+}

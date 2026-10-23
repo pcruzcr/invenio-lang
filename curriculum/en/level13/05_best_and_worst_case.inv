@@ -1,0 +1,47 @@
+// Level 13 · Exercise 05 — Best, worst and average case: insertion sort
+// Learning goals:
+//   - Tell best, worst and average case apart
+//   - See that the same algorithm can be O(n) or O(n²) depending on the
+//   - input
+//
+// Linear congruential pseudo-random generator: always the same sequence,
+// so the output is reproducible.
+int seed = 7;
+
+int nextRandom(int limit) {
+    seed = (seed * 1103 + 12345) % 65536;
+    return seed % limit;
+}
+
+const int N = 40;
+
+int insertionComparisons(int [] a, int n) {
+    int c = 0;
+    for (int i = 1; i < n; i++) {
+        int key = a[i];
+        int j = i - 1;
+        bool keepGoing = true;
+        while (j >= 0 && keepGoing) {
+            c++;
+            if (a[j] > key) {
+                a[j + 1] = a[j];
+                j--;
+            } else {
+                keepGoing = false;
+            }
+        }
+        a[j + 1] = key;
+    }
+    return c;
+}
+
+void main() {
+    int [N] a;
+    for (int i = 0; i < N; i++) { a[i] = i; }
+    print("sorted:   "); print(insertionComparisons(a, N)); print("\n");
+    for (int i = 0; i < N; i++) { a[i] = N - i; }
+    print("reversed: "); print(insertionComparisons(a, N)); print("\n");
+    for (int i = 0; i < N; i++) { a[i] = nextRandom(1000); }
+    print("random:   "); print(insertionComparisons(a, N)); print("\n");
+    print("n-1 = "); print(N - 1); print(", n(n-1)/2 = "); print(N * (N - 1) / 2); print("\n");
+}

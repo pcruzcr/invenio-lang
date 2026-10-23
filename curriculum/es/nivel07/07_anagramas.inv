@@ -1,0 +1,35 @@
+// Nivel 7 · Ejercicio 07 — Anagramas
+// Objetivos:
+//   - Combinar cadenas con arreglos de conteo
+//   - Resolver en O(n) un problema que parece necesitar ordenar
+//
+constante texto ALFABETO = "abcdefghijklmnopqrstuvwxyz";
+
+logico esAnagrama(texto a, texto b) {
+    si (longitud_texto(a) != longitud_texto(b)) {
+        retornar falso;
+    }
+    entero [26] cuenta;
+    para (entero i = 0; i < 26; i++) {
+        cuenta[i] = 0;
+    }
+    para (entero i = 0; i < longitud_texto(a); i++) {
+        entero x = indice_de(ALFABETO, caracter_en(a, i));
+        entero y = indice_de(ALFABETO, caracter_en(b, i));
+        // Suma por las letras de a y resta por las de b: si se compensan, son anagramas.
+        cuenta[x] = cuenta[x] + 1;
+        cuenta[y] = cuenta[y] - 1;
+    }
+    para_cada (entero c : cuenta) {
+        si (c != 0) {
+            retornar falso;
+        }
+    }
+    retornar verdadero;
+}
+
+vacio main() {
+    imprimir(esAnagrama("roma", "amor")); imprimir("\n");
+    imprimir(esAnagrama("listen", "silent")); imprimir("\n");
+    imprimir(esAnagrama("casa", "cosa")); imprimir("\n");
+}

@@ -1,0 +1,81 @@
+// Nivel 11 · Ejercicio 06 — Recorrido por niveles (BFS en árboles)
+// Objetivos:
+//   - Combinar un árbol con una cola
+//   - Separar niveles contando cuántos nodos tiene cada uno
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo izq;
+    publico Nodo der;
+    Nodo(entero v) { este.valor = v; }
+}
+
+// Inserción recursiva: devuelve la raíz (posiblemente nueva) del subárbol.
+Nodo insertar(Nodo r, entero v) {
+    si (r == nulo) {
+        retornar nuevo Nodo(v);
+    }
+    si (v < r.valor) {
+        r.izq = insertar(r.izq, v);
+    } sino {
+        si (v > r.valor) {
+            r.der = insertar(r.der, v);
+        }
+    }
+    retornar r;
+}
+
+vacio inorden(Nodo r) {
+    si (r != nulo) {
+        inorden(r.izq);
+        imprimir(r.valor); imprimir(" ");
+        inorden(r.der);
+    }
+}
+
+clase NodoCola {
+    publico Nodo arbol;
+    publico NodoCola siguiente;
+    NodoCola(Nodo a) { este.arbol = a; }
+}
+
+NodoCola frente = nulo;
+NodoCola final = nulo;
+entero tamCola = 0;
+
+vacio encolar(Nodo a) {
+    NodoCola n = nuevo NodoCola(a);
+    si (final == nulo) { frente = n; } sino { final.siguiente = n; }
+    final = n;
+    tamCola++;
+}
+
+Nodo desencolar() {
+    NodoCola n = frente;
+    frente = n.siguiente;
+    si (frente == nulo) { final = nulo; }
+    tamCola--;
+    retornar n.arbol;
+}
+
+vacio main() {
+    entero [9] datos = {8, 3, 10, 1, 6, 14, 4, 7, 13};
+    Nodo raiz = nulo;
+    para_cada (entero v : datos) {
+        raiz = insertar(raiz, v);
+    }
+    encolar(raiz);
+    entero nivel = 0;
+    mientras (tamCola > 0) {
+        entero enEsteNivel = tamCola;   // nodos del nivel actual
+        imprimir(nivel); imprimir(":");
+        para (entero k = 0; k < enEsteNivel; k++) {
+            Nodo n = desencolar();
+            imprimir(" "); imprimir(n.valor);
+            si (n.izq != nulo) { encolar(n.izq); }
+            si (n.der != nulo) { encolar(n.der); }
+        }
+        imprimir("\n");
+        nivel++;
+    }
+}

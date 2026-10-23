@@ -1,0 +1,22 @@
+{
+  "id": "N04-E07",
+  "nivel": 4,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Invertir en el lugar",
+  "enunciado": "Invierte el arreglo {1, 2, 3, 4, 5, 6, 7} sin usar otro arreglo, intercambiando los extremos con dos índices que avanzan hacia el centro. Muestra el arreglo tras cada intercambio.",
+  "objetivos": [
+    "Usar la técnica de dos punteros",
+    "Escribir un procedimiento intercambiar"
+  ],
+  "pistas": [
+    "i empieza en 0 y j en n - 1.",
+    "Intercambia a[i] y a[j] mientras i < j.",
+    "Con n impar, el elemento del centro no se mueve."
+  ],
+  "conceptos": [
+    "dos punteros",
+    "intercambio",
+    "en el lugar"
+  ]
+}

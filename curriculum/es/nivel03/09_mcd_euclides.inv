@@ -1,0 +1,32 @@
+// Nivel 3 · Ejercicio 09 — Máximo común divisor (Euclides)
+// Objetivos:
+//   - Traducir una definición matemática recursiva a código
+//   - Reutilizar mcd para resolver otros problemas
+//
+entero mcd(entero a, entero b) {
+    si (b == 0) {
+        retornar a;
+    }
+    retornar mcd(b, a % b);
+}
+
+// Dividir antes de multiplicar mantiene los números pequeños.
+entero mcm(entero a, entero b) {
+    retornar a / mcd(a, b) * b;
+}
+
+vacio mostrar(entero a, entero b) {
+    imprimir("gcd("); imprimir(a); imprimir(", "); imprimir(b); imprimir(") = "); imprimir(mcd(a, b));
+    imprimir("  lcm = "); imprimir(mcm(a, b)); imprimir("\n");
+}
+
+vacio main() {
+    mostrar(48, 18);
+    mostrar(17, 5);
+    mostrar(100, 75);
+    entero num = 84;
+    entero den = 126;
+    entero g = mcd(num, den);
+    imprimir(num); imprimir("/"); imprimir(den); imprimir(" = ");
+    imprimir(num / g); imprimir("/"); imprimir(den / g); imprimir("\n");
+}

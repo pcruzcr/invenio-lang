@@ -1,0 +1,30 @@
+// Nivel 4 · Ejercicio 01 — Declarar y recorrer un arreglo
+// Objetivos:
+//   - Declarar e inicializar arreglos
+//   - Recorrer con índices hacia adelante, hacia atrás y con saltos
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+constante entero N = 6;
+
+vacio main() {
+    entero [N] datos = {4, 8, 15, 16, 23, 42};
+    imprimirArreglo(datos, N);
+    // Recorrido inverso: del último índice (N - 1) al primero (0).
+    para (entero i = N - 1; i >= 0; i--) {
+        imprimir(datos[i]); imprimir(" ");
+    }
+    imprimir("\n");
+    para (entero i = 0; i < N; i = i + 2) {
+        imprimir("a["); imprimir(i); imprimir("] = "); imprimir(datos[i]); imprimir("\n");
+    }
+}

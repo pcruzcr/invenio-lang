@@ -1,0 +1,15 @@
+{
+  "nivel": 11,
+  "titulo": "Trees, heaps and hash tables",
+  "descripcion": "Non-linear and fast-access structures: binary search trees (insertion, traversals, height, deletion), AVL, heaps and hash tables.",
+  "temas": [
+    "binary search tree",
+    "pre/in/post/level-order traversals",
+    "height and recursive counts",
+    "BST deletion",
+    "AVL tree and rotations",
+    "binary heap",
+    "hash tables: linear probing and chaining"
+  ],
+  "idioma": "en"
+}

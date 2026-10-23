@@ -1,0 +1,13 @@
+{
+  "nivel": 10,
+  "titulo": "Estructuras de datos lineales: pilas, colas y listas",
+  "descripcion": "Implementar pilas y colas con arreglos y con nodos enlazados, listas simples y dobles, y usarlas para resolver problemas clásicos.",
+  "temas": [
+    "pila con arreglo y enlazada",
+    "cola circular y enlazada",
+    "lista simplemente enlazada",
+    "lista doblemente enlazada",
+    "aplicaciones: paréntesis, postfija, Josefo"
+  ],
+  "idioma": "es"
+}

@@ -1,0 +1,660 @@
+{
+ "version": 1,
+ "idioma": "es",
+ "fuente": "importar \"estructuras/arbol_binario_busqueda\";\n\nvacio main() {\n    ArbolBinarioBusqueda t = nuevo ArbolBinarioBusqueda();\n    entero [7] datos = {50, 30, 70, 20, 40, 60, 80};\n    para (entero i = 0; i < 7; i++) {\n        t.insertar(datos[i]);\n    }\n    imprimir(t.inorden());\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "t": {
+       "tipo": "ArbolBinarioBusqueda",
+       "valor": {
+        "t": "ref",
+        "id": 9
+       }
+      },
+      "datos": {
+       "tipo": "entero[7]",
+       "valor": {
+        "t": "ref",
+        "id": 8
+       }
+      },
+      "i": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 5
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "100": {
+     "id": 100,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 50
+      },
+      "izquierdo": {
+       "t": "ref",
+       "id": 101
+      },
+      "derecho": {
+       "t": "ref",
+       "id": 102
+      }
+     }
+    },
+    "101": {
+     "id": 101,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 30
+      },
+      "izquierdo": {
+       "t": "ref",
+       "id": 103
+      },
+      "derecho": {
+       "t": "ref",
+       "id": 104
+      }
+     }
+    },
+    "102": {
+     "id": 102,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 70
+      },
+      "izquierdo": {
+       "t": "ref",
+       "id": 105
+      },
+      "derecho": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "103": {
+     "id": 103,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 20
+      },
+      "izquierdo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "derecho": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "104": {
+     "id": 104,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 40
+      },
+      "izquierdo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "derecho": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "105": {
+     "id": 105,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 60
+      },
+      "izquierdo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "derecho": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "9": {
+     "id": 9,
+     "tipo": "objeto",
+     "clase": "ArbolBinarioBusqueda",
+     "elementos": [],
+     "campos": {
+      "raiz": {
+       "t": "ref",
+       "id": 100
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 6
+      }
+     }
+    },
+    "8": {
+     "id": 8,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 50
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 30
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 70
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 20
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 40
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 60
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 80
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "datos",
+     "nodo": 8,
+     "indices": [
+      5
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arbol_binario",
+     "raiz": 9,
+     "etiqueta": "t",
+     "nodos": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105
+     ],
+     "aristas": [
+      [
+       9,
+       100,
+       "raiz"
+      ],
+      [
+       100,
+       102,
+       "der"
+      ],
+      [
+       100,
+       101,
+       "izq"
+      ],
+      [
+       101,
+       104,
+       "der"
+      ],
+      [
+       101,
+       103,
+       "izq"
+      ],
+      [
+       102,
+       105,
+       "izq"
+      ]
+     ]
+    },
+    {
+     "forma": "arreglo",
+     "raiz": 8,
+     "etiqueta": "datos",
+     "nodos": [
+      8
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "t": {
+       "tipo": "ArbolBinarioBusqueda",
+       "valor": {
+        "t": "ref",
+        "id": 9
+       }
+      },
+      "datos": {
+       "tipo": "entero[7]",
+       "valor": {
+        "t": "ref",
+        "id": 8
+       }
+      },
+      "i": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 6
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "ArbolBinarioBusqueda.insertar",
+     "linea": 40,
+     "variables": {
+      "este": {
+       "tipo": "ArbolBinarioBusqueda",
+       "valor": {
+        "t": "ref",
+        "id": 9
+       }
+      },
+      "v": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 80
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "100": {
+     "id": 100,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 50
+      },
+      "izquierdo": {
+       "t": "ref",
+       "id": 101
+      },
+      "derecho": {
+       "t": "ref",
+       "id": 102
+      }
+     }
+    },
+    "101": {
+     "id": 101,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 30
+      },
+      "izquierdo": {
+       "t": "ref",
+       "id": 103
+      },
+      "derecho": {
+       "t": "ref",
+       "id": 104
+      }
+     }
+    },
+    "102": {
+     "id": 102,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 70
+      },
+      "izquierdo": {
+       "t": "ref",
+       "id": 105
+      },
+      "derecho": {
+       "t": "ref",
+       "id": 106
+      }
+     }
+    },
+    "103": {
+     "id": 103,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 20
+      },
+      "izquierdo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "derecho": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "104": {
+     "id": 104,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 40
+      },
+      "izquierdo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "derecho": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "105": {
+     "id": 105,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 60
+      },
+      "izquierdo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "derecho": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "106": {
+     "id": 106,
+     "tipo": "objeto",
+     "clase": "NodoArbol",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 80
+      },
+      "izquierdo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "derecho": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "9": {
+     "id": 9,
+     "tipo": "objeto",
+     "clase": "ArbolBinarioBusqueda",
+     "elementos": [],
+     "campos": {
+      "raiz": {
+       "t": "ref",
+       "id": 100
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 7
+      }
+     }
+    },
+    "8": {
+     "id": 8,
+     "tipo": "arreglo",
+     "clase": null,
+     "elementos": [
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 50
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 30
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 70
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 20
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 40
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 60
+      },
+      {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 80
+      }
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": null,
+     "nodo": 102,
+     "indices": [],
+     "campo": "valor"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 102,
+     "indices": [],
+     "campo": "derecho"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "arbol_binario",
+     "raiz": 9,
+     "etiqueta": "t",
+     "nodos": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106
+     ],
+     "aristas": [
+      [
+       9,
+       100,
+       "raiz"
+      ],
+      [
+       100,
+       102,
+       "der"
+      ],
+      [
+       100,
+       101,
+       "izq"
+      ],
+      [
+       101,
+       104,
+       "der"
+      ],
+      [
+       101,
+       103,
+       "izq"
+      ],
+      [
+       102,
+       106,
+       "der"
+      ],
+      [
+       102,
+       105,
+       "izq"
+      ]
+     ]
+    },
+    {
+     "forma": "arreglo",
+     "raiz": 8,
+     "etiqueta": "datos",
+     "nodos": [
+      8
+     ],
+     "aristas": []
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": []
+}

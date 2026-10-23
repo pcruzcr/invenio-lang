@@ -1,0 +1,34 @@
+// Level 4 · Exercise 11 — Prefix sums
+// Learning goals:
+//   - Precompute to answer queries fast
+//   - Reason with shifted indexes
+//
+void printArray(int [] a, int n) {
+    print("[");
+    for (int i = 0; i < n; i++) {
+        print(a[i]);
+        if (i < n - 1) {
+            print(", ");
+        }
+    }
+    print("]\n");
+}
+
+void main() {
+    int [7] a = {5, 2, 8, 1, 9, 3, 7};
+    int [8] prefix;
+    // prefix[i] = sum of the first i elements (prefix[0] is the empty sum).
+    prefix[0] = 0;
+    for (int i = 0; i < 7; i++) {
+        prefix[i + 1] = prefix[i] + a[i];
+    }
+    printArray(prefix, 8);
+    int [3] from = {1, 0, 4};
+    int [3] to = {3, 6, 5};
+    for (int q = 0; q < 3; q++) {
+        int i = from[q];
+        int j = to[q];
+        print("sum["); print(i); print(", "); print(j); print("] = ");
+        print(prefix[j + 1] - prefix[i]); print("\n");
+    }
+}

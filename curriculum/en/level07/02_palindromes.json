@@ -1,0 +1,22 @@
+{
+  "id": "N07-E02",
+  "nivel": 7,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Reverse and detect palindromes",
+  "enunciado": "Write reverse(s) that builds the reversed string character by character, and isPalindrome(s) that ignores spaces and case. Test them with \"Anita lava la tina\", \"Hola mundo\" and \"Oso\".",
+  "objetivos": [
+    "Build a string by concatenation",
+    "Normalize text before comparing it"
+  ],
+  "pistas": [
+    "Go from the last character to the first.",
+    "Remove spaces and convert to lower case before comparing.",
+    "You can check your function against reverse_string."
+  ],
+  "conceptos": [
+    "concatenation",
+    "normalization",
+    "palindrome"
+  ]
+}

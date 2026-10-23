@@ -1,0 +1,29 @@
+// Level 2 · Exercise 10 — Accumulators and counters
+// Learning goals:
+//   - Accumulate a sum inside a loop
+//   - Count elements that meet a condition
+//   - Initialize the maximum with the first value
+//
+void main() {
+    int n;
+    read(n);
+    int sum = 0;
+    int positives = 0;
+    int largest = 0;
+    for (int i = 0; i < n; i++) {
+        int x;
+        read(x);
+        sum += x;
+        if (x > 0) {
+            positives++;
+        }
+        // The first value initializes the largest: this works even if all are negative.
+        if (i == 0 || x > largest) {
+            largest = x;
+        }
+    }
+    print("sum = "); print(sum); print("\n");
+    print("average = "); print(int_to_float(sum) / int_to_float(n)); print("\n");
+    print("positives = "); print(positives); print("\n");
+    print("max = "); print(largest); print("\n");
+}

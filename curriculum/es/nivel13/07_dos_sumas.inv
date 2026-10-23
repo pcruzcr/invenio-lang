@@ -1,0 +1,49 @@
+// Nivel 13 · Ejercicio 07 — Par con suma dada: O(n²) frente a O(n)
+// Objetivos:
+//   - Aprovechar que los datos están ordenados
+//   - Aplicar la técnica de dos punteros para reducir la complejidad
+//
+constante entero N = 300;
+entero [N] a;
+entero comparaciones = 0;
+
+vacio dosSumasBruta(entero objetivo) {
+    comparaciones = 0;
+    para (entero i = 0; i < N; i++) {
+        para (entero j = i + 1; j < N; j++) {
+            comparaciones++;
+            si (a[i] + a[j] == objetivo) {
+                imprimir("brute ("); imprimir(i); imprimir(", "); imprimir(j); imprimir(") "); imprimir(comparaciones); imprimir("\n");
+                retornar;
+            }
+        }
+    }
+    imprimir("brute none "); imprimir(comparaciones); imprimir("\n");
+}
+
+vacio dosSumasPunteros(entero objetivo) {
+    comparaciones = 0;
+    entero i = 0;
+    entero j = N - 1;
+    mientras (i < j) {
+        comparaciones++;
+        entero s = a[i] + a[j];
+        si (s == objetivo) {
+            imprimir("pointers ("); imprimir(i); imprimir(", "); imprimir(j); imprimir(") "); imprimir(comparaciones); imprimir("\n");
+            retornar;
+        }
+        // Suma pequeña: solo puede crecer moviendo i; grande: solo puede bajar moviendo j.
+        si (s < objetivo) { i++; } sino { j--; }
+    }
+    imprimir("pointers none "); imprimir(comparaciones); imprimir("\n");
+}
+
+vacio main() {
+    para (entero i = 0; i < N; i++) {
+        a[i] = 3 * i + 1;
+    }
+    dosSumasBruta(1787);
+    dosSumasPunteros(1787);
+    dosSumasBruta(3);
+    dosSumasPunteros(3);
+}

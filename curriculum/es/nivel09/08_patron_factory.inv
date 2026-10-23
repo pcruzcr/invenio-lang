@@ -1,0 +1,47 @@
+// Nivel 9 · Ejercicio 08 — Patrón Factory
+// Objetivos:
+//   - Centralizar la creación de objetos
+//   - Programar contra la abstracción, no contra clases concretas
+//
+abstracta clase Figura {
+    publico abstracto entero area();
+    publico abstracto texto nombre();
+}
+
+clase Circulo hereda Figura {
+    privado entero radio;
+    Circulo(entero r) { este.radio = r; }
+    publico entero area() { retornar 3 * este.radio * este.radio; }
+    publico texto nombre() { retornar "circle"; }
+}
+
+clase Cuadrado hereda Figura {
+    privado entero lado;
+    Cuadrado(entero l) { este.lado = l; }
+    publico entero area() { retornar este.lado * este.lado; }
+    publico texto nombre() { retornar "square"; }
+}
+
+clase FabricaFiguras {
+    publico estatico Figura crear(texto tipo, entero medida) {
+        segun (tipo) {
+            caso "circle":
+                retornar nuevo Circulo(medida);
+            caso "square":
+                retornar nuevo Cuadrado(medida);
+        }
+        retornar nulo;   // tipo desconocido
+    }
+}
+
+vacio main() {
+    texto [3] pedidos = {"square", "circle", "hexagon"};
+    para_cada (texto t : pedidos) {
+        Figura f = FabricaFiguras.crear(t, 2);
+        si (f == nulo) {
+            imprimir(t); imprimir(": unknown\n");
+        } sino {
+            imprimir(f.nombre()); imprimir(": "); imprimir(f.area()); imprimir("\n");
+        }
+    }
+}

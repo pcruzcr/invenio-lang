@@ -1,0 +1,15 @@
+{
+  "nivel": 2,
+  "titulo": "Control de flujo: decisiones y ciclos",
+  "descripcion": "Programación estructurada: elegir entre caminos (si, segun, ternario) y repetir (mientras, hacer-mientras, para, para_cada).",
+  "temas": [
+    "si / sino y cadenas si-sino-si",
+    "segun / caso",
+    "operador ternario",
+    "mientras, hacer-mientras, para",
+    "romper y continuar",
+    "ciclos anidados",
+    "acumuladores y contadores"
+  ],
+  "idioma": "es"
+}

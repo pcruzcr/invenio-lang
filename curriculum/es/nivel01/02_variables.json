@@ -1,0 +1,23 @@
+{
+  "id": "N01-E02",
+  "nivel": 1,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Variables y asignación",
+  "enunciado": "Declara dos variables enteras a=7 y b=3, muestra sus valores, intercámbialos usando una variable auxiliar y muéstralos de nuevo.",
+  "objetivos": [
+    "Declarar e inicializar variables",
+    "Entender que asignar reemplaza el valor anterior",
+    "Intercambiar dos valores con una variable auxiliar"
+  ],
+  "pistas": [
+    "Una variable guarda un solo valor a la vez.",
+    "Si haces a = b primero, pierdes el valor original de a.",
+    "Guarda a en aux, luego a = b y por último b = aux."
+  ],
+  "conceptos": [
+    "variable",
+    "asignación",
+    "intercambio"
+  ]
+}

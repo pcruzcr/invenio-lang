@@ -1,0 +1,22 @@
+{
+  "id": "N06-E04",
+  "nivel": 6,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Producto de matrices",
+  "enunciado": "Multiplica A (2x3) = {{1, 2, 3}, {4, 5, 6}} por B (3x2) = {{7, 8}, {9, 10}, {11, 12}} y muestra la matriz resultado de 2x2. Comprueba también que multiplicar por la identidad deja la matriz igual.",
+  "objetivos": [
+    "Implementar el producto fila por columna",
+    "Verificar dimensiones compatibles"
+  ],
+  "pistas": [
+    "C[i][j] es el producto punto de la fila i de A y la columna j de B.",
+    "Necesitas tres ciclos: i, j y k.",
+    "Inicializa C[i][j] en 0 antes de acumular."
+  ],
+  "conceptos": [
+    "producto de matrices",
+    "producto punto",
+    "O(n³)"
+  ]
+}

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="es" data-tema="sistema">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="InvenioLang Estudio: aprende a programar en español o en inglés, en el navegador y sin instalar nada. / Learn to program in Spanish or English, in your browser, with nothing to install.">
+<title>InvenioLang Estudio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e3a8a'/%3E%3Cpath d='M10 9h12M16 9v14M10 23h12' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="estilos.css">
+<style id="estilos-categorias"></style>
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<a class="saltar" href="#codigo" data-t="general.saltar_editor"></a>
+<noscript><p class="aviso aviso-error">InvenioLang Estudio necesita JavaScript. / InvenioLang Studio needs JavaScript.</p></noscript>
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-ejecutar" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
+  <symbol id="i-detener" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-pasos" viewBox="0 0 24 24"><path d="M4 18h4v-4h4v-4h4V6h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-formatear" viewBox="0 0 24 24"><path d="M4 6h16M8 10h12M8 14h12M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-traducir" viewBox="0 0 24 24"><path d="M3 5h10M8 3v2m3.5 0c-1 4-4 7-7.5 8.5M6 9c1.4 2 3.4 3.4 5.5 4M13 21l4-10 4 10m-6.6-3.5h5.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-nuevo" viewBox="0 0 24 24"><path d="M14 3H6v18h12V7zM14 3v4h4M12 11v6M9 14h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+  <symbol id="i-abrir" viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-guardar" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5zM8 3v5h7V3M8 14h8v7H8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-descargar" viewBox="0 0 24 24"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-libro" viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v14c-3-1-6-1-8 1-2-2-5-2-8-1zM12 6v14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-ayuda" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-comprobar" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-deshacer" viewBox="0 0 24 24"><path d="M9 7 4 12l5 5M4 12h11a5 5 0 0 1 0 10h-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-rehacer" viewBox="0 0 24 24"><path d="m15 7 5 5-5 5m5-5H9a5 5 0 0 0 0 10h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-papelera" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-menos" viewBox="0 0 24 24"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-actualizar" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8m0-4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16m0 4v-4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</svg>
+
+<header class="barra">
+  <div class="marca">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="7"/><path d="M10 9h12M16 9v14M10 23h12"/></svg>
+    <h1><span>InvenioLang</span> <span class="marca-sub" data-t="general.estudio"></span></h1>
+    <span class="version" id="version"></span>
+  </div>
+  <button type="button" class="boton boton-texto" id="btn-curriculo" aria-expanded="true" aria-controls="panel-curriculo">
+    <svg class="icono" aria-hidden="true"><use href="#i-libro"/></svg><span data-t="curriculo.titulo"></span>
+  </button>
+  <nav class="acciones-archivo" data-t-aria-label="archivo.grupo">
+    <button type="button" class="boton boton-texto" id="btn-nuevo"><svg class="icono" aria-hidden="true"><use href="#i-nuevo"/></svg><span data-t="archivo.nuevo"></span></button>
+    <button type="button" class="boton boton-texto" id="btn-abrir" aria-haspopup="dialog"><svg class="icono" aria-hidden="true"><use href="#i-abrir"/></svg><span data-t="archivo.abrir"></span></button>
+    <button type="button" class="boton boton-texto" id="btn-guardar" aria-haspopup="dialog"><svg class="icono" aria-hidden="true"><use href="#i-guardar"/></svg><span data-t="archivo.guardar"></span></button>
+    <button type="button" class="boton boton-texto" id="btn-descargar"><svg class="icono" aria-hidden="true"><use href="#i-descargar"/></svg><span data-t="archivo.descargar"></span></button>
+  </nav>
+  <div class="preferencias">
+    <label class="campo-compacto">
+      <span data-t="preferencias.idioma"></span>
+      <select id="sel-idioma">
+        <option value="es" lang="es">Español</option>
+        <option value="en" lang="en">English</option>
+      </select>
+    </label>
+    <fieldset class="segmentado" id="grupo-tema">
+      <legend data-t="preferencias.tema"></legend>
+      <label><input type="radio" name="tema" value="sistema"><span data-t="preferencias.tema_sistema"></span></label>
+      <label><input type="radio" name="tema" value="claro"><span data-t="preferencias.tema_claro"></span></label>
+      <label><input type="radio" name="tema" value="oscuro"><span data-t="preferencias.tema_oscuro"></span></label>
+    </fieldset>
+    <button type="button" class="boton boton-icono" id="btn-ayuda" aria-haspopup="dialog" data-t-aria-label="ayuda.abrir" data-t-title="ayuda.abrir"><svg class="icono" aria-hidden="true"><use href="#i-ayuda"/></svg></button>
+  </div>
+</header>
+
+<div class="aviso-motor" id="aviso-motor" role="status">
+  <span class="girador" aria-hidden="true"></span><span id="aviso-motor-texto"></span>
+  <button type="button" class="boton boton-texto" id="btn-reintentar" hidden data-t="motor.reintentar"></button>
+</div>
+
+<main class="estudio" id="estudio">
+  <aside class="curriculo" id="panel-curriculo" aria-labelledby="h-curriculo">
+    <div class="curriculo-cabecera">
+      <h2 id="h-curriculo" data-t="curriculo.titulo"></h2>
+      <fieldset class="segmentado segmentado-mini">
+        <legend data-t="curriculo.idioma_codigo"></legend>
+        <label><input type="radio" name="idioma-curriculo" value="es"><span lang="es">ES</span></label>
+        <label><input type="radio" name="idioma-curriculo" value="en"><span lang="en">EN</span></label>
+      </fieldset>
+    </div>
+    <label class="buscador">
+      <span class="sr-only" data-t="curriculo.buscar"></span>
+      <input type="search" id="buscar-curriculo" autocomplete="off" data-t-placeholder="curriculo.buscar_ejemplo">
+    </label>
+    <p class="progreso" id="progreso-curriculo" aria-live="polite"></p>
+    <nav id="arbol-curriculo" class="arbol-curriculo" data-t-aria-label="curriculo.niveles"></nav>
+  </aside>
+
+  <section class="centro" aria-labelledby="h-editor">
+    <h2 class="sr-only" id="h-editor" data-t="editor.titulo"></h2>
+    <article class="ejercicio" id="ejercicio" hidden aria-labelledby="ejercicio-titulo">
+      <header class="ejercicio-cabecera">
+        <p class="ejercicio-id" id="ejercicio-id"></p>
+        <h3 id="ejercicio-titulo"></h3>
+        <button type="button" class="boton boton-icono" id="btn-cerrar-ejercicio" data-t-aria-label="ejercicio.cerrar" data-t-title="ejercicio.cerrar"><svg class="icono" aria-hidden="true"><use href="#i-cerrar"/></svg></button>
+      </header>
+      <p id="ejercicio-enunciado" class="ejercicio-enunciado"></p>
+      <details>
+        <summary data-t="ejercicio.objetivos"></summary>
+        <ul id="ejercicio-objetivos"></ul>
+      </details>
+      <div class="ejercicio-pistas">
+        <ol id="ejercicio-pistas" class="pistas"></ol>
+        <button type="button" class="boton boton-texto" id="btn-pista" data-t="ejercicio.pista"></button>
+        <button type="button" class="boton boton-texto" id="btn-solucion" data-t="ejercicio.ver_solucion"></button>
+      </div>
+      <p id="ejercicio-veredicto" class="veredicto" role="status"></p>
+      <nav class="ejercicio-nav" data-t-aria-label="ejercicio.navegacion">
+        <button type="button" class="boton boton-texto" id="btn-ejercicio-anterior" data-t="ejercicio.anterior"></button>
+        <button type="button" class="boton boton-texto" id="btn-ejercicio-siguiente" data-t="ejercicio.siguiente"></button>
+      </nav>
+    </article>
+
+    <div class="herramientas" role="toolbar" data-t-aria-label="editor.herramientas" aria-controls="codigo">
+      <button type="button" class="boton boton-primario" id="btn-ejecutar" aria-keyshortcuts="Control+Enter"><svg class="icono" aria-hidden="true"><use href="#i-ejecutar"/></svg><span data-t="editor.ejecutar"></span></button>
+      <button type="button" class="boton" id="btn-detener" disabled><svg class="icono" aria-hidden="true"><use href="#i-detener"/></svg><span data-t="editor.detener"></span></button>
+      <button type="button" class="boton" id="btn-comprobar" hidden><svg class="icono" aria-hidden="true"><use href="#i-comprobar"/></svg><span data-t="editor.comprobar"></span></button>
+      <span class="separador" aria-hidden="true"></span>
+      <button type="button" class="boton" id="btn-pasos"><svg class="icono" aria-hidden="true"><use href="#i-pasos"/></svg><span data-t="editor.paso_a_paso"></span></button>
+      <button type="button" class="boton" id="btn-formatear" aria-keyshortcuts="Shift+Alt+F"><svg class="icono" aria-hidden="true"><use href="#i-formatear"/></svg><span data-t="editor.formatear"></span></button>
+      <button type="button" class="boton" id="btn-traducir"><svg class="icono" aria-hidden="true"><use href="#i-traducir"/></svg><span id="btn-traducir-texto"></span></button>
+    </div>
+
+    <div class="editor" id="editor">
+      <div class="editor-numeros" id="editor-numeros" aria-hidden="true"></div>
+      <div class="editor-area">
+        <div class="editor-marcas" id="editor-marcas" aria-hidden="true"></div>
+        <pre class="editor-resaltado" id="editor-resaltado" aria-hidden="true"><code id="editor-resaltado-codigo"></code></pre>
+        <textarea id="codigo" class="editor-texto" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" data-t-aria-label="editor.etiqueta" aria-describedby="ayuda-editor" aria-keyshortcuts="Control+Enter"></textarea>
+      </div>
+    </div>
+    <p class="sr-only" id="ayuda-editor" data-t="editor.ayuda_teclado"></p>
+    <div class="estado-editor" id="estado-editor">
+      <span id="estado-posicion"></span>
+      <span id="estado-idioma-codigo"></span>
+      <span id="estado-archivo"></span>
+      <span id="estado-motor" class="estado-motor"></span>
+    </div>
+  </section>
+
+  <section class="paneles" aria-labelledby="h-paneles">
+    <h2 class="sr-only" id="h-paneles" data-t="paneles.titulo"></h2>
+    <div class="pestanas" role="tablist" data-t-aria-label="paneles.titulo">
+      <button type="button" role="tab" id="tab-salida" aria-controls="panel-salida" data-pestana="salida"><span data-t="paneles.salida"></span></button>
+      <button type="button" role="tab" id="tab-errores" aria-controls="panel-errores" data-pestana="errores"><span data-t="paneles.errores"></span> <span class="insignia" id="insignia-errores" hidden></span></button>
+      <button type="button" role="tab" id="tab-bloques" aria-controls="panel-bloques" data-pestana="bloques"><span data-t="paneles.bloques"></span></button>
+      <button type="button" role="tab" id="tab-flujo" aria-controls="panel-flujo" data-pestana="flujo"><span data-t="paneles.flujo"></span></button>
+      <button type="button" role="tab" id="tab-uml" aria-controls="panel-uml" data-pestana="uml"><span data-t="paneles.uml"></span></button>
+      <button type="button" role="tab" id="tab-pasos" aria-controls="panel-pasos" data-pestana="pasos"><span data-t="paneles.pasos"></span></button>
+    </div>
+
+    <div role="tabpanel" id="panel-salida" aria-labelledby="tab-salida" class="panel" tabindex="0">
+      <label class="etiqueta" for="entrada" data-t="salida.entrada"></label>
+      <p class="ayuda" id="ayuda-entrada" data-t="salida.entrada_ayuda"></p>
+      <textarea id="entrada" class="entrada" rows="3" spellcheck="false" aria-describedby="ayuda-entrada"></textarea>
+      <div class="salida-cabecera">
+        <h3 data-t="salida.titulo"></h3>
+        <span class="resultado" id="resultado" role="status"></span>
+      </div>
+      <pre class="salida" id="salida" tabindex="0" data-t-aria-label="salida.titulo"></pre>
+    </div>
+
+    <div role="tabpanel" id="panel-errores" aria-labelledby="tab-errores" class="panel" tabindex="0" hidden>
+      <p class="vacio" id="errores-vacio" data-t="errores.ninguno"></p>
+      <ol class="errores" id="lista-errores"></ol>
+    </div>
+
+    <div role="tabpanel" id="panel-bloques" aria-labelledby="tab-bloques" class="panel panel-bloques" hidden>
+      <div class="herramientas herramientas-bloques" role="toolbar" data-t-aria-label="bloques.herramientas">
+        <button type="button" class="boton boton-icono" id="btn-bloques-deshacer" data-t-aria-label="bloques.deshacer" data-t-title="bloques.deshacer" aria-keyshortcuts="Control+Z"><svg class="icono" aria-hidden="true"><use href="#i-deshacer"/></svg></button>
+        <button type="button" class="boton boton-icono" id="btn-bloques-rehacer" data-t-aria-label="bloques.rehacer" data-t-title="bloques.rehacer" aria-keyshortcuts="Control+Y"><svg class="icono" aria-hidden="true"><use href="#i-rehacer"/></svg></button>
+        <span class="separador" aria-hidden="true"></span>
+        <button type="button" class="boton boton-icono" id="btn-bloques-alejar" data-t-aria-label="bloques.alejar" data-t-title="bloques.alejar"><svg class="icono" aria-hidden="true"><use href="#i-menos"/></svg></button>
+        <output id="bloques-zoom" class="zoom" aria-live="off">100 %</output>
+        <button type="button" class="boton boton-icono" id="btn-bloques-acercar" data-t-aria-label="bloques.acercar" data-t-title="bloques.acercar"><svg class="icono" aria-hidden="true"><use href="#i-mas"/></svg></button>
+        <span class="separador" aria-hidden="true"></span>
+        <label class="campo-compacto"><span data-t="bloques.envolver_en"></span>
+          <select id="sel-envolver">
+            <option value="si" data-t="bloques.tipo.si"></option>
+            <option value="mientras" data-t="bloques.tipo.mientras"></option>
+            <option value="hacer_mientras" data-t="bloques.tipo.hacer_mientras"></option>
+            <option value="para" data-t="bloques.tipo.para"></option>
+            <option value="para_cada" data-t="bloques.tipo.para_cada"></option>
+            <option value="intentar" data-t="bloques.tipo.intentar"></option>
+          </select>
+        </label>
+        <button type="button" class="boton" id="btn-envolver" data-t="bloques.envolver"></button>
+        <span class="separador" aria-hidden="true"></span>
+        <button type="button" class="boton" id="btn-bloques-desde-codigo"><svg class="icono" aria-hidden="true"><use href="#i-actualizar"/></svg><span data-t="bloques.desde_codigo"></span></button>
+        <button type="button" class="boton boton-texto" id="btn-bloques-ayuda" aria-expanded="false" aria-controls="bloques-ayuda" data-t="bloques.ayuda_boton"></button>
+      </div>
+      <div class="bloques-ayuda" id="bloques-ayuda" hidden>
+        <p data-t="bloques.ayuda_raton"></p>
+        <p data-t="bloques.ayuda_teclado"></p>
+        <dl class="atajos" id="bloques-atajos"></dl>
+      </div>
+      <p class="bloques-estado" id="bloques-estado" role="status"></p>
+      <div class="bloques-trabajo">
+        <div class="paleta" id="paleta" role="group" data-t-aria-label="bloques.paleta"></div>
+        <div class="lienzo-bloques" id="lienzo-bloques">
+          <ul class="arbol-bloques" id="arbol-bloques" role="tree" data-t-aria-label="bloques.lienzo" aria-describedby="bloques-instrucciones"></ul>
+        </div>
+      </div>
+      <p class="sr-only" id="bloques-instrucciones" data-t="bloques.instrucciones"></p>
+      <div class="papelera" id="papelera" aria-hidden="true"><svg class="icono" aria-hidden="true"><use href="#i-papelera"/></svg><span data-t="bloques.papelera"></span></div>
+      <ul class="problemas" id="bloques-problemas" data-t-aria-label="bloques.problemas"></ul>
+    </div>
+
+    <div role="tabpanel" id="panel-flujo" aria-labelledby="tab-flujo" class="panel" hidden>
+      <div class="herramientas">
+        <label class="campo-compacto"><span data-t="flujo.subrutina"></span><select id="sel-subrutina"></select></label>
+        <button type="button" class="boton" id="btn-flujo-actualizar"><svg class="icono" aria-hidden="true"><use href="#i-actualizar"/></svg><span data-t="diagrama.actualizar"></span></button>
+        <button type="button" class="boton" id="btn-flujo-descargar" disabled><svg class="icono" aria-hidden="true"><use href="#i-descargar"/></svg><span data-t="diagrama.descargar_svg"></span></button>
+      </div>
+      <figure class="lienzo-svg" id="lienzo-flujo" tabindex="0" data-t-aria-label="paneles.flujo"></figure>
+      <details class="descripcion"><summary data-t="diagrama.descripcion"></summary><pre id="texto-flujo"></pre></details>
+    </div>
+
+    <div role="tabpanel" id="panel-uml" aria-labelledby="tab-uml" class="panel" hidden>
+      <div class="herramientas">
+        <button type="button" class="boton" id="btn-uml-actualizar"><svg class="icono" aria-hidden="true"><use href="#i-actualizar"/></svg><span data-t="diagrama.actualizar"></span></button>
+        <button type="button" class="boton" id="btn-uml-descargar" disabled><svg class="icono" aria-hidden="true"><use href="#i-descargar"/></svg><span data-t="diagrama.descargar_svg"></span></button>
+        <button type="button" class="boton" id="btn-uml-plantuml" disabled><svg class="icono" aria-hidden="true"><use href="#i-descargar"/></svg><span data-t="uml.descargar_plantuml"></span></button>
+      </div>
+      <figure class="lienzo-svg" id="lienzo-uml" tabindex="0" data-t-aria-label="paneles.uml"></figure>
+      <details class="descripcion"><summary data-t="diagrama.descripcion"></summary><pre id="texto-uml"></pre></details>
+    </div>
+
+    <div role="tabpanel" id="panel-pasos" aria-labelledby="tab-pasos" class="panel panel-pasos" hidden>
+      <div class="herramientas">
+        <button type="button" class="boton boton-primario" id="btn-pasos-generar"><svg class="icono" aria-hidden="true"><use href="#i-pasos"/></svg><span data-t="pasos.generar"></span></button>
+        <span id="pasos-resumen" role="status"></span>
+      </div>
+      <p class="ayuda" data-t="pasos.ayuda"></p>
+      <iframe id="marco-pasos" class="marco-pasos" sandbox="allow-scripts" data-t-title="pasos.marco" hidden></iframe>
+    </div>
+  </section>
+</main>
+
+<div class="sr-only" id="anuncios" aria-live="polite" aria-atomic="true"></div>
+<div class="sr-only" id="anuncios-urgentes" aria-live="assertive" aria-atomic="true"></div>
+
+<dialog id="dialogo-abrir" aria-labelledby="dialogo-abrir-titulo">
+  <form method="dialog" class="dialogo">
+    <h2 id="dialogo-abrir-titulo" data-t="abrir.titulo"></h2>
+    <h3 data-t="abrir.del_equipo"></h3>
+    <label class="boton boton-texto archivo-local"><input type="file" id="archivo-local" accept=".inv,.txt,text/plain"><span data-t="abrir.elegir_archivo"></span></label>
+    <h3 data-t="abrir.del_navegador"></h3>
+    <p class="vacio" id="guardados-vacio" data-t="abrir.ninguno"></p>
+    <ul class="guardados" id="lista-guardados"></ul>
+    <div class="dialogo-acciones"><button class="boton" value="cancelar" data-t="general.cerrar"></button></div>
+  </form>
+</dialog>
+
+<dialog id="dialogo-guardar" aria-labelledby="dialogo-guardar-titulo">
+  <form method="dialog" class="dialogo" id="form-guardar">
+    <h2 id="dialogo-guardar-titulo" data-t="guardar.titulo"></h2>
+    <label class="etiqueta" for="nombre-guardar" data-t="guardar.nombre"></label>
+    <input type="text" id="nombre-guardar" required maxlength="80" autocomplete="off" aria-describedby="guardar-ayuda">
+    <p class="ayuda" id="guardar-ayuda" data-t="guardar.ayuda"></p>
+    <div class="dialogo-acciones">
+      <button class="boton" value="cancelar" formnovalidate data-t="general.cancelar"></button>
+      <button class="boton boton-primario" value="guardar" data-t="guardar.confirmar"></button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dialogo-confirmar" aria-labelledby="dialogo-confirmar-texto">
+  <form method="dialog" class="dialogo">
+    <p id="dialogo-confirmar-texto"></p>
+    <div class="dialogo-acciones">
+      <button class="boton" value="no" data-t="general.cancelar"></button>
+      <button class="boton boton-primario" value="si" id="dialogo-confirmar-si"></button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dialogo-ayuda" aria-labelledby="dialogo-ayuda-titulo">
+  <form method="dialog" class="dialogo dialogo-ancho">
+    <h2 id="dialogo-ayuda-titulo" data-t="ayuda.titulo"></h2>
+    <p data-t="ayuda.intro"></p>
+    <h3 data-t="ayuda.atajos"></h3>
+    <dl class="atajos" id="ayuda-atajos"></dl>
+    <h3 data-t="ayuda.accesibilidad"></h3>
+    <p data-t="ayuda.accesibilidad_texto"></p>
+    <div class="dialogo-acciones"><button class="boton boton-primario" value="cerrar" data-t="general.cerrar"></button></div>
+  </form>
+</dialog>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "id": "N02-E01",
+  "nivel": 2,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Par o impar",
+  "enunciado": "Lee tres enteros y, para cada uno, muestra si es par o impar con el formato «n: EVEN» o «n: ODD» (la salida es igual en ambos idiomas).",
+  "objetivos": [
+    "Tomar decisiones con si / sino",
+    "Usar % para comprobar divisibilidad"
+  ],
+  "pistas": [
+    "Un número es par si n % 2 == 0.",
+    "Cuidado con los negativos: -3 % 2 vale -1, no 1.",
+    "Por eso compara con 0 en vez de comparar con 1."
+  ],
+  "conceptos": [
+    "condicional",
+    "si/sino",
+    "módulo"
+  ]
+}

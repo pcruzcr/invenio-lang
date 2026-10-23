@@ -1,0 +1,23 @@
+{
+  "id": "N11-E10",
+  "nivel": 11,
+  "numero": 10,
+  "idioma": "es",
+  "titulo": "Tabla hash con encadenamiento",
+  "enunciado": "Implementa un diccionario texto -> entero con 5 cubetas; cada cubeta es una lista enlazada de NodoHash. El hash de un texto es la suma de las posiciones de sus letras en el alfabeto, módulo 5. Guarda edades de 6 personas, actualiza una y muestra las cubetas.",
+  "objetivos": [
+    "Resolver colisiones con listas enlazadas",
+    "Escribir una función hash para textos",
+    "Actualizar el valor si la clave ya existe"
+  ],
+  "pistas": [
+    "El arreglo de cubetas es local o global: las clases no tienen atributos arreglo.",
+    "Antes de insertar, recorre la cubeta buscando la clave.",
+    "Insertar al inicio de la cubeta es O(1)."
+  ],
+  "conceptos": [
+    "encadenamiento",
+    "diccionario",
+    "función hash"
+  ]
+}

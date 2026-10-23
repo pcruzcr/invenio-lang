@@ -1,0 +1,97 @@
+// Nivel 11 · Ejercicio 08 — Árbol AVL: inserción con rotaciones
+// Objetivos:
+//   - Mantener un árbol balanceado automáticamente
+//   - Aplicar rotaciones simples y dobles
+//
+clase Nodo {
+    publico entero valor;
+    publico entero alto;
+    publico Nodo izq;
+    publico Nodo der;
+    Nodo(entero v) { este.valor = v; este.alto = 0; }
+}
+
+entero alturaNodo(Nodo n) {
+    si (n == nulo) { retornar -1; }
+    retornar n.alto;
+}
+
+vacio actualizarAltura(Nodo n) {
+    entero a = alturaNodo(n.izq);
+    entero b = alturaNodo(n.der);
+    n.alto = 1 + (a > b ? a : b);
+}
+
+entero balance(Nodo n) {
+    retornar alturaNodo(n.izq) - alturaNodo(n.der);
+}
+
+Nodo rotarDerecha(Nodo y) {
+    imprimir("  rotate right at "); imprimir(y.valor); imprimir("\n");
+    Nodo x = y.izq;
+    y.izq = x.der;
+    x.der = y;
+    actualizarAltura(y);
+    actualizarAltura(x);
+    retornar x;
+}
+
+Nodo rotarIzquierda(Nodo x) {
+    imprimir("  rotate left at "); imprimir(x.valor); imprimir("\n");
+    Nodo y = x.der;
+    x.der = y.izq;
+    y.izq = x;
+    actualizarAltura(x);
+    actualizarAltura(y);
+    retornar y;
+}
+
+Nodo insertar(Nodo r, entero v) {
+    si (r == nulo) {
+        retornar nuevo Nodo(v);
+    }
+    si (v < r.valor) {
+        r.izq = insertar(r.izq, v);
+    } sino {
+        r.der = insertar(r.der, v);
+    }
+    actualizarAltura(r);
+    entero b = balance(r);
+    si (b > 1) {
+        si (balance(r.izq) < 0) {
+            r.izq = rotarIzquierda(r.izq);   // caso izquierda-derecha: rotación doble
+        }
+        retornar rotarDerecha(r);
+    }
+    si (b < -1) {
+        si (balance(r.der) > 0) {
+            r.der = rotarDerecha(r.der);   // caso derecha-izquierda
+        }
+        retornar rotarIzquierda(r);
+    }
+    retornar r;
+}
+
+vacio preorden(Nodo r) {
+    si (r != nulo) {
+        imprimir(r.valor); imprimir(" ");
+        preorden(r.izq);
+        preorden(r.der);
+    }
+}
+
+vacio main() {
+    Nodo raiz = nulo;
+    para (entero v = 1; v <= 7; v++) {
+        imprimir("insert "); imprimir(v); imprimir("\n");
+        raiz = insertar(raiz, v);
+    }
+    imprimir("preorder: "); preorden(raiz); imprimir("\n");
+    imprimir("height = "); imprimir(alturaNodo(raiz)); imprimir("\n");
+    imprimir("double: ");
+    Nodo otra = nulo;
+    otra = insertar(otra, 30);
+    otra = insertar(otra, 10);
+    otra = insertar(otra, 20);
+    preorden(otra); imprimir("\n");
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N08-E05",
+  "nivel": 8,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Miembros estáticos",
+  "enunciado": "Crea la clase Ticket donde cada objeto recibe un id consecutivo tomado de un contador estático compartido. Agrega un método estático creados() que diga cuántos tickets existen. Crea tres tickets y muestra sus ids y el total.",
+  "objetivos": [
+    "Distinguir atributos de instancia y de clase",
+    "Acceder a miembros estáticos con NombreClase.miembro"
+  ],
+  "pistas": [
+    "Un atributo estatico existe una sola vez, compartido por todos los objetos.",
+    "En el constructor: este.id = Ticket.siguienteId y luego incrementa.",
+    "Un método estático no puede usar este."
+  ],
+  "conceptos": [
+    "estatico",
+    "atributo de clase"
+  ]
+}

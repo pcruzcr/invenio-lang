@@ -1,0 +1,22 @@
+{
+  "id": "N11-E02",
+  "nivel": 11,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Recorridos de un árbol",
+  "enunciado": "Con el ABB formado por 8, 3, 10, 1, 6, 14, 4, 7, 13 muestra los recorridos preorden, en orden y postorden.",
+  "objetivos": [
+    "Implementar los tres recorridos en profundidad",
+    "Relacionar cada recorrido con sus usos"
+  ],
+  "pistas": [
+    "Preorden: raíz, izquierdo, derecho (sirve para copiar el árbol).",
+    "Postorden: izquierdo, derecho, raíz (sirve para liberar o evaluar).",
+    "Solo cambia el lugar donde se imprime la raíz."
+  ],
+  "conceptos": [
+    "preorden",
+    "en orden",
+    "postorden"
+  ]
+}

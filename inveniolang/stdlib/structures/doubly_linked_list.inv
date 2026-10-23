@@ -1,0 +1,147 @@
+// structures/doubly_linked_list.inv -- Doubly linked list
+//
+// InvenioLang educational standard library (INV-1430).
+// Usage:   import "structures/doubly_linked_list";
+//
+// Idea: each node knows the PREVIOUS and the NEXT one, and the list
+// remembers both ends. That way adding and removing is O(1) at both ends
+// and the list can be walked in both directions (at the cost of one more
+// link per node).
+//
+//      null <- [ 1 ] <-> [ 2 ] <-> [ 3 ] -> null
+//              head                tail
+
+class DoubleNode {
+    public int value;
+    public DoubleNode previous;
+    public DoubleNode next;
+
+    DoubleNode(int v) {
+        this.value = v;
+    }
+}
+
+class DoublyLinkedList {
+    private DoubleNode head;
+    private DoubleNode tail;
+    private int count;
+
+    // O(1)
+    public void add_first(int v) {
+        DoubleNode node = new DoubleNode(v);
+        if (this.head == null) {
+            this.tail = node;
+        } else {
+            DoubleNode first = this.head;
+            first.previous = node;
+            node.next = first;
+        }
+        this.head = node;
+        this.count = this.count + 1;
+    }
+
+    // O(1)
+    public void add_last(int v) {
+        DoubleNode node = new DoubleNode(v);
+        if (this.tail == null) {
+            this.head = node;
+        } else {
+            DoubleNode last = this.tail;
+            last.next = node;
+            node.previous = last;
+        }
+        this.tail = node;
+        this.count = this.count + 1;
+    }
+
+    // Removes and returns the first element. O(1).
+    public int remove_first() {
+        if (this.head == null) {
+            throw_error("remove_first: the list is empty");
+        }
+        DoubleNode first = this.head;
+        this.head = first.next;
+        if (this.head == null) {
+            this.tail = null;
+        } else {
+            DoubleNode new_first = this.head;
+            new_first.previous = null;
+        }
+        this.count = this.count - 1;
+        return first.value;
+    }
+
+    // Removes and returns the last element. O(1) thanks to the previous link.
+    public int remove_last() {
+        if (this.tail == null) {
+            throw_error("remove_last: the list is empty");
+        }
+        DoubleNode last = this.tail;
+        this.tail = last.previous;
+        if (this.tail == null) {
+            this.head = null;
+        } else {
+            DoubleNode new_last = this.tail;
+            new_last.next = null;
+        }
+        this.count = this.count - 1;
+        return last.value;
+    }
+
+    // Value at position pos. Walks from the closer end, so it never takes
+    // more than n/2 steps.
+    public int get(int pos) {
+        if (pos < 0 || pos >= this.count) {
+            throw_error("get: position out of range");
+        }
+        DoubleNode current;
+        if (pos < this.count / 2) {
+            current = this.head;
+            for (int i = 0; i < pos; i++) {
+                current = current.next;
+            }
+        } else {
+            current = this.tail;
+            for (int i = this.count - 1; i > pos; i--) {
+                current = current.previous;
+            }
+        }
+        return current.value;
+    }
+
+    public int size() {
+        return this.count;
+    }
+
+    public bool is_empty() {
+        return this.count == 0;
+    }
+
+    // From head to tail, e.g. "[1, 2, 3]".
+    public string to_text() {
+        string s = "[";
+        DoubleNode current = this.head;
+        while (current != null) {
+            s = s + int_to_string(current.value);
+            if (current.next != null) {
+                s = s + ", ";
+            }
+            current = current.next;
+        }
+        return s + "]";
+    }
+
+    // From tail to head, e.g. "[3, 2, 1]".
+    public string to_text_reversed() {
+        string s = "[";
+        DoubleNode current = this.tail;
+        while (current != null) {
+            s = s + int_to_string(current.value);
+            if (current.previous != null) {
+                s = s + ", ";
+            }
+            current = current.previous;
+        }
+        return s + "]";
+    }
+}

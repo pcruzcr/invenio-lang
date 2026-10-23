@@ -1,0 +1,447 @@
+{
+ "version": 1,
+ "idioma": "es",
+ "fuente": "importar \"estructuras/cola\";\n\nvacio main() {\n    Cola c = nuevo Cola();\n    c.encolar(7);\n    c.encolar(8);\n    c.encolar(9);\n    imprimir(c.desencolar());\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 6,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 6,
+     "variables": {
+      "c": {
+       "tipo": "Cola",
+       "valor": {
+        "t": "ref",
+        "id": 4
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Cola.encolar",
+     "linea": 30,
+     "variables": {
+      "este": {
+       "tipo": "Cola",
+       "valor": {
+        "t": "ref",
+        "id": 4
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "40": {
+     "id": 40,
+     "tipo": "objeto",
+     "clase": "NodoCola",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 7
+      },
+      "siguiente": {
+       "t": "ref",
+       "id": 41
+      }
+     }
+    },
+    "41": {
+     "id": 41,
+     "tipo": "objeto",
+     "clase": "NodoCola",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 8
+      },
+      "siguiente": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "4": {
+     "id": 4,
+     "tipo": "objeto",
+     "clase": "Cola",
+     "elementos": [],
+     "campos": {
+      "frente": {
+       "t": "ref",
+       "id": 40
+      },
+      "final": {
+       "t": "ref",
+       "id": 41
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 2
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 4,
+     "indices": [],
+     "campo": "final"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "cola",
+     "raiz": 4,
+     "etiqueta": "c",
+     "nodos": [
+      40,
+      41
+     ],
+     "aristas": [
+      [
+       4,
+       40,
+       "frente"
+      ],
+      [
+       40,
+       41,
+       "siguiente"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "c": {
+       "tipo": "Cola",
+       "valor": {
+        "t": "ref",
+        "id": 4
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Cola.encolar",
+     "linea": 34,
+     "variables": {
+      "este": {
+       "tipo": "Cola",
+       "valor": {
+        "t": "ref",
+        "id": 4
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "40": {
+     "id": 40,
+     "tipo": "objeto",
+     "clase": "NodoCola",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 7
+      },
+      "siguiente": {
+       "t": "ref",
+       "id": 41
+      }
+     }
+    },
+    "41": {
+     "id": 41,
+     "tipo": "objeto",
+     "clase": "NodoCola",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 8
+      },
+      "siguiente": {
+       "t": "ref",
+       "id": 42
+      }
+     }
+    },
+    "42": {
+     "id": 42,
+     "tipo": "objeto",
+     "clase": "NodoCola",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 9
+      },
+      "siguiente": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "4": {
+     "id": 4,
+     "tipo": "objeto",
+     "clase": "Cola",
+     "elementos": [],
+     "campos": {
+      "frente": {
+       "t": "ref",
+       "id": 40
+      },
+      "final": {
+       "t": "ref",
+       "id": 42
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 3
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 41,
+     "indices": [],
+     "campo": "siguiente"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 4,
+     "indices": [],
+     "campo": "final"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "cola",
+     "raiz": 4,
+     "etiqueta": "c",
+     "nodos": [
+      40,
+      41,
+      42
+     ],
+     "aristas": [
+      [
+       4,
+       40,
+       "frente"
+      ],
+      [
+       40,
+       41,
+       "siguiente"
+      ],
+      [
+       41,
+       42,
+       "siguiente"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "linea": 8,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 8,
+     "variables": {
+      "c": {
+       "tipo": "Cola",
+       "valor": {
+        "t": "ref",
+        "id": 4
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Cola.desencolar",
+     "linea": 44,
+     "variables": {
+      "este": {
+       "tipo": "Cola",
+       "valor": {
+        "t": "ref",
+        "id": 4
+       }
+      },
+      "primero": {
+       "tipo": "NodoCola",
+       "valor": {
+        "t": "ref",
+        "id": 40
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "41": {
+     "id": 41,
+     "tipo": "objeto",
+     "clase": "NodoCola",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 8
+      },
+      "siguiente": {
+       "t": "ref",
+       "id": 42
+      }
+     }
+    },
+    "42": {
+     "id": 42,
+     "tipo": "objeto",
+     "clase": "NodoCola",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 9
+      },
+      "siguiente": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "4": {
+     "id": 4,
+     "tipo": "objeto",
+     "clase": "Cola",
+     "elementos": [],
+     "campos": {
+      "frente": {
+       "t": "ref",
+       "id": 41
+      },
+      "final": {
+       "t": "ref",
+       "id": 42
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 2
+      }
+     }
+    },
+    "40": {
+     "id": 40,
+     "tipo": "objeto",
+     "clase": "NodoCola",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 7
+      },
+      "siguiente": {
+       "t": "ref",
+       "id": 41
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": null,
+     "nodo": 40,
+     "indices": [],
+     "campo": "valor"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 4,
+     "indices": [],
+     "campo": "frente"
+    }
+   ],
+   "salida_nueva": [
+    "7"
+   ],
+   "estructuras": [
+    {
+     "forma": "cola",
+     "raiz": 4,
+     "etiqueta": "c",
+     "nodos": [
+      41,
+      42
+     ],
+     "aristas": [
+      [
+       4,
+       41,
+       "frente"
+      ],
+      [
+       41,
+       42,
+       "siguiente"
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "7"
+ ]
+}

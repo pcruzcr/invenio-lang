@@ -1,0 +1,45 @@
+// Level 9 · Exercise 01 — Inheritance
+// Learning goals:
+//   - Inherit attributes and methods with extends
+//   - Call the parent constructor with super(...)
+//   - Reuse the parent's method with super.method()
+//
+class Employee {
+    public string name;
+    public int salary;
+
+    Employee(string n, int s) {
+        this.name = n;
+        this.salary = s;
+    }
+
+    public int totalSalary() {
+        return this.salary;
+    }
+
+    public string describe() {
+        // Calls totalSalary(): if the object is a Manager, ITS version is used.
+        return this.name + ": " + int_to_string(this.totalSalary());
+    }
+}
+
+class Manager extends Employee {
+    public int bonus;
+
+    Manager(string n, int s, int b) {
+        super(n, s);
+        this.bonus = b;
+    }
+
+    public int totalSalary() {
+        return super.totalSalary() + this.bonus;
+    }
+}
+
+void main() {
+    Employee emp = new Employee("Luis", 1000);
+    Manager mgr = new Manager("Marta", 1500, 700);
+    print(emp.describe()); print("\n");
+    print(mgr.describe()); print("\n");
+    print(mgr.salary); print("\n");   // inherited attribute
+}

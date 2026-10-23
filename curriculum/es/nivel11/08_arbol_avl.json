@@ -1,0 +1,22 @@
+{
+  "id": "N11-E08",
+  "nivel": 11,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Árbol AVL: inserción con rotaciones",
+  "enunciado": "Inserta 1 a 7 en orden en un árbol AVL. Tras cada inserción recalcula alturas y, si un nodo queda desbalanceado (|balance| > 1), aplica la rotación adecuada (simple o doble), mostrándola. Compara la altura final con la del ABB degenerado (6).",
+  "objetivos": [
+    "Mantener un árbol balanceado automáticamente",
+    "Aplicar rotaciones simples y dobles"
+  ],
+  "pistas": [
+    "balance = altura(izq) - altura(der).",
+    "Balance < -1 con inserción a la derecha del hijo derecho: rotación a la izquierda.",
+    "Las rotaciones devuelven la nueva raíz del subárbol."
+  ],
+  "conceptos": [
+    "AVL",
+    "rotación",
+    "factor de balance"
+  ]
+}

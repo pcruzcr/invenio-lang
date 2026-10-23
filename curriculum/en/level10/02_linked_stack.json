@@ -1,0 +1,22 @@
+{
+  "id": "N10-E02",
+  "nivel": 10,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Linked stack",
+  "enunciado": "Implement the class LinkedStack with nodes (no capacity limit) and use it to reverse the order of the numbers 1 to 6 and to convert 156 to base 2.",
+  "objetivos": [
+    "Implement a stack with linked nodes",
+    "Use a stack to reverse sequences"
+  ],
+  "pistas": [
+    "The top is the head of the list: push inserts at the front.",
+    "pop moves the head to its next node.",
+    "Remainders of dividing by 2 come out reversed: push them."
+  ],
+  "conceptos": [
+    "stack",
+    "node",
+    "linked list"
+  ]
+}

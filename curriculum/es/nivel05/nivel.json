@@ -1,0 +1,15 @@
+{
+  "nivel": 5,
+  "titulo": "Algoritmos de ordenamiento",
+  "descripcion": "Ordenar datos con algoritmos clásicos (burbuja, selección, inserción, mezcla, rápido y conteo), seguir su funcionamiento paso a paso y comparar su trabajo.",
+  "temas": [
+    "burbuja",
+    "selección",
+    "inserción",
+    "merge sort",
+    "quick sort",
+    "ordenamiento por conteo",
+    "estabilidad y criterios de orden"
+  ],
+  "idioma": "es"
+}

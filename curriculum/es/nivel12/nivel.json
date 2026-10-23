@@ -1,0 +1,16 @@
+{
+  "nivel": 12,
+  "titulo": "Grafos",
+  "descripcion": "Representar relaciones con matrices y listas de adyacencia, recorrerlas (BFS, DFS) y resolver problemas clásicos: caminos mínimos, componentes, orden topológico y ciclos.",
+  "temas": [
+    "matriz de adyacencia",
+    "lista de adyacencia",
+    "BFS y DFS",
+    "camino mínimo sin pesos",
+    "componentes conexas",
+    "Dijkstra",
+    "orden topológico",
+    "detección de ciclos"
+  ],
+  "idioma": "es"
+}

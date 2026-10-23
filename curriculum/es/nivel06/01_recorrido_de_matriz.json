@@ -1,0 +1,22 @@
+{
+  "id": "N06-E01",
+  "nivel": 6,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Recorrer una matriz",
+  "enunciado": "Llena una matriz de 3x4 con m[i][j] = i * 4 + j + 1 y muéstrala recorriéndola por filas; luego muestra sus elementos recorriéndola por columnas en una sola línea.",
+  "objetivos": [
+    "Declarar matrices y acceder con dos índices",
+    "Distinguir recorrido por filas y por columnas"
+  ],
+  "pistas": [
+    "m[i][j]: i es la fila, j la columna.",
+    "Por filas: el ciclo externo recorre i.",
+    "Por columnas: el ciclo externo recorre j."
+  ],
+  "conceptos": [
+    "matriz",
+    "fila",
+    "columna"
+  ]
+}

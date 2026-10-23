@@ -1,0 +1,22 @@
+{
+  "id": "N01-E10",
+  "nivel": 1,
+  "numero": 10,
+  "idioma": "en",
+  "titulo": "Basic strings",
+  "enunciado": "With s = \"Programacion\" show: its length, s in uppercase, the first 3 characters, the character at position 4 and s concatenated with \" I\".",
+  "objetivos": [
+    "Use the string library",
+    "Understand that positions start at 0"
+  ],
+  "pistas": [
+    "text_length returns how many characters there are.",
+    "substring(s, i, j) returns from i up to j-1.",
+    "char_at uses indexes starting at 0."
+  ],
+  "conceptos": [
+    "string",
+    "index",
+    "substring"
+  ]
+}

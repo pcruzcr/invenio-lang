@@ -1,0 +1,22 @@
+{
+  "id": "N12-E03",
+  "nivel": 12,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Recorrido en anchura (BFS)",
+  "enunciado": "Recorre en anchura el grafo (matriz de adyacencia) desde el vértice 0 usando una cola con arreglo. Muestra el orden de visita y la distancia (en aristas) de cada vértice alcanzable; los no alcanzables muestran -1.",
+  "objetivos": [
+    "Implementar BFS con una cola",
+    "Obtener distancias mínimas en grafos sin pesos"
+  ],
+  "pistas": [
+    "Marca un vértice como visitado al ENCOLARLO, no al sacarlo.",
+    "dist[vecino] = dist[actual] + 1.",
+    "Inicializa las distancias en -1: significa 'no alcanzado'."
+  ],
+  "conceptos": [
+    "BFS",
+    "cola",
+    "distancia"
+  ]
+}

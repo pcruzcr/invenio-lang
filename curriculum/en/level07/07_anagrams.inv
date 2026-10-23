@@ -1,0 +1,35 @@
+// Level 7 · Exercise 07 — Anagrams
+// Learning goals:
+//   - Combine strings with counting arrays
+//   - Solve in O(n) a problem that seems to need sorting
+//
+const string ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+
+bool isAnagram(string a, string b) {
+    if (text_length(a) != text_length(b)) {
+        return false;
+    }
+    int [26] count;
+    for (int i = 0; i < 26; i++) {
+        count[i] = 0;
+    }
+    for (int i = 0; i < text_length(a); i++) {
+        int x = index_of(ALPHABET, char_at(a, i));
+        int y = index_of(ALPHABET, char_at(b, i));
+        // Add for a's letters and subtract for b's: if they cancel out, they are anagrams.
+        count[x] = count[x] + 1;
+        count[y] = count[y] - 1;
+    }
+    foreach (int c : count) {
+        if (c != 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void main() {
+    print(isAnagram("roma", "amor")); print("\n");
+    print(isAnagram("listen", "silent")); print("\n");
+    print(isAnagram("casa", "cosa")); print("\n");
+}

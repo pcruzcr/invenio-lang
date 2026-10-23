@@ -1,0 +1,50 @@
+// Level 5 · Exercise 02 — Optimized bubble sort
+// Learning goals:
+//   - Use a flag to detect that the array is already sorted
+//   - Compare the best and the worst case
+//
+void printArray(int [] a, int n) {
+    print("[");
+    for (int i = 0; i < n; i++) {
+        print(a[i]);
+        if (i < n - 1) {
+            print(", ");
+        }
+    }
+    print("]\n");
+}
+
+void swap(int [] a, int i, int j) {
+    int tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+}
+
+void bubbleSort(int [] a, int n) {
+    int passes = 0;
+    int comparisons = 0;
+    bool swapped = true;
+    int p = 0;
+    while (swapped) {
+        // If a whole pass swaps nothing, the array is already sorted.
+        swapped = false;
+        passes++;
+        for (int j = 0; j < n - 1 - p; j++) {
+            comparisons++;
+            if (a[j] > a[j + 1]) {
+                swap(a, j, j + 1);
+                swapped = true;
+            }
+        }
+        p++;
+    }
+    printArray(a, n);
+    print("passes = "); print(passes); print(", comparisons = "); print(comparisons); print("\n");
+}
+
+void main() {
+    int [8] nearlySorted = {1, 2, 3, 5, 4, 6, 7, 8};
+    int [8] reversed = {8, 7, 6, 5, 4, 3, 2, 1};
+    bubbleSort(nearlySorted, 8);
+    bubbleSort(reversed, 8);
+}

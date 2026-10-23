@@ -1,0 +1,19 @@
+// Level 1 · Exercise 05 — Arithmetic operators
+// Learning goals:
+//   - Use + - * / %
+//   - Tell integer division from real division
+//
+void main() {
+    int a = 17;
+    int b = 5;
+    print("a + b = "); print(a + b); print("\n");
+    print("a - b = "); print(a - b); print("\n");
+    print("a * b = "); print(a * b); print("\n");
+    // Between ints, / truncates: 17 / 5 = 3 with 2 left over.
+    print("a / b = "); print(a / b); print("\n");
+    print("a % b = "); print(a % b); print("\n");
+    // With floats the decimal part is kept.
+    print("17.0 / 5.0 = "); print(17.0 / 5.0); print("\n");
+    // Check: (a / b) * b + a % b always equals a.
+    print((a / b) * b + a % b); print("\n");
+}

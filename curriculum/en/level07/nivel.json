@@ -1,0 +1,15 @@
+{
+  "nivel": 7,
+  "titulo": "Strings",
+  "descripcion": "Process text character by character: count, search, transform, encrypt and compress strings.",
+  "temas": [
+    "character-by-character traversal",
+    "substring search",
+    "transformations (upper case, reversal)",
+    "words and separators",
+    "Caesar cipher",
+    "number-text conversion",
+    "RLE compression"
+  ],
+  "idioma": "en"
+}

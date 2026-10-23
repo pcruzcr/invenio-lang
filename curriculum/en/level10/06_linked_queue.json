@@ -1,0 +1,22 @@
+{
+  "id": "N10-E06",
+  "nivel": 10,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Linked queue: turn simulation",
+  "enunciado": "Implement LinkedQueue with references to the front and the rear. Simulate a bank line: customers 101, 102 and 103 arrive; one is served; 104 and 105 arrive; everyone is served. Show each arrival and each service.",
+  "objetivos": [
+    "Implement a queue with nodes and two references",
+    "Keep front and rear consistent in edge cases"
+  ],
+  "pistas": [
+    "Enqueue adds at the rear in O(1) thanks to the rear reference.",
+    "If the queue was empty, the new node is both front and rear.",
+    "When it becomes empty after dequeuing, rear must also be null."
+  ],
+  "conceptos": [
+    "queue",
+    "FIFO",
+    "simulation"
+  ]
+}

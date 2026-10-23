@@ -1,0 +1,37 @@
+// Nivel 5 · Ejercicio 04 — Ordenamiento por inserción
+// Objetivos:
+//   - Implementar inserción con desplazamientos
+//   - Relacionarlo con ordenar cartas en la mano
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio intercambiar(entero [] a, entero i, entero j) {
+    entero aux = a[i];
+    a[i] = a[j];
+    a[j] = aux;
+}
+
+vacio main() {
+    entero [6] a = {12, 11, 13, 5, 6, 7};
+    entero n = 6;
+    para (entero i = 1; i < n; i++) {
+        entero clave = a[i];
+        entero j = i - 1;
+        mientras (j >= 0 && a[j] > clave) {
+            a[j + 1] = a[j];   // desplazar a la derecha
+            j--;
+        }
+        a[j + 1] = clave;
+        imprimir("key = "); imprimir(clave); imprimir("  ");
+        imprimirArreglo(a, n);
+    }
+}

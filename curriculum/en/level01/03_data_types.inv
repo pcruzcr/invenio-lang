@@ -1,0 +1,16 @@
+// Level 1 · Exercise 03 — Data types
+// Learning goals:
+//   - Tell apart the four primitive types
+//   - See how each type is printed
+//
+void main() {
+    int age = 15;           // number without decimals
+    float heightM = 1.68;       // number with decimals
+    string country = "Costa Rica";  // character string
+    bool student = true;
+
+    print("int: "); print(age); print("\n");
+    print("float: "); print(heightM); print("\n");
+    print("string: "); print(country); print("\n");
+    print("bool: "); print(student); print("\n");
+}

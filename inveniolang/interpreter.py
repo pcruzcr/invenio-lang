@@ -1,19 +1,76 @@
 # Módulo del Intérprete de Árbol de InvenioLang 1.0
 # Implementa el recorrido y ejecución del AST verificado
 # Soporta: variables, constantes, arreglos, matrices, funciones, procedimientos
+# Patrones aplicados: Visitor (recorrido AST sin isinstance disperso),
+# Strategy (operaciones aritméticas intercambiables), Command (debug),
+# Memento (snapshot), Observer (eventos de ejecución), Template Method
+from __future__ import annotations
 
 import sys
 import time
 
-from .ast_nodes import *
-from .symbol_table import TipoSimbolo
-from .builtins import (BuiltInError, es_built_in, obtener_built_in,
-                       ejecutar_built_in)
+from . import security
+from .ast_nodes import (
+    ArrayAccess,
+    ArrayDecl,
+    ArrayLValue,
+    AssignStmt,
+    ASTVisitor,
+    BinaryOp,
+    BreakStmt,
+    Callable,
+    CallStmt,
+    ConstDecl,
+    ContinueStmt,
+    DoWhileStmt,
+    ForEachStmt,
+    ForInitAsig,
+    ForInitIncDec,
+    ForInitVar,
+    ForStmt,
+    FunctionCall,
+    FunctionDecl,
+    Identifier,
+    IfStmt,
+    IncDecStmt,
+    LambdaExpr,
+    Literal,
+    MatchStmt,
+    MatrixAccess,
+    MatrixDecl,
+    MatrixLValue,
+    MemberAccess,
+    MemberIndexAccess,
+    MemberIndexLValue,
+    MemberLValue,
+    MethodCallExpr,
+    MethodCallStmt,
+    NewArrayExpr,
+    NewExpr,
+    NullExpr,
+    PrintStmt,
+    ProcedureDecl,
+    ReadStmt,
+    ReturnStmt,
+    SuperCallStmt,
+    SuperExpr,
+    SwitchStmt,
+    TernaryExpr,
+    ThisExpr,
+    TryStmt,
+    UnaryOp,
+    VarDecl,
+    VarLValue,
+    WhileStmt,
+)
+from .builtins import BuiltInError, ejecutar_built_in, es_built_in
+from .i18n import M
+from .patterns import Caretaker, StrategyContext, Subject
 
 # Orden superior sobre arreglos (Etapa 12.7) -- ver semantic.py::
 # _ORDEN_SUPERIOR para el diseño completo (monomórfico sobre entero,
 # mapear/filtrar escriben en un arreglo de salida por referencia).
-_NOMBRES_ORDEN_SUPERIOR = {'reducir', 'reduce', 'mapear', 'map', 'filtrar', 'filter'}
+_NOMBRES_ORDEN_SUPERIOR = {"reducir", "reduce", "mapear", "map", "filtrar", "filter"}
 
 
 class ReturnException(Exception):
@@ -31,6 +88,55 @@ class ContinueException(Exception):
     """Excepción para manejar continue en bucles."""
 
 
+class Marco(dict):
+    """Marco de ejecución: valores de las variables + sus tipos declarados.
+
+    INV-1292: los tipos viajan con el marco (antes eran un único dict plano
+    por nombre para todo el programa: el parámetro `real c` de una función
+    hacía que el `entero c` de otra se promoviera a real al asignarlo).
+    """
+
+    __slots__ = ("tipos",)
+
+    def __init__(self):
+        super().__init__()
+        self.tipos: dict[str, str] = {}
+
+
+class ArregloDinamico(list):
+    """Arreglo creado con `nuevo tipo[n]` (INV-1440): recuerda su tipo de elemento.
+
+    Hace falta para promover `entero` a `real` al asignar un elemento de un
+    arreglo `real[]` guardado en un atributo, cuyo tipo no está en ningún
+    marco.
+    """
+
+    __slots__ = ("tipo",)
+
+    def __init__(self, tipo, valores):
+        super().__init__(valores)
+        self.tipo = tipo
+
+
+class _TiposLexicos:
+    """Vista de los tipos declarados con la misma visibilidad léxica que los valores."""
+
+    def __init__(self, interprete):
+        self._interprete = interprete
+
+    def __setitem__(self, nombre, tipo):
+        """Declara el tipo de `nombre` en el marco actual."""
+        self._interprete.pila_marcos[-1].tipos[nombre] = tipo
+
+    def get(self, nombre, defecto=None):
+        """Tipo declarado de `nombre` visible desde el punto actual."""
+        marco = self._interprete._marco_de(nombre, tipos=True)
+        return marco.tipos[nombre] if marco is not None else defecto
+
+    def __contains__(self, nombre):
+        return self.get(nombre) is not None
+
+
 class RuntimeError_(Exception):
     """Error de ejecución de InvenioLang."""
 
@@ -39,7 +145,14 @@ class RuntimeError_(Exception):
         self.mensaje = mensaje
         self.linea = linea
         self.columna = columna
-        super().__init__(f"[{codigo}] L{linea}:C{columna} - {mensaje}")
+        # INV-1420: modulo importado donde ocurrio (None = programa principal).
+        self.archivo = None
+        super().__init__(codigo, mensaje, linea, columna)
+
+    def __str__(self):
+        # INV-1400: `mensaje` puede ser un Mensaje diferido (clave del
+        # catalogo); se presenta en el idioma del proceso al convertirlo.
+        return f"[{self.codigo}] L{self.linea}:C{self.columna} - {self.mensaje}"
 
 
 class DebugStopped(Exception):
@@ -63,19 +176,20 @@ class InstanciaObjeto:
     POO, sin necesidad de sobrescribir __eq__.
     """
 
-    __slots__ = ('clase', 'campos')
+    __slots__ = ("clase", "campos")
 
     def __init__(self, clase):
         self.clase = clase
         self.campos = {}
 
     def __repr__(self):
-        pares = ', '.join(f'{k}={v!r}' for k, v in self.campos.items())
-        return f'{self.clase}({pares})'
+        pares = ", ".join(f"{k}={v!r}" for k, v in self.campos.items())
+        return f"{self.clase}({pares})"
 
 
 class _AccesoEstatico:
-    """Marcador de receptor 'NombreClase' (acceso estático, Etapa 7) -- NO
+    """Marcador de receptor 'NombreClase' (acceso estático, Etapa 7) -- NO.
+
     es una instancia. `_resolver_receptor` lo devuelve cuando el receptor
     de un acceso a miembro es el nombre de una clase (no una variable), y
     el resto del intérprete lo usa para enrutar lectura/escritura de
@@ -84,20 +198,23 @@ class _AccesoEstatico:
     de pila de llamadas, `_pila_instancias`) trate una llamada a método
     estático igual que una de instancia, sin ramas especiales -- un método
     estático simplemente no debe usar `this`/`super` (se bloquea en
-    semantic.py, IL-POO-025)."""
+    semantic.py, IL-POO-025).
+    """
 
-    __slots__ = ('nombre_clase',)
+    __slots__ = ("nombre_clase",)
 
     def __init__(self, nombre_clase):
         self.nombre_clase = nombre_clase
 
     @property
     def clase(self):
+        """Nombre de la clase para despacho."""
         return self.nombre_clase
 
 
 class ValorFuncion:
-    """Valor función de primera clase (Etapa 12.6). Envuelve EXACTAMENTE
+    """Valor función de primera clase (Etapa 12.6). Envuelve EXACTAMENTE.
+
     una de dos cosas:
       - `lambda_nodo` + `marcos_capturados`: un lambda creado en tiempo de
         ejecución, con una referencia (no copia) a la pila de marcos
@@ -112,7 +229,7 @@ class ValorFuncion:
         aislado de siempre (`_ejecutar_funcion`/`_ejecutar_procedimiento`).
     """
 
-    __slots__ = ('lambda_nodo', 'marcos_capturados', 'nombre_subrutina')
+    __slots__ = ("lambda_nodo", "marcos_capturados", "nombre_subrutina")
 
     def __init__(self, lambda_nodo=None, marcos_capturados=None, nombre_subrutina=None):
         self.lambda_nodo = lambda_nodo
@@ -121,9 +238,9 @@ class ValorFuncion:
 
     def __repr__(self):
         if self.nombre_subrutina is not None:
-            return f'ValorFuncion({self.nombre_subrutina})'
-        tipos = ','.join(p.tipo for p in self.lambda_nodo.parametros)
-        return f'ValorFuncion(lambda({tipos}) -> {self.lambda_nodo.tipo_retorno})'
+            return f"ValorFuncion({self.nombre_subrutina})"
+        tipos = ",".join(p.tipo for p in self.lambda_nodo.parametros)
+        return f"ValorFuncion(lambda({tipos}) -> {self.lambda_nodo.tipo_retorno})"
 
 
 class ExecutionCancelled(Exception):
@@ -136,22 +253,38 @@ class ExecutionCancelled(Exception):
     """
 
 
-class Interpreter:
+class Interpreter(ASTVisitor, Subject):
     """Intérprete de árbol para InvenioLang 1.0.
 
     Recorre el AST verificando y ejecutando las instrucciones.
     Mantiene un entorno con marcos de pila para el manejo de ámbitos.
+
+    Patrones: Visitor (visit_*), Strategy (operaciones), Subject/Observer
+    (eventos ejecución para IDE), Command (debug), Memento (snapshot).
+    Optimización: despacho Visitor O(1) vs isinstance chain, caché de
+    operaciones, notificación desacoplada.
     """
 
     def __init__(self, error_manager, tabla_simbolos):
+        Subject.__init__(self)
         self.error_manager = error_manager
         self.tabla = tabla_simbolos
+        self._strategy_ctx = StrategyContext()
+        self._caretaker = Caretaker(max_mementos=30)
+        self._op_cache: dict[str, Callable] = {}
         # Entorno de ejecución: pila de marcos (cada marco es un dict)
-        self.pila_marcos = [{}]
-        # Tipos de las variables conocidos en ejecución (por nombre).
+        self.pila_marcos = [Marco()]
+        # INV-1292: indice del primer marco de la activacion en curso. Las
+        # busquedas recorren solo pila_marcos[_base:] y el marco global
+        # (indice 0): alcance LEXICO. Antes recorrian toda la pila, asi que
+        # una funcion veia las variables locales de quien la llamaba.
+        self._base = 0
+        self._bases_previas: list[int] = []
+        # Tipos de las variables conocidos en ejecución (por nombre, con
+        # visibilidad léxica: ver _TiposLexicos).
         # Se usa porque en tiempo de ejecución los ámbitos locales ya fueron
         # desapilados de la tabla de símbolos, y `read` necesita conocer el tipo.
-        self.tipos_variables = {}
+        self.tipos_variables = _TiposLexicos(self)
         # Para funciones: tabla de nodos AST
         self.funciones_ast = {}
         self.procedimientos_ast = {}
@@ -187,9 +320,12 @@ class Interpreter:
         # El limite de iteraciones acota los ciclos triviales; el de tiempo
         # acota tambien los que hacen trabajo pesado en cada vuelta, y es el
         # que da una garantia de respuesta constante en la GUI.
-        self.max_iteraciones = 1_000_000
-        self.max_segundos = 5.0
+        self.max_iteraciones = security.MAX_ITERACIONES
+        self.max_segundos = security.MAX_SEGUNDOS
         self._t_inicio = None
+        self._pasos_globales = 0
+        # id(lista de elementos) -> ¿declara algo directamente? (INV-5014)
+        self._bloque_declara: dict[int, bool] = {}
         # Cancelacion cooperativa: el consumidor asigna aqui un callable sin
         # argumentos que retorne True cuando quiera detener la ejecucion (por
         # ejemplo el boton Detener de la IDE). Se consulta en cada vuelta de
@@ -200,33 +336,41 @@ class Interpreter:
         self.debug_breakpoints = set()
         self.debug_step = False
         self.debug_detener = False
-        self.debug_on_statement = None   # callable(snapshot) -> int (0 pausa)
-        self.debug_wait = None           # callable() -> bloquea hasta reanudar
+        self.debug_on_statement = None  # callable(snapshot) -> int (0 pausa)
+        self.debug_wait = None  # callable() -> bloquea hasta reanudar
         self._pila_subrutinas = []
+        # INV-2000: registro de ACCESOS a celdas y campos para el visualizador
+        # paso a paso (visualizacion/traza.py). `debug_on_statement` solo dice
+        # QUÉ instrucción corre; para resaltar qué celda se lee o escribe hace
+        # falta avisar desde el punto exacto del acceso. Es un callable
+        # `(op, var, objeto, indices, campo)` o None: apagado por defecto, el
+        # coste en una ejecución normal es una comparación con None por
+        # acceso a celda/campo (ni llamadas ni asignaciones de memoria).
+        self.registro_accesos = None
 
     def _snapshot_debug(self, nodo):
         """Construye una instantánea del estado para depuración/traza."""
         visibles = {}
-        for marco in reversed(self.pila_marcos):
+        for marco in self._marcos_visibles():
             for k, v in marco.items():
                 if k not in visibles:
                     visibles[k] = v
         variables = []
         instancia = self._instancia_actual()
         if instancia is not None:
-            variables.append({'nombre': 'este', 'tipo': instancia.clase, 'valor': instancia})
+            variables.append({"nombre": "este", "tipo": instancia.clase, "valor": instancia})
         for k, v in visibles.items():
             tipo = self.tipos_variables.get(k)
             if tipo is None:
                 e = self.tabla.buscar(k)
                 tipo = e.tipo_dato if e else type(v).__name__
-            variables.append({'nombre': k, 'tipo': tipo, 'valor': v})
+            variables.append({"nombre": k, "tipo": tipo, "valor": v})
         return {
-            'linea': getattr(nodo, 'linea', 0),
-            'columna': getattr(nodo, 'columna', 0),
-            'variables': variables,
-            'pila': list(self._pila_subrutinas),
-            'salida': list(self.salida),
+            "linea": getattr(nodo, "linea", 0),
+            "columna": getattr(nodo, "columna", 0),
+            "variables": variables,
+            "pila": list(self._pila_subrutinas),
+            "salida": list(self.salida),
         }
 
     def _debug_ejecucion(self, nodo):
@@ -242,7 +386,7 @@ class Interpreter:
         pausar = self.debug_step or (nodo.linea in self.debug_breakpoints)
         accion = pausar or bool(self.debug_on_statement(snap, pausar))
         if accion:
-            self.debug_step = False   # consume el "paso"
+            self.debug_step = False  # consume el "paso"
             if self.debug_wait is not None:
                 self.debug_wait(snap)
         if self.debug_detener:
@@ -256,7 +400,7 @@ class Interpreter:
             elif isinstance(sub, ProcedureDecl):
                 self.procedimientos_ast[sub.nombre] = sub
         if ast.main:
-            self.funciones_ast['main'] = ast.main
+            self.funciones_ast["main"] = ast.main
         self.clases_ast = {c.nombre: c for c in ast.clases}
 
     def interpretar(self, ast, entrada_usuario=None, usar_stdin=True):
@@ -278,14 +422,17 @@ class Interpreter:
         self.salida = []
         self.entrada = list(entrada_usuario) if entrada_usuario else []
         self.usar_stdin = usar_stdin
-        self.pila_marcos = [{}]
-        self.tipos_variables = {}
+        self.pila_marcos = [Marco()]
+        self._base = 0
+        self._bases_previas = []
+        self.tipos_variables = _TiposLexicos(self)
         self.debug_detener = False
         self._pila_subrutinas = []
         self._pila_instancias = []
         self._pila_clase_definicion = []
         self._profundidad_llamadas = 0
         self._t_inicio = time.monotonic()
+        self._pasos_globales = 0
 
         # Dar holgura al limite de Python para que IL-EJE-040 se dispare antes
         # que RecursionError (véase MAX_RECURSION).
@@ -305,12 +452,12 @@ class Interpreter:
 
         # Ejecutar main
         try:
-            self._ejecutar_subrutina('main', [])
-        except ReturnException as e:
+            self._ejecutar_subrutina("main", [])
+        except ReturnException:
             pass  # main no retorna valor
         except RuntimeError_ as e:
             self.error_manager.error_ejecucion(
-                e.codigo, e.mensaje, e.linea, e.columna
+                e.codigo, e.mensaje, e.linea, e.columna, archivo=e.archivo or None
             )
         except ExecutionCancelled:
             raise  # decision del usuario, no un error del programa
@@ -318,11 +465,11 @@ class Interpreter:
             # break/continue fuera de ciclo es un error semantico (§9.4); si
             # llega hasta aqui es que el analisis no lo detecto.
             self.error_manager.error_ejecucion(
-                'IL-SEM-040', 'break fuera de un ciclo', 0, 0
+                "IL-SEM-040", M("IL-SEM-040.break_fuera_ciclo"), 0, 0
             )
         except ContinueException:
             self.error_manager.error_ejecucion(
-                'IL-SEM-041', 'continue fuera de un ciclo', 0, 0
+                "IL-SEM-041", M("IL-SEM-041.continue_fuera_ciclo"), 0, 0
             )
 
         return self.salida
@@ -332,12 +479,86 @@ class Interpreter:
         return self.pila_marcos[-1]
 
     def _entrar_marco(self):
-        """Crea un nuevo marco de ejecución."""
-        self.pila_marcos.append({})
+        """Crea el marco de una nueva ACTIVACION (subrutina, metodo, constructor).
+
+        INV-1292: la activacion solo ve sus propios marcos y el global; los
+        marcos de quien la invoco quedan fuera de alcance.
+        """
+        self._bases_previas.append(self._base)
+        self.pila_marcos.append(Marco())
+        self._base = len(self.pila_marcos) - 1
 
     def _salir_marco(self):
-        """Elimina el marco de ejecución actual."""
+        """Elimina el marco de la activacion actual y restaura la anterior."""
         self.pila_marcos.pop()
+        self._base = self._bases_previas.pop()
+
+    def _entrar_bloque(self):
+        """Abre el ambito de un bloque { ... } dentro de la activacion actual.
+
+        INV-1291: sin este marco, `entero x = 1;` dentro de un `si` se
+        declaraba en el marco de la funcion y tapaba (y despues de cerrar el
+        bloque seguia tapando) a la variable global homonima.
+        """
+        self.pila_marcos.append(Marco())
+
+    def _salir_bloque(self):
+        """Cierra el ambito del bloque actual."""
+        self.pila_marcos.pop()
+
+    _DECLARACIONES = (VarDecl, ConstDecl, ArrayDecl, MatrixDecl)
+
+    def _ejecutar_bloque(self, elementos):
+        """Ejecuta una lista de elementos en un ambito de bloque propio."""
+        # INV-5014: un bloque sin declaraciones directas no necesita marco
+        # propio (nada se declararía en él; las declaraciones anidadas abren
+        # el suyo). Crear y destruir un Marco en cada vuelta de un ciclo era
+        # una parte notable del tiempo y alargaba cada búsqueda de variable.
+        clave = id(elementos)
+        declara = self._bloque_declara.get(clave)
+        if declara is None:
+            declara = any(isinstance(e, self._DECLARACIONES) for e in elementos)
+            self._bloque_declara[clave] = declara
+        if not declara:
+            for elem in elementos:
+                self._ejecutar_elemento(elem)
+            return
+        self._entrar_bloque()
+        try:
+            for elem in elementos:
+                self._ejecutar_elemento(elem)
+        finally:
+            self._salir_bloque()
+
+    def _marcos_visibles(self):
+        """Marcos visibles desde el punto actual, del mas interno al global."""
+        pila = self.pila_marcos
+        for i in range(len(pila) - 1, self._base - 1, -1):
+            yield pila[i]
+        if self._base > 0:
+            yield pila[0]
+
+    def _marco_de(self, nombre, tipos=False):
+        """Marco visible más interno que declara `nombre` (o None).
+
+        INV-5012: mismo recorrido que `_marcos_visibles` pero con un ciclo
+        simple. Cada lectura de variable lo usa; reanudar un generador por
+        marco recorrido costaba ~25 % del tiempo de un programa con ciclos
+        anidados. `tipos=True` busca en los tipos declarados del marco.
+        """
+        pila = self.pila_marcos
+        base = self._base
+        i = len(pila) - 1
+        while i >= base:
+            marco = pila[i]
+            if nombre in (marco.tipos if tipos else marco):
+                return marco
+            i -= 1
+        if base > 0:
+            marco = pila[0]
+            if nombre in (marco.tipos if tipos else marco):
+                return marco
+        return None
 
     def _declarar_variable(self, nombre, valor):
         """Declara una variable en el marco actual (no busca en marcos superiores)."""
@@ -346,34 +567,29 @@ class Interpreter:
     def _asignar_variable(self, nombre, valor):
         """Asigna un valor a una variable en el marco actual o superiores."""
         # Buscar en la pila de marcos (de adentro hacia afuera)
-        for marco in reversed(self.pila_marcos):
-            if nombre in marco:
-                marco[nombre] = valor
-                return
+        marco = self._marco_de(nombre)
+        if marco is not None:
+            marco[nombre] = valor
+            return
         # Si no existe, crear en el marco actual
         self._marco_actual()[nombre] = valor
 
     def _obtener_variable(self, nombre):
         """Obtiene el valor de una variable desde la pila de marcos."""
-        for marco in reversed(self.pila_marcos):
-            if nombre in marco:
-                return marco[nombre]
+        marco = self._marco_de(nombre)
+        if marco is not None:
+            return marco[nombre]
 
         entrada = self.tabla.buscar(nombre)
         if entrada and entrada.inicializado:
             return None  # Variable declarada pero sin valor de inicialización
         raise RuntimeError_(
-            'IL-EJE-010',
-            f'Variable "{nombre}" no inicializada',
-            0, 0
+            "IL-EJE-010", M("IL-EJE-010.variable_no_inicializada", nombre=nombre), 0, 0
         )
 
     def _existe_en_marco(self, nombre):
         """Verifica si una variable existe en algún marco visible."""
-        for marco in reversed(self.pila_marcos):
-            if nombre in marco:
-                return True
-        return False
+        return self._marco_de(nombre) is not None
 
     def _resolver_dimension(self, dim):
         """Resuelve una dimensión que puede ser int o nombre de constante."""
@@ -384,14 +600,26 @@ class Interpreter:
 
     def _promover_si_float(self, valor, tipo_esperado):
         """Promueve int a float si el tipo esperado es float."""
-        if tipo_esperado == 'float' and isinstance(valor, int) and not isinstance(valor, bool):
+        if tipo_esperado == "float" and isinstance(valor, int) and not isinstance(valor, bool):
             return float(valor)
         return valor
+
+    def _enlazar_parametros(self, parametros, argumentos):
+        """Declara cada parámetro en el marco actual con el valor de su argumento.
+
+        INV-5006: un argumento ``entero`` pasado a un parámetro ``real`` se
+        promueve (§4, igual que en la asignación). Antes se guardaba el entero
+        tal cual y ``real g(real x) { retornar x / 2; }`` con ``g(3)`` daba
+        1.0 (división entera) en vez de 1.5, distinto de la máquina TAC.
+        """
+        for param, arg in zip(parametros, argumentos, strict=True):
+            self.tipos_variables[param.nombre] = param.tipo
+            self._declarar_variable(param.nombre, self._promover_si_float(arg, param.tipo))
 
     # Valores por defecto de las variables globales (§5.2.3, Apendice D).
     # Las locales NO reciben valor por defecto: leerlas sin inicializar es
     # IL-EJE-010.
-    VALORES_POR_DEFECTO = {'int': 0, 'float': 0.0, 'string': '', 'bool': False}
+    VALORES_POR_DEFECTO = {"int": 0, "float": 0.0, "string": "", "bool": False}
 
     def _ejecutar_declaracion(self, nodo, es_global=False):
         """Ejecuta una declaración, inicializando variables."""
@@ -410,13 +638,38 @@ class Interpreter:
             valor = self._promover_si_float(valor, nodo.tipo)
             self._declarar_variable(nodo.nombre, valor)
         elif isinstance(nodo, ArrayDecl):
+            # Hardening: límite de memoria en ejecución (coherente con semantic.py)
+            _max_ejec_tam = 100000
             if nodo.init_exprs:
+                if len(nodo.init_exprs) > _max_ejec_tam:
+                    raise RuntimeError_(
+                        "IL-EJE-050",
+                        M(
+                            "IL-EJE-050.arreglo_excede_limite_elementos",
+                            nombre=nodo.nombre,
+                            max_ejec_tam=_max_ejec_tam,
+                        ),
+                        nodo.linea,
+                        nodo.columna,
+                    )
                 valores = [self._evaluar_expresion(e) for e in nodo.init_exprs]
                 self._declarar_variable(nodo.nombre, valores)
             else:
                 tam = self._resolver_dimension(nodo.tam)
+                if tam > _max_ejec_tam:
+                    raise RuntimeError_(
+                        "IL-EJE-050",
+                        M(
+                            "IL-EJE-050.arreglo_excede_limite_elementos",
+                            nombre=nodo.nombre,
+                            max_ejec_tam=_max_ejec_tam,
+                        ),
+                        nodo.linea,
+                        nodo.columna,
+                    )
                 self._declarar_variable(nodo.nombre, [None] * tam)
         elif isinstance(nodo, MatrixDecl):
+            _max_ejec_dim = 10000
             if nodo.init_filas:
                 matriz = []
                 for fila in nodo.init_filas:
@@ -425,6 +678,18 @@ class Interpreter:
             else:
                 filas = self._resolver_dimension(nodo.filas)
                 cols = self._resolver_dimension(nodo.cols)
+                if filas > _max_ejec_dim or cols > _max_ejec_dim or filas * cols > 200000:
+                    raise RuntimeError_(
+                        "IL-EJE-050",
+                        M(
+                            "IL-EJE-050.matriz_excede_limites_memoria",
+                            nombre=nodo.nombre,
+                            filas=filas,
+                            cols=cols,
+                        ),
+                        nodo.linea,
+                        nodo.columna,
+                    )
                 self._declarar_variable(nodo.nombre, [[None] * cols for _ in range(filas)])
 
     def _invocar_built_in(self, nombre, argumentos, nodo=None):
@@ -438,9 +703,8 @@ class Interpreter:
             return ejecutar_built_in(nombre, argumentos)
         except BuiltInError as e:
             raise RuntimeError_(
-                e.codigo, e.mensaje,
-                getattr(nodo, 'linea', 0), getattr(nodo, 'columna', 0)
-            )
+                e.codigo, e.mensaje, getattr(nodo, "linea", 0), getattr(nodo, "columna", 0)
+            ) from e
 
     def _ejecutar_subrutina(self, nombre, argumentos, nodo=None):
         """Ejecuta una función o procedimiento por nombre."""
@@ -457,9 +721,7 @@ class Interpreter:
             return None
 
         raise RuntimeError_(
-            'IL-SEM-003',
-            f'Función no encontrada: "{nombre}"',
-            0, 0
+            "IL-SEM-003", M("IL-SEM-003.funcion_no_encontrada", nombre=nombre), 0, 0
         )
 
     # Profundidad maxima de recursion de InvenioLang (§10.6, IL-EJE-040).
@@ -467,40 +729,43 @@ class Interpreter:
     # intérprete anfitrion se eleva en proporcion para que sea SIEMPRE este
     # contador el que se dispare primero y produzca un error del catalogo en
     # lugar de un RecursionError sin codigo ni linea.
-    MAX_RECURSION = 500
+    MAX_RECURSION = security.MAX_RECURSION
     MARCOS_PYTHON_POR_LLAMADA = 12
     _profundidad_llamadas = 0
 
     def _ejecutar_funcion(self, nodo, argumentos):
         """Ejecuta una función y retorna su valor."""
         self._comprobar_cancelacion()
+        self._paso_global(nodo)
         self._profundidad_llamadas += 1
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
             raise RuntimeError_(
-                'IL-EJE-040',
-                'Desbordamiento de pila de llamadas (recursión demasiado profunda)',
-                nodo.linea, nodo.columna
+                "IL-EJE-040",
+                M("IL-EJE-040.desbordamiento_pila_llamadas_recursion"),
+                nodo.linea,
+                nodo.columna,
             )
         self._entrar_marco()
         self._pila_subrutinas.append(nodo.nombre)
 
         try:
             # Asignar parámetros
-            for param, arg in zip(nodo.parametros, argumentos):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(nodo.parametros, argumentos)
 
             try:
                 for elem in nodo.bloque.elementos:
                     self._ejecutar_elemento(elem)
             except ReturnException as e:
                 valor = e.valor
-                if nodo.tipo_retorno == 'float' and isinstance(valor, int):
+                if nodo.tipo_retorno == "float" and isinstance(valor, int):
                     valor = float(valor)
                 return valor
 
             return None
+        except RuntimeError_ as e:
+            self._anotar_origen(e, nodo)
+            raise
         finally:
             if self._pila_subrutinas:
                 self._pila_subrutinas.pop()
@@ -509,40 +774,67 @@ class Interpreter:
 
     def _ejecutar_procedimiento(self, nodo, argumentos):
         """Ejecuta un procedimiento (no retorna valor)."""
+        # INV-5007: el mismo límite IL-EJE-040 que las funciones. Sin él, un
+        # procedimiento recursivo sin caso base agotaba la pila de Python y
+        # escapaba un RecursionError sin código ni línea.
+        self._comprobar_cancelacion()
+        self._paso_global(nodo)
         self._profundidad_llamadas += 1
+        if self._profundidad_llamadas > self.MAX_RECURSION:
+            self._profundidad_llamadas -= 1
+            raise RuntimeError_(
+                "IL-EJE-040",
+                M("IL-EJE-040.desbordamiento_pila_llamadas_recursion"),
+                nodo.linea,
+                nodo.columna,
+            )
         self._entrar_marco()
         self._pila_subrutinas.append(nodo.nombre)
 
         try:
-            for param, arg in zip(nodo.parametros, argumentos):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(nodo.parametros, argumentos)
 
             try:
                 for elem in nodo.bloque.elementos:
                     self._ejecutar_elemento(elem)
             except ReturnException:
                 pass  # Return sin valor en procedimiento
+        except RuntimeError_ as e:
+            self._anotar_origen(e, nodo)
+            raise
         finally:
             if self._pila_subrutinas:
                 self._pila_subrutinas.pop()
             self._salir_marco()
             self._profundidad_llamadas -= 1
 
+    @staticmethod
+    def _anotar_origen(error, nodo):
+        """Fija el archivo donde ocurrio un error de ejecucion (INV-1420).
+
+        Lo fija la activacion MAS interna que lo ve pasar; las externas lo
+        respetan aunque vivan en otro archivo. `""` = programa principal.
+        """
+        if error.archivo is None:
+            error.archivo = getattr(nodo, "archivo_origen", None) or ""
+
     def _resolver_valor_funcion_variable(self, nombre):
-        """Si `nombre` es una variable local que guarda un ValorFuncion
+        """Si `nombre` es una variable local que guarda un ValorFuncion.
+
         (Etapa 12.6), lo retorna; si no, None. Usado en los puntos de
         llamada (`_ejecutar_llamada`, `FunctionCall`) para decidir, con la
         MISMA sintaxis de llamada que una función/procedimiento normal
         (`llamada_funcion : IDENTIFICADOR '(' args ')'`), si se está
         invocando un closure guardado en variable en vez de una subrutina
         de nivel superior -- el punto de decisión es semántico (ver
-        checkpoint 12.5), no gramatical."""
+        checkpoint 12.5), no gramatical.
+        """
         valor = self._obtener_valor_variable(nombre)
         return valor if isinstance(valor, ValorFuncion) else None
 
     def _invocar_valor_funcion(self, vf, argumentos, nodo):
-        """Invoca un ValorFuncion (Etapa 12.6): delega en
+        """Invoca un ValorFuncion (Etapa 12.6): delega en.
+
         `_ejecutar_subrutina` si envuelve una función/procedimiento de
         nivel superior, o ejecuta el lambda con sus marcos capturados
         restaurados temporalmente en `self.pila_marcos` -- el mecanismo de
@@ -552,32 +844,38 @@ class Interpreter:
         variable capturada que cambia después de crear el closure (o que
         el propio closure reasigna) se sigue viendo actualizada la
         próxima vez que se invoca -- semántica estándar de clausura por
-        referencia, no por valor."""
+        referencia, no por valor.
+        """
         if vf.nombre_subrutina is not None:
             return self._ejecutar_subrutina(vf.nombre_subrutina, argumentos, nodo)
 
         nodo_lambda = vf.lambda_nodo
+        self._comprobar_cancelacion()
+        self._paso_global(nodo)
         self._profundidad_llamadas += 1
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
             raise RuntimeError_(
-                'IL-EJE-040',
-                'Desbordamiento de pila de llamadas (recursión demasiado profunda)',
-                nodo.linea, nodo.columna
+                "IL-EJE-040",
+                M("IL-EJE-040.desbordamiento_pila_llamadas_recursion"),
+                nodo.linea,
+                nodo.columna,
             )
         marcos_previos = self.pila_marcos
-        self.pila_marcos = list(vf.marcos_capturados) + [{}]
-        self._pila_subrutinas.append('<lambda>')
+        base_previa, bases_previas = self._base, self._bases_previas
+        # Los marcos capturados ya son solo los lexicamente visibles al crear
+        # el lambda (global + activacion que lo creo, ver LambdaExpr).
+        self.pila_marcos = list(vf.marcos_capturados) + [Marco()]
+        self._base, self._bases_previas = 1, []
+        self._pila_subrutinas.append("<lambda>")
         try:
-            for param, arg in zip(nodo_lambda.parametros, argumentos):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(nodo_lambda.parametros, argumentos)
             try:
                 for elem in nodo_lambda.bloque.elementos:
                     self._ejecutar_elemento(elem)
             except ReturnException as e:
                 valor = e.valor
-                if nodo_lambda.tipo_retorno == 'float' and isinstance(valor, int):
+                if nodo_lambda.tipo_retorno == "float" and isinstance(valor, int):
                     valor = float(valor)
                 return valor
             return None
@@ -585,35 +883,51 @@ class Interpreter:
             if self._pila_subrutinas:
                 self._pila_subrutinas.pop()
             self.pila_marcos = marcos_previos
+            self._base, self._bases_previas = base_previa, bases_previas
             self._profundidad_llamadas -= 1
 
     def _invocar_orden_superior(self, nombre, args_eval, nodo):
-        """reducir/mapear/filtrar (Etapa 12.7) -- ver semantic.py::
+        """Ejecuta mapear/filtrar/reducir.
+
         _ORDEN_SUPERIOR para el diseño completo. `salida` en mapear/
         filtrar es la MISMA lista de Python que ya representa el arreglo
         del llamador (los arreglos ya se pasan por referencia en todo el
         lenguaje) -- escribir `salida[i] = ...` aquí es exactamente lo
         mismo que ya hace cualquier función que recibe un arreglo por
-        parámetro y lo modifica, sin mecanismo nuevo."""
-        if nombre in ('reducir', 'reduce'):
+        parámetro y lo modifica, sin mecanismo nuevo.
+        """
+        # INV-2000: estas tres recorren y escriben arreglos sin pasar por
+        # ArrayAccess/ArrayLValue; sin registrar aquí el visualizador no
+        # vería esas lecturas ni (peor) esas escrituras.
+        if nombre in ("reducir", "reduce"):
             arreglo, f, inicial = args_eval
             acc = inicial
-            for v in arreglo:
+            for i, v in enumerate(arreglo):
+                if self.registro_accesos is not None:
+                    self.registro_accesos("lee", None, arreglo, (i,), None)
                 acc = self._invocar_valor_funcion(f, [acc, v], nodo)
             return acc
-        if nombre in ('mapear', 'map'):
+        if nombre in ("mapear", "map"):
             arreglo, salida, f = args_eval
             for i, v in enumerate(arreglo):
                 if i < len(salida):
+                    if self.registro_accesos is not None:
+                        self.registro_accesos("lee", None, arreglo, (i,), None)
                     salida[i] = self._invocar_valor_funcion(f, [v], nodo)
+                    if self.registro_accesos is not None:
+                        self.registro_accesos("escribe", None, salida, (i,), None)
             return None
-        if nombre in ('filtrar', 'filter'):
+        if nombre in ("filtrar", "filter"):
             arreglo, salida, pred = args_eval
             k = 0
-            for v in arreglo:
+            for i, v in enumerate(arreglo):
+                if self.registro_accesos is not None:
+                    self.registro_accesos("lee", None, arreglo, (i,), None)
                 if self._invocar_valor_funcion(pred, [v], nodo):
                     if k < len(salida):
                         salida[k] = v
+                        if self.registro_accesos is not None:
+                            self.registro_accesos("escribe", None, salida, (k,), None)
                     k += 1
             return k
         return None
@@ -623,9 +937,11 @@ class Interpreter:
     # ============================================================
 
     def _es_tipo_clase_de_variable(self, nombre):
-        """Indica si `nombre` esta declarado con un tipo de clase (para
+        """Indica si `nombre` esta declarado con un tipo de clase (para.
+
         distinguir, al leerlo, "None porque nunca se asigno" -- error,
-        IL-EJE-010 -- de "None porque su valor es nulo/null" -- valido)."""
+        IL-EJE-010 -- de "None porque su valor es nulo/null" -- valido).
+        """
         tipo = self.tipos_variables.get(nombre)
         if tipo is None:
             entrada = self.tabla.buscar(nombre)
@@ -639,34 +955,39 @@ class Interpreter:
         return self._pila_clase_definicion[-1] if self._pila_clase_definicion else None
 
     def _tipo_runtime(self, valor):
-        """Tipo de un valor en tiempo de ejecución, para elegir sobrecarga
+        """Tipo de un valor en tiempo de ejecución, para elegir sobrecarga.
+
         (Etapa 7) -- mismo vocabulario de tipos que usa el resto del
-        compilador ('int'/'float'/'string'/'bool'/nombre de clase/'null')."""
+        compilador ('int'/'float'/'string'/'bool'/nombre de clase/'null').
+        """
         if isinstance(valor, bool):
-            return 'bool'
+            return "bool"
         if isinstance(valor, int):
-            return 'int'
+            return "int"
         if isinstance(valor, float):
-            return 'float'
+            return "float"
         if isinstance(valor, str):
-            return 'string'
+            return "string"
         if isinstance(valor, InstanciaObjeto):
             return valor.clase
         if valor is None:
-            return 'null'
+            return "null"
         return None
 
     def _tipo_parametro_ast(self, p):
-        """Mismo formato que semantic.py::_tipo_parametro, pero sin
-        depender de ese módulo (interpreter.py no importa semantic.py)."""
+        """Formato de tipo de parámetro.
+
+        depender de ese módulo (interpreter.py no importa semantic.py).
+        """
         if p.es_matriz:
-            return f'{p.tipo}[][]'
+            return f"{p.tipo}[][]"
         if p.es_arreglo:
-            return f'{p.tipo}[]'
+            return f"{p.tipo}[]"
         return p.tipo
 
     def _buscar_metodo_ast(self, nombre_clase, nombre_metodo, argumentos=None):
-        """Encuentra la implementación más derivada de `nombre_metodo`
+        """Encuentra la implementación más derivada de `nombre_metodo`.
+
         visible desde `nombre_clase`, devolviendo (clase_declarante,
         MethodDecl). Reutiliza `SymbolTable.resolver_metodo` (ya probado en
         semantic.py/type_checker.py) para decidir QUÉ clase la declara, y
@@ -684,9 +1005,9 @@ class Interpreter:
         `resolver_metodo` que ya usa type_checker.py, pero con tipos
         derivados de los VALORES reales en vez de la verificación
         estática). Sin `argumentos` (o con una sola sobrecarga posible),
-        se usa la primera/única declarada."""
-        tipos_args = ([self._tipo_runtime(a) for a in argumentos]
-                      if argumentos is not None else None)
+        se usa la primera/única declarada.
+        """
+        tipos_args = [self._tipo_runtime(a) for a in argumentos] if argumentos is not None else None
         resultado = self.tabla.resolver_metodo(nombre_clase, nombre_metodo, tipos_args)
         if resultado is None and tipos_args is not None:
             # No debería pasar si type_checker.py ya validó el programa;
@@ -699,9 +1020,9 @@ class Interpreter:
         if clase_nodo is None:
             return None
         for met in clase_nodo.metodos:
-            if (met.nombre == nombre_metodo
-                    and [self._tipo_parametro_ast(p) for p in met.parametros]
-                    == metodo_info.params_tipos):
+            if met.nombre == nombre_metodo and (
+                [self._tipo_parametro_ast(p) for p in met.parametros] == metodo_info.params_tipos
+            ):
                 return clase_declarante, met
         # Ninguna coincidencia exacta de firma (no debería pasar): primer
         # método con ese nombre, por robustez.
@@ -711,10 +1032,12 @@ class Interpreter:
         return None
 
     def _resolver_receptor(self, receptor):
-        """Retorna (instancia, nombre_clase_de_busqueda) para el receptor de
+        """Retorna (instancia, nombre_clase_de_busqueda) para el receptor de.
+
         un acceso a miembro. Ver `_buscar_metodo_ast` sobre por qué el punto
         de partida difiere entre this/identificador (dinámico) y padre
-        (fijo, salta el despacho virtual)."""
+        (fijo, salta el despacho virtual).
+        """
         if isinstance(receptor, ThisExpr):
             instancia = self._instancia_actual()
             return instancia, (instancia.clase if instancia else None)
@@ -741,15 +1064,24 @@ class Interpreter:
             instancia = self._evaluar_expresion(receptor)
             clase = instancia.clase if isinstance(instancia, InstanciaObjeto) else None
             return instancia, clase
+        if isinstance(receptor, (MemberAccess, MethodCallExpr, MemberIndexAccess)):
+            # INV-4406: acceso encadenado (a.b.c, a.m().c, a.b.m()): el
+            # receptor es otro acceso; se evalúa con las mismas reglas
+            # (visibilidad, estáticos, IL-EJE-010 si un eslabón es nulo).
+            instancia = self._evaluar_expresion(receptor)
+            clase = instancia.clase if isinstance(instancia, InstanciaObjeto) else None
+            return instancia, clase
         return None, None
 
     def _inicializar_estaticos(self, ast):
-        """Inicializa los atributos estáticos de cada clase UNA sola vez
+        """Inicializa los atributos estáticos de cada clase UNA sola vez.
+
         (Etapa 7) -- una única copia compartida en `ClaseInfo.
         estado_estatico`, a diferencia de los atributos de instancia (uno
         por objeto, ver `_inicializar_campos`). Ámbito vacío: sin `this` ni
         variables locales, mismo criterio que los inicializadores de
-        instancia."""
+        instancia.
+        """
         self._entrar_marco()
         try:
             for c in ast.clases:
@@ -783,10 +1115,12 @@ class Interpreter:
             self._salir_marco()
 
     def _es_atributo_estatico(self, nombre_clase, nombre_campo):
-        """Etapa 7: True si `nombre_campo` es un atributo ESTATICO de
+        """Etapa 7: True si `nombre_campo` es un atributo ESTATICO de.
+
         `nombre_clase` (o un ancestro). Deja acceder a un miembro estático
         también a través de una instancia (`objeto.estatico`), no solo del
-        nombre de la clase -- permisivo a propósito, ver semantic.py."""
+        nombre de la clase -- permisivo a propósito, ver semantic.py.
+        """
         for clase in self.tabla.cadena_ancestros(nombre_clase) or [nombre_clase]:
             c_info = self.tabla.clases.get(clase)
             if c_info and nombre_campo in c_info.atributos:
@@ -799,8 +1133,10 @@ class Interpreter:
             if c_info and nombre_campo in c_info.atributos:
                 return c_info.estado_estatico.get(nombre_campo)
         raise RuntimeError_(
-            'IL-SEM-003', f'Atributo no encontrado: "{nombre_campo}"',
-            nodo.linea, nodo.columna
+            "IL-SEM-003",
+            M("IL-SEM-003.atributo_no_encontrado", nombre_campo=nombre_campo),
+            nodo.linea,
+            nodo.columna,
         )
 
     def _escribir_campo_estatico(self, nombre_clase, nombre_campo, valor, nodo):
@@ -810,16 +1146,20 @@ class Interpreter:
                 c_info.estado_estatico[nombre_campo] = valor
                 return
         raise RuntimeError_(
-            'IL-SEM-003', f'Atributo no encontrado: "{nombre_campo}"',
-            nodo.linea, nodo.columna
+            "IL-SEM-003",
+            M("IL-SEM-003.atributo_no_encontrado", nombre_campo=nombre_campo),
+            nodo.linea,
+            nodo.columna,
         )
 
     def _inicializar_campos(self, instancia, nombre_clase):
-        """Inicializa los campos de una instancia recién creada, del
+        """Inicializa los campos de una instancia recién creada, del.
+
         ancestro más lejano al más cercano (§4 de la spec de POO). Se
         evalúan los inicializadores en un ámbito vacío -- igual que validó
         semantic.py (sin `este` ni variables locales del llamador visibles,
-        clase_actual=None durante esa verificación)."""
+        clase_actual=None durante esa verificación).
+        """
         cadena = self.tabla.cadena_ancestros(nombre_clase) or [nombre_clase]
         self._entrar_marco()
         try:
@@ -837,20 +1177,24 @@ class Interpreter:
             self._salir_marco()
 
     def _crear_instancia(self, nombre_clase, argumentos, nodo):
-        """Implementa `nuevo`/`new`: reserva los campos con sus valores por
-        defecto/inicializadores y ejecuta la cadena de constructores."""
+        """Implementa `nuevo`/`new`: reserva los campos con sus valores por.
+
+        defecto/inicializadores y ejecuta la cadena de constructores.
+        """
         instancia = InstanciaObjeto(nombre_clase)
         self._inicializar_campos(instancia, nombre_clase)
         self._ejecutar_constructor(instancia, nombre_clase, argumentos, nodo)
         return instancia
 
     def _buscar_constructor_ast(self, nombre_clase, argumentos):
-        """Encuentra el ConstructorDecl de `nombre_clase` que coincide con
+        """Encuentra el ConstructorDecl de `nombre_clase` que coincide con.
+
         `argumentos` (valores YA evaluados) -- Etapa 10, sobrecarga de
         constructores. Mismo mecanismo que `_buscar_metodo_ast`, pero los
         constructores NUNCA se heredan (cada clase tiene los suyos propios;
         `padre(...)` ya llama explícitamente al del padre). Retorna el nodo
-        AST, o None si la clase no declara ningún constructor (implícito)."""
+        AST, o None si la clase no declara ningún constructor (implícito).
+        """
         clase_nodo = self.clases_ast.get(nombre_clase)
         if clase_nodo is None or not clase_nodo.constructores:
             return None
@@ -863,8 +1207,7 @@ class Interpreter:
         if info_elegida is None:
             return None
         for ctor in clase_nodo.constructores:
-            if ([self._tipo_parametro_ast(p) for p in ctor.parametros]
-                    == info_elegida.params_tipos):
+            if [self._tipo_parametro_ast(p) for p in ctor.parametros] == info_elegida.params_tipos:
                 return ctor
         return clase_nodo.constructores[0]
 
@@ -887,22 +1230,22 @@ class Interpreter:
             return
 
         self._comprobar_cancelacion()
+        self._paso_global(nodo)
         self._profundidad_llamadas += 1
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
             raise RuntimeError_(
-                'IL-EJE-040',
-                'Desbordamiento de pila de llamadas (recursión demasiado profunda)',
-                getattr(nodo, 'linea', 0), getattr(nodo, 'columna', 0)
+                "IL-EJE-040",
+                M("IL-EJE-040.desbordamiento_pila_llamadas_recursion"),
+                getattr(nodo, "linea", 0),
+                getattr(nodo, "columna", 0),
             )
         self._entrar_marco()
         self._pila_instancias.append(instancia)
         self._pila_clase_definicion.append(nombre_clase)
-        self._pila_subrutinas.append(f'{nombre_clase}.{nombre_clase}')
+        self._pila_subrutinas.append(f"{nombre_clase}.{nombre_clase}")
         try:
-            for param, arg in zip(constructor.parametros, argumentos):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(constructor.parametros, argumentos)
 
             elementos = constructor.bloque.elementos
             if elementos and isinstance(elementos[0], SuperCallStmt):
@@ -920,6 +1263,9 @@ class Interpreter:
                     self._ejecutar_elemento(elem)
             except ReturnException:
                 pass  # el constructor no retorna valor
+        except RuntimeError_ as e:
+            self._anotar_origen(e, constructor)
+            raise
         finally:
             if self._pila_subrutinas:
                 self._pila_subrutinas.pop()
@@ -928,47 +1274,55 @@ class Interpreter:
             self._salir_marco()
             self._profundidad_llamadas -= 1
 
-    def _invocar_metodo_desde(self, instancia, nombre_clase_inicio, nombre_metodo,
-                              argumentos, nodo):
+    def _invocar_metodo_desde(
+        self, instancia, nombre_clase_inicio, nombre_metodo, argumentos, nodo
+    ):
         resultado = self._buscar_metodo_ast(nombre_clase_inicio, nombre_metodo, argumentos)
         if resultado is None:
             raise RuntimeError_(
-                'IL-SEM-003', f'Método no encontrado: "{nombre_metodo}"',
-                getattr(nodo, 'linea', 0), getattr(nodo, 'columna', 0)
+                "IL-SEM-003",
+                M("IL-SEM-003.metodo_no_encontrado", nombre_metodo=nombre_metodo),
+                getattr(nodo, "linea", 0),
+                getattr(nodo, "columna", 0),
             )
         clase_declarante, metodo_nodo = resultado
-        return self._ejecutar_metodo(instancia, clase_declarante, metodo_nodo,
-                                     argumentos, nodo)
+        return self._ejecutar_metodo(instancia, clase_declarante, metodo_nodo, argumentos, nodo)
 
     def _ejecutar_metodo(self, instancia, clase_declarante, nodo_metodo, argumentos, nodo_llamada):
         self._comprobar_cancelacion()
+        self._paso_global(nodo_metodo)
         self._profundidad_llamadas += 1
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
             raise RuntimeError_(
-                'IL-EJE-040',
-                'Desbordamiento de pila de llamadas (recursión demasiado profunda)',
-                nodo_metodo.linea, nodo_metodo.columna
+                "IL-EJE-040",
+                M("IL-EJE-040.desbordamiento_pila_llamadas_recursion"),
+                nodo_metodo.linea,
+                nodo_metodo.columna,
             )
         self._entrar_marco()
         self._pila_instancias.append(instancia)
         self._pila_clase_definicion.append(clase_declarante)
-        self._pila_subrutinas.append(f'{instancia.clase}.{nodo_metodo.nombre}')
+        self._pila_subrutinas.append(f"{instancia.clase}.{nodo_metodo.nombre}")
         try:
-            for param, arg in zip(nodo_metodo.parametros, argumentos):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(nodo_metodo.parametros, argumentos)
 
             try:
                 for elem in nodo_metodo.bloque.elementos:
                     self._ejecutar_elemento(elem)
             except ReturnException as e:
                 valor = e.valor
-                if (nodo_metodo.tipo_retorno == 'float' and isinstance(valor, int)
-                        and not isinstance(valor, bool)):
+                if (
+                    nodo_metodo.tipo_retorno == "float"
+                    and isinstance(valor, int)
+                    and not isinstance(valor, bool)
+                ):
                     valor = float(valor)
                 return valor
             return None
+        except RuntimeError_ as e:
+            self._anotar_origen(e, nodo_metodo)
+            raise
         finally:
             if self._pila_subrutinas:
                 self._pila_subrutinas.pop()
@@ -983,20 +1337,25 @@ class Interpreter:
     # y retornar texto/string; si no, no cuenta (evita que un método no
     # relacionado con el mismo nombre pero otra firma dispare esto por
     # accidente).
-    _NOMBRES_A_TEXTO = ('aTexto', 'toString')
+    _NOMBRES_A_TEXTO = ("aTexto", "toString")
 
     def _metodo_a_texto(self, nombre_clase):
-        """Busca, en `nombre_clase` y su cadena de ancestros, un método
+        """Busca, en `nombre_clase` y su cadena de ancestros, un método.
+
         público `aTexto()`/`toString()` sin parámetros que retorne texto
-        (Etapa 10). Retorna el nombre encontrado (para invocarlo) o None."""
+        (Etapa 10). Retorna el nombre encontrado (para invocarlo) o None.
+        """
         for nombre in self._NOMBRES_A_TEXTO:
             todos = self.tabla.resolver_metodo_todos(nombre_clase, nombre)
             if todos is None:
                 continue
             _, candidatos = todos
             for info in candidatos:
-                if (info.visibilidad == 'publico' and info.tipo == 'string'
-                        and not info.params_tipos):
+                if (
+                    info.visibilidad == "publico"
+                    and info.tipo == "string"
+                    and not info.params_tipos
+                ):
                     return nombre
         return None
 
@@ -1004,34 +1363,42 @@ class Interpreter:
     # (Etapa 11): mismo criterio bilingüe que _NOMBRES_A_TEXTO. Debe ser
     # público, tomar exactamente 1 parámetro (el otro objeto a comparar) y
     # retornar bool; si no, no cuenta.
-    _NOMBRES_IGUAL = ('esIgual', 'equals')
+    _NOMBRES_IGUAL = ("esIgual", "equals")
 
     def _metodo_igual(self, nombre_clase):
-        """Busca, en `nombre_clase` y su cadena de ancestros, un método
+        """Busca, en `nombre_clase` y su cadena de ancestros, un método.
+
         público `esIgual(x)`/`equals(x)` de 1 parámetro que retorne bool
         (Etapa 11). Retorna el nombre encontrado, o None -- en cuyo caso
-        `==`/`!=` siguen siendo identidad de referencia, como siempre."""
+        `==`/`!=` siguen siendo identidad de referencia, como siempre.
+        """
         for nombre in self._NOMBRES_IGUAL:
             todos = self.tabla.resolver_metodo_todos(nombre_clase, nombre)
             if todos is None:
                 continue
             _, candidatos = todos
             for info in candidatos:
-                if (info.visibilidad == 'publico' and info.tipo == 'bool'
-                        and len(info.params_tipos) == 1):
+                if (
+                    info.visibilidad == "publico"
+                    and info.tipo == "bool"
+                    and len(info.params_tipos) == 1
+                ):
                     return nombre
         return None
 
     def _formatear_objeto(self, instancia):
-        """Si la clase (o un ancestro) declara públicamente `aTexto()`/
+        """Si la clase (o un ancestro) declara públicamente `aTexto()`/.
+
         `toString()` (Etapa 10), se usa esa representación personalizada.
         Si no, el formato automático de siempre:
         `NombreClase(campo1=valor1, campo2=valor2, ...)`, en orden de
-        declaración del ancestro al descendiente (§4 de la spec de POO)."""
+        declaración del ancestro al descendiente (§4 de la spec de POO).
+        """
         nombre_metodo = self._metodo_a_texto(instancia.clase)
         if nombre_metodo is not None:
             resultado = self._invocar_metodo_desde(
-                instancia, instancia.clase, nombre_metodo, [], None)
+                instancia, instancia.clase, nombre_metodo, [], None
+            )
             return resultado if isinstance(resultado, str) else str(resultado)
         cadena = self.tabla.cadena_ancestros(instancia.clase) or [instancia.clase]
         pares = []
@@ -1041,16 +1408,16 @@ class Interpreter:
                 continue
             for attr in clase_nodo.atributos:
                 valor = instancia.campos.get(attr.nombre)
-                pares.append(f'{attr.nombre}={self._repr_valor_campo(valor)}')
-        return f'{instancia.clase}(' + ', '.join(pares) + ')'
+                pares.append(f"{attr.nombre}={self._repr_valor_campo(valor)}")
+        return f"{instancia.clase}(" + ", ".join(pares) + ")"
 
     def _repr_valor_campo(self, valor):
         if isinstance(valor, bool):
-            return 'true' if valor else 'false'
+            return "true" if valor else "false"
         if isinstance(valor, str):
             return f'"{valor}"'
         if valor is None:
-            return 'void'
+            return "void"
         if isinstance(valor, InstanciaObjeto):
             return self._formatear_objeto(valor)
         return str(valor)
@@ -1096,8 +1463,10 @@ class Interpreter:
             self._ejecutar_llamada(nodo.nombre, nodo.argumentos, nodo)
         elif isinstance(nodo, MethodCallStmt):
             instancia, clase_inicio = self._resolver_receptor(nodo.receptor)
-            receptor_invalido = (not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico))
-                                 or clase_inicio is None)
+            receptor_invalido = (
+                not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico))
+                or clase_inicio is None
+            )
             if nodo.es_seguro and receptor_invalido:
                 # Acceso seguro (Etapa 12.2): objeto?.metodo(); no hace
                 # nada si objeto es nulo (mismo cortocircuito que la forma
@@ -1107,12 +1476,12 @@ class Interpreter:
                 args = [self._evaluar_expresion(a) for a in nodo.argumentos]
                 if receptor_invalido:
                     raise RuntimeError_(
-                        'IL-EJE-010',
-                        'Llamada a método sobre una referencia nula o no inicializada',
-                        nodo.linea, nodo.columna
+                        "IL-EJE-010",
+                        M("IL-EJE-010.llamada_metodo_sobre_referencia"),
+                        nodo.linea,
+                        nodo.columna,
                     )
-                self._invocar_metodo_desde(instancia, clase_inicio, nodo.nombre_metodo,
-                                           args, nodo)
+                self._invocar_metodo_desde(instancia, clase_inicio, nodo.nombre_metodo, args, nodo)
         elif isinstance(nodo, SuperCallStmt):
             # Solo se llega aquí si NO es la primera instrucción de un
             # constructor (ese caso ya lo consume _ejecutar_constructor);
@@ -1137,30 +1506,32 @@ class Interpreter:
         el que el operador esté definido, incluida la concatenación de texto
         con `+=`.
         """
-        if operador == '=':
+        if operador == "=":
             return valor
         if actual is None:
             raise RuntimeError_(
-                'IL-EJE-010',
-                'Asignación compuesta sobre un destino no inicializado',
-                nodo.linea, nodo.columna
+                "IL-EJE-010",
+                M("IL-EJE-010.asignacion_compuesta_sobre_destino"),
+                nodo.linea,
+                nodo.columna,
             )
-        if operador == '+=':
+        if operador == "+=":
             return actual + valor
-        if operador == '-=':
+        if operador == "-=":
             return actual - valor
-        if operador == '*=':
+        if operador == "*=":
             return actual * valor
-        if operador == '/=':
+        if operador == "/=":
             if valor == 0:
                 raise self._error_division_cero(actual, valor, nodo)
             if isinstance(actual, int) and isinstance(valor, int):
                 return self._div_entero(actual, valor)
             return actual / valor
-        if operador == '%=':
+        if operador == "%=":
             if valor == 0:
-                raise RuntimeError_('IL-EJE-006', 'División por cero en módulo',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-006", M("IL-EJE-006.division_cero_modulo"), nodo.linea, nodo.columna
+                )
             if isinstance(actual, int) and isinstance(valor, int):
                 return self._mod_entero(actual, valor)
             return actual % valor
@@ -1183,13 +1554,23 @@ class Interpreter:
             idx = self._evaluar_expresion(nodo.lvalue.indice)
             arreglo = self._obtener_valor_variable(nombre)
             if arreglo is None:
-                raise RuntimeError_('IL-EJE-010', f'Arreglo "{nombre}" no inicializado',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010",
+                    M("IL-EJE-010.arreglo_no_inicializado", nombre=nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
             if idx < 0 or idx >= len(arreglo):
-                raise RuntimeError_('IL-EJE-050', f'Índice {idx} fuera de rango en "{nombre}"',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050",
+                    M("IL-EJE-050.indice_fuera_rango", idx=idx, nombre=nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
             resultado = self._combinar_compuesto(nodo.operador, arreglo[idx], valor, nodo)
             arreglo[idx] = self._verificar_rango_int(resultado, nodo)
+            if self.registro_accesos is not None:  # INV-2000
+                self._registrar_escritura(nodo.operador, nombre, arreglo, (idx,), None)
 
         elif isinstance(nodo.lvalue, MatrixLValue):
             nombre = nodo.lvalue.nombre
@@ -1197,16 +1578,41 @@ class Interpreter:
             col = self._evaluar_expresion(nodo.lvalue.columna)
             matriz = self._obtener_valor_variable(nombre)
             if matriz is None:
-                raise RuntimeError_('IL-EJE-010', f'Matriz "{nombre}" no inicializada',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010",
+                    M("IL-EJE-010.matriz_no_inicializada", nombre=nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
             if fila < 0 or fila >= len(matriz):
-                raise RuntimeError_('IL-EJE-050', f'Índice de fila {fila} fuera de rango',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050",
+                    M("IL-EJE-050.indice_fila_fuera_rango", fila=fila),
+                    nodo.linea,
+                    nodo.columna,
+                )
             if col < 0 or col >= len(matriz[fila]):
-                raise RuntimeError_('IL-EJE-050', f'Índice de columna {col} fuera de rango',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050",
+                    M("IL-EJE-050.indice_columna_fuera_rango", col=col),
+                    nodo.linea,
+                    nodo.columna,
+                )
             resultado = self._combinar_compuesto(nodo.operador, matriz[fila][col], valor, nodo)
             matriz[fila][col] = self._verificar_rango_int(resultado, nodo)
+            if self.registro_accesos is not None:  # INV-2000
+                self._registrar_escritura(nodo.operador, nombre, matriz, (fila, col), None)
+
+        elif isinstance(nodo.lvalue, MemberIndexLValue):
+            arreglo = self._arreglo_de_miembro(nodo.lvalue)
+            indice = self._indice_valido(
+                arreglo, self._evaluar_expresion(nodo.lvalue.indice), nodo.lvalue
+            )
+            resultado = self._combinar_compuesto(nodo.operador, arreglo[indice], valor, nodo)
+            resultado = self._promover_si_float(resultado, getattr(arreglo, "tipo", None))
+            arreglo[indice] = self._verificar_rango_int(resultado, nodo)
+            if self.registro_accesos is not None:  # INV-2000
+                self._registrar_escritura(nodo.operador, None, arreglo, (indice,), None)
 
         elif isinstance(nodo.lvalue, MemberLValue):
             instancia, _ = self._resolver_receptor(nodo.lvalue.receptor)
@@ -1217,8 +1623,11 @@ class Interpreter:
                 actual = self._leer_campo_estatico(instancia.nombre_clase, nombre_campo, nodo)
                 resultado = self._combinar_compuesto(nodo.operador, actual, valor, nodo)
                 self._escribir_campo_estatico(
-                    instancia.nombre_clase, nombre_campo,
-                    self._verificar_rango_int(resultado, nodo), nodo)
+                    instancia.nombre_clase,
+                    nombre_campo,
+                    self._verificar_rango_int(resultado, nodo),
+                    nodo,
+                )
             elif isinstance(instancia, InstanciaObjeto):
                 if self._es_atributo_estatico(instancia.clase, nombre_campo):
                     # Acceso permisivo a un estático vía instancia (Etapa 7,
@@ -1227,36 +1636,102 @@ class Interpreter:
                     actual = self._leer_campo_estatico(instancia.clase, nombre_campo, nodo)
                     resultado = self._combinar_compuesto(nodo.operador, actual, valor, nodo)
                     self._escribir_campo_estatico(
-                        instancia.clase, nombre_campo,
-                        self._verificar_rango_int(resultado, nodo), nodo)
+                        instancia.clase,
+                        nombre_campo,
+                        self._verificar_rango_int(resultado, nodo),
+                        nodo,
+                    )
                 else:
                     actual = instancia.campos.get(nombre_campo)
                     resultado = self._combinar_compuesto(nodo.operador, actual, valor, nodo)
                     instancia.campos[nombre_campo] = self._verificar_rango_int(resultado, nodo)
+                    if self.registro_accesos is not None:  # INV-2000
+                        self._registrar_escritura(
+                            nodo.operador,
+                            self._nombre_receptor(nodo.lvalue.receptor),
+                            instancia,
+                            (),
+                            nombre_campo,
+                        )
             else:
                 raise RuntimeError_(
-                    'IL-EJE-010',
-                    'Asignación a un miembro sobre una referencia nula o no inicializada',
-                    nodo.linea, nodo.columna
+                    "IL-EJE-010",
+                    M("IL-EJE-010.asignacion_miembro_sobre_referencia"),
+                    nodo.linea,
+                    nodo.columna,
                 )
+
+    def _registrar_escritura(self, operador, var, objeto, indices, campo):
+        """Avisa al registro de accesos de una escritura (INV-2000).
+
+        Solo se llama con el registro encendido. `x op= e` también LEE el
+        destino antes de escribirlo, y el visualizador debe mostrar ambas.
+        """
+        if operador != "=":
+            self.registro_accesos("lee", var, objeto, indices, campo)
+        self.registro_accesos("escribe", var, objeto, indices, campo)
+
+    @staticmethod
+    def _nombre_receptor(receptor):
+        """Nombre de la variable receptora de `x.campo` (None si no es una variable)."""
+        return receptor.nombre if isinstance(receptor, Identifier) else None
 
     def _obtener_valor_variable(self, nombre):
         """Obtiene el valor de una variable desde los marcos."""
-        for marco in reversed(self.pila_marcos):
-            if nombre in marco:
-                return marco[nombre]
-        return None
+        marco = self._marco_de(nombre)
+        return marco[nombre] if marco is not None else None
+
+    def _crear_arreglo_dinamico(self, nodo):
+        """`nuevo tipo[n]` (INV-1440): n elementos con el valor por defecto."""
+        tam = self._evaluar_expresion(nodo.tam)
+        limite = security.MAX_ARRAY_ELEMENTS
+        if tam < 0 or tam > limite:
+            raise RuntimeError_(
+                "IL-EJE-050",
+                M("IL-EJE-050.tamano_arreglo_invalido", tam=tam, limite=limite),
+                nodo.linea,
+                nodo.columna,
+            )
+        return ArregloDinamico(nodo.tipo, [self.VALORES_POR_DEFECTO.get(nodo.tipo)] * tam)
+
+    def _arreglo_de_miembro(self, nodo):
+        """Arreglo guardado en `receptor.miembro`; IL-EJE-010 si aún es nulo."""
+        arreglo = self._evaluar_expresion(nodo.acceso)
+        if arreglo is None:
+            raise RuntimeError_(
+                "IL-EJE-010",
+                M("IL-EJE-010.arreglo_no_inicializado", nombre=nodo.nombre_miembro),
+                nodo.linea,
+                nodo.columna,
+            )
+        return arreglo
+
+    @staticmethod
+    def _indice_valido(arreglo, indice, nodo):
+        """IL-EJE-050 si `indice` no está en [0, len(arreglo))."""
+        if indice < 0 or indice >= len(arreglo):
+            raise RuntimeError_(
+                "IL-EJE-050",
+                M("IL-EJE-050.indice_fuera_rango", idx=indice, nombre=nodo.nombre_miembro),
+                nodo.linea,
+                nodo.columna,
+            )
+        return indice
 
     def _ejecutar_inc_dec(self, nodo):
         """Ejecuta incremento/decremento."""
         actual = self._obtener_valor_variable(nodo.nombre)
         if actual is None:
-            raise RuntimeError_('IL-EJE-010', f'Variable "{nodo.nombre}" no inicializada',
-                                nodo.linea, nodo.columna)
+            raise RuntimeError_(
+                "IL-EJE-010",
+                M("IL-EJE-010.variable_no_inicializada", nombre=nodo.nombre),
+                nodo.linea,
+                nodo.columna,
+            )
 
-        if nodo.operador == '++':
+        if nodo.operador == "++":
             self._asignar_variable(nodo.nombre, actual + 1)
-        elif nodo.operador == '--':
+        elif nodo.operador == "--":
             self._asignar_variable(nodo.nombre, actual - 1)
 
     def _ejecutar_print(self, nodo):
@@ -1290,7 +1765,7 @@ class Interpreter:
         """
         if self.entrada:
             valor_str = self.entrada.pop(0)
-        elif getattr(self, 'usar_stdin', True):
+        elif getattr(self, "usar_stdin", True):
             # CLI/consola: lectura bloqueante desde la entrada estándar (§7.2)
             try:
                 valor_str = input()
@@ -1316,44 +1791,37 @@ class Interpreter:
 
         if tipo:
             try:
-                if tipo == 'int':
+                if tipo == "int":
                     valor = int(valor_str.strip())
-                elif tipo == 'float':
+                elif tipo == "float":
                     valor = float(valor_str.strip())
-                elif tipo == 'bool':
+                elif tipo == "bool":
                     v = valor_str.strip().lower()
-                    if v in ('true', 'verdadero', '1'):
+                    if v in ("true", "verdadero", "1"):
                         valor = True
-                    elif v in ('false', 'falso', '0'):
+                    elif v in ("false", "falso", "0"):
                         valor = False
                     else:
                         raise ValueError()
                 else:
                     valor = valor_str
                 self._asignar_variable(nodo.nombre, valor)
-            except ValueError:
-                cod = {'int': 'IL-EJE-020', 'float': 'IL-EJE-021', 'bool': 'IL-EJE-022'}
+            except ValueError as e:
+                cod = {"int": "IL-EJE-020", "float": "IL-EJE-021", "bool": "IL-EJE-022"}
                 raise RuntimeError_(
-                    cod.get(tipo, 'IL-EJE-020'),
-                    f'Entrada no convertible a {tipo}',
-                    nodo.linea, nodo.columna
-                )
+                    cod.get(tipo, "IL-EJE-020"),
+                    M("IL-EJE-020.entrada_no_convertible", tipo=tipo),
+                    nodo.linea,
+                    nodo.columna,
+                ) from e
 
     def _ejecutar_if(self, nodo):
         """Ejecuta if/si."""
         cond = self._evaluar_expresion(nodo.condicion)
         if cond:
-            try:
-                for elem in nodo.bloque_then.elementos:
-                    self._ejecutar_elemento(elem)
-            except (BreakException, ContinueException):
-                raise  # Propagar hacia arriba
+            self._ejecutar_bloque(nodo.bloque_then.elementos)
         elif nodo.bloque_else:
-            try:
-                for elem in nodo.bloque_else.elementos:
-                    self._ejecutar_elemento(elem)
-            except (BreakException, ContinueException):
-                raise
+            self._ejecutar_bloque(nodo.bloque_else.elementos)
 
     def _comprobar_cancelacion(self):
         """Aborta si el consumidor pidió detener la ejecución."""
@@ -1371,19 +1839,41 @@ class Interpreter:
         """
         if self.max_iteraciones and n > self.max_iteraciones:
             raise RuntimeError_(
-                'IL-EJE-030',
-                f'Posible ciclo infinito: se superaron '
-                f'{self.max_iteraciones:,} iteraciones sin terminar'.replace(',', ' '),
-                nodo.linea, nodo.columna
+                "IL-EJE-030",
+                M(
+                    "IL-EJE-030.posible_ciclo_infinito_iteraciones",
+                    iteraciones=f"{self.max_iteraciones:,}".replace(",", " "),
+                ),
+                nodo.linea,
+                nodo.columna,
             )
-        if self.max_segundos and n % 2000 == 0 and self._t_inicio is not None:
+        self._paso_global(nodo)
+
+    # Cada cuántos pasos globales se consulta el reloj (potencia de 2 - 1).
+    _MASCARA_RELOJ = 1023
+
+    def _paso_global(self, nodo):
+        """Cuenta un paso del programa entero y vigila el tiempo total (INV-5009).
+
+        Antes el reloj solo se miraba cuando UN ciclo llegaba a 2000 vueltas:
+        tres ciclos anidados de 1999 vueltas, o una recursión sin ciclos
+        (``f(n-1) + f(n-1)``), corrían sin límite de tiempo. Ahora cada vuelta
+        de ciclo y cada llamada a subrutina cuentan en un contador GLOBAL, y
+        el reloj se consulta cada 1024 pasos, sea cual sea su origen.
+        """
+        self._pasos_globales += 1
+        if (
+            self.max_segundos
+            and not self._pasos_globales & self._MASCARA_RELOJ
+            and self._t_inicio is not None
+        ):
             transcurrido = time.monotonic() - self._t_inicio
             if transcurrido > self.max_segundos:
                 raise RuntimeError_(
-                    'IL-EJE-030',
-                    f'Posible ciclo infinito: el programa lleva '
-                    f'{transcurrido:.1f} s sin terminar',
-                    nodo.linea, nodo.columna
+                    "IL-EJE-030",
+                    M("IL-EJE-030.posible_ciclo_infinito_programa", transcurrido=transcurrido),
+                    getattr(nodo, "linea", 0),
+                    getattr(nodo, "columna", 0),
                 )
 
     def _ejecutar_while(self, nodo):
@@ -1397,24 +1887,24 @@ class Interpreter:
             self._guardia_iteraciones(vueltas, nodo)
             self._comprobar_cancelacion()
             try:
-                for elem in nodo.bloque.elementos:
-                    self._ejecutar_elemento(elem)
+                self._ejecutar_bloque(nodo.bloque.elementos)
             except BreakException:
                 break
             except ContinueException:
                 continue
 
     def _ejecutar_do_while(self, nodo):
-        """Ejecuta do/hacer ... while/mientras (Etapa 6): el cuerpo corre al
-        menos una vez antes de evaluar la condición por primera vez."""
+        """Ejecuta do/hacer ... while/mientras (Etapa 6): el cuerpo corre al.
+
+        menos una vez antes de evaluar la condición por primera vez.
+        """
         vueltas = 0
         while True:
             vueltas += 1
             self._guardia_iteraciones(vueltas, nodo)
             self._comprobar_cancelacion()
             try:
-                for elem in nodo.bloque.elementos:
-                    self._ejecutar_elemento(elem)
+                self._ejecutar_bloque(nodo.bloque.elementos)
             except BreakException:
                 break
             except ContinueException:
@@ -1423,16 +1913,19 @@ class Interpreter:
                 break
 
     def _ejecutar_switch(self, nodo):
-        """Ejecuta switch/segun (Etapa 6): salta al primer case cuyo valor
+        """Ejecuta switch/segun (Etapa 6): salta al primer case cuyo valor.
+
         coincide y cae al siguiente (fallthrough, semántica C) hasta un
         break o el final. `continue` NO se captura aquí -- debe propagarse
-        a un ciclo envolvente, ver IL-SEM-041/semantic.py."""
+        a un ciclo envolvente, ver IL-SEM-041/semantic.py.
+        """
         valor = self._evaluar_expresion(nodo.expr)
         idx_inicio = None
         for i, caso in enumerate(nodo.casos):
             if caso.valor.valor == valor:
                 idx_inicio = i
                 break
+        self._entrar_bloque()
         try:
             if idx_inicio is not None:
                 for caso in nodo.casos[idx_inicio:]:
@@ -1446,9 +1939,12 @@ class Interpreter:
                     self._ejecutar_elemento(elem)
         except BreakException:
             pass
+        finally:
+            self._salir_bloque()
 
     def _ejecutar_match(self, nodo):
-        """Ejecuta emparejar/match (Etapa 12.9/12.10). Dos caminos,
+        """Ejecuta emparejar/match.
+
         exactamente como en semantic.py/type_checker.py:
           - Tipo suma con carga: el valor es una InstanciaObjeto real (la
             variante desazucarada, ver semantic.py::_desazucarar_tipos_suma);
@@ -1458,22 +1954,31 @@ class Interpreter:
             (ordinal) desnudo, sin ninguna referencia a su clase -- hace
             falta resolver el tipo DECLARADO de la expresión para saber a
             qué enum pertenece y mapear el ordinal de vuelta a un nombre
-            de miembro (ver _tipo_enum_de_expresion)."""
+            de miembro (ver _tipo_enum_de_expresion).
+        """
         valor = self._evaluar_expresion(nodo.expr)
         if isinstance(valor, InstanciaObjeto):
             for caso in nodo.casos:
                 if self.tabla.es_subtipo_clase(valor.clase, caso.nombre_variante):
                     info_variante = self.tabla.clases.get(caso.nombre_variante)
-                    nombres_campos = ([n for n, a in info_variante.atributos.items() if not a.es_estatico]
-                                      if info_variante else [])
-                    for ligadura, nombre_campo in zip(caso.ligaduras, nombres_campos):
-                        self._declarar_variable(ligadura, valor.campos.get(nombre_campo))
-                    for elem in caso.bloque.elementos:
-                        self._ejecutar_elemento(elem)
+                    nombres_campos = (
+                        [n for n, a in info_variante.atributos.items() if not a.es_estatico]
+                        if info_variante
+                        else []
+                    )
+                    self._entrar_bloque()
+                    try:
+                        for ligadura, nombre_campo in zip(
+                            caso.ligaduras, nombres_campos, strict=True
+                        ):
+                            self._declarar_variable(ligadura, valor.campos.get(nombre_campo))
+                        for elem in caso.bloque.elementos:
+                            self._ejecutar_elemento(elem)
+                    finally:
+                        self._salir_bloque()
                     return
             if nodo.caso_comodin is not None:
-                for elem in nodo.caso_comodin.elementos:
-                    self._ejecutar_elemento(elem)
+                self._ejecutar_bloque(nodo.caso_comodin.elementos)
             return
 
         nombre_enum = self._tipo_enum_de_expresion(nodo.expr)
@@ -1486,22 +1991,22 @@ class Interpreter:
                     break
         for caso in nodo.casos:
             if caso.nombre_variante == nombre_miembro:
-                for elem in caso.bloque.elementos:
-                    self._ejecutar_elemento(elem)
+                self._ejecutar_bloque(caso.bloque.elementos)
                 return
         if nodo.caso_comodin is not None:
-            for elem in nodo.caso_comodin.elementos:
-                self._ejecutar_elemento(elem)
+            self._ejecutar_bloque(nodo.caso_comodin.elementos)
 
     def _tipo_enum_de_expresion(self, expr):
-        """Best-effort: tipo declarado de `expr` para emparejar sobre un
+        """Best-effort: tipo declarado de `expr` para emparejar sobre un.
+
         enum PURO (Etapa 11.8) -- el único camino donde el valor en tiempo
         de ejecución (un entero ordinal desnudo) no trae consigo su propia
         clase, a diferencia de una instancia de tipo suma. Cubre los casos
         realistas (identificador, acceso a miembro encadenado); una
         expresión más compleja simplemente no resuelve tipo y cae al caso
         comodín/ningún caso -- type_checker.py ya garantizó antes de esto
-        que el programa compila, así que en la práctica siempre se resuelve."""
+        que el programa compila, así que en la práctica siempre se resuelve.
+        """
         if isinstance(expr, Identifier):
             tipo = self.tipos_variables.get(expr.nombre)
             if tipo is None:
@@ -1516,84 +2021,98 @@ class Interpreter:
         return None
 
     def _ejecutar_try(self, nodo):
-        """Ejecuta try/intentar ... catch/capturar genérico (Etapa 6):
+        """Ejecuta try/catch genérico.
+
         cualquier RuntimeError_ (IL-EJE-*) del bloque try se captura y la
         variable de catch queda ligada a una instancia sintética de la
         clase 'Excepcion' (codigo/mensaje, ver symbol_table.py). Break/
-        continue/return del try siguen propagándose -- no son errores."""
+        continue/return del try siguen propagándose -- no son errores.
+        """
         try:
-            for elem in nodo.bloque_try.elementos:
-                self._ejecutar_elemento(elem)
+            self._ejecutar_bloque(nodo.bloque_try.elementos)
         except RuntimeError_ as e:
-            excepcion = InstanciaObjeto('Excepcion')
-            excepcion.campos['codigo'] = e.codigo
-            excepcion.campos['mensaje'] = e.mensaje
-            self._declarar_variable(nodo.nombre_catch, excepcion)
-            for elem in nodo.bloque_catch.elementos:
-                self._ejecutar_elemento(elem)
+            excepcion = InstanciaObjeto("Excepcion")
+            excepcion.campos["codigo"] = e.codigo
+            # INV-1400: el programa recibe texto en el idioma del gestor de
+            # errores, no el objeto Mensaje interno.
+            excepcion.campos["mensaje"] = self.error_manager.texto(e.mensaje)
+            # INV-1404: alias en inglés de los mismos campos.
+            excepcion.campos["code"] = excepcion.campos["codigo"]
+            excepcion.campos["message"] = excepcion.campos["mensaje"]
+            self._entrar_bloque()
+            try:
+                self._declarar_variable(nodo.nombre_catch, excepcion)
+                for elem in nodo.bloque_catch.elementos:
+                    self._ejecutar_elemento(elem)
+            finally:
+                self._salir_bloque()
 
     def _ejecutar_for(self, nodo):
-        """Ejecuta for/para."""
-        # Inicialización
+        """Ejecuta for/para.
+
+        La variable declarada en la inicializacion vive en un ambito propio
+        del ciclo (INV-1291) y cada vuelta del cuerpo abre su propio bloque.
+        """
+        self._entrar_bloque()
+        try:
+            self._ejecutar_for_en_ambito(nodo)
+        finally:
+            self._salir_bloque()
+
+    def _ejecutar_for_en_ambito(self, nodo):
+        """Cuerpo de _ejecutar_for, ya dentro del ambito del ciclo."""
         if nodo.init_stmt:
             if isinstance(nodo.init_stmt, ForInitVar):
                 valor = None
                 if nodo.init_stmt.init_expr:
                     valor = self._evaluar_expresion(nodo.init_stmt.init_expr)
+                self.tipos_variables[nodo.init_stmt.nombre] = nodo.init_stmt.tipo
+                valor = self._promover_si_float(valor, nodo.init_stmt.tipo)
                 self._declarar_variable(nodo.init_stmt.nombre, valor)
             elif isinstance(nodo.init_stmt, ForInitAsig):
-                val = self._evaluar_expresion(nodo.init_stmt.expr)
-                self._asignar_variable(nodo.init_stmt.lvalue.nombre, val)
+                # INV-1290: ForInitAsig tiene la misma forma que AssignStmt
+                # (lvalue, operador, expr); se ejecuta igual para respetar
+                # los operadores compuestos y los lvalue de arreglo/matriz.
+                self._ejecutar_asignacion(nodo.init_stmt)
 
         vueltas = 0
         while True:
-            # Condición
             if nodo.cond_expr:
                 cond = self._evaluar_expresion(nodo.cond_expr)
                 if not cond:
                     break
-            else:
-                pass  # Sin condición = bucle infinito
 
             vueltas += 1
             self._guardia_iteraciones(vueltas, nodo)
             self._comprobar_cancelacion()
 
             try:
-                for elem in nodo.bloque.elementos:
-                    self._ejecutar_elemento(elem)
+                self._ejecutar_bloque(nodo.bloque.elementos)
             except BreakException:
                 break
             except ContinueException:
                 pass  # Continuar con la acción
 
-            # Acción
             if nodo.act_stmt:
                 if isinstance(nodo.act_stmt, ForInitAsig):
-                    val = self._evaluar_expresion(nodo.act_stmt.expr)
-                    if isinstance(nodo.act_stmt.lvalue, VarLValue):
-                        self._asignar_variable(nodo.act_stmt.lvalue.nombre, val)
+                    # INV-1290: antes se evaluaba solo la expresion y se
+                    # ASIGNABA (`i += 2` dejaba i = 2 para siempre: ciclo
+                    # infinito); ahora se aplica el operador compuesto.
+                    self._ejecutar_asignacion(nodo.act_stmt)
                 elif isinstance(nodo.act_stmt, ForInitIncDec):
                     nombre = nodo.act_stmt.nombre
                     actual = self._obtener_valor_variable(nombre)
                     if actual is not None:
-                        if nodo.act_stmt.operador == '++':
+                        if nodo.act_stmt.operador == "++":
                             self._asignar_variable(nombre, actual + 1)
-                        elif nodo.act_stmt.operador == '--':
-                            self._asignar_variable(nombre, actual - 1)
-                elif isinstance(nodo.act_stmt, IncDecNode):
-                    nombre = nodo.act_stmt.nombre
-                    actual = self._obtener_valor_variable(nombre)
-                    if actual is not None:
-                        if nodo.act_stmt.operador == '++':
-                            self._asignar_variable(nombre, actual + 1)
-                        elif nodo.act_stmt.operador == '--':
+                        elif nodo.act_stmt.operador == "--":
                             self._asignar_variable(nombre, actual - 1)
                 else:
                     self._evaluar_expresion(nodo.act_stmt)
 
     def _ejecutar_foreach(self, nodo):
-        """Ejecuta para_cada/foreach (Etapa 12.1). No es azúcar desarmada
+        """Ejecuta para_cada/foreach (Etapa 12.1). No es azúcar desarmada.
+
         en el parser (ver ast_nodes.py::ForEachStmt): se evalúa el arreglo
         una sola vez y se recorre directamente la lista de Python -- igual
         de simple que desazucarar a un while indexado, pero sin necesitar
@@ -1601,17 +2120,23 @@ class Interpreter:
         lenguaje. Sin marco/ámbito propio por iteración, mismo criterio
         que _ejecutar_while/_ejecutar_for (el chequeo estático ya ocurrió
         en semantic.py; en tiempo de ejecución basta con reasignar la
-        variable de recorrido en cada vuelta)."""
+        variable de recorrido en cada vuelta).
+        """
         arreglo = self._evaluar_expresion(nodo.arreglo)
         for valor in list(arreglo):
-            self._declarar_variable(nodo.nombre, valor)
+            # La variable de recorrido es local a cada vuelta (INV-1291).
+            self._entrar_bloque()
             try:
+                self.tipos_variables[nodo.nombre] = nodo.tipo
+                self._declarar_variable(nodo.nombre, valor)
                 for elem in nodo.bloque.elementos:
                     self._ejecutar_elemento(elem)
             except BreakException:
                 break
             except ContinueException:
                 continue
+            finally:
+                self._salir_bloque()
 
     def _ejecutar_return(self, nodo):
         """Ejecuta return."""
@@ -1645,9 +2170,10 @@ class Interpreter:
             return None
 
         raise RuntimeError_(
-            'IL-SEM-003',
-            f'Subrutina no encontrada: "{nombre}"',
-            nodo.linea, nodo.columna
+            "IL-SEM-003",
+            M("IL-SEM-003.subrutina_no_encontrada", nombre=nombre),
+            nodo.linea,
+            nodo.columna,
         )
 
     def _evaluar_expresion(self, nodo):
@@ -1657,6 +2183,35 @@ class Interpreter:
 
         if isinstance(nodo, Literal):
             return nodo.valor
+
+        # INV-5013: BinaryOp justo después de Literal. Es el nodo más frecuente
+        # en ciclos y condiciones; antes era la comprobación número 14 de esta
+        # cadena. Todas las clases de expresión son hermanas (ninguna hereda
+        # de otra), así que el orden no cambia qué rama se toma.
+        if isinstance(nodo, BinaryOp):
+            # Cortocircuito garantizado por §6.3.1: el operando derecho NO se
+            # evalua cuando el izquierdo ya determina el resultado. Debe
+            # resolverse aqui, antes de evaluar la derecha.
+            if nodo.operador == "&&":
+                if self._evaluar_expresion(nodo.izquierda) is not True:
+                    return False
+                return self._evaluar_expresion(nodo.derecha)
+            if nodo.operador == "||":
+                if self._evaluar_expresion(nodo.izquierda) is True:
+                    return True
+                return self._evaluar_expresion(nodo.derecha)
+            if nodo.operador == "??":
+                # Coalescencia nula (Etapa 12.2): la derecha NO se evalua
+                # si la izquierda no es nula (mismo cortocircuito que
+                # &&/||, mismo criterio de "no evaluar lo que no hace
+                # falta").
+                izq = self._evaluar_expresion(nodo.izquierda)
+                if izq is not None:
+                    return izq
+                return self._evaluar_expresion(nodo.derecha)
+            left = self._evaluar_expresion(nodo.izquierda)
+            right = self._evaluar_expresion(nodo.derecha)
+            return self._aplicar_binario(nodo.operador, left, right, nodo)
 
         if isinstance(nodo, Identifier):
             # Etapa 12.6: un IDENTIFICADOR bare que no es NINGUNA variable
@@ -1673,42 +2228,74 @@ class Interpreter:
             # función del mismo nombre (sombra normal, ya lo impediría
             # semantic.py de todas formas -- los nombres de función están
             # en el mismo espacio que las variables).
-            if (nodo.nombre not in self.tipos_variables
-                    and (nodo.nombre in self.funciones_ast or nodo.nombre in self.procedimientos_ast)):
+            # INV-5013: primero la búsqueda O(1) en los diccionarios de
+            # subrutinas; el recorrido de marcos de `tipos_variables` solo
+            # hace falta si el nombre coincide con una (caso raro).
+            if (
+                nodo.nombre in self.funciones_ast or nodo.nombre in self.procedimientos_ast
+            ) and nodo.nombre not in self.tipos_variables:
                 return ValorFuncion(nombre_subrutina=nodo.nombre)
             valor = self._obtener_valor_variable(nodo.nombre)
             if valor is None and not self._es_tipo_clase_de_variable(nodo.nombre):
                 # Para un tipo de clase, None ES un valor legitimo (nulo/null,
                 # Estructuras de Datos) -- no una variable sin inicializar.
                 # Solo los primitivos exigen asignacion antes de leerse.
-                raise RuntimeError_('IL-EJE-010', f'Variable "{nodo.nombre}" no inicializada',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010",
+                    M("IL-EJE-010.variable_no_inicializada", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
             return valor
 
         if isinstance(nodo, ArrayAccess):
             arreglo = self._obtener_valor_variable(nodo.nombre)
             if arreglo is None:
-                raise RuntimeError_('IL-EJE-010', f'Arreglo "{nodo.nombre}" no inicializado',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010",
+                    M("IL-EJE-010.arreglo_no_inicializado", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
             idx = self._evaluar_expresion(nodo.indice)
             if idx < 0 or idx >= len(arreglo):
-                raise RuntimeError_('IL-EJE-050', f'Índice {idx} fuera de rango en "{nodo.nombre}"',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050",
+                    M("IL-EJE-050.indice_fuera_rango", idx=idx, nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
+            if self.registro_accesos is not None:  # INV-2000
+                self.registro_accesos("lee", nodo.nombre, arreglo, (idx,), None)
             return arreglo[idx]
 
         if isinstance(nodo, MatrixAccess):
             matriz = self._obtener_valor_variable(nodo.nombre)
             if matriz is None:
-                raise RuntimeError_('IL-EJE-010', f'Matriz "{nodo.nombre}" no inicializada',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-010",
+                    M("IL-EJE-010.matriz_no_inicializada", nombre=nodo.nombre),
+                    nodo.linea,
+                    nodo.columna,
+                )
             fila = self._evaluar_expresion(nodo.fila)
             col = self._evaluar_expresion(nodo.columna)
             if fila < 0 or fila >= len(matriz):
-                raise RuntimeError_('IL-EJE-050', f'Fila {fila} fuera de rango',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050",
+                    M("IL-EJE-050.fila_fuera_rango", fila=fila),
+                    nodo.linea,
+                    nodo.columna,
+                )
             if col < 0 or col >= len(matriz[fila]):
-                raise RuntimeError_('IL-EJE-050', f'Columna {col} fuera de rango',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-050",
+                    M("IL-EJE-050.columna_fuera_rango", col=col),
+                    nodo.linea,
+                    nodo.columna,
+                )
+            if self.registro_accesos is not None:  # INV-2000
+                self.registro_accesos("lee", nodo.nombre, matriz, (fila, col), None)
             return matriz[fila][col]
 
         if isinstance(nodo, FunctionCall):
@@ -1729,13 +2316,28 @@ class Interpreter:
             # el MISMO diccionario de marco -- así una variable capturada
             # que cambia después de crear el lambda se sigue viendo
             # actualizada la próxima vez que se invoque.
-            return ValorFuncion(lambda_nodo=nodo, marcos_capturados=list(self.pila_marcos))
+            visibles = (
+                [self.pila_marcos[0]] + self.pila_marcos[self._base :]
+                if self._base > 0
+                else list(self.pila_marcos)
+            )
+            return ValorFuncion(lambda_nodo=nodo, marcos_capturados=visibles)
 
         if isinstance(nodo, ThisExpr):
             return self._instancia_actual()
 
         if isinstance(nodo, NullExpr):
             return None
+
+        if isinstance(nodo, NewArrayExpr):
+            return self._crear_arreglo_dinamico(nodo)
+
+        if isinstance(nodo, MemberIndexAccess):
+            arreglo = self._arreglo_de_miembro(nodo)
+            indice = self._indice_valido(arreglo, self._evaluar_expresion(nodo.indice), nodo)
+            if self.registro_accesos is not None:  # INV-2000
+                self.registro_accesos("lee", None, arreglo, (indice,), None)
+            return arreglo[indice]
 
         if isinstance(nodo, NewExpr):
             args = [self._evaluar_expresion(a) for a in nodo.argumentos]
@@ -1753,23 +2355,36 @@ class Interpreter:
                 if nodo.es_seguro:
                     return None
                 raise RuntimeError_(
-                    'IL-EJE-010',
-                    'Acceso a miembro sobre una referencia nula o no inicializada',
-                    nodo.linea, nodo.columna
+                    "IL-EJE-010",
+                    M("IL-EJE-010.acceso_miembro_sobre_referencia"),
+                    nodo.linea,
+                    nodo.columna,
                 )
             if self._es_atributo_estatico(instancia.clase, nodo.nombre_miembro):
                 return self._leer_campo_estatico(instancia.clase, nodo.nombre_miembro, nodo)
             if nodo.nombre_miembro not in instancia.campos:
                 raise RuntimeError_(
-                    'IL-SEM-003', f'Atributo no encontrado: "{nodo.nombre_miembro}"',
-                    nodo.linea, nodo.columna
+                    "IL-SEM-003",
+                    M("IL-SEM-003.atributo_no_encontrado_2", nombre_miembro=nodo.nombre_miembro),
+                    nodo.linea,
+                    nodo.columna,
+                )
+            if self.registro_accesos is not None:  # INV-2000
+                self.registro_accesos(
+                    "lee",
+                    self._nombre_receptor(nodo.receptor),
+                    instancia,
+                    (),
+                    nodo.nombre_miembro,
                 )
             return instancia.campos[nodo.nombre_miembro]
 
         if isinstance(nodo, MethodCallExpr):
             instancia, clase_inicio = self._resolver_receptor(nodo.receptor)
-            receptor_invalido = (not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico))
-                                 or clase_inicio is None)
+            receptor_invalido = (
+                not isinstance(instancia, (InstanciaObjeto, _AccesoEstatico))
+                or clase_inicio is None
+            )
             if nodo.es_seguro and receptor_invalido:
                 # Acceso seguro (Etapa 12.2): los argumentos NO se evalúan
                 # si el receptor es nulo (cortocircuito, mismo criterio que
@@ -1779,42 +2394,19 @@ class Interpreter:
             args = [self._evaluar_expresion(a) for a in nodo.argumentos]
             if receptor_invalido:
                 raise RuntimeError_(
-                    'IL-EJE-010',
-                    'Llamada a método sobre una referencia nula o no inicializada',
-                    nodo.linea, nodo.columna
+                    "IL-EJE-010",
+                    M("IL-EJE-010.llamada_metodo_sobre_referencia"),
+                    nodo.linea,
+                    nodo.columna,
                 )
-            return self._invocar_metodo_desde(instancia, clase_inicio, nodo.nombre_metodo,
-                                              args, nodo)
-
-        if isinstance(nodo, BinaryOp):
-            # Cortocircuito garantizado por §6.3.1: el operando derecho NO se
-            # evalua cuando el izquierdo ya determina el resultado. Debe
-            # resolverse aqui, antes de evaluar la derecha.
-            if nodo.operador == '&&':
-                if self._evaluar_expresion(nodo.izquierda) is not True:
-                    return False
-                return self._evaluar_expresion(nodo.derecha)
-            if nodo.operador == '||':
-                if self._evaluar_expresion(nodo.izquierda) is True:
-                    return True
-                return self._evaluar_expresion(nodo.derecha)
-            if nodo.operador == '??':
-                # Coalescencia nula (Etapa 12.2): la derecha NO se evalua
-                # si la izquierda no es nula (mismo cortocircuito que
-                # &&/||, mismo criterio de "no evaluar lo que no hace
-                # falta").
-                izq = self._evaluar_expresion(nodo.izquierda)
-                if izq is not None:
-                    return izq
-                return self._evaluar_expresion(nodo.derecha)
-            left = self._evaluar_expresion(nodo.izquierda)
-            right = self._evaluar_expresion(nodo.derecha)
-            return self._aplicar_binario(nodo.operador, left, right, nodo)
+            return self._invocar_metodo_desde(
+                instancia, clase_inicio, nodo.nombre_metodo, args, nodo
+            )
 
         if isinstance(nodo, UnaryOp):
             # ++ / -- en expresion modifican la variable (§5.3.3). El operando
             # es siempre un lvalue simple, garantizado por la gramatica.
-            if nodo.operador in ('++', '--'):
+            if nodo.operador in ("++", "--"):
                 return self._aplicar_inc_dec_expr(nodo)
             oper = self._evaluar_expresion(nodo.operando)
             return self._aplicar_unario(nodo.operador, oper, nodo.es_prefijo, nodo)
@@ -1840,15 +2432,19 @@ class Interpreter:
             # La gramatica solo admite expr_primaria; si no es un identificador
             # no hay donde escribir de vuelta.
             valor = self._evaluar_expresion(destino)
-            delta = 1 if nodo.operador == '++' else -1
+            delta = 1 if nodo.operador == "++" else -1
             return valor + delta if nodo.es_prefijo else valor
 
         nombre = destino.nombre
         actual = self._obtener_valor_variable(nombre)
         if actual is None:
-            raise RuntimeError_('IL-EJE-010', f'Variable "{nombre}" no inicializada',
-                                nodo.linea, nodo.columna)
-        nuevo = actual + 1 if nodo.operador == '++' else actual - 1
+            raise RuntimeError_(
+                "IL-EJE-010",
+                M("IL-EJE-010.variable_no_inicializada", nombre=nombre),
+                nodo.linea,
+                nodo.columna,
+            )
+        nuevo = actual + 1 if nodo.operador == "++" else actual - 1
         nuevo = self._verificar_rango_int(nuevo, nodo)
         self._asignar_variable(nombre, nuevo)
         return nuevo if nodo.es_prefijo else actual
@@ -1868,10 +2464,15 @@ class Interpreter:
             return valor
         if valor < self.INT_MIN or valor > self.INT_MAX:
             raise RuntimeError_(
-                'IL-EJE-001',
-                f'Desbordamiento de entero: {valor} excede el rango '
-                f'[{self.INT_MIN}, {self.INT_MAX}]',
-                getattr(nodo, 'linea', 0), getattr(nodo, 'columna', 0)
+                "IL-EJE-001",
+                M(
+                    "IL-EJE-001.desbordamiento_entero_excede_rango",
+                    valor=valor,
+                    INT_MIN=self.INT_MIN,
+                    INT_MAX=self.INT_MAX,
+                ),
+                getattr(nodo, "linea", 0),
+                getattr(nodo, "columna", 0),
             )
         return valor
 
@@ -1884,33 +2485,37 @@ class Interpreter:
         es_real = isinstance(izq, float) or isinstance(der, float)
         if es_real:
             return RuntimeError_(
-                'IL-EJE-002',
-                'Operación de punto flotante inválida: división entre 0.0',
-                nodo.linea, nodo.columna
+                "IL-EJE-002",
+                M("IL-EJE-002.operacion_punto_flotante_invalida"),
+                nodo.linea,
+                nodo.columna,
             )
-        return RuntimeError_('IL-EJE-006', 'División por cero',
-                             nodo.linea, nodo.columna)
+        return RuntimeError_("IL-EJE-006", M("IL-EJE-006.division_cero"), nodo.linea, nodo.columna)
 
     def _div_entero(self, a, b):
         """División entera con truncamiento hacia cero (§4.2.2).
+
         Ej: 7/2=3 y -7/2=-3 (a diferencia del operador // de Python que
-        redondea hacia -infinito)."""
+        redondea hacia -infinito).
+        """
         q = abs(a) // abs(b)
         return -q if (a < 0) != (b < 0) else q
 
     def _mod_entero(self, a, b):
-        """Módulo entero con el signo del dividendo (estilo C), consistente
-        con la división que trunca hacia cero."""
+        """Módulo entero con el signo del dividendo (estilo C), consistente.
+
+        con la división que trunca hacia cero.
+        """
         r = abs(a) % abs(b)
         return -r if a < 0 else r
 
     def _aplicar_binario(self, op, left, right, nodo):
         """Aplica un operador binario."""
-        if op == '||':
+        if op == "||":
             return left or right
-        if op == '&&':
+        if op == "&&":
             return left and right
-        if op in ('==', '!='):
+        if op in ("==", "!="):
             # Etapa 11: si AMBOS operandos son objetos (no cuenta comparar
             # contra nulo -- "objeto == nulo" debe seguir siendo el chequeo
             # de nulidad de siempre, sin invocar código de usuario) y la
@@ -1923,36 +2528,38 @@ class Interpreter:
             if isinstance(left, InstanciaObjeto) and isinstance(right, InstanciaObjeto):
                 nombre_metodo = self._metodo_igual(left.clase)
                 if nombre_metodo is not None:
-                    resultado = bool(self._invocar_metodo_desde(
-                        left, left.clase, nombre_metodo, [right], nodo))
-                    return resultado if op == '==' else not resultado
-            return left == right if op == '==' else left != right
-        if op == '<':
+                    resultado = bool(
+                        self._invocar_metodo_desde(left, left.clase, nombre_metodo, [right], nodo)
+                    )
+                    return resultado if op == "==" else not resultado
+            return left == right if op == "==" else left != right
+        if op == "<":
             return left < right
-        if op == '>':
+        if op == ">":
             return left > right
-        if op == '<=':
+        if op == "<=":
             return left <= right
-        if op == '>=':
+        if op == ">=":
             return left >= right
-        if op == '+':
+        if op == "+":
             if isinstance(left, str) and isinstance(right, str):
                 return left + right
             return self._verificar_rango_int(left + right, nodo)
-        if op == '-':
+        if op == "-":
             return self._verificar_rango_int(left - right, nodo)
-        if op == '*':
+        if op == "*":
             return self._verificar_rango_int(left * right, nodo)
-        if op == '/':
+        if op == "/":
             if right == 0:
                 raise self._error_division_cero(left, right, nodo)
             if isinstance(left, int) and isinstance(right, int):
                 return self._div_entero(left, right)  # Trunca hacia cero (§4.2.2)
             return left / right
-        if op == '%':
+        if op == "%":
             if right == 0:
-                raise RuntimeError_('IL-EJE-006', 'División por cero en módulo',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-006", M("IL-EJE-006.division_cero_modulo"), nodo.linea, nodo.columna
+                )
             if isinstance(left, int) and isinstance(right, int):
                 return self._mod_entero(left, right)
             return left % right
@@ -1960,45 +2567,54 @@ class Interpreter:
         # type_checker.py). Se pasa por _verificar_rango_int igual que +/-/*
         # -- un desplazamiento grande puede salirse de los 32 bits de int
         # (§4.1) tanto como una suma.
-        if op == '&':
+        if op == "&":
             return self._verificar_rango_int(left & right, nodo)
-        if op == '|':
+        if op == "|":
             return self._verificar_rango_int(left | right, nodo)
-        if op == '^':
+        if op == "^":
             return self._verificar_rango_int(left ^ right, nodo)
-        if op == '<<':
+        if op == "<<":
             if right < 0:
-                raise RuntimeError_('IL-EJE-001', 'Desplazamiento con exponente negativo',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-001",
+                    M("IL-EJE-001.desplazamiento_exponente_negativo"),
+                    nodo.linea,
+                    nodo.columna,
+                )
             return self._verificar_rango_int(left << right, nodo)
-        if op == '>>':
+        if op == ">>":
             if right < 0:
-                raise RuntimeError_('IL-EJE-001', 'Desplazamiento con exponente negativo',
-                                    nodo.linea, nodo.columna)
+                raise RuntimeError_(
+                    "IL-EJE-001",
+                    M("IL-EJE-001.desplazamiento_exponente_negativo"),
+                    nodo.linea,
+                    nodo.columna,
+                )
             return left >> right
-        raise RuntimeError_('IL-EJE-001', f'Operador desconocido: {op}',
-                            nodo.linea, nodo.columna)
+        raise RuntimeError_(
+            "IL-EJE-001", M("IL-EJE-001.operador_desconocido", op=op), nodo.linea, nodo.columna
+        )
 
     def _aplicar_unario(self, op, oper, es_prefijo, nodo):
         """Aplica un operador unario."""
-        if op == '-':
+        if op == "-":
             return -oper
-        if op == '!':
+        if op == "!":
             return not oper
-        if op == '~':
+        if op == "~":
             # Negación de bits (Etapa 11): complemento a uno (~x = -x-1).
             # Para cualquier int valido de 32 bits el resultado tambien
             # cae dentro del rango (nunca desborda), pero se pasa por
             # _verificar_rango_int por consistencia con el resto de las
             # operaciones aritmeticas/bit a bit.
             return self._verificar_rango_int(~oper, nodo)
-        if op == '++':
+        if op == "++":
             # En expresiones, el valor retornado depende de si es prefijo o postfijo
             # Para simplificar: retornamos el valor y el efecto se aplica en la instrucción
             if es_prefijo:
                 return oper + 1
             return oper  # Postfijo retorna el valor original
-        if op == '--':
+        if op == "--":
             if es_prefijo:
                 return oper - 1
             return oper

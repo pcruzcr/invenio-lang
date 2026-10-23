@@ -1,0 +1,49 @@
+// Nivel 12 · Ejercicio 09 — Detección de ciclos en grafos dirigidos
+// Objetivos:
+//   - Detectar aristas de retroceso
+//   - Usar estados de visita más ricos que un logico
+//
+constante entero N = 4;
+constante entero BLANCO = 0;
+constante entero GRIS = 1;
+constante entero NEGRO = 2;
+entero [N][N] adj;
+entero [N] estado;
+
+logico tieneCiclo(entero u) {
+    estado[u] = GRIS;
+    para (entero v = 0; v < N; v++) {
+        si (adj[u][v] == 1) {
+            // GRIS = está en el camino actual de la recursión: volver a él cierra un ciclo.
+            si (estado[v] == GRIS) {
+                imprimir("back edge "); imprimir(u); imprimir("->"); imprimir(v); imprimir("\n");
+                retornar verdadero;
+            }
+            si (estado[v] == BLANCO && tieneCiclo(v)) {
+                retornar verdadero;
+            }
+        }
+    }
+    estado[u] = NEGRO;
+    retornar falso;
+}
+
+logico grafoConCiclo() {
+    para (entero i = 0; i < N; i++) { estado[i] = BLANCO; }
+    para (entero i = 0; i < N; i++) {
+        si (estado[i] == BLANCO && tieneCiclo(i)) {
+            retornar verdadero;
+        }
+    }
+    retornar falso;
+}
+
+vacio main() {
+    para (entero i = 0; i < N; i++) {
+        para (entero j = 0; j < N; j++) { adj[i][j] = 0; }
+    }
+    adj[0][1] = 1; adj[1][2] = 1; adj[2][3] = 1;
+    imprimir(grafoConCiclo()); imprimir("\n");
+    adj[3][1] = 1;
+    imprimir(grafoConCiclo()); imprimir("\n");
+}

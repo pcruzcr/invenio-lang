@@ -1,0 +1,22 @@
+{
+  "id": "N06-E07",
+  "nivel": 6,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Propiedades: simétrica e identidad",
+  "enunciado": "Escribe las funciones esSimetrica(m, n) y esIdentidad(m, n) y pruébalas con tres matrices 3x3: la identidad, una simétrica no identidad y una no simétrica.",
+  "objetivos": [
+    "Verificar una propiedad sobre todos los elementos",
+    "Salir en cuanto se encuentra un contraejemplo"
+  ],
+  "pistas": [
+    "Simétrica: m[i][j] == m[j][i] para todo i, j.",
+    "Identidad: 1 en la diagonal y 0 fuera de ella.",
+    "Retorna falso en cuanto falle una posición."
+  ],
+  "conceptos": [
+    "matriz simétrica",
+    "matriz identidad",
+    "contraejemplo"
+  ]
+}

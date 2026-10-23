@@ -1,0 +1,45 @@
+// Level 8 · Exercise 02 — Encapsulation: bank account
+// Learning goals:
+//   - Hide state with private
+//   - Validate inside methods to keep the object consistent
+//   - Expose reading through a getter method
+//
+class BankAccount {
+    private string owner;
+    private int balance;
+
+    BankAccount(string t) {
+        this.owner = t;
+        this.balance = 0;
+    }
+
+    public bool deposit(int amount) {
+        if (amount <= 0) {
+            return false;
+        }
+        this.balance = this.balance + amount;
+        return true;
+    }
+
+    public bool withdraw(int amount) {
+        // Invariant: the balance can never become negative.
+        if (amount <= 0 || amount > this.balance) {
+            return false;
+        }
+        this.balance = this.balance - amount;
+        return true;
+    }
+
+    public int getBalance() {
+        return this.balance;
+    }
+}
+
+void main() {
+    BankAccount c = new BankAccount("Ana");
+    print(c.deposit(500)); print(" ");
+    print(c.deposit(-20)); print(" ");
+    print(c.withdraw(800)); print(" ");
+    print(c.withdraw(150)); print("\n");
+    print("balance = "); print(c.getBalance()); print("\n");
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N11-E07",
+  "nivel": 11,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Montículo mínimo (cola de prioridad)",
+  "enunciado": "Implementa un montículo mínimo sobre un arreglo global: insertar sube el elemento (subir) y extraerMin baja la nueva raíz (bajar). Inserta 15, 4, 20, 8, 1, 30, 6, mostrando el arreglo, y extrae todos los elementos (salen ordenados).",
+  "objetivos": [
+    "Representar un árbol completo en un arreglo",
+    "Mantener la propiedad de montículo con subir/bajar"
+  ],
+  "pistas": [
+    "Hijos de i: 2i + 1 y 2i + 2; padre de i: (i - 1) / 2.",
+    "Subir: intercambia con el padre mientras sea menor.",
+    "Bajar: intercambia con el menor de los hijos mientras sea mayor."
+  ],
+  "conceptos": [
+    "montículo",
+    "cola de prioridad",
+    "O(log n)"
+  ]
+}

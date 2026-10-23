@@ -1,0 +1,21 @@
+{
+  "id": "N01-E12",
+  "nivel": 1,
+  "numero": 12,
+  "idioma": "en",
+  "titulo": "Temperature converter",
+  "enunciado": "Read a temperature in Celsius (float) and show its Fahrenheit (F = C * 9 / 5 + 32) and Kelvin (K = C + 273.15) equivalents.",
+  "objetivos": [
+    "Solve a complete problem: input, process and output",
+    "Write formulas with floats"
+  ],
+  "pistas": [
+    "Read into a float variable.",
+    "Use 9.0 / 5.0 to avoid integer division.",
+    "Show each result with its unit."
+  ],
+  "conceptos": [
+    "input-process-output",
+    "formula"
+  ]
+}

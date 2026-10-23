@@ -1,0 +1,29 @@
+// Nivel 4 · Ejercicio 02 — Suma, promedio y valores sobre el promedio
+// Objetivos:
+//   - Llenar un arreglo con datos leídos
+//   - Recorrer dos veces: una para calcular y otra para comparar
+//
+constante entero N = 6;
+
+vacio main() {
+    real [N] notas;
+    real suma = 0.0;
+    para (entero i = 0; i < N; i++) {
+        real x;
+        leer(x);   // leer recibe una variable; luego se copia al arreglo
+        notas[i] = x;
+        suma += x;
+    }
+    real promedio = suma / 6.0;
+    imprimir("sum = "); imprimir(suma); imprimir("\n");
+    imprimir("average = "); imprimir(promedio); imprimir("\n");
+    entero encima = 0;
+    para (entero i = 0; i < N; i++) {
+        si (notas[i] > promedio) {
+            imprimir(notas[i]); imprimir(" ");
+            encima++;
+        }
+    }
+    imprimir("\n");
+    imprimir("above = "); imprimir(encima); imprimir("\n");
+}

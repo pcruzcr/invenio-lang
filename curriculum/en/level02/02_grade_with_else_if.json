@@ -1,0 +1,21 @@
+{
+  "id": "N02-E02",
+  "nivel": 2,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Grade with else-if",
+  "enunciado": "Given the grades 95, 83, 71, 64 and 40, show the letter for each: A (>= 90), B (>= 80), C (>= 70), D (>= 60) and F otherwise.",
+  "objetivos": [
+    "Chain mutually exclusive conditions",
+    "Order conditions from most to least restrictive"
+  ],
+  "pistas": [
+    "An else { if (...) } is only evaluated when the previous condition was false.",
+    "Since you already know the grade < 90, asking >= 80 is enough for B.",
+    "Write a function that returns the letter."
+  ],
+  "conceptos": [
+    "else-if",
+    "mutually exclusive conditions"
+  ]
+}

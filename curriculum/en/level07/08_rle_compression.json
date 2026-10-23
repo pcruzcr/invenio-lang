@@ -1,0 +1,22 @@
+{
+  "id": "N07-E08",
+  "nivel": 7,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "RLE compression",
+  "enunciado": "Compress \"aaabccddddde\" with run-length encoding (RLE): each group of equal consecutive letters is written as letter + count (\"a3b1c2d5e1\"). Also show the size before and after.",
+  "objetivos": [
+    "Detect runs of equal characters",
+    "Correctly close the last group"
+  ],
+  "pistas": [
+    "Keep the current letter and how many times it has repeated.",
+    "When the letter changes, emit the previous group.",
+    "When the loop ends there is one pending group to emit."
+  ],
+  "conceptos": [
+    "RLE",
+    "run",
+    "compression"
+  ]
+}

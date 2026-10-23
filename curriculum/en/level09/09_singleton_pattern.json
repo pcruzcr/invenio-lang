@@ -1,0 +1,22 @@
+{
+  "id": "N09-E09",
+  "nivel": 9,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Singleton pattern",
+  "enunciado": "Create a Logger with a private constructor and a static method getInstance() that always returns the same object. Log messages from two different functions and show that they all share the same line counter.",
+  "objetivos": [
+    "Guarantee a single instance with a private constructor",
+    "Combine static attributes and methods"
+  ],
+  "pistas": [
+    "private constructor Logger() prevents new Logger() from outside.",
+    "The instance is created the first time it is requested (lazy initialization).",
+    "Compare the references with == to check it is the same one."
+  ],
+  "conceptos": [
+    "Singleton",
+    "private constructor",
+    "lazy initialization"
+  ]
+}

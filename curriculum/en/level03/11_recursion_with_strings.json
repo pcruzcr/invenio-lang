@@ -1,0 +1,22 @@
+{
+  "id": "N03-E11",
+  "nivel": 3,
+  "numero": 11,
+  "idioma": "en",
+  "titulo": "Recursion with strings and digits",
+  "enunciado": "Write recursively: digitSum(n), isPalindrome(s, i, j) comparing the ends of the string, and binary(n) which prints n in base 2. Test them with 9045, \"reconocer\", \"recursion\" and 37.",
+  "objetivos": [
+    "Apply recursion to numbers and strings",
+    "Print in the right order by using the unwinding of the recursion"
+  ],
+  "pistas": [
+    "digitSum(n) = n % 10 + digitSum(n / 10).",
+    "A string is a palindrome if the ends match and the inside is one too.",
+    "In binary, print the bit AFTER the recursive call."
+  ],
+  "conceptos": [
+    "recursion",
+    "palindrome",
+    "base 2"
+  ]
+}

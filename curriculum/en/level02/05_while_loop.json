@@ -1,0 +1,22 @@
+{
+  "id": "N02-E05",
+  "nivel": 2,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "While loop",
+  "enunciado": "Starting from n = 27, apply the Collatz rule (if n is even n = n / 2, otherwise n = 3n + 1) while n is not 1. Show the number of steps and the largest value reached.",
+  "objetivos": [
+    "Repeat while a condition is true",
+    "Use counters and maximums inside a loop"
+  ],
+  "pistas": [
+    "You do not know in advance how many iterations there will be: hence while.",
+    "Make sure n changes on every iteration so the loop ends.",
+    "Update the maximum after computing the new n."
+  ],
+  "conceptos": [
+    "while",
+    "stop condition",
+    "counter"
+  ]
+}

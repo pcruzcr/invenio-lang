@@ -1,0 +1,12 @@
+// Level 1 · Exercise 01 — Hello, world
+// Learning goals:
+//   - Know the minimal structure of a program (void main)
+//   - Use print and the \n line break
+//
+// Every InvenioLang program starts at main.
+void main() {
+    // print writes the text as is; "\n" is the line break.
+    print("Hola, mundo\n");
+    print("InvenioLang");
+    print("\n");
+}

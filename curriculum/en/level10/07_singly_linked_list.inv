@@ -1,0 +1,101 @@
+// Level 10 · Exercise 07 — Singly linked list
+// Learning goals:
+//   - Manipulate links between nodes
+//   - Handle special cases: empty list and first node
+//   - Reverse a list with three references
+//
+class Node {
+    public int value;
+    public Node next;
+    Node(int v) { this.value = v; }
+}
+
+class SinglyLinkedList {
+    private Node head;
+
+    public void pushFront(int v) {
+        Node n = new Node(v);
+        n.next = this.head;
+        this.head = n;
+    }
+
+    public void pushBack(int v) {
+        Node n = new Node(v);
+        if (this.head == null) {
+            this.head = n;
+            return;
+        }
+        Node current = this.head;
+        while (current.next != null) {
+            current = current.next;
+        }
+        current.next = n;
+    }
+
+    public bool contains(int v) {
+        Node current = this.head;
+        while (current != null) {
+            if (current.value == v) {
+                return true;
+            }
+            current = current.next;
+        }
+        return false;
+    }
+
+    public bool remove(int v) {
+        Node current = this.head;
+        Node prev = null;
+        while (current != null && current.value != v) {
+            prev = current;
+            current = current.next;
+        }
+        if (current == null) {
+            return false;
+        }
+        if (prev == null) {
+            this.head = current.next;   // the head is removed
+        } else {
+            prev.next = current.next;   // the previous node skips the removed one
+        }
+        return true;
+    }
+
+    public void reverse() {
+        Node prev = null;
+        Node current = this.head;
+        while (current != null) {
+            Node nxt = current.next;
+            current.next = prev;   // flip the link
+            prev = current;
+            current = nxt;
+        }
+        this.head = prev;
+    }
+
+    public void printList() {
+        Node current = this.head;
+        while (current != null) {
+            print(current.value); print(" -> ");
+            current = current.next;
+        }
+        print("null\n");
+    }
+}
+
+void main() {
+    SinglyLinkedList l = new SinglyLinkedList();
+    l.pushBack(20);
+    l.pushBack(30);
+    l.pushFront(10);
+    l.pushBack(40);
+    l.printList();
+    print(l.contains(30)); print(" "); print(l.contains(99)); print("\n");
+    l.remove(10);
+    l.remove(30);
+    print(l.remove(77)); print("\n");
+    l.printList();
+    l.pushBack(50);
+    l.reverse();
+    l.printList();
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N03-E02",
+  "nivel": 3,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Procedures",
+  "enunciado": "Write a procedure line(symbol, n) that prints the symbol n times and a line break, and another frame(text) that prints the text framed by lines of '=' as long as the text + 4.",
+  "objetivos": [
+    "Tell procedures (void) apart from functions",
+    "Avoid repeating code with subprograms"
+  ],
+  "pistas": [
+    "A procedure does something but returns no value.",
+    "Call line twice from frame.",
+    "Use text_length to know how many '=' to print."
+  ],
+  "conceptos": [
+    "procedure",
+    "reuse"
+  ]
+}

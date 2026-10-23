@@ -1,0 +1,22 @@
+{
+  "id": "N03-E07",
+  "nivel": 3,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Fibonacci: recursivo e iterativo",
+  "enunciado": "Implementa fib(n) recursivo y fibIter(n) iterativo. Muestra los primeros 15 términos con la versión iterativa, compara fib(20) con fibIter(20) y cuenta cuántas llamadas hace la versión recursiva para n = 20.",
+  "objetivos": [
+    "Escribir una recursión con dos llamadas",
+    "Ver por qué la recursión ingenua repite trabajo"
+  ],
+  "pistas": [
+    "fib(0) = 0, fib(1) = 1, fib(n) = fib(n-1) + fib(n-2).",
+    "En la versión iterativa basta con guardar los dos últimos términos.",
+    "Usa una variable global para contar las llamadas."
+  ],
+  "conceptos": [
+    "recursión múltiple",
+    "iteración",
+    "costo exponencial"
+  ]
+}

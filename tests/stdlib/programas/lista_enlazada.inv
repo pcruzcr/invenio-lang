@@ -1,0 +1,16 @@
+// Ejercita estructuras/lista_enlazada desde un programa (INV-1430).
+importar "estructuras/lista_enlazada";
+
+vacio main() {
+    ListaEnlazada l = nuevo ListaEnlazada();
+    l.agregar_al_final(4); l.agregar_al_inicio(7); l.agregar_al_final(9); l.insertar(1, 5);
+    imprimir(l.a_texto()); imprimir(" "); imprimir(l.tamano()); imprimir("\n");
+    imprimir(l.obtener(2)); imprimir(" "); imprimir(l.buscar(9)); imprimir(" "); imprimir(l.buscar(100)); imprimir(" "); imprimir(l.contiene(5)); imprimir("\n");
+    imprimir(l.eliminar_en(1)); imprimir(" "); imprimir(l.eliminar_en(0)); imprimir(" "); l.asignar(0, 40); imprimir(l.a_texto()); imprimir("\n");
+    l.agregar_al_final(1); l.agregar_al_final(2); l.invertir(); imprimir(l.a_texto()); imprimir("\n");
+    intentar {
+        l.obtener(10);
+    } capturar (e) {
+        imprimir(e.codigo); imprimir("\n");
+    }
+}

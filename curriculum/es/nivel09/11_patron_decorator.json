@@ -1,0 +1,22 @@
+{
+  "id": "N09-E11",
+  "nivel": 9,
+  "numero": 11,
+  "idioma": "es",
+  "titulo": "Patrón Decorator",
+  "enunciado": "Un TextoSimple se renderiza tal cual. Los decoradores Negrita (\"*...*\") y Subrayado (\"_..._\") envuelven a cualquier Texto y agregan su formato. Combínalos de varias formas.",
+  "objetivos": [
+    "Agregar responsabilidades envolviendo objetos",
+    "Combinar decoradores en cualquier orden"
+  ],
+  "pistas": [
+    "Los decoradores heredan de Texto y TIENEN un Texto.",
+    "renderizar() del decorador llama al envuelto y añade algo.",
+    "Negrita(Subrayado(x)) y Subrayado(Negrita(x)) dan resultados distintos."
+  ],
+  "conceptos": [
+    "Decorator",
+    "envoltura",
+    "composición"
+  ]
+}

@@ -1,0 +1,51 @@
+// Level 10 · Exercise 09 — Sorted list
+// Learning goals:
+//   - Maintain an ordering invariant in a linked structure
+//   - Insert in the middle of a list
+//
+class Node {
+    public int value;
+    public Node next;
+    Node(int v) { this.value = v; }
+}
+
+class SortedList {
+    private Node head;
+
+    public void insertSorted(int v) {
+        Node n = new Node(v);
+        Node c = this.head;
+        if (c == null || v < c.value) {
+            n.next = c;   // new first node
+            this.head = n;
+            return;
+        }
+        // Member access is single-level: we use a variable for the next node.
+        Node current = c;
+        Node nxt = current.next;
+        while (nxt != null && nxt.value <= v) {
+            current = nxt;
+            nxt = current.next;
+        }
+        n.next = current.next;
+        current.next = n;
+    }
+
+    public void printList() {
+        Node current = this.head;
+        while (current != null) {
+            print(current.value); print(" ");
+            current = current.next;
+        }
+        print("\n");
+    }
+}
+
+void main() {
+    SortedList l = new SortedList();
+    int [7] data = {42, 7, 19, 3, 42, 25, 1};
+    foreach (int v : data) {
+        l.insertSorted(v);
+        l.printList();
+    }
+}

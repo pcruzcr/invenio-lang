@@ -1,0 +1,21 @@
+{
+  "id": "N01-E08",
+  "nivel": 1,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Entrada de datos",
+  "enunciado": "Lee un nombre (texto) y un año de nacimiento (entero). Muestra un saludo y la edad que la persona cumple en 2026.",
+  "objetivos": [
+    "Leer valores con leer/read",
+    "Combinar datos leídos en cálculos"
+  ],
+  "pistas": [
+    "La variable debe declararse antes de leer en ella.",
+    "leer convierte el texto escrito al tipo de la variable.",
+    "Edad = 2026 - año de nacimiento."
+  ],
+  "conceptos": [
+    "entrada",
+    "leer"
+  ]
+}

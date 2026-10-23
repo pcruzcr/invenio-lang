@@ -1,0 +1,21 @@
+{
+  "id": "N02-E07",
+  "nivel": 2,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Ciclo para: tabla de multiplicar",
+  "enunciado": "Muestra la tabla de multiplicar del 7 desde 7 x 1 hasta 7 x 10 con el formato «7 x i = r».",
+  "objetivos": [
+    "Usar para con inicialización, condición y actualización",
+    "Recorrer un rango conocido de valores"
+  ],
+  "pistas": [
+    "para (entero i = 1; i <= 10; i++)",
+    "El resultado es 7 * i.",
+    "Imprime cada parte por separado y termina con \\n."
+  ],
+  "conceptos": [
+    "para",
+    "variable de control"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N07-E06",
+  "nivel": 7,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Converting between numbers and text",
+  "enunciado": "Write toBinary(n) that returns the binary representation of n as a string, and fromBinary(s) that does the opposite by going through the characters. Test with 0, 5, 42 and 255, and check that fromBinary(toBinary(n)) == n.",
+  "objetivos": [
+    "Build text out of digits",
+    "Interpret text as a number (Horner's scheme)"
+  ],
+  "pistas": [
+    "Each bit is n % 2; it is added to the LEFT of the result.",
+    "The case n = 0 must return \"0\".",
+    "value = value * 2 + bit, from left to right."
+  ],
+  "conceptos": [
+    "base 2",
+    "Horner's scheme",
+    "conversion"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "N02-E10",
+  "nivel": 2,
+  "numero": 10,
+  "idioma": "es",
+  "titulo": "Acumuladores y contadores",
+  "enunciado": "Lee una cantidad n y luego n enteros. Muestra la suma, el promedio (real), cuántos son positivos y el mayor.",
+  "objetivos": [
+    "Acumular una suma dentro de un ciclo",
+    "Contar elementos que cumplen una condición",
+    "Inicializar el máximo con el primer dato"
+  ],
+  "pistas": [
+    "Inicializa la suma y el contador en 0 antes del ciclo.",
+    "Para el promedio convierte la suma a real antes de dividir.",
+    "El mayor empieza siendo el primer número leído, no 0."
+  ],
+  "conceptos": [
+    "acumulador",
+    "contador",
+    "máximo"
+  ]
+}

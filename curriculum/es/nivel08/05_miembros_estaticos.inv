@@ -1,0 +1,30 @@
+// Nivel 8 · Ejercicio 05 — Miembros estáticos
+// Objetivos:
+//   - Distinguir atributos de instancia y de clase
+//   - Acceder a miembros estáticos con NombreClase.miembro
+//
+clase Ticket {
+    publico estatico entero siguienteId = 1;
+    publico entero id;
+    publico texto motivo;
+
+    Ticket(texto m) {
+        este.id = Ticket.siguienteId;   // tomar el valor compartido
+        Ticket.siguienteId = Ticket.siguienteId + 1;
+        este.motivo = m;
+    }
+
+    publico estatico entero creados() {
+        retornar Ticket.siguienteId - 1;
+    }
+}
+
+vacio main() {
+    Ticket a = nuevo Ticket("login");
+    Ticket b = nuevo Ticket("wifi");
+    Ticket c = nuevo Ticket("printer");
+    imprimir(a.id); imprimir(" "); imprimir(a.motivo); imprimir("\n");
+    imprimir(b.id); imprimir(" "); imprimir(b.motivo); imprimir("\n");
+    imprimir(c.id); imprimir(" "); imprimir(c.motivo); imprimir("\n");
+    imprimir("created = "); imprimir(Ticket.creados()); imprimir("\n");
+}

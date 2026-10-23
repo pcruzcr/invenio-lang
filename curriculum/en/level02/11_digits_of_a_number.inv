@@ -1,0 +1,21 @@
+// Level 2 · Exercise 11 — Digits of a number
+// Learning goals:
+//   - Extract digits with % 10 and / 10
+//   - Build a number digit by digit
+//
+void main() {
+    int n = 90471;
+    int digits = 0;
+    int sum = 0;
+    int reversed = 0;
+    while (n > 0) {
+        int digit = n % 10;   // last digit
+        digits++;
+        sum += digit;
+        reversed = reversed * 10 + digit;
+        n = n / 10;               // drop the last digit
+    }
+    print("digits = "); print(digits); print("\n");
+    print("sum = "); print(sum); print("\n");
+    print("reversed = "); print(reversed); print("\n");
+}

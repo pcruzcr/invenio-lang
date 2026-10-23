@@ -1,0 +1,22 @@
+{
+  "id": "N04-E03",
+  "nivel": 4,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Maximum, minimum and their positions",
+  "enunciado": "In {31, -4, 57, 12, 57, -9, 0} find the largest and the smallest with their positions (first occurrence), and the second largest value different from the largest.",
+  "objetivos": [
+    "Keep positions as well as values",
+    "Solve variants of the maximum problem"
+  ],
+  "pistas": [
+    "Start by assuming element 0 is both the largest and the smallest.",
+    "Use > (not >=) to keep the first occurrence.",
+    "For the second largest ignore values equal to the largest."
+  ],
+  "conceptos": [
+    "maximum",
+    "minimum",
+    "position"
+  ]
+}

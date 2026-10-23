@@ -1,0 +1,23 @@
+{
+  "id": "N02-E03",
+  "nivel": 2,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Multiple selection with switch",
+  "enunciado": "For months 1 to 12 show how many days they have (non-leap year) using switch. Group the cases that share a result.",
+  "objetivos": [
+    "Use switch / case / default",
+    "Take advantage of grouped cases (fall-through)",
+    "End each group with break"
+  ],
+  "pistas": [
+    "Several case labels in a row without statements share the same block.",
+    "Without break, execution continues into the next case.",
+    "February is the only month with 28 days."
+  ],
+  "conceptos": [
+    "switch",
+    "fall-through",
+    "break"
+  ]
+}

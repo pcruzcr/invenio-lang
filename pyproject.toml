@@ -1,0 +1,122 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inveniolang"
+version = "11.0.0"
+description = "Compilador educativo InvenioLang — Lenguajes Formales II (Universidad Invenio)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [{name = "Universidad Invenio - TICEC", email = "tic@invenio.ac.cr"}]
+keywords = ["compiler", "education", "programming-language", "ply", "interpreter"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Education",
+  "Topic :: Software Development :: Compilers",
+  "Topic :: Education",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Operating System :: OS Independent",
+  "Environment :: X11 Applications :: Qt",
+]
+dependencies = [
+  "ply>=3.11",
+  "PySide6>=6.6",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pytest-cov>=5",
+  "mypy>=1.10",
+  "ruff>=0.4",
+  "black>=24",
+]
+gui = ["PySide6>=6.6"]
+
+[project.urls]
+Homepage = "https://github.com/invenio/inveniolang"
+Documentation = "https://github.com/invenio/inveniolang#readme"
+Repository = "https://github.com/invenio/inveniolang"
+Issues = "https://github.com/invenio/inveniolang/issues"
+
+[project.scripts]
+inveniolang = "inveniolang.cli:main"
+invenio-gui = "inveniolang.gui_qt:main"
+
+[tool.setuptools.packages.find]
+include = ["inveniolang*"]
+
+# INV-1430: la biblioteca estándar está escrita en InvenioLang (.inv) y se
+# importa en ejecución; sin esto no viaja en el wheel.
+[tool.setuptools.package-data]
+inveniolang = ["stdlib/*/*.inv"]
+
+[tool.pytest.ini_options]
+# INV-5016: la raíz en sys.path también al invocar `pytest` (no `python -m
+# pytest`), como hace el CI; si no, tests/conftest.py no encuentra inveniolang.
+pythonpath = ["."]
+testpaths = ["pruebas", "tests"]
+python_files = ["test_*.py", "conformidad.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-q --tb=short"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+lint.select = ["E","F","W","I","B","C4","UP","S","N","D"]
+# N802: visit_<Clase> es despacho Visitor (patterns.py:166 construye el nombre
+# como f"visit_{type(node).__name__}"); renombrar rompería el doble despacho.
+# N818/N801: *Exception/RuntimeError_ son API pública (interpreter.py, cli.py,
+# gui, tests); renombrar rompería compatibilidad.
+lint.ignore = ["D100","D104","D105","D107","S101","S603","S607","N802","N818","N801"]
+
+# INV-1030: pruebas y scripts de conformidad. D103: cada test se documenta por
+# su nombre (`test_*`, `caso_*`) y por el ID/§ que cita el propio caso.
+# E501 solo en las TABLAS de casos (_audit.py, test_lexer_errors.py,
+# pruebas/conformidad.py): una línea = un caso (fuente + esperado), de modo que
+# añadir o cambiar un caso es un diff de una sola línea. Igual en los catálogos
+# i18n (es.py/en.py): una clave = una plantilla por línea, para compararlas
+# entre idiomas línea a línea y buscarlas por clave.
+# Pruebas (INV-5003): S314 = parsean con ElementTree el SVG que genera el propio
+# proyecto (no XML externo); S311 = datos pseudoaleatorios de prueba, no
+# criptografía; S108 = rutas de /tmp ficticias que se validan, no se abren;
+# E501 = programas .inv incrustados como datos de prueba (partirlos cambia el caso).
+# parser.py/lexer.py: la gramática LALR vive en docstrings (producciones
+# p_* y tokens t_* exigidos por PLY). Las reglas de prosa-docstring y de
+# nombres no aplican ahí; E501 cubre líneas de la tabla gramatical.
+lint.per-file-ignores = {"inveniolang/parser.py" = ["D205","D208","D209","D210","D212","D213","D214","D215","D300","D301","D403","D404","D415","D416","N815","E501"], "inveniolang/lexer.py" = ["D205","D208","D209","D210","D212","D213","D214","D215","D300","D301","D403","D404","D415","D416","N815","E501"], "tests/**" = ["D103", "E501", "S108", "S311", "S314"], "pruebas/**" = ["D103"], "_audit.py" = ["D103", "E501"], "test_lexer_errors.py" = ["D103", "E501"], "pruebas/conformidad.py" = ["E501"], "inveniolang/i18n/es.py" = ["E501"], "inveniolang/i18n/en.py" = ["E501"]}
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.coverage.run]
+source = ["inveniolang"]
+omit = ["*/parsetab.py", "*/parser.out", "*/__pycache__/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 80
+exclude_lines = ["pragma: no cover", "def __repr__", "if TYPE_CHECKING:"]
+
+[tool.coverage.html]
+directory = "htmlcov"

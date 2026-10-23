@@ -1,0 +1,54 @@
+// Level 8 · Exercise 06 — Composition: a car has an engine
+// Learning goals:
+//   - Build objects out of other objects (has-a relationship)
+//   - Delegate work to the contained object
+//
+class Engine {
+    public int power;
+    public bool running;
+
+    Engine(int hp) {
+        this.power = hp;
+        this.running = false;
+    }
+
+    public void start() {
+        this.running = true;
+    }
+}
+
+class Car {
+    public string brand;
+    public Engine engine;
+    public int mileage;
+
+    Car(string m, int hp) {
+        this.brand = m;
+        this.engine = new Engine(hp);   // the car creates and owns its engine
+        this.mileage = 0;
+    }
+
+    public void start() {
+        Engine m = this.engine;   // delegate to the engine
+        m.start();
+    }
+
+    public bool drive(int km) {
+        Engine m = this.engine;
+        if (!m.running) {
+            return false;
+        }
+        this.mileage = this.mileage + km;
+        return true;
+    }
+}
+
+void main() {
+    Car a = new Car("Tico", 90);
+    print(a.drive(50)); print(" "); print(a.mileage); print("\n");
+    a.start();
+    print(a.drive(50)); print(" "); print(a.mileage); print("\n");
+    a.drive(25);
+    Engine m = a.engine;
+    print(a.brand); print(" "); print(m.power); print("hp "); print(a.mileage); print("km\n");
+}

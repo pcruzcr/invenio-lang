@@ -1,0 +1,22 @@
+{
+  "id": "N12-E08",
+  "nivel": 12,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Topological sort (Kahn)",
+  "enunciado": "Six courses have prerequisites (edge a -> b: a before b): 0->2, 1->2, 1->3, 2->4, 3->4, 4->5. Compute a valid order to take them with Kahn's algorithm (always the smallest available vertex first).",
+  "objetivos": [
+    "Model dependencies with a directed graph",
+    "Implement Kahn's algorithm with in-degrees"
+  ],
+  "pistas": [
+    "inDegree[v] = how many edges arrive at v.",
+    "A vertex is available when its in-degree is 0.",
+    "When you take u, subtract 1 from its successors' in-degree."
+  ],
+  "conceptos": [
+    "topological sort",
+    "directed acyclic graph",
+    "in-degree"
+  ]
+}

@@ -1,0 +1,21 @@
+// Level 2 · Exercise 13 — Iterating with foreach
+// Learning goals:
+//   - Iterate over a collection without managing indexes
+//   - Know when to use for and when to use foreach
+//
+void main() {
+    int [6] temps = {21, 25, 19, 30, 27, 18};
+    int hotDays = 0;
+    int sum = 0;
+    // t takes, one by one, each value of the array; there is no index to manage.
+    foreach (int t : temps) {
+        print(t); print(" ");
+        if (t >= 25) {
+            hotDays++;
+        }
+        sum += t;
+    }
+    print("\n");
+    print("hot = "); print(hotDays); print("\n");
+    print("sum = "); print(sum); print("\n");
+}

@@ -1,0 +1,38 @@
+// Level 10 · Exercise 10 — Josephus problem with a circular list
+// Learning goals:
+//   - Build a circular list
+//   - Remove nodes while traversing
+//
+class Node {
+    public int value;
+    public Node next;
+    Node(int v) { this.value = v; }
+}
+
+void main() {
+    int n = 7;
+    int step = 3;
+    Node first = new Node(1);
+    Node last = first;
+    for (int i = 2; i <= n; i++) {
+        Node newNode = new Node(i);
+        last.next = newNode;
+        last = newNode;
+    }
+    last.next = first;   // close the circle
+
+    Node prev = last;
+    Node current = first;
+    print("out:");
+    while (current.next != current) {
+        for (int k = 1; k < step; k++) {
+            prev = current;
+            current = current.next;
+        }
+        print(" "); print(current.value);
+        prev.next = current.next;   // take out of the circle
+        current = prev.next;
+    }
+    print("\n");
+    print("survivor = "); print(current.value); print("\n");
+}

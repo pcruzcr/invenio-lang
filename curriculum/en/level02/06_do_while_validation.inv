@@ -1,0 +1,19 @@
+// Level 2 · Exercise 06 — do-while: validating input
+// Learning goals:
+//   - Use do { } while (...) when the body must run at least once
+//   - Validate input data
+//
+void main() {
+    int grade;
+    int attempts = 0;
+    // The body runs at least once: you cannot validate before reading.
+    do {
+        read(grade);
+        attempts++;
+        if (grade < 0 || grade > 100) {
+            print("invalid\n");
+        }
+    } while (grade < 0 || grade > 100);
+    print("grade = "); print(grade); print("\n");
+    print("attempts = "); print(attempts); print("\n");
+}

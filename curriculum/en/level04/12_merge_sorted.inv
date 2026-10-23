@@ -1,0 +1,38 @@
+// Level 4 · Exercise 12 — Merge two sorted arrays
+// Learning goals:
+//   - Traverse two arrays in parallel
+//   - Prepare the core idea of merge sort
+//
+void printArray(int [] a, int n) {
+    print("[");
+    for (int i = 0; i < n; i++) {
+        print(a[i]);
+        if (i < n - 1) {
+            print(", ");
+        }
+    }
+    print("]\n");
+}
+
+void main() {
+    int [4] a = {1, 4, 9, 12};
+    int [5] b = {2, 3, 10, 15, 20};
+    int [9] c;
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    while (i < 4 && j < 5) {
+        if (a[i] <= b[j]) {
+            c[k] = a[i];
+            i++;
+        } else {
+            c[k] = b[j];
+            j++;
+        }
+        k++;
+    }
+    // Only one of these two loops will copy anything.
+    while (i < 4) { c[k] = a[i]; i++; k++; }
+    while (j < 5) { c[k] = b[j]; j++; k++; }
+    printArray(c, 9);
+}

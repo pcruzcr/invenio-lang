@@ -1,0 +1,16 @@
+// patron_template.inv - Template Method con clase abstracta.
+abstracta clase Juego {
+    publico abstracto texto iniciar();
+    publico abstracto texto terminar();
+    publico texto jugar() {
+        return "template:" + this.iniciar() + "+" + this.terminar();
+    }
+}
+clase Ajedrez hereda Juego {
+    publico texto iniciar() { return "ini"; }
+    publico texto terminar() { return "fin"; }
+}
+void main() {
+    Juego j = nuevo Ajedrez();
+    imprimir(j.jugar());
+}

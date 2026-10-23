@@ -1,0 +1,17 @@
+// Level 1 · Exercise 02 — Variables and assignment
+// Learning goals:
+//   - Declare and initialize variables
+//   - Understand that assignment replaces the previous value
+//   - Swap two values with a helper variable
+//
+void main() {
+    int a = 7;
+    int b = 3;
+    print("a = "); print(a); print(", b = "); print(b); print("\n");
+
+    // Swap: tmp keeps the value of a before it is overwritten.
+    int tmp = a;
+    a = b;
+    b = tmp;
+    print("a = "); print(a); print(", b = "); print(b); print("\n");
+}

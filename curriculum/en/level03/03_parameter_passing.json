@@ -1,0 +1,21 @@
+{
+  "id": "N03-E03",
+  "nivel": 3,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Pass by value and by reference",
+  "enunciado": "Show that an int is passed by value (changing it inside the function does not affect the original) and that an array is passed by reference (its elements do change).",
+  "objetivos": [
+    "Understand pass by value",
+    "Understand that arrays are shared by reference"
+  ],
+  "pistas": [
+    "A scalar parameter is a local copy.",
+    "An array parameter points to the same data as the original.",
+    "Print before and after each call."
+  ],
+  "conceptos": [
+    "pass by value",
+    "pass by reference"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "nivel": 10,
+  "titulo": "Linear data structures: stacks, queues and lists",
+  "descripcion": "Implement stacks and queues with arrays and with linked nodes, singly and doubly linked lists, and use them to solve classic problems.",
+  "temas": [
+    "array-based and linked stack",
+    "circular and linked queue",
+    "singly linked list",
+    "doubly linked list",
+    "applications: brackets, postfix, Josephus"
+  ],
+  "idioma": "en"
+}

@@ -1,0 +1,25 @@
+// Nivel 3 · Ejercicio 02 — Procedimientos
+// Objetivos:
+//   - Distinguir procedimientos (vacio) de funciones
+//   - Evitar repetir código con subprogramas
+//
+vacio linea(texto simbolo, entero n) {
+    para (entero i = 0; i < n; i++) {
+        imprimir(simbolo);
+    }
+    imprimir("\n");
+}
+
+// Un procedimiento puede llamar a otro: marco reutiliza linea.
+vacio marco(texto msg) {
+    entero largo = longitud_texto(msg) + 4;
+    linea("=", largo);
+    imprimir("| " + msg + " |\n");
+    linea("=", largo);
+}
+
+vacio main() {
+    linea("-", 10);
+    marco("InvenioLang");
+    marco("OK");
+}

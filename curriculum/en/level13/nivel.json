@@ -1,0 +1,14 @@
+{
+  "nivel": 13,
+  "titulo": "Algorithmic complexity",
+  "descripcion": "Measure the work done by algorithms by counting operations and relate it to big-O notation: O(1), O(log n), O(n), O(n log n), O(n²) and O(2^n).",
+  "temas": [
+    "operation counting",
+    "orders of growth",
+    "best, worst and average case",
+    "O(n²) versus O(n log n)",
+    "memoization",
+    "redesigning an algorithm to lower its order"
+  ],
+  "idioma": "en"
+}

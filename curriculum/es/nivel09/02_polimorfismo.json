@@ -1,0 +1,22 @@
+{
+  "id": "N09-E02",
+  "nivel": 9,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Polimorfismo",
+  "enunciado": "Crea Animal con hablar() y presentar(), y las subclases Perro y Gato que sobrescriben hablar(). Guarda animales distintos en un arreglo de Animal y llama presentar() a cada uno.",
+  "objetivos": [
+    "Sobrescribir métodos en subclases",
+    "Usar despacho dinámico: el método depende del objeto real"
+  ],
+  "pistas": [
+    "Una variable de tipo Animal puede guardar un Perro (upcasting).",
+    "presentar() está escrito una sola vez, en Animal.",
+    "Cada animal responde hablar() a su manera."
+  ],
+  "conceptos": [
+    "polimorfismo",
+    "sobrescritura",
+    "despacho dinámico"
+  ]
+}
