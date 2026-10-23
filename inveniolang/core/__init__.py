@@ -1,7 +1,17 @@
-# core puro — sin IO, hexagonal
+"""Núcleo puro y hexagonal del compilador: contrato versionado + pipeline.
+
+CompileRequest/CompileResult son el contrato estable (cambiarlos exige bump
+minor, CONTRIBUTING §1). ``compile_pure`` y ``analizar_fuente`` (en
+``core/compiler.py``) son la fachada única del pipeline.
+"""
+
 from dataclasses import dataclass
 
-COMPILER_VERSION = "10.0.0"
+from .. import _version
+
+COMPILER_VERSION = _version.__version__
+
+MODOS_VALIDOS = frozenset({"run", "check", "tokens", "ast"})
 
 
 @dataclass(frozen=True)
@@ -13,6 +23,11 @@ class CompileRequest:
     version: str = COMPILER_VERSION
     modo: str = "run"  # run|check|tokens|ast
     entrada: tuple[str, ...] = ()
+
+    def __post_init__(self):
+        """Rechaza modos desconocidos en vez de ejecutar el programa por defecto."""
+        if self.modo not in MODOS_VALIDOS:
+            raise ValueError(f"modo inválido {self.modo!r}; válidos: {sorted(MODOS_VALIDOS)}")
 
 
 @dataclass(frozen=True)
@@ -26,6 +41,13 @@ class CompileResult:
 
 
 # Contrato estable: cambio en CompileRequest requiere bump minor version.
-from .compiler import compile_pure  # noqa: E402
+from .compiler import FASES, Analisis, analizar_fuente, compile_pure  # noqa: E402
 
-__all__ = ["CompileRequest", "CompileResult", "compile_pure"]
+__all__ = [
+    "FASES",
+    "Analisis",
+    "CompileRequest",
+    "CompileResult",
+    "analizar_fuente",
+    "compile_pure",
+]

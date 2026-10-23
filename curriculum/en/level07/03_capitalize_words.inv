@@ -1,0 +1,31 @@
+// Level 7 · Exercise 03 — Capitalize words
+// Learning goals:
+//   - Detect where words start and end
+//   - Use a state flag (inside/outside a word)
+//
+void main() {
+    string s = "  hola   mundo de  invenio ";
+    string r = "";
+    bool inWord = false;
+    int words = 0;
+    for (int i = 0; i < text_length(s); i++) {
+        string c = char_at(s, i);
+        if (c == " ") {
+            inWord = false;
+        } else {
+            if (!inWord) {
+                // Start of a word: separator (unless it is the first) and upper case.
+                if (words > 0) {
+                    r = r + " ";
+                }
+                r = r + to_upper(c);
+                words++;
+                inWord = true;
+            } else {
+                r = r + c;
+            }
+        }
+    }
+    print("["); print(r); print("]\n");
+    print("words = "); print(words); print("\n");
+}

@@ -1,0 +1,16 @@
+// Ejercita estructuras/cola desde un programa (INV-1430).
+importar "estructuras/cola";
+
+vacio main() {
+    Cola c = nuevo Cola();
+    c.encolar(1); c.encolar(2); c.encolar(3);
+    imprimir(c.a_texto()); imprimir(" "); imprimir(c.frente_valor()); imprimir("\n");
+    imprimir(c.desencolar()); imprimir(c.desencolar()); imprimir(" "); imprimir(c.tamano()); imprimir("\n");
+    c.encolar(4);
+    imprimir(c.a_texto()); imprimir(" "); imprimir(c.desencolar()); imprimir(c.desencolar()); imprimir(" "); imprimir(c.esta_vacia()); imprimir("\n");
+    intentar {
+        c.frente_valor();
+    } capturar (e) {
+        imprimir(e.codigo); imprimir("\n");
+    }
+}

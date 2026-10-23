@@ -1,0 +1,5 @@
+{a[(b+c)*d]} -> true
+(a+b] -> false
+((x) -> false
+x+y) -> false
+[{()()}] -> true

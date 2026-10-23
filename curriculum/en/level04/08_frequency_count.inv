@@ -1,0 +1,28 @@
+// Level 4 · Exercise 08 — Frequency counting
+// Learning goals:
+//   - Use a data value as an index
+//   - Build a histogram
+//
+void main() {
+    int [20] rolls = {3, 6, 1, 6, 2, 5, 6, 4, 3, 6, 1, 2, 6, 5, 4, 6, 3, 2, 6, 1};
+    int [7] frequency;
+    for (int c = 0; c < 7; c++) {
+        frequency[c] = 0;
+    }
+    // The value of the roll is directly the position of its counter.
+    foreach (int v : rolls) {
+        frequency[v] = frequency[v] + 1;
+    }
+    int mode = 1;
+    for (int c = 1; c <= 6; c++) {
+        print(c); print(": ");
+        for (int k = 0; k < frequency[c]; k++) {
+            print("#");
+        }
+        print(" "); print(frequency[c]); print("\n");
+        if (frequency[c] > frequency[mode]) {
+            mode = c;
+        }
+    }
+    print("mode = "); print(mode); print("\n");
+}

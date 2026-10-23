@@ -1,0 +1,185 @@
+// algorithms/sorting.inv -- Array sorting algorithms
+//
+// InvenioLang educational standard library (INV-1430).
+// Usage:   import "algorithms/sorting";
+//
+// All of them sort the first n elements of the array from SMALLEST to
+// LARGEST, in place (the array is passed by reference). n is usually
+// array_length(a), but it is a separate parameter so that only part of
+// the array can be sorted.
+//
+//   Algorithm   | Best       | Average    | Worst      | Stable
+//   bubble      | O(n)       | O(n^2)     | O(n^2)     | yes
+//   selection   | O(n^2)     | O(n^2)     | O(n^2)     | no
+//   insertion   | O(n)       | O(n^2)     | O(n^2)     | yes
+//   merge       | O(n log n) | O(n log n) | O(n log n) | yes (uses an auxiliary array)
+//   quick       | O(n log n) | O(n log n) | O(n^2)     | no
+//   heap        | O(n log n) | O(n log n) | O(n log n) | no
+
+// Swaps a[i] and a[j].
+void swap(int[] a, int i, int j) {
+    int temp = a[i];
+    a[i] = a[j];
+    a[j] = temp;
+}
+
+// true if a[0..n-1] is sorted from smallest to largest.
+bool is_sorted(int[] a, int n) {
+    for (int i = 1; i < n; i++) {
+        if (a[i - 1] > a[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// BUBBLE: on each pass the largest value "bubbles up" to the end by
+// comparing neighbors. If a pass made no swaps, the array is sorted.
+void bubble_sort(int[] a, int n) {
+    for (int pass_number = 0; pass_number < n - 1; pass_number++) {
+        bool swapped = false;
+        for (int i = 0; i < n - 1 - pass_number; i++) {
+            if (a[i] > a[i + 1]) {
+                swap(a, i, i + 1);
+                swapped = true;
+            }
+        }
+        if (!swapped) {
+            break;
+        }
+    }
+}
+
+// SELECTION: finds the smallest of what is left and puts it in place.
+void selection_sort(int[] a, int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int smallest = i;
+        for (int j = i + 1; j < n; j++) {
+            if (a[j] < a[smallest]) {
+                smallest = j;
+            }
+        }
+        if (smallest != i) {
+            swap(a, i, smallest);
+        }
+    }
+}
+
+// INSERTION: like sorting cards in your hand; each element moves left
+// until it finds its place among the already sorted ones.
+void insertion_sort(int[] a, int n) {
+    for (int i = 1; i < n; i++) {
+        int current = a[i];
+        int j = i - 1;
+        while (j >= 0 && a[j] > current) {
+            a[j + 1] = a[j];
+            j = j - 1;
+        }
+        a[j + 1] = current;
+    }
+}
+
+// MERGE sort: splits in halves, sorts each one and merges them.
+// aux must have at least n elements (working space).
+void merge_sort(int[] a, int[] aux, int n) {
+    merge_range(a, aux, 0, n - 1);
+}
+
+void merge_range(int[] a, int[] aux, int start, int end) {
+    if (start >= end) {
+        return;
+    }
+    int middle = (start + end) / 2;
+    merge_range(a, aux, start, middle);
+    merge_range(a, aux, middle + 1, end);
+    // Merges both sorted halves into aux and copies them back.
+    int i = start;
+    int j = middle + 1;
+    int k = start;
+    while (i <= middle && j <= end) {
+        if (a[i] <= a[j]) {
+            aux[k] = a[i];
+            i = i + 1;
+        } else {
+            aux[k] = a[j];
+            j = j + 1;
+        }
+        k = k + 1;
+    }
+    while (i <= middle) {
+        aux[k] = a[i];
+        i = i + 1;
+        k = k + 1;
+    }
+    while (j <= end) {
+        aux[k] = a[j];
+        j = j + 1;
+        k = k + 1;
+    }
+    for (int p = start; p <= end; p++) {
+        a[p] = aux[p];
+    }
+}
+
+// QUICK sort: picks a pivot, leaves the smaller values to its left and
+// the larger ones to its right, and sorts each side.
+void quick_sort(int[] a, int n) {
+    quick_range(a, 0, n - 1);
+}
+
+void quick_range(int[] a, int start, int end) {
+    if (start >= end) {
+        return;
+    }
+    int p = partition(a, start, end);
+    quick_range(a, start, p - 1);
+    quick_range(a, p + 1, end);
+}
+
+// Lomuto partition with the last element as pivot; returns the final
+// position of the pivot.
+int partition(int[] a, int start, int end) {
+    int pivot = a[end];
+    int boundary = start;
+    for (int i = start; i < end; i++) {
+        if (a[i] < pivot) {
+            swap(a, i, boundary);
+            boundary = boundary + 1;
+        }
+    }
+    swap(a, boundary, end);
+    return boundary;
+}
+
+// HEAP sort: turns the array into a max-heap and keeps moving the
+// largest value to the end.
+void heap_sort(int[] a, int n) {
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        sift_down(a, i, n);
+    }
+    for (int end = n - 1; end > 0; end--) {
+        swap(a, 0, end);
+        sift_down(a, 0, end);
+    }
+}
+
+// Moves a[i] down the heap a[0..n-1] until it is larger than its children.
+void sift_down(int[] a, int i, int n) {
+    int parent_pos = i;
+    while (true) {
+        int largest = parent_pos;
+        int left_val = 2 * parent_pos + 1;
+        int right_val = 2 * parent_pos + 2;
+        if (left_val < n && a[left_val] > a[largest]) {
+            largest = left_val;
+        }
+        if (right_val < n && a[right_val] > a[largest]) {
+            largest = right_val;
+        }
+        if (largest == parent_pos) {
+            break;
+        }
+        swap(a, parent_pos, largest);
+        parent_pos = largest;
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N05-E09",
+  "nivel": 5,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Pluggable sort criterion",
+  "enunciado": "Write a single insertion sort that uses a function-typed variable comesBefore(x, y) to decide the order. Sort {15, 3, 42, 8, 23} ascending, descending and by last digit.",
+  "objetivos": [
+    "Separate the algorithm from the comparison criterion",
+    "Use functions as values"
+  ],
+  "pistas": [
+    "The algorithm only asks whether the key comesBefore(key, a[j]).",
+    "Change the function stored in the variable before each call.",
+    "It is the same idea as the OOP Strategy pattern."
+  ],
+  "conceptos": [
+    "function as value",
+    "comparator"
+  ]
+}

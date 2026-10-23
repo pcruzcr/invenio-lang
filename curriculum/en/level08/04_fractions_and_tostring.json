@@ -1,0 +1,21 @@
+{
+  "id": "N08-E04",
+  "nivel": 8,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Fractions: toString and immutable objects",
+  "enunciado": "Create the class Fraction which simplifies itself in the constructor (using gcd) and has plus(other) and times(other) that return NEW fractions. Define toString() so print shows \"n/d\". Compute 1/2 + 1/3, 2/4 * 6/9 and 3/4 + 1/4.",
+  "objetivos": [
+    "Customize the representation with toString",
+    "Design immutable objects that return new objects"
+  ],
+  "pistas": [
+    "a/b + c/d = (a*d + c*b) / (b*d).",
+    "Simplify by dividing numerator and denominator by their gcd.",
+    "print(object) automatically calls toString()."
+  ],
+  "conceptos": [
+    "toString",
+    "immutability"
+  ]
+}

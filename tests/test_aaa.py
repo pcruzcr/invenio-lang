@@ -5,20 +5,16 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from inveniolang import api
-from inveniolang.ast_validator import validar_ast
 from inveniolang.config import Config
 from inveniolang.core import CompileRequest, compile_pure
-from inveniolang.errors import ErrorManager
-from inveniolang.lexer import Lexer
-from inveniolang.parser import Parser
 from inveniolang.symbol_table import SymbolTable
 
 
 def test_version_unica():
     """Versión única gobernable en config y API."""
-    assert Config().compiler_version == "10.0.0"
+    assert Config().compiler_version == "11.0.0"
     r = api.compilar("void main() { }")
-    assert r.version == "10.0.0"
+    assert r.version == "11.0.0"
     assert r.ok
 
 
@@ -50,16 +46,15 @@ def test_ambito_balanceado():
     assert t.profundidad_ambito() == n0
 
 
-def test_validador_detecta_ciclo():
-    """Validador auditable detecta herencia circular."""
-    em = ErrorManager()
-    lx = Lexer(em)
-    p = Parser(lx, em)
-    cod = "clase A hereda B { } clase B hereda A { } void main() { }"
-    ast, _ = p.analizar(cod, "t.inv")
-    assert ast is not None
-    msgs = validar_ast(ast)
-    assert any("Ciclo" in m for m in msgs)
+def test_herencia_circular_con_codigo_oficial():
+    """INV-1029: el ciclo de herencia lo reporta el semántico con su código oficial.
+
+    `ast_validator.py` (eliminado) lo duplicaba con un mensaje fuera del
+    catálogo §15; la única fuente de verdad es IL-POO-003.
+    """
+    r = api.compilar("clase A hereda B { } clase B hereda A { } void main() { }")
+    assert not r.ok
+    assert any("IL-POO-003" in e for e in r.errores)
 
 
 def test_error_formato_oficial():
@@ -79,7 +74,11 @@ def test_core_modos():
 
 def test_for_accion_incdec():
     """Acción ++/-- del for ejecuta sin NameError (rama IncDecNode eliminada)."""
-    r = api.ejecutar("void main() { int s = 0; para (int i = 0; i < 3; i++) { s = s + 1; } imprimir(s); }")
+    r = api.ejecutar(
+        "void main() { int s = 0; para (int i = 0; i < 3; i++) { s = s + 1; } imprimir(s); }"
+    )
     assert r.ok and "".join(r.salida) == "3"
-    r2 = api.ejecutar("void main() { int s = 0; para (int i = 3; i > 0; i--) { s = s + 1; } imprimir(s); }")
+    r2 = api.ejecutar(
+        "void main() { int s = 0; para (int i = 3; i > 0; i--) { s = s + 1; } imprimir(s); }"
+    )
     assert r2.ok and "".join(r2.salida) == "3"

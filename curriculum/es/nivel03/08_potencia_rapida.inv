@@ -1,0 +1,29 @@
+// Nivel 3 · Ejercicio 08 — Potencia rápida
+// Objetivos:
+//   - Diseñar una recursión que divide el problema a la mitad
+//   - Contar operaciones
+//
+entero multiplicaciones = 0;
+
+entero potencia(entero b, entero e) {
+    si (e == 0) {
+        retornar 1;
+    }
+    si (e % 2 == 0) {
+        entero mitad = potencia(b, e / 2);   // una sola llamada recursiva
+        multiplicaciones++;
+        retornar mitad * mitad;
+    }
+    multiplicaciones++;
+    retornar b * potencia(b, e - 1);
+}
+
+vacio main() {
+    imprimir(potencia(2, 10)); imprimir("\n");
+    imprimir(potencia(3, 7)); imprimir("\n");
+    imprimir(potencia(5, 0)); imprimir("\n");
+    imprimir(potencia(7, 9)); imprimir("\n");
+    multiplicaciones = 0;
+    imprimir(potencia(2, 30)); imprimir("\n");
+    imprimir("multiplications = "); imprimir(multiplicaciones); imprimir("\n");
+}

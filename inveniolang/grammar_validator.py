@@ -1,127 +1,138 @@
-# grammar_validator.py — Sprint 1 Formal verificable
-# Calcula FIRST/FOLLOW y valida LALR(1) sin conflictos no documentados.
-# Reusa parser.py:11 PLY y docs/gramatica.ebnf
+"""Verificación formal de la gramática LALR(1) real de ``parser.py``.
+
+Uso: ``python -m inveniolang.grammar_validator`` (CI); sale con código 1 si
+hay conflictos sin documentar o símbolos sin definir.
+
+INV-1017: la versión anterior calculaba FIRST desde ``docs/gramatica.ebnf``
+(no desde la gramática que usa el compilador), ``follow_sets`` devolvía
+conjuntos vacíos (un bucle con ``pass``) y los "conflictos" se detectaban
+buscando la palabra ``conflict`` en ``parsetab.py``. Ahora se reconstruye la
+gramática exactamente como lo hace ``ply.yacc.yacc()`` a partir de las
+producciones ``p_*`` del ``Parser`` y se obtienen de PLY los conjuntos FIRST y
+FOLLOW reales y la tabla LALR(1) con sus conflictos shift/reduce y
+reduce/reduce.
+"""
+
 from __future__ import annotations
 
-import pathlib
-import re
+import json
+import sys
+from dataclasses import dataclass, field
+from typing import Any
+
+from ply import yacc
+
+from .lexer import Lexer
+from .parser import Parser
+
+__all__ = ["BASELINE_SHIFT_REDUCE", "InformeGramatica", "validar_gramatica"]
 
 
-def load_ebnf(path: str = "docs/gramatica.ebnf") -> str:
-    """Carga la gramática EBNF."""
-    p = pathlib.Path(path)
-    if not p.exists():
-        p = pathlib.Path(__file__).parent.parent / path
-    return p.read_text(encoding="utf-8")
+# Baseline documentado en docs/InvenioLang_GramaticaFormal.md §0 y §6
+# (20 shift/reduce, 0 reduce/reduce; PLY los resuelve con "shift": dangling
+# else, `;`/`)` opcionales tras sentencias, `++`/`--` postfijos y `{` de
+# inicializadores). Por token, para que un conflicto NUEVO no quede oculto
+# porque otro desapareció.
+BASELINE_SHIFT_REDUCE: dict[str, int] = {
+    "DEL_PUNTO_COMA": 7,
+    "OP_INC": 3,
+    "OP_DEC": 3,
+    "KW_ELSE": 3,
+    "DEL_PAREN_C": 2,
+    "DEL_LLAVE_A": 2,
+}
 
 
-def first_sets(ebnf: str) -> dict[str, set[str]]:
-    """Calcula los conjuntos FIRST."""
-    # FIRST real: itera hasta punto fijo, maneja ε (vacío) y no terminales
-    prods: dict[str, list[list[str]]] = {}
-    for line in ebnf.splitlines():
-        s = line.strip()
-        if not s or s.startswith("(*") or "::=" not in s:
-            continue
-        lhs, rhs = [x.strip() for x in s.split("::=", 1)]
-        # separa alternativas por |
-        alts = [a.strip() for a in re.split(r"\|", rhs) if a.strip()]
-        for alt in alts:
-            toks = re.findall(r'"[^"]+"|\w+|\[|\]|\{|\}|\(|\)', alt)
-            # simplifica: símbolos entre comillas son terminales
-            prods.setdefault(lhs, []).append(toks)
-    first: dict[str, set[str]] = {nt: set() for nt in prods}
-    changed = True
-    iters = 0
-    while changed and iters < 50:
-        changed = False
-        iters += 1
-        for lhs, alts in prods.items():
-            for alt in alts:
-                # FIRST de secuencia: primer terminal o FIRST de no terminal
-                for tok in alt:
-                    if tok.startswith('"'):
-                        if tok not in first[lhs]:
-                            first[lhs].add(tok)
-                            changed = True
-                        break
-                    elif tok in first:
-                        added = first[tok] - {"ε"}
-                        if not added.issubset(first[lhs]):
-                            first[lhs].update(added)
-                            changed = True
-                        if "ε" not in first[tok]:
-                            break
-                    elif tok in ("[", "{"):  # opcional/repetición → ε
-                        if "ε" not in first[lhs]:
-                            first[lhs].add("ε")
-                            changed = True
-                    elif tok not in ("|", "(", ")", "]", "}"):
-                        # token no terminal desconocido, tratar como terminal
-                        if tok not in first[lhs]:
-                            first[lhs].add(f'"{tok}"')
-                            changed = True
-                        break
-    return first
+@dataclass
+class InformeGramatica:
+    """Resultado de :func:`validar_gramatica`."""
+
+    producciones: int
+    no_terminales: int
+    terminales: int
+    estados: int
+    first: dict[str, list[str]]
+    follow: dict[str, list[str]]
+    shift_reduce: list[tuple[int, str, str]] = field(default_factory=list)
+    reduce_reduce: list[tuple[int, str, str]] = field(default_factory=list)
+    no_definidos: list[str] = field(default_factory=list)
+
+    @property
+    def inesperados(self) -> list[tuple[int, str, str]]:
+        """Conflictos shift/reduce por encima del baseline documentado (por token)."""
+        vistos: dict[str, int] = {}
+        extra = []
+        for conflicto in self.shift_reduce:
+            vistos[conflicto[1]] = vistos.get(conflicto[1], 0) + 1
+            if vistos[conflicto[1]] > BASELINE_SHIFT_REDUCE.get(conflicto[1], 0):
+                extra.append(conflicto)
+        return extra
+
+    @property
+    def ok(self) -> bool:
+        """Gramática LALR(1) sin conflictos sorpresa ni símbolos sin definir."""
+        return not (self.inesperados or self.reduce_reduce or self.no_definidos)
+
+    def como_dict(self) -> dict[str, Any]:
+        """Resumen serializable para CI."""
+        return {
+            "producciones": self.producciones,
+            "no_terminales": self.no_terminales,
+            "terminales": self.terminales,
+            "estados_lalr": self.estados,
+            "shift_reduce": len(self.shift_reduce),
+            "shift_reduce_inesperados": [list(c) for c in self.inesperados],
+            "reduce_reduce": len(self.reduce_reduce),
+            "no_definidos": self.no_definidos,
+            "estado": "OK" if self.ok else "REVISAR",
+        }
 
 
-def follow_sets(ebnf: str, first: dict[str, set[str]]) -> dict[str, set[str]]:
-    """Calcula los conjuntos FOLLOW."""
-    follow: dict[str, set[str]] = {nt: set() for nt in first}
-    # Símbolo inicial = programa
-    if "programa" in follow:
-        follow["programa"].add("$")
-    # Regla simple: para A ::= α B β, FOLLOW(B) ∪= FIRST(β) \ {ε}
-    # (aproximado, suficiente para validar no ambigüedad LALR en CI)
-    for lhs in first:
-        for line in ebnf.splitlines():
-            if lhs in line and "::=" in line:
-                pass
-    return follow
+def _gramatica() -> yacc.Grammar:
+    """Construye ``ply.yacc.Grammar`` con los mismos pasos que ``yacc.yacc(module=...)``."""
+    modulo = Parser(Lexer())
+    pdict = {k: getattr(modulo, k) for k in dir(modulo)}
+    info = yacc.ParserReflect(pdict, log=yacc.NullLogger())
+    info.get_all()
+    if info.error or info.validate_all():
+        raise yacc.YaccError("la reflexión de PLY sobre Parser falló")
+    gramatica = yacc.Grammar(info.tokens)
+    for term, asociatividad, nivel in info.preclist:
+        gramatica.set_precedence(term, asociatividad, nivel)
+    for nombre_funcion, (archivo, linea, produccion, simbolos) in info.grammar:
+        gramatica.add_production(produccion, simbolos, nombre_funcion, archivo, linea)
+    gramatica.set_start(info.start)
+    return gramatica
 
 
-def validate_lalr1() -> dict[str, any]:
-    """Valida la tabla LALR(1)."""
-    # Introspecciona parsetab.py tabla LALR sin construir Parser (rápido, no bloquea)
-    has_conflict = False
-    conflict_detail = ""
-    try:
-        tab = pathlib.Path(__file__).parent / "parsetab.py"
-        content = tab.read_text(encoding="utf-8", errors="ignore") if tab.exists() else ""
-        has_conflict = "conflict" in content.lower()
-        # Cuenta estados LALR y conflictos reportados en parser.out
-        out = pathlib.Path(__file__).parent / "parser.out"
-        if out.exists():
-            out_c = out.read_text(encoding="utf-8", errors="ignore")
-            if "conflict" in out_c.lower():
-                has_conflict = True
-                conflict_detail = [ln for ln in out_c.splitlines() if "conflict" in ln.lower()][:2]
-    except Exception as e:
-        conflict_detail = str(e)
-    ebnf = load_ebnf()
-    first = first_sets(ebnf)
-    follow = follow_sets(ebnf, first)
-    # Conflictos shift/reduce para DEL_PUNTO_COMA/DEL_PAREN_C son esperados (dangling else,
-    # documentado)
-    expected_conflicts = {"DEL_PUNTO_COMA", "DEL_PAREN_C"}
-    unexpected = has_conflict and not all(
-        any(exp in d for exp in expected_conflicts)
-        for d in (conflict_detail if isinstance(conflict_detail, list) else [])
+def validar_gramatica() -> InformeGramatica:
+    """Calcula FIRST/FOLLOW y la tabla LALR(1) de la gramática del compilador."""
+    g = _gramatica()
+    no_definidos = sorted({sym for sym, _ in g.undefined_symbols()})
+    g.build_lritems()
+    first = g.compute_first()
+    follow = g.compute_follow()
+    tabla = yacc.LRGeneratedTable(g, "LALR", yacc.NullLogger())
+    no_terminales = sorted(g.Nonterminals)
+    return InformeGramatica(
+        producciones=len(g.Productions) - 1,  # la 0 es S' -> inicio
+        no_terminales=len(no_terminales),
+        terminales=len(g.Terminals),
+        estados=len(tabla.lr_action),
+        first={nt: sorted(first[nt]) for nt in no_terminales},
+        follow={nt: sorted(follow.get(nt, [])) for nt in no_terminales},
+        shift_reduce=list(tabla.sr_conflicts),
+        reduce_reduce=list(tabla.rr_conflicts),
+        no_definidos=no_definidos,
     )
-    return {
-        "ebnf_lines": len(ebnf.splitlines()),
-        "first_sets": len(first),
-        "follow_sets": len(follow),
-        "first_sample": {k: sorted(v)[:3] for k, v in list(first.items())[:3]},
-        "lalr_conflict": has_conflict,
-        "conflict_detail": conflict_detail,
-        "unexpected_conflict": unexpected,
-        "status": "OK" if len(first) > 10 and not unexpected else "REVISAR",
-        "grammar_file": "docs/gramatica.ebnf",
-    }
+
+
+def main() -> int:
+    """CLI: imprime el resumen JSON y devuelve 1 si la gramática no es LALR(1) limpia."""
+    informe = validar_gramatica()
+    sys.stdout.write(json.dumps(informe.como_dict(), indent=2, ensure_ascii=False) + "\n")
+    return 0 if informe.ok else 1
 
 
 if __name__ == "__main__":
-    import json
-
-    print(json.dumps(validate_lalr1(), indent=2, ensure_ascii=False))
+    raise SystemExit(main())

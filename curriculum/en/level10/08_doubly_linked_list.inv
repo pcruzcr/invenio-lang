@@ -1,0 +1,73 @@
+// Level 10 · Exercise 08 — Doubly linked list
+// Learning goals:
+//   - Maintain links in both directions
+//   - Remove in O(1) once the node is known
+//
+class DoubleNode {
+    public int value;
+    public DoubleNode prev;
+    public DoubleNode next;
+    DoubleNode(int v) { this.value = v; }
+}
+
+class DoublyLinkedList {
+    private DoubleNode head;
+    private DoubleNode queue;
+
+    public void pushBack(int v) {
+        DoubleNode n = new DoubleNode(v);
+        if (this.queue == null) {
+            this.head = n;
+        } else {
+            DoubleNode c = this.queue;
+            c.next = n;
+            n.prev = c;
+        }
+        this.queue = n;
+    }
+
+    public void remove(int v) {
+        DoubleNode n = this.head;
+        while (n != null && n.value != v) {
+            n = n.next;
+        }
+        if (n == null) {
+            return;
+        }
+        DoubleNode a = n.prev;
+        DoubleNode s = n.next;
+        if (a == null) { this.head = s; } else { a.next = s; }
+        if (s == null) { this.queue = a; } else { s.prev = a; }
+    }
+
+    public void printForward() {
+        DoubleNode n = this.head;
+        while (n != null) {
+            print(n.value); print(" ");
+            n = n.next;
+        }
+        print("| ");
+    }
+
+    public void printBackward() {
+        DoubleNode n = this.queue;
+        while (n != null) {
+            print(n.value); print(" ");
+            n = n.prev;   // thanks to the backward link
+        }
+        print("\n");
+    }
+}
+
+void main() {
+    DoublyLinkedList l = new DoublyLinkedList();
+    for (int i = 1; i <= 5; i++) {
+        l.pushBack(i * 10);
+    }
+    l.printForward(); l.printBackward();
+    l.remove(30);
+    l.printForward(); l.printBackward();
+    l.remove(10);
+    l.remove(50);
+    l.printForward(); l.printBackward();
+}

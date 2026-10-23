@@ -1,0 +1,22 @@
+{
+  "id": "N10-E01",
+  "nivel": 10,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Pila con arreglo",
+  "enunciado": "Implementa una pila de enteros de capacidad 4 con un arreglo global y un índice tope, con apilar (que avisa si está llena), desapilar, cima y estaVacia. Apila 10, 20, 30, 40, 50, consulta la cima y vacíala.",
+  "objetivos": [
+    "Entender la política LIFO (último en entrar, primero en salir)",
+    "Controlar desbordamiento y subdesbordamiento"
+  ],
+  "pistas": [
+    "tope = -1 significa pila vacía.",
+    "apilar: tope++ y luego guardar; desapilar: leer y luego tope--.",
+    "Antes de apilar comprueba tope == CAP - 1."
+  ],
+  "conceptos": [
+    "pila",
+    "LIFO",
+    "desbordamiento"
+  ]
+}

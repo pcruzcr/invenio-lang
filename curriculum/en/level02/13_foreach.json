@@ -1,0 +1,21 @@
+{
+  "id": "N02-E13",
+  "nivel": 2,
+  "numero": 13,
+  "idioma": "en",
+  "titulo": "Iterating with foreach",
+  "enunciado": "Given the temperature array {21, 25, 19, 30, 27, 18}, use foreach to show them, count the hot days (>= 25) and compute the sum.",
+  "objetivos": [
+    "Iterate over a collection without managing indexes",
+    "Know when to use for and when to use foreach"
+  ],
+  "pistas": [
+    "foreach (int t : temps) visits each element in order.",
+    "You do not need the position, only the value.",
+    "If you needed the index, you would use a classic for."
+  ],
+  "conceptos": [
+    "foreach",
+    "traversal"
+  ]
+}

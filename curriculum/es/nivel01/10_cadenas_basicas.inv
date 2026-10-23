@@ -1,0 +1,14 @@
+// Nivel 1 · Ejercicio 10 — Cadenas básicas
+// Objetivos:
+//   - Usar la librería de cadenas
+//   - Entender que las posiciones empiezan en 0
+//
+vacio main() {
+    texto s = "Programacion";
+    imprimir(longitud_texto(s)); imprimir("\n");
+    imprimir(mayusculas(s)); imprimir("\n");
+    imprimir(subcadena(s, 0, 3)); imprimir("\n");
+    // Posiciones: P=0 r=1 o=2 g=3 r=4
+    imprimir(caracter_en(s, 4)); imprimir("\n");
+    imprimir(s + " I"); imprimir("\n");
+}

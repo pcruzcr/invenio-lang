@@ -1,0 +1,23 @@
+{
+  "id": "N01-E03",
+  "nivel": 1,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Data types",
+  "enunciado": "Declare one variable of each basic type (int, float, string, bool) and show each on its own line as \"type: value\".",
+  "objetivos": [
+    "Tell apart the four primitive types",
+    "See how each type is printed"
+  ],
+  "pistas": [
+    "Float literals have a decimal point: 2.5.",
+    "Strings go between double quotes.",
+    "true and false are the boolean values."
+  ],
+  "conceptos": [
+    "int",
+    "float",
+    "string",
+    "bool"
+  ]
+}

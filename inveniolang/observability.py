@@ -4,7 +4,7 @@
 #   1. Logging estructurado JSON (machine-parseable, listo para ELK/Loki).
 #   2. Correlación por run-id (trazabilidad end-to-end de una compilación).
 #   3. Métricas por fase del pipeline (lexer→parser→semántico→tipos→run).
-#   4. Decorador @traced para funciones críticas (timing + contexto).
+#   (INV-1018: se eliminaron el decorador @traced y emit_structured, sin usos.)
 #
 # Patrones aplicados:
 #   - Observer (MetricsObserver extiende patterns.Observer → eventos ErrorManager).
@@ -21,7 +21,7 @@ import logging
 import sys
 import time
 import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
 
@@ -33,10 +33,8 @@ __all__ = [
     "new_run_id",
     "set_current_run",
     "get_current_run",
-    "traced",
     "PipelineMetrics",
     "MetricsObserver",
-    "emit_structured",
 ]
 
 _LOG = logging.getLogger("inveniolang")
@@ -121,11 +119,6 @@ def get_logger(name: str | None = None) -> logging.Logger:
     return _LOG.getChild(name) if name else _LOG
 
 
-def emit_structured(level: int, event: str, **fields: Any) -> None:
-    """Emitir un evento estructurado con nombre explícito (recomendado)."""
-    get_logger().log(level, event, extra={"event": event, **fields})
-
-
 # ————— Correlación por run-id —————
 _current_run: dict[str, Any] = {}
 
@@ -183,44 +176,6 @@ class PipelineMetrics:
     def total_ms(self) -> float:
         """Milisegundos totales."""
         return round(sum(f.get("ms", 0.0) for f in self.fases), 2)
-
-
-# ————— Decorador de trazado —————
-def traced(fase: str | None = None) -> Callable:
-    """Decorador: loguea duración en ms; en fallo registra tipo de error."""
-
-    def deco(fn: Callable) -> Callable:
-        """Decorador interno."""
-        nombre = fase or fn.__qualname__
-        log = get_logger("trace")
-
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            """Envuelve la función con traza."""
-            t0 = time.perf_counter()
-            try:
-                resultado = fn(*args, **kwargs)
-                log.debug(
-                    "%s ok", nombre, extra={"ms": round((time.perf_counter() - t0) * 1000, 2)}
-                )
-                return resultado
-            except Exception as exc:
-                log.error(
-                    "%s fallo: %s",
-                    nombre,
-                    exc,
-                    extra={
-                        "ms": round((time.perf_counter() - t0) * 1000, 2),
-                        "error_type": type(exc).__name__,
-                    },
-                )
-                raise
-
-        wrapper.__name__ = fn.__name__
-        wrapper.__doc__ = fn.__doc__
-        wrapper.__wrapped__ = fn  # type: ignore[attr-defined]
-        return wrapper
-
-    return deco
 
 
 # ————— Observer de métricas (se conecta a ErrorManager) —————

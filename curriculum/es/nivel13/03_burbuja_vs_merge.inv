@@ -1,0 +1,73 @@
+// Nivel 13 · Ejercicio 03 — O(n²) frente a O(n log n): burbuja y merge sort
+// Objetivos:
+//   - Contar comparaciones en algoritmos de ordenamiento
+//   - Observar cómo crece la diferencia al aumentar n
+//
+// Generador pseudoaleatorio congruencial lineal: siempre la misma secuencia,
+// para que la salida sea reproducible.
+entero semilla = 7;
+
+entero aleatorio(entero limite) {
+    semilla = (semilla * 1103 + 12345) % 65536;
+    retornar semilla % limite;
+}
+
+constante entero MAX = 64;
+entero comparaciones = 0;
+
+vacio burbuja(entero [] v, entero n) {
+    para (entero p = 0; p < n - 1; p++) {
+        para (entero j = 0; j < n - 1 - p; j++) {
+            comparaciones++;
+            si (v[j] > v[j + 1]) {
+                entero aux = v[j];
+                v[j] = v[j + 1];
+                v[j + 1] = aux;
+            }
+        }
+    }
+}
+
+vacio combinar(entero [] v, entero izq, entero medio, entero der) {
+    entero [MAX] temp;
+    entero i = izq;
+    entero j = medio + 1;
+    entero k = izq;
+    mientras (i <= medio && j <= der) {
+        comparaciones++;
+        si (v[i] <= v[j]) { temp[k] = v[i]; i++; } sino { temp[k] = v[j]; j++; }
+        k++;
+    }
+    mientras (i <= medio) { temp[k] = v[i]; i++; k++; }
+    mientras (j <= der) { temp[k] = v[j]; j++; k++; }
+    para (entero x = izq; x <= der; x++) { v[x] = temp[x]; }
+}
+
+vacio mergeSort(entero [] v, entero izq, entero der) {
+    si (izq < der) {
+        entero medio = (izq + der) / 2;
+        mergeSort(v, izq, medio);
+        mergeSort(v, medio + 1, der);
+        combinar(v, izq, medio, der);
+    }
+}
+
+vacio main() {
+    entero [MAX] a;
+    entero [MAX] b;
+    imprimir("n\tbubble\tmerge\tratio\n");
+    para (entero n = 8; n <= MAX; n = n * 2) {
+        para (entero i = 0; i < n; i++) {
+            a[i] = aleatorio(1000);
+            b[i] = a[i];   // la misma entrada para ambos
+        }
+        comparaciones = 0;
+        burbuja(a, n);
+        entero cb = comparaciones;
+        comparaciones = 0;
+        mergeSort(b, 0, n - 1);
+        entero cm = comparaciones;
+        imprimir(n); imprimir("\t"); imprimir(cb); imprimir("\t"); imprimir(cm); imprimir("\t");
+        imprimir(cb / cm); imprimir("\n");
+    }
+}

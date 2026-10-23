@@ -1,0 +1,14 @@
+{
+  "nivel": 3,
+  "titulo": "Functions, procedures and recursion",
+  "descripcion": "Break a problem into reusable subprograms, pass parameters and solve problems defined in terms of themselves.",
+  "temas": [
+    "functions with return values",
+    "procedures (void)",
+    "pass by value and by reference (arrays)",
+    "variable scope",
+    "recursion: base case and recursive case",
+    "functions as values"
+  ],
+  "idioma": "en"
+}

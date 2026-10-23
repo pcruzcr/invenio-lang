@@ -1,0 +1,21 @@
+{
+  "id": "N09-E10",
+  "nivel": 9,
+  "numero": 10,
+  "idioma": "en",
+  "titulo": "Template Method pattern",
+  "enunciado": "The abstract class Drink defines prepare() with fixed steps (boil water, brew, serve) and steps each subclass customizes (brew, addExtras). Implement Coffee and Tea and prepare both.",
+  "objetivos": [
+    "Fix the skeleton of an algorithm in the parent class",
+    "Let subclasses fill in the variable steps"
+  ],
+  "pistas": [
+    "prepare() calls the other methods in order.",
+    "Common steps are implemented only once in Drink.",
+    "addExtras can have a default version that does nothing."
+  ],
+  "conceptos": [
+    "Template Method",
+    "hook"
+  ]
+}

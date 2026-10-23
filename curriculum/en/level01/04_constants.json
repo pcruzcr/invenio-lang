@@ -1,0 +1,21 @@
+{
+  "id": "N01-E04",
+  "nivel": 1,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Constants",
+  "enunciado": "Define the constant PI = 3.14 and compute the area and perimeter of a circle with radius 2.0. Show both results.",
+  "objetivos": [
+    "Declare constants with const",
+    "Use constants in expressions"
+  ],
+  "pistas": [
+    "A constant cannot change after it is declared.",
+    "Area = PI * r * r; perimeter = 2 * PI * r.",
+    "Use 2.0 (float) so the whole expression is a float."
+  ],
+  "conceptos": [
+    "constant",
+    "expression"
+  ]
+}

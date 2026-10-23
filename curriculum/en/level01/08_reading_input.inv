@@ -1,0 +1,14 @@
+// Level 1 · Exercise 08 — Reading input
+// Learning goals:
+//   - Read values with read
+//   - Combine input data in computations
+//
+void main() {
+    string name;
+    int birthYear;
+    // read stores what the user types into the variable.
+    read(name);
+    read(birthYear);
+    print("Hola, " + name + "\n");
+    print(2026 - birthYear); print("\n");
+}

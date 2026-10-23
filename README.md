@@ -1,4 +1,4 @@
-# InvenioLang 10.0 - Compilador Educativo
+# InvenioLang 11.0 - Compilador Educativo
 
 **Curso:** TIIT2002.2 Lenguajes Formales II  
 **Universidad:** Invenio - Tecnologias de Informacion y Comunicacion Empresarial (TICEC)  
@@ -7,13 +7,17 @@
 
 ## Descripcion
 
-InvenioLang es un lenguaje de programacion educativo disenado para la construccion incremental de un compilador completo. Este proyecto implementa un compilador e interprete para InvenioLang 10.0, cubriendo:
+InvenioLang es un lenguaje de programacion educativo disenado para la construccion incremental de un compilador completo. Este proyecto implementa un compilador e interprete para InvenioLang 11.0, bilingüe (español e inglés), cubriendo:
 
 - Analisis lexico (lexer)
 - Analisis sintactico (parser) con construccion de AST
 - Analisis semantico y tabla de simbolos
 - Verificacion de tipos
 - Interpretacion mediante recorrido de arbol
+- Visualización paso a paso de arreglos, matrices, pilas, colas, listas, árboles y grafos
+- Diagramas de flujo (ISO 5807) y UML de clases, de código a diagrama y de diagrama a código
+- Editor de bloques de arrastrar y soltar (escritorio Qt y estudio web sin instalación)
+- Currículo de 133 ejercicios en 13 niveles, en español y en inglés
 
 ## Requisitos
 
@@ -38,18 +42,27 @@ pip install -r requirements.txt
 ```
 proyecto_inveniolang/
 ├── inveniolang/            # Paquete principal del compilador
-│   ├── __init__.py          # __version__ 10.0.0
+│   ├── __init__.py          # __version__ 11.0.0
 │   ├── core/                # Núcleo hexagonal puro (CompileRequest/Result)
 │   ├── config.py            # Límites gobernables centralizados
 │   ├── api.py               # Fachada pública estable
 │   ├── ast_nodes.py         # Definicion de nodos del AST
-│   ├── ast_validator.py     # Validación de integridad auditable
 │   ├── builtins.py          # Funciones integradas de conversion
 │   ├── budgets.py           # Presupuestos y alertas monitorizables
 │   ├── cli.py               # Interfaz de linea de comandos (--sandbox)
 │   ├── errors.py            # Gestion de errores (catalogo oficial)
+│   ├── i18n/                # Catálogo de mensajes es/en (--idioma)
+│   ├── traductor.py         # Traductor de código fuente es <-> en
+│   ├── modulos.py           # importar/import: enlazador de módulos
+│   ├── stdlib/              # Biblioteca estándar en InvenioLang (es/en)
+│   ├── complexity.py        # Análisis de complejidad O(·)
+│   ├── effects/             # Efectos y pureza de subrutinas
+│   ├── cfg.py / ir_ssa.py   # CFG y forma SSA (Cytron)
+│   ├── flujo/               # Diagramas de flujo ⇄ código (ISO 5807, es/en)
+│   ├── uml/                 # Diagramas UML de clases ⇄ código, diagrama de objetos
+│   ├── visualizacion/       # Traza paso a paso: SVG, HTML y panel Qt
+│   ├── formatter.py         # Formateador de sangría
 │   ├── sbom.py              # SBOM determinista (python -m inveniolang.sbom)
-│   ├── policy.py            # Política de aula: no confiable -> aislado
 │   ├── lsp.py               # Servidor LSP (framing + dispatcher puro)
 │   ├── gui_tk.py           # Interfaz grafica alternativa (Tkinter)
 │   ├── gui_qt.py           # Interfaz grafica principal (PySide6 / Qt)
@@ -60,7 +73,7 @@ proyecto_inveniolang/
 │   ├── symbol_table.py     # Tabla de simbolos con ambitos
 │   └── type_checker.py     # Verificador de tipos
 ├── pruebas/                # Programas de prueba y suite de conformidad
-│   ├── conformidad.py      # Suite de regresion (391 casos verificados)
+│   ├── conformidad.py      # Suite de regresion (408 casos verificados)
 │   ├── hola_mundo.inv      # Programas de referencia de la Seccion 17
 │   ├── tipos.inv
 │   ├── condicionales.inv
@@ -90,7 +103,7 @@ proyecto_inveniolang/
 ## Pruebas
 
 ```bash
-# Suite de conformidad con la especificacion (391 casos)
+# Suite de conformidad con la especificacion (408 casos)
 python pruebas/conformidad.py
 
 # Solo un grupo: catalogo | expresiones | ejecucion | codificacion
@@ -182,7 +195,7 @@ InvenioLang soporta palabras reservadas en ingles y espanol:
 - `break` / `romper`, `continue` / `continuar`
 - `return` / `retornar`, `true` / `verdadero`, `false` / `falso`
 
-Estas 17 parejas cubren las instrucciones de InvenioLang 10.0, de modo que un
+Estas 17 parejas cubren las instrucciones de InvenioLang 11.0, de modo que un
 programa puede escribirse integramente en cualquiera de los dos idiomas.
 Las Etapas 2, 6, 7, 10, 11 y 12 (InvenioLang 2.0) agregan 21 parejas mas
 para clases, control avanzado, excepciones, funciones de primera clase y
@@ -546,7 +559,7 @@ la Etapa 11 no era de contenido de asignaturas (ya cubierto) sino de
 **paradigma**: sin funciones de primera clase, sin tipos suma/*pattern
 matching*, y un backend de compilador que se quedaba corto del tramo que
 un curso de Lenguajes Formales/Compiladores mas quiere mostrar. Cierre
-final: **391/391** en `pruebas/conformidad.py`.
+final: **408/408** en `pruebas/conformidad.py`.
 
 - **`para_cada`/`foreach`**: recorrido de arreglos sin indice explicito,
   respeta `romper`/`continuar`.
@@ -557,7 +570,7 @@ final: **391/391** en `pruebas/conformidad.py`.
   diseno. Nuevos codigos `IL-POO-033`, `IL-POO-034`.
 - **Documentacion formal de gramatica**: EBNF completa, FIRST/FOLLOW,
   fragmentos reales de la tabla LALR(1) — `docs/InvenioLang_GramaticaFormal.md`.
-- **Funciones de primera clase (closures)**: tipo `funcion(tipos) retorno`
+- **Funciones de primera clase (closures)**: tipo `funcion(tipo nombre, ...) retorno`
   (equivalencia estructural, unica excepcion a que InvenioLang es
   nominal), captura por referencia, funciones top-level pasables por
   nombre. Activa la palabra `funcion`/`function`, reservada desde la v1.0.
@@ -578,7 +591,7 @@ final: **391/391** en `pruebas/conformidad.py`.
   analisis de flujo de datos clasico (USE/DEF, punto fijo IN/OUT) +
   asignador *linear-scan* con *spill*, verificado con un caso que fuerza
   al menos un *spill* real y produce el mismo resultado.
-- **Parser LL(1) de comparacion** (`inveniolang/ll1_demo.py`): modulo
+- **Parser LL(1) de comparacion** (`inveniolang/ll1.py`): modulo
   aparte, no conectado al pipeline principal, sobre expresiones
   aritmeticas — mismo resultado que el LALR(1) real sobre el mismo
   conjunto de pruebas.
@@ -586,39 +599,41 @@ final: **391/391** en `pruebas/conformidad.py`.
 Programas de referencia nuevos en `pruebas/`: `suma_cola.inv`,
 `tipos_suma.inv`.
 
-## Etapa 13 — Constructor de Diagramas de Flujo
+## Novedades de InvenioLang 11: visualización, diagramas, bloques y web
 
-Documentada en detalle en
-[`docs/InvenioLang_2.0_POO.md`](docs/InvenioLang_2.0_POO.md#13-etapa-13--constructor-de-diagramas-de-flujo)
-(seccion 13). Cierra un hueco identificado al revisar el cierre de Fase
-1/Fase 2: el panel "Diagrama de flujo" (Etapa 4) es una herramienta de
-**revelar** (genera el diagrama a partir de codigo YA escrito); el
-objetivo pedagogico real es el opuesto — que el estudiante **dibuje** el
-diagrama primero, como paso de planeacion, y que el diagrama **genere**
-el codigo.
-
-- **Constructor nuevo e independiente** (menu Ver/Ejecutar → "Constructor
-  de diagramas"): el estudiante arma el algoritmo insertando bloques de
-  una paleta (Proceso, Decision, Mientras, Hacer-mientras, Para, Entrada,
-  Salida) en una secuencia — nunca dibuja una flecha a mano. El diagrama
-  es estructuralmente valido por construccion (sin el problema, en
-  general sin solucion limpia, de convertir un grafo arbitrario de cajas/
-  flechas a codigo estructurado).
-- **Reuso total**: el estado del diagrama es un `Bloque` real de
-  `ast_nodes.py` (las mismas clases que produce el parser real);
-  `flowchart.py::construir_diagrama` (Etapa 4) dibuja la vista previa en
-  vivo sin ningun cambio; cada fragmento que escribe el estudiante se
-  valida envolviendolo en un programa minimo y corriendolo por el
-  Lexer/Parser reales — mismo patron ya usado por
-  `pruebas/conformidad.py`/`ll1_demo.py`. Nuevo modulo
-  `inveniolang/flowchart_builder.py`, sin Qt, testeable aislado.
-- **Boton "Generar codigo InvenioLang"**: abre el resultado en una
-  pestana nueva del editor — desde ahi el flujo normal del IDE
-  (`--check`, ejecutar, depurar) sigue igual.
-- Alcance v1: secuencia, si/si-sino, mientras, hacer-mientras, para,
-  entrada/salida, proceso — genera el cuerpo de `main()`. Fuera de
-  alcance v1: switch/try-catch/romper/continuar dentro del constructor,
-  multiples funciones por diagrama, POO/arreglos.
+- **Diagramas de flujo bidireccionales** (`inveniolang/flujo/`,
+  [`docs/diagramas_de_flujo.md`](docs/diagramas_de_flujo.md)): un diagrama por
+  subrutina, `main`, método y constructor, con símbolos ISO 5807. Código →
+  diagrama y diagrama → código en español o inglés; para todo el currículo la
+  ida y vuelta compila y da la misma salida. Exporta SVG accesible, Mermaid y
+  descripción textual. Edición estructurada validada (no admite saltos
+  arbitrarios). CLI: `inveniolang flujo archivo.inv --svg f.svg` e
+  `inveniolang desde-flujo diagrama.json --idioma en -o f.inv`.
+- **UML de clases bidireccional** (`inveniolang/uml/`, [`docs/uml.md`](docs/uml.md)):
+  clases, abstractas, interfaces, enumeraciones, genéricos y todas las
+  relaciones con multiplicidad. Exporta PlantUML, Mermaid, SVG y texto; lee
+  JSON o un subconjunto de PlantUML y genera esqueletos que compilan (es/en).
+  Diagrama de objetos desde un paso de traza. CLI: `--uml svg` y
+  `inveniolang desde-uml diagrama.puml -o f.inv`.
+- **Visualización paso a paso** (`inveniolang/visualizacion/`,
+  [`docs/visualizacion.md`](docs/visualizacion.md)): arreglos, matrices, pilas,
+  colas, listas, árboles y grafos con lecturas/escrituras resaltadas, pila de
+  llamadas y salida. CLI: `inveniolang trazar archivo.inv --html traza.html`.
+- **Editor de bloques** (`inveniolang/bloques/`, [`docs/bloques.md`](docs/bloques.md)):
+  bloques estilo Scratch sobre el mismo árbol que el diagrama de flujo; código ⇄
+  bloques en es/en (los 266 ejercicios dan la misma salida), encaje tipado con
+  motivo bilingüe y uso completo por teclado. CLI: `inveniolang bloques f.inv --json b.json`
+  e `inveniolang desde-bloques b.json -o f.inv`.
+- **Estudio web** (`web/estudio/`): InvenioLang en el navegador con Pyodide, sin
+  instalar nada: editor, ejecución, errores explicados, bloques, diagramas,
+  visualizador, traductor y currículo. Generar el paquete con
+  `python scripts/empaquetar_web.py` y servir la carpeta `web/estudio/`.
+- **VS Code** (`vscode-extension/`): cliente LSP, resaltado es/en y comandos
+  ejecutar, trazar y diagrama de flujo.
+- **Acceso encadenado** `a.b.c`, `a.b.c = v`, `a.b.m()` (especificación POO §14).
+- En la GUI Qt: paneles «Bloques», «Diagrama de flujo», «Diagrama UML» y «Visualizador».
+- Limpieza de una copia antigua: `python scripts/limpiar_obsoletos.py` (simulacro)
+  y `--aplicar` para borrar sólo los archivos retirados.
 
 ## Estructuras de Datos (con y sin objetos)
 
@@ -654,7 +669,7 @@ Archivo .inv  -->  Lexer  -->  Parser  -->  AST  -->  Semantico  -->  Type Check
 ```
 
 El interprete de arbol (`interpreter.py`) sigue siendo el motor de ejecucion
-de produccion del IDE (depurador, 391 pruebas de conformidad). El backend de
+de produccion del IDE (depurador, 408 pruebas de conformidad). El backend de
 codigo intermedio es un camino **nuevo y aparte**, pensado para mostrar las
 etapas clasicas que le faltaban al front-end (generacion de codigo,
 optimizacion, ejecucion del codigo objetivo) sin arriesgar ese motor:
@@ -663,7 +678,7 @@ optimizacion, ejecucion del codigo objetivo) sin arriesgar ese motor:
   tres direcciones (TAC) — cuadruplas con temporales (`t1`, `t2`, ...) y
   etiquetas (`L1`, `L2`, ...) — para el subconjunto **estructurado** de la
   v1.0 (variables, arreglos de una dimension, matrices row-major, funciones/procedimientos,
-  control de flujo completo). **POO** se cubre vía `ir_poo.py` stub documentado (row-major matrices ya funcional, clases con despacho virtual en roadmap).
+  control de flujo completo). La **POO** se ejecuta con el intérprete de árbol; el IR cubre el subconjunto estructurado.
 - Optimizaciones como pasadas independientes sobre la lista de TAC: plegado
   y propagacion de constantes, eliminacion de codigo muerto e inalcanzable,
   y una pasada de peephole (saltos redundantes) — cada una reporta cuantas
@@ -708,20 +723,20 @@ En la GUI: menu **Ejecutar → Mostrar código intermedio**.
   y tamaño de fuente del editor, aplicados en vivo y persistidos entre
   sesiones.
 
-## InvenioLang 10.0 — Estable para aula (Sprint 0)
+## InvenioLang 10.0 — Estable para aula (Sprint 0, histórico)
 
-Producto estable con arquitectura hexagonal `inveniolang/core:1` (`CompileRequest` frozen), `patterns.py:1` 12 patrones GoF, `ir.py:201` matrices row-major + `cfg.py:1` CFG, `sandbox.py:1` Windows/Unix, `curriculum/:1` 30 ejercicios (15+15), `lms.py:27` xAPI, `error_explainer.py:1`, `ds_visualizer.py:1`, `complexity.py:1`, `lsp.py:10` VS Code, `pyproject.toml:90` coverage 80% bloqueante. Ver `docs/manual_docente.md:1`, `docs/tipos.md:1`, `docs/gramatica.ebnf:1` verificado.
+Producto estable con arquitectura hexagonal `inveniolang/core:1` (`CompileRequest` frozen), `patterns.py:1` 12 patrones GoF, `ir.py:201` matrices row-major + `cfg.py:1` CFG, `sandbox.py:1` Windows/Unix, `curriculum/` 133 ejercicios en 13 niveles, en español e inglés, `lms.py` xAPI, `error_explainer.py`, `complexity.py`, `lsp.py:10` VS Code, `pyproject.toml:90` coverage 80% bloqueante. Ver `docs/manual_docente.md:1`, `docs/tipos.md:1`, `docs/gramatica.ebnf:1` verificado.
 
 ```bash
 pip install -e .[dev]
 python -m inveniolang.grammar_validator  # FIRST 46, status OK
-python pruebas/conformidad.py  # 391/391
-python curriculum/runner.py nivel1 && python curriculum/runner.py nivel2  # 30/30
+python pruebas/conformidad.py  # 408/408
+python curriculum/runner.py todos --version ambas  # 266/266 (133 es + 133 en)
 ```
 
 ### Rosetta viewer — Solo InvenioLang se compila
 
-InvenioLang es **único lenguaje ejecutable** (`interpreter.py:149` + `ir.py:201`). Para aprender C/C++/Python/Java/C#/Pascal/.NET sin compilarlos, usa **vista educativa** `viewer/rosetta.py:1` (no `backend/wasm.py` que es demo) y `docs/rosetta.md:1` tabla comparativa:
+InvenioLang es **único lenguaje ejecutable** (`interpreter.py:149` + `ir.py:201`). Para aprender C/C++/Python/Java/C#/Pascal/.NET sin compilarlos, usa la **vista educativa** `viewer/rosetta.py` y `docs/rosetta.md:1` tabla comparativa:
 
 ```python
 from inveniolang.viewer.rosetta import transpile  # Ver como, no compilar
@@ -729,7 +744,7 @@ print(transpile("python", open("pruebas/hola_mundo.inv").read()))  # vista
 from inveniolang.core import CompileRequest, compile_pure
 compile_pure(CompileRequest(ruta="hola.inv", codigo=code, modo="run"))  # único ejecutable
 ```
-Ver `studio/allinone.py:1` `StudioFacade` (`ver_como` + `nota_viewer`).
+Desde la fachada: `inveniolang.api.ver_como(lenguaje, codigo)`; en la CLI, `--ver-como`.
 
 ## Referencias
 

@@ -1,0 +1,6 @@
+path: 8 3 6 7
+true
+path: 8 3 6 4 (null)
+false
+min = 1
+max = 14

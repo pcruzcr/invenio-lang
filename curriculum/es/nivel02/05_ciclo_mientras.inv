@@ -1,0 +1,24 @@
+// Nivel 2 · Ejercicio 05 — Ciclo mientras
+// Objetivos:
+//   - Repetir mientras una condición sea verdadera
+//   - Usar contadores y máximos dentro de un ciclo
+//
+vacio main() {
+    entero n = 27;
+    entero pasos = 0;
+    entero maximo = n;
+    // Se evalúa la condición ANTES de cada vuelta.
+    mientras (n != 1) {
+        si (n % 2 == 0) {
+            n = n / 2;
+        } sino {
+            n = 3 * n + 1;
+        }
+        pasos++;
+        si (n > maximo) {
+            maximo = n;
+        }
+    }
+    imprimir("steps = "); imprimir(pasos); imprimir("\n");
+    imprimir("max = "); imprimir(maximo); imprimir("\n");
+}

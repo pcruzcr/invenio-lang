@@ -1,0 +1,22 @@
+{
+  "id": "N06-E06",
+  "nivel": 6,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Diagonals",
+  "enunciado": "In a 4x4 matrix with m[i][j] = i * 4 + j, add up the main diagonal (i == j) and the anti-diagonal (i + j == n - 1), and add up the elements above the main diagonal.",
+  "objetivos": [
+    "Traverse diagonals with a single loop",
+    "Describe matrix regions with conditions on i and j"
+  ],
+  "pistas": [
+    "Main diagonal: m[i][i].",
+    "Anti-diagonal: m[i][n - 1 - i].",
+    "Above the diagonal: j > i."
+  ],
+  "conceptos": [
+    "main diagonal",
+    "anti-diagonal",
+    "upper triangle"
+  ]
+}

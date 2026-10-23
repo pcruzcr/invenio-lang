@@ -1,0 +1,22 @@
+{
+  "id": "N05-E06",
+  "nivel": 5,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Quick sort",
+  "enunciado": "Sort {10, 80, 30, 90, 40, 50, 70} with quick sort using the Lomuto partition (pivot = last element). Show the pivot and the array after each partition.",
+  "objetivos": [
+    "Implement partitioning around a pivot",
+    "Recursively sort each side"
+  ],
+  "pistas": [
+    "After partitioning, the pivot is in its final position.",
+    "i marks the end of the zone of elements smaller than the pivot.",
+    "Recursively sort left and right of the pivot."
+  ],
+  "conceptos": [
+    "quick sort",
+    "pivot",
+    "partition"
+  ]
+}

@@ -1,0 +1,35 @@
+// Level 6 · Exercise 01 — Traversing a matrix
+// Learning goals:
+//   - Declare matrices and access them with two indexes
+//   - Tell row-major from column-major traversal
+//
+const int N = 3;
+
+void printMatrix(int [][] m, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            print(m[i][j]);
+            if (j < cols - 1) {
+                print("\t");
+            }
+        }
+        print("\n");
+    }
+}
+
+void main() {
+    int [3][4] m;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            m[i][j] = i * 4 + j + 1;
+        }
+    }
+    printMatrix(m, 3, 4);
+    // By columns: first go down column 0, then column 1...
+    for (int j = 0; j < 4; j++) {
+        for (int i = 0; i < 3; i++) {
+            print(m[i][j]); print(" ");
+        }
+    }
+    print("\n");
+}

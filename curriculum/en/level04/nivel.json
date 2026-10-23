@@ -1,0 +1,14 @@
+{
+  "nivel": 4,
+  "titulo": "Arrays and vectors: traversal and search",
+  "descripcion": "Store collections of same-typed data, traverse them, search them and transform them in place.",
+  "temas": [
+    "array declaration and initialization",
+    "traversals",
+    "maximum, minimum and averages",
+    "linear and binary search",
+    "frequency counting",
+    "in-place transformations"
+  ],
+  "idioma": "en"
+}

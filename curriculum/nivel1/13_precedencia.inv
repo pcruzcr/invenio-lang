@@ -1,1 +1,0 @@
-void main(){ imprimir(2+3*4); imprimir((2+3)*4); }

@@ -1,0 +1,22 @@
+{
+  "id": "N11-E06",
+  "nivel": 11,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Level-order traversal (BFS on trees)",
+  "enunciado": "Traverse by levels the BST of 8, 3, 10, 1, 6, 14, 4, 7, 13 using a queue of nodes, printing each level on its own line.",
+  "objetivos": [
+    "Combine a tree with a queue",
+    "Separate levels by counting how many nodes each has"
+  ],
+  "pistas": [
+    "Enqueue the root; while the queue is not empty, take a node out and enqueue its children.",
+    "When a level starts, the queue size is the number of nodes on that level.",
+    "The queue stores references to Node, not values."
+  ],
+  "conceptos": [
+    "level-order traversal",
+    "BFS",
+    "queue"
+  ]
+}

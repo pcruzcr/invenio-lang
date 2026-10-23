@@ -1,0 +1,14 @@
+{
+  "nivel": 4,
+  "titulo": "Arreglos y vectores: recorridos y búsqueda",
+  "descripcion": "Guardar colecciones de datos del mismo tipo, recorrerlas, buscar en ellas y transformarlas en el lugar.",
+  "temas": [
+    "declaración e inicialización de arreglos",
+    "recorridos",
+    "máximos, mínimos y promedios",
+    "búsqueda lineal y binaria",
+    "conteo de frecuencias",
+    "transformaciones en el lugar"
+  ],
+  "idioma": "es"
+}

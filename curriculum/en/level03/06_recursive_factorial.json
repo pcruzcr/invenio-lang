@@ -1,0 +1,22 @@
+{
+  "id": "N03-E06",
+  "nivel": 3,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Recursive factorial",
+  "enunciado": "Implement factorial(n) recursively and show the call trace for n = 4 (indented by depth) and then the factorials from 0 to 10.",
+  "objetivos": [
+    "Identify the base case and the recursive case",
+    "Visualize the call stack"
+  ],
+  "pistas": [
+    "Base case: factorial(0) = 1.",
+    "Recursive case: n * factorial(n - 1).",
+    "Pass the depth as an extra parameter for the indentation."
+  ],
+  "conceptos": [
+    "recursion",
+    "base case",
+    "call stack"
+  ]
+}

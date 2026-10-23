@@ -1,0 +1,15 @@
+// Level 1 · Exercise 12 — Temperature converter
+// Learning goals:
+//   - Solve a complete problem: input, process and output
+//   - Write formulas with floats
+//
+void main() {
+    float celsius;
+    read(celsius);
+    // Process: apply the formulas.
+    float fahrenheit = celsius * 9.0 / 5.0 + 32.0;
+    float kelvin = celsius + 273.15;
+    // Output
+    print(fahrenheit); print(" F\n");
+    print(kelvin); print(" K\n");
+}

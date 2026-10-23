@@ -1,0 +1,47 @@
+// Level 11 · Exercise 01 — Binary search tree: insertion
+// Learning goals:
+//   - Implement recursive BST insertion
+//   - See that the in-order traversal of a BST is sorted
+//
+class Node {
+    public int value;
+    public Node left;
+    public Node right;
+    Node(int v) { this.value = v; }
+}
+
+// Recursive insertion: returns the (possibly new) root of the subtree.
+Node insert(Node r, int v) {
+    if (r == null) {
+        return new Node(v);
+    }
+    if (v < r.value) {
+        r.left = insert(r.left, v);
+    } else {
+        if (v > r.value) {
+            r.right = insert(r.right, v);
+        }
+    }
+    return r;
+}
+
+void inOrder(Node r) {
+    if (r != null) {
+        inOrder(r.left);
+        print(r.value); print(" ");
+        inOrder(r.right);
+    }
+}
+
+void main() {
+    int [8] data = {50, 30, 70, 20, 40, 60, 80, 30};
+    Node root = null;
+    foreach (int v : data) {
+        root = insert(root, v);
+    }
+    inOrder(root);
+    print("\n");
+    Node i = root.left;
+    Node d = root.right;
+    print("root "); print(root.value); print(": left "); print(i.value); print(", right "); print(d.value); print("\n");
+}

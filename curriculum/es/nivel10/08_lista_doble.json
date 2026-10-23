@@ -1,0 +1,21 @@
+{
+  "id": "N10-E08",
+  "nivel": 10,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Lista doblemente enlazada",
+  "enunciado": "Implementa ListaDoble con referencias cabeza y cola, nodos con anterior y siguiente, insertarFinal, eliminar(v) y recorridos hacia adelante y hacia atrás. Elimina un nodo del medio, la cabeza y la cola, mostrando ambos recorridos.",
+  "objetivos": [
+    "Mantener enlaces en ambos sentidos",
+    "Eliminar en O(1) conociendo el nodo"
+  ],
+  "pistas": [
+    "Cada nodo apunta a su anterior y a su siguiente.",
+    "Al eliminar ajusta dos enlaces: anterior.siguiente y siguiente.anterior.",
+    "Si el nodo es la cabeza o la cola, actualiza también esas referencias."
+  ],
+  "conceptos": [
+    "lista doble",
+    "recorrido inverso"
+  ]
+}

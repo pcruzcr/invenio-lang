@@ -1,0 +1,21 @@
+{
+  "id": "N03-E10",
+  "nivel": 3,
+  "numero": 10,
+  "idioma": "es",
+  "titulo": "Torres de Hanói",
+  "enunciado": "Resuelve las Torres de Hanói para 3 discos mostrando cada movimiento («disco d: X -> Y») y el total de movimientos. Después muestra el total para 10 discos sin imprimir los movimientos.",
+  "objetivos": [
+    "Confiar en la recursión: resolver n usando la solución de n - 1",
+    "Relacionar la recursión con 2^n - 1 movimientos"
+  ],
+  "pistas": [
+    "Mueve n - 1 discos al poste auxiliar, el disco n al destino y los n - 1 encima.",
+    "Caso base: con 0 discos no hay nada que hacer.",
+    "Usa un parámetro logico para decidir si imprimir."
+  ],
+  "conceptos": [
+    "recursión",
+    "divide y vencerás"
+  ]
+}

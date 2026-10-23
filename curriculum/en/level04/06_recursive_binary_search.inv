@@ -1,0 +1,27 @@
+// Level 4 · Exercise 06 — Recursive binary search
+// Learning goals:
+//   - Express binary search as recursion
+//   - Identify the two base cases
+//
+int binarySearchRec(int [] a, int left, int right, int x) {
+    // Empty interval: x is not in the array.
+    if (left > right) {
+        return -1;
+    }
+    int mid = (left + right) / 2;
+    if (a[mid] == x) {
+        return mid;
+    }
+    if (a[mid] < x) {
+        return binarySearchRec(a, mid + 1, right, x);
+    }
+    return binarySearchRec(a, left, mid - 1, x);
+}
+
+void main() {
+    int [5] a = {1, 3, 4, 6, 9};
+    for (int x = 0; x <= 10; x++) {
+        print(binarySearchRec(a, 0, 4, x)); print(" ");
+    }
+    print("\n");
+}

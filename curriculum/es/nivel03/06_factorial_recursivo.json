@@ -1,0 +1,22 @@
+{
+  "id": "N03-E06",
+  "nivel": 3,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Factorial recursivo",
+  "enunciado": "Implementa factorial(n) de forma recursiva y muestra la traza de las llamadas para n = 4 (con sangría según la profundidad) y luego los factoriales de 0 a 10.",
+  "objetivos": [
+    "Identificar caso base y caso recursivo",
+    "Visualizar la pila de llamadas"
+  ],
+  "pistas": [
+    "Caso base: factorial(0) = 1.",
+    "Caso recursivo: n * factorial(n - 1).",
+    "Pasa la profundidad como parámetro extra para la sangría."
+  ],
+  "conceptos": [
+    "recursión",
+    "caso base",
+    "pila de llamadas"
+  ]
+}

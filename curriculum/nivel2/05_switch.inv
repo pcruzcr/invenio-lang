@@ -1,1 +1,0 @@
-void main(){ int x=2; segun(x){ caso 1: imprimir(1); caso 2: imprimir(2); por_defecto: imprimir(0); } }

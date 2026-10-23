@@ -1,0 +1,35 @@
+// Nivel 6 · Ejercicio 03 — Suma de matrices
+// Objetivos:
+//   - Pasar matrices como parámetros
+//   - Implementar una operación elemento a elemento
+//
+constante entero N = 3;
+
+vacio imprimirMatriz(entero [][] m, entero filas, entero columnas) {
+    para (entero i = 0; i < filas; i++) {
+        para (entero j = 0; j < columnas; j++) {
+            imprimir(m[i][j]);
+            si (j < columnas - 1) {
+                imprimir("\t");
+            }
+        }
+        imprimir("\n");
+    }
+}
+
+vacio sumaMatrices(entero [][] A, entero [][] B, entero [][] C, entero n) {
+    para (entero i = 0; i < n; i++) {
+        para (entero j = 0; j < n; j++) {
+            // Cada celda del resultado depende solo de la misma celda en A y B.
+            C[i][j] = A[i][j] + B[i][j];
+        }
+    }
+}
+
+vacio main() {
+    entero [N][N] A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    entero [N][N] B = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
+    entero [N][N] C;
+    sumaMatrices(A, B, C, N);
+    imprimirMatriz(C, N, N);
+}

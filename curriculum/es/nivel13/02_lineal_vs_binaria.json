@@ -1,0 +1,22 @@
+{
+  "id": "N13-E02",
+  "nivel": 13,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Búsqueda lineal frente a binaria",
+  "enunciado": "Con arreglos ordenados a[i] = 2i de tamaño 10, 100 y 1000, cuenta las comparaciones del peor caso (buscar un valor ausente mayor que todos) para la búsqueda lineal y la binaria.",
+  "objetivos": [
+    "Comparar O(n) con O(log n) con datos reales",
+    "Analizar el peor caso"
+  ],
+  "pistas": [
+    "La lineal revisa los n elementos.",
+    "La binaria hace alrededor de log2(n) + 1 comparaciones.",
+    "Multiplicar n por 10 suma solo unas 3 o 4 comparaciones a la binaria."
+  ],
+  "conceptos": [
+    "peor caso",
+    "O(n)",
+    "O(log n)"
+  ]
+}

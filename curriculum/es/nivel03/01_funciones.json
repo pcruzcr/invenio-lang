@@ -1,0 +1,22 @@
+{
+  "id": "N03-E01",
+  "nivel": 3,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Funciones con retorno",
+  "enunciado": "Escribe las funciones cuadrado(x), maximo3(a, b, c) y areaRectangulo(b, h) y úsalas para mostrar cuadrado(9), maximo3(4, 11, 7) y areaRectangulo(2.5, 4.0).",
+  "objetivos": [
+    "Declarar funciones con tipo de retorno y parámetros",
+    "Reutilizar una función desde otra"
+  ],
+  "pistas": [
+    "La primera palabra de la declaración es el tipo del valor que devuelve.",
+    "retornar termina la función y entrega el valor.",
+    "maximo3 puede apoyarse en una función maximo2."
+  ],
+  "conceptos": [
+    "función",
+    "parámetro",
+    "retornar"
+  ]
+}

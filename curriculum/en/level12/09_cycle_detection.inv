@@ -1,0 +1,49 @@
+// Level 12 · Exercise 09 — Cycle detection in directed graphs
+// Learning goals:
+//   - Detect back edges
+//   - Use richer visit states than a bool
+//
+const int N = 4;
+const int WHITE = 0;
+const int GRAY = 1;
+const int BLACK = 2;
+int [N][N] adj;
+int [N] state;
+
+bool hasCycle(int u) {
+    state[u] = GRAY;
+    for (int v = 0; v < N; v++) {
+        if (adj[u][v] == 1) {
+            // GRAY = on the current recursion path: reaching it again closes a cycle.
+            if (state[v] == GRAY) {
+                print("back edge "); print(u); print("->"); print(v); print("\n");
+                return true;
+            }
+            if (state[v] == WHITE && hasCycle(v)) {
+                return true;
+            }
+        }
+    }
+    state[u] = BLACK;
+    return false;
+}
+
+bool graphHasCycle() {
+    for (int i = 0; i < N; i++) { state[i] = WHITE; }
+    for (int i = 0; i < N; i++) {
+        if (state[i] == WHITE && hasCycle(i)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void main() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) { adj[i][j] = 0; }
+    }
+    adj[0][1] = 1; adj[1][2] = 1; adj[2][3] = 1;
+    print(graphHasCycle()); print("\n");
+    adj[3][1] = 1;
+    print(graphHasCycle()); print("\n");
+}

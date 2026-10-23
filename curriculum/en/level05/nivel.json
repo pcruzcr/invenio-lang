@@ -1,0 +1,15 @@
+{
+  "nivel": 5,
+  "titulo": "Sorting algorithms",
+  "descripcion": "Sort data with classic algorithms (bubble, selection, insertion, merge, quick and counting sort), follow how they work step by step and compare their work.",
+  "temas": [
+    "bubble sort",
+    "selection sort",
+    "insertion sort",
+    "merge sort",
+    "quick sort",
+    "counting sort",
+    "stability and sort criteria"
+  ],
+  "idioma": "en"
+}

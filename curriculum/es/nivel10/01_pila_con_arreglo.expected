@@ -1,0 +1,10 @@
+push 10
+push 20
+push 30
+push 40
+full, cannot push 50
+peek 40
+pop 40
+pop 30
+pop 20
+pop 10

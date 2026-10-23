@@ -1,0 +1,21 @@
+{
+  "id": "N01-E04",
+  "nivel": 1,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Constantes",
+  "enunciado": "Define la constante PI = 3.14 y calcula el área y el perímetro de un círculo de radio 2.0. Muestra ambos resultados.",
+  "objetivos": [
+    "Declarar constantes con constante/const",
+    "Usar constantes en expresiones"
+  ],
+  "pistas": [
+    "Una constante no puede cambiar después de declararse.",
+    "Área = PI * r * r; perímetro = 2 * PI * r.",
+    "Usa 2.0 (real) para que toda la expresión sea real."
+  ],
+  "conceptos": [
+    "constante",
+    "expresión"
+  ]
+}

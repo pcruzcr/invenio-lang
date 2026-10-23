@@ -1,0 +1,3004 @@
+{
+ "modelo": {
+  "formato": "inveniolang-bloques",
+  "idioma": "es",
+  "programa": [
+   {
+    "campos": {
+     "abstracta": false,
+     "generico": "",
+     "hereda": "",
+     "implementa": "",
+     "nombre": "Contador"
+    },
+    "huecos": {},
+    "id": "b1",
+    "linea": 0,
+    "listas": {
+     "miembros": [
+      {
+       "campos": {
+        "modificador": "",
+        "nombre": "n",
+        "tipo": "entero",
+        "visibilidad": "privado"
+       },
+       "huecos": {
+        "valor": null
+       },
+       "id": "b2",
+       "linea": 0,
+       "listas": {},
+       "tipo": "atributo"
+      },
+      {
+       "campos": {
+        "nombre": "Contador",
+        "visibilidad": ""
+       },
+       "huecos": {},
+       "id": "b3",
+       "linea": 3,
+       "listas": {
+        "cuerpo": [
+         {
+          "campos": {
+           "op": "="
+          },
+          "huecos": {
+           "destino": {
+            "campos": {
+             "nombre": "n",
+             "seguro": false
+            },
+            "huecos": {
+             "objeto": {
+              "campos": {},
+              "huecos": {},
+              "id": "b5",
+              "linea": 4,
+              "listas": {},
+              "tipo": "este"
+             }
+            },
+            "id": "b6",
+            "linea": 4,
+            "listas": {},
+            "tipo": "propiedad"
+           },
+           "valor": {
+            "campos": {
+             "nombre": "inicio"
+            },
+            "huecos": {},
+            "id": "b8",
+            "linea": 4,
+            "listas": {},
+            "tipo": "variable"
+           }
+          },
+          "id": "n1",
+          "linea": 4,
+          "listas": {},
+          "tipo": "asignar"
+         }
+        ],
+        "parametros": [
+         {
+          "campos": {
+           "nombre": "inicio",
+           "tipo": "entero"
+          },
+          "huecos": {},
+          "id": "b4",
+          "linea": 0,
+          "listas": {},
+          "tipo": "parametro"
+         }
+        ]
+       },
+       "tipo": "constructor"
+      },
+      {
+       "campos": {
+        "con_cuerpo": true,
+        "modificador": "",
+        "nombre": "valor",
+        "retorno": "entero",
+        "visibilidad": "publico"
+       },
+       "huecos": {},
+       "id": "b9",
+       "linea": 6,
+       "listas": {
+        "cuerpo": [
+         {
+          "campos": {},
+          "huecos": {
+           "valor": {
+            "campos": {
+             "nombre": "n",
+             "seguro": false
+            },
+            "huecos": {
+             "objeto": {
+              "campos": {},
+              "huecos": {},
+              "id": "b11",
+              "linea": 7,
+              "listas": {},
+              "tipo": "este"
+             }
+            },
+            "id": "b12",
+            "linea": 7,
+            "listas": {},
+            "tipo": "propiedad"
+           }
+          },
+          "id": "n2",
+          "linea": 7,
+          "listas": {},
+          "tipo": "retornar"
+         }
+        ],
+        "parametros": []
+       },
+       "tipo": "metodo"
+      }
+     ]
+    },
+    "tipo": "clase"
+   },
+   {
+    "campos": {
+     "nombre": "doble",
+     "retorno": "entero"
+    },
+    "huecos": {},
+    "id": "b13",
+    "linea": 11,
+    "listas": {
+     "cuerpo": [
+      {
+       "campos": {},
+       "huecos": {
+        "valor": {
+         "campos": {
+          "op": "*"
+         },
+         "huecos": {
+          "derecha": {
+           "campos": {
+            "valor": "2"
+           },
+           "huecos": {},
+           "id": "b17",
+           "linea": 12,
+           "listas": {},
+           "tipo": "numero"
+          },
+          "izquierda": {
+           "campos": {
+            "nombre": "x"
+           },
+           "huecos": {},
+           "id": "b16",
+           "linea": 12,
+           "listas": {},
+           "tipo": "variable"
+          }
+         },
+         "id": "b18",
+         "linea": 12,
+         "listas": {},
+         "tipo": "binaria"
+        }
+       },
+       "id": "n3",
+       "linea": 12,
+       "listas": {},
+       "tipo": "retornar"
+      }
+     ],
+     "parametros": [
+      {
+       "campos": {
+        "nombre": "x",
+        "tipo": "entero"
+       },
+       "huecos": {},
+       "id": "b14",
+       "linea": 0,
+       "listas": {},
+       "tipo": "parametro"
+      }
+     ]
+    },
+    "tipo": "subrutina"
+   },
+   {
+    "campos": {
+     "nombre": "main",
+     "retorno": "vacio"
+    },
+    "huecos": {},
+    "id": "b19",
+    "linea": 15,
+    "listas": {
+     "cuerpo": [
+      {
+       "campos": {
+        "constante": false,
+        "nombre": "c",
+        "tipo": "Contador"
+       },
+       "huecos": {
+        "valor": {
+         "campos": {
+          "clase": "Contador",
+          "generico": ""
+         },
+         "huecos": {},
+         "id": "b21",
+         "linea": 16,
+         "listas": {
+          "argumentos": [
+           {
+            "campos": {
+             "valor": "1"
+            },
+            "huecos": {},
+            "id": "b22",
+            "linea": 16,
+            "listas": {},
+            "tipo": "numero"
+           }
+          ]
+         },
+         "tipo": "nuevo"
+        }
+       },
+       "id": "n4",
+       "linea": 16,
+       "listas": {},
+       "tipo": "declarar"
+      },
+      {
+       "campos": {},
+       "huecos": {
+        "condicion": {
+         "campos": {
+          "op": "<"
+         },
+         "huecos": {
+          "derecha": {
+           "campos": {
+            "valor": "3"
+           },
+           "huecos": {},
+           "id": "b27",
+           "linea": 17,
+           "listas": {},
+           "tipo": "numero"
+          },
+          "izquierda": {
+           "campos": {
+            "nombre": "i"
+           },
+           "huecos": {},
+           "id": "b26",
+           "linea": 17,
+           "listas": {},
+           "tipo": "variable"
+          }
+         },
+         "id": "b28",
+         "linea": 17,
+         "listas": {},
+         "tipo": "binaria"
+        }
+       },
+       "id": "n5",
+       "linea": 17,
+       "listas": {
+        "cuerpo": [
+         {
+          "campos": {
+           "tiene_sino": true
+          },
+          "huecos": {},
+          "id": "n6",
+          "linea": 18,
+          "listas": {
+           "ramas": [
+            {
+             "campos": {},
+             "huecos": {
+              "condicion": {
+               "campos": {
+                "op": "=="
+               },
+               "huecos": {
+                "derecha": {
+                 "campos": {
+                  "valor": "0"
+                 },
+                 "huecos": {},
+                 "id": "b36",
+                 "linea": 18,
+                 "listas": {},
+                 "tipo": "numero"
+                },
+                "izquierda": {
+                 "campos": {
+                  "op": "%"
+                 },
+                 "huecos": {
+                  "derecha": {
+                   "campos": {
+                    "valor": "2"
+                   },
+                   "huecos": {},
+                   "id": "b34",
+                   "linea": 18,
+                   "listas": {},
+                   "tipo": "numero"
+                  },
+                  "izquierda": {
+                   "campos": {
+                    "nombre": "i"
+                   },
+                   "huecos": {},
+                   "id": "b33",
+                   "linea": 18,
+                   "listas": {},
+                   "tipo": "variable"
+                  }
+                 },
+                 "id": "b35",
+                 "linea": 18,
+                 "listas": {},
+                 "tipo": "binaria"
+                }
+               },
+               "id": "b37",
+               "linea": 18,
+               "listas": {},
+               "tipo": "binaria"
+              }
+             },
+             "id": "b32",
+             "linea": 18,
+             "listas": {
+              "cuerpo": [
+               {
+                "campos": {},
+                "huecos": {
+                 "valor": {
+                  "campos": {
+                   "nombre": "doble"
+                  },
+                  "huecos": {},
+                  "id": "b39",
+                  "linea": 19,
+                  "listas": {
+                   "argumentos": [
+                    {
+                     "campos": {
+                      "nombre": "i"
+                     },
+                     "huecos": {},
+                     "id": "b40",
+                     "linea": 19,
+                     "listas": {},
+                     "tipo": "variable"
+                    }
+                   ]
+                  },
+                  "tipo": "llamada"
+                 }
+                },
+                "id": "n7",
+                "linea": 19,
+                "listas": {},
+                "tipo": "imprimir"
+               }
+              ]
+             },
+             "tipo": "rama_si"
+            }
+           ],
+           "sino": [
+            {
+             "campos": {},
+             "huecos": {},
+             "id": "n8",
+             "linea": 21,
+             "listas": {},
+             "tipo": "romper"
+            }
+           ]
+          },
+          "tipo": "si"
+         }
+        ],
+        "inicio": [
+         {
+          "campos": {
+           "constante": false,
+           "nombre": "i",
+           "tipo": "entero"
+          },
+          "huecos": {
+           "valor": {
+            "campos": {
+             "valor": "0"
+            },
+            "huecos": {},
+            "id": "b25",
+            "linea": 17,
+            "listas": {},
+            "tipo": "numero"
+           }
+          },
+          "id": "b24",
+          "linea": 17,
+          "listas": {},
+          "tipo": "declarar"
+         }
+        ],
+        "paso": [
+         {
+          "campos": {
+           "op": "++",
+           "posicion": "sufijo"
+          },
+          "huecos": {
+           "objetivo": {
+            "campos": {
+             "nombre": "i"
+            },
+            "huecos": {},
+            "id": "b29",
+            "linea": 17,
+            "listas": {},
+            "tipo": "variable"
+           }
+          },
+          "id": "b30",
+          "linea": 17,
+          "listas": {},
+          "tipo": "incrementar"
+         }
+        ]
+       },
+       "tipo": "para"
+      },
+      {
+       "campos": {},
+       "huecos": {
+        "valor": {
+         "campos": {
+          "nombre": "valor",
+          "seguro": false
+         },
+         "huecos": {
+          "objeto": {
+           "campos": {
+            "nombre": "c"
+           },
+           "huecos": {},
+           "id": "b43",
+           "linea": 24,
+           "listas": {},
+           "tipo": "variable"
+          }
+         },
+         "id": "b44",
+         "linea": 24,
+         "listas": {
+          "argumentos": []
+         },
+         "tipo": "llamada_metodo"
+        }
+       },
+       "id": "n9",
+       "linea": 24,
+       "listas": {},
+       "tipo": "imprimir"
+      }
+     ],
+     "parametros": []
+    },
+    "tipo": "subrutina"
+   }
+  ],
+  "version": 1
+ },
+ "paleta": [
+  {
+   "claro": {
+    "borde": "#5C5C5C",
+    "relleno": "#E6E6E6",
+    "texto": "#111111"
+   },
+   "entradas": [
+    {
+     "clave": "numero",
+     "forma": "valor",
+     "muestra": "0",
+     "nombre": "número"
+    },
+    {
+     "clave": "texto",
+     "forma": "valor",
+     "muestra": "\"\"",
+     "nombre": "texto"
+    },
+    {
+     "clave": "verdadero",
+     "forma": "valor",
+     "muestra": "verdadero",
+     "nombre": "verdadero"
+    },
+    {
+     "clave": "falso",
+     "forma": "valor",
+     "muestra": "falso",
+     "nombre": "falso"
+    },
+    {
+     "clave": "nulo",
+     "forma": "valor",
+     "muestra": "nulo",
+     "nombre": "nulo"
+    }
+   ],
+   "icono": "#",
+   "id": "valores",
+   "nombre": "Valores",
+   "oscuro": {
+    "borde": "#B0B0B0",
+    "relleno": "#3A3A3A",
+    "texto": "#F5F5F5"
+   }
+  },
+  {
+   "claro": {
+    "borde": "#8A4A00",
+    "relleno": "#FFC98F",
+    "texto": "#111111"
+   },
+   "entradas": [
+    {
+     "clave": "variable",
+     "forma": "valor",
+     "muestra": "variable",
+     "nombre": "variable"
+    },
+    {
+     "clave": "declarar",
+     "forma": "instruccion",
+     "muestra": "declarar entero",
+     "nombre": "declarar variable"
+    },
+    {
+     "clave": "constante",
+     "forma": "instruccion",
+     "muestra": "declarar constante entero",
+     "nombre": "declarar constante"
+    },
+    {
+     "clave": "asignar",
+     "forma": "instruccion",
+     "muestra": "=",
+     "nombre": "asignar ="
+    },
+    {
+     "clave": "sumar_a",
+     "forma": "instruccion",
+     "muestra": "+=",
+     "nombre": "sumar a +="
+    },
+    {
+     "clave": "incrementar",
+     "forma": "instruccion",
+     "muestra": "++ (después)",
+     "nombre": "incrementar ++"
+    },
+    {
+     "clave": "decrementar",
+     "forma": "instruccion",
+     "muestra": "-- (después)",
+     "nombre": "decrementar --"
+    },
+    {
+     "clave": "incremento",
+     "forma": "valor",
+     "muestra": "++ (después)",
+     "nombre": "x++ en una expresión"
+    }
+   ],
+   "icono": "x",
+   "id": "variables",
+   "nombre": "Variables",
+   "oscuro": {
+    "borde": "#FFB066",
+    "relleno": "#7A3E00",
+    "texto": "#FFFFFF"
+   }
+  },
+  {
+   "claro": {
+    "borde": "#2F6B26",
+    "relleno": "#B5E6AC",
+    "texto": "#111111"
+   },
+   "entradas": [
+    {
+     "clave": "suma",
+     "forma": "valor",
+     "muestra": "+",
+     "nombre": "suma +"
+    },
+    {
+     "clave": "resta",
+     "forma": "valor",
+     "muestra": "-",
+     "nombre": "resta -"
+    },
+    {
+     "clave": "producto",
+     "forma": "valor",
+     "muestra": "*",
+     "nombre": "producto *"
+    },
+    {
+     "clave": "division",
+     "forma": "valor",
+     "muestra": "/",
+     "nombre": "división /"
+    },
+    {
+     "clave": "modulo",
+     "forma": "valor",
+     "muestra": "%",
+     "nombre": "resto %"
+    },
+    {
+     "clave": "igual",
+     "forma": "valor",
+     "muestra": "==",
+     "nombre": "igual =="
+    },
+    {
+     "clave": "distinto",
+     "forma": "valor",
+     "muestra": "!=",
+     "nombre": "distinto !="
+    },
+    {
+     "clave": "menor",
+     "forma": "valor",
+     "muestra": "<",
+     "nombre": "menor <"
+    },
+    {
+     "clave": "mayor",
+     "forma": "valor",
+     "muestra": ">",
+     "nombre": "mayor >"
+    },
+    {
+     "clave": "menor_igual",
+     "forma": "valor",
+     "muestra": "<=",
+     "nombre": "menor o igual <="
+    },
+    {
+     "clave": "mayor_igual",
+     "forma": "valor",
+     "muestra": ">=",
+     "nombre": "mayor o igual >="
+    },
+    {
+     "clave": "y",
+     "forma": "valor",
+     "muestra": "&&",
+     "nombre": "y &&"
+    },
+    {
+     "clave": "o",
+     "forma": "valor",
+     "muestra": "||",
+     "nombre": "o ||"
+    },
+    {
+     "clave": "no",
+     "forma": "valor",
+     "muestra": "!",
+     "nombre": "no !"
+    },
+    {
+     "clave": "negativo",
+     "forma": "valor",
+     "muestra": "-",
+     "nombre": "negativo -"
+    },
+    {
+     "clave": "ternaria",
+     "forma": "valor",
+     "muestra": "si entonces si no",
+     "nombre": "si… entonces… si no…"
+    }
+   ],
+   "icono": "±",
+   "id": "operadores",
+   "nombre": "Operadores",
+   "oscuro": {
+    "borde": "#7FD06E",
+    "relleno": "#235A1C",
+    "texto": "#FFFFFF"
+   }
+  },
+  {
+   "claro": {
+    "borde": "#7A6000",
+    "relleno": "#FFE38A",
+    "texto": "#111111"
+   },
+   "entradas": [
+    {
+     "clave": "si",
+     "forma": "c",
+     "muestra": "si",
+     "nombre": "si"
+    },
+    {
+     "clave": "si_sino",
+     "forma": "c",
+     "muestra": "si (con sino)",
+     "nombre": "si… sino"
+    },
+    {
+     "clave": "rama_si",
+     "forma": "parte",
+     "muestra": "si entonces",
+     "nombre": "rama «sino si»"
+    },
+    {
+     "clave": "mientras",
+     "forma": "c",
+     "muestra": "mientras",
+     "nombre": "mientras"
+    },
+    {
+     "clave": "hacer_mientras",
+     "forma": "c",
+     "muestra": "hacer… mientras",
+     "nombre": "hacer… mientras"
+    },
+    {
+     "clave": "para",
+     "forma": "c",
+     "muestra": "para",
+     "nombre": "para"
+    },
+    {
+     "clave": "para_cada",
+     "forma": "c",
+     "muestra": "para cada entero en",
+     "nombre": "para cada"
+    },
+    {
+     "clave": "segun",
+     "forma": "c",
+     "muestra": "según",
+     "nombre": "según"
+    },
+    {
+     "clave": "caso",
+     "forma": "parte",
+     "muestra": "caso 0:",
+     "nombre": "caso"
+    },
+    {
+     "clave": "coincidir",
+     "forma": "c",
+     "muestra": "emparejar",
+     "nombre": "emparejar"
+    },
+    {
+     "clave": "caso_patron",
+     "forma": "parte",
+     "muestra": "caso :",
+     "nombre": "caso de patrón"
+    },
+    {
+     "clave": "romper",
+     "forma": "instruccion",
+     "muestra": "romper",
+     "nombre": "romper"
+    },
+    {
+     "clave": "continuar",
+     "forma": "instruccion",
+     "muestra": "continuar",
+     "nombre": "continuar"
+    },
+    {
+     "clave": "intentar",
+     "forma": "c",
+     "muestra": "intentar (error en e)",
+     "nombre": "intentar… capturar"
+    }
+   ],
+   "icono": "↻",
+   "id": "control",
+   "nombre": "Control",
+   "oscuro": {
+    "borde": "#E8C640",
+    "relleno": "#5E4A00",
+    "texto": "#FFFFFF"
+   }
+  },
+  {
+   "claro": {
+    "borde": "#1D5E80",
+    "relleno": "#A9D8F2",
+    "texto": "#111111"
+   },
+   "entradas": [
+    {
+     "clave": "leer",
+     "forma": "instruccion",
+     "muestra": "leer",
+     "nombre": "leer"
+    },
+    {
+     "clave": "imprimir",
+     "forma": "instruccion",
+     "muestra": "imprimir",
+     "nombre": "imprimir"
+    }
+   ],
+   "icono": "⇄",
+   "id": "entrada_salida",
+   "nombre": "Entrada y salida",
+   "oscuro": {
+    "borde": "#6FBDE8",
+    "relleno": "#16496A",
+    "texto": "#FFFFFF"
+   }
+  },
+  {
+   "claro": {
+    "borde": "#8A2D48",
+    "relleno": "#F7BCCB",
+    "texto": "#111111"
+   },
+   "entradas": [
+    {
+     "clave": "subrutina",
+     "forma": "definicion",
+     "muestra": "definir vacio ()",
+     "nombre": "definir subrutina"
+    },
+    {
+     "clave": "parametro",
+     "forma": "parte",
+     "muestra": "entero",
+     "nombre": "parámetro"
+    },
+    {
+     "clave": "llamada",
+     "forma": "valor",
+     "muestra": "()",
+     "nombre": "llamada con resultado"
+    },
+    {
+     "clave": "llamar",
+     "forma": "instruccion",
+     "muestra": "llamar",
+     "nombre": "llamar"
+    },
+    {
+     "clave": "retornar",
+     "forma": "instruccion",
+     "muestra": "retornar",
+     "nombre": "retornar"
+    },
+    {
+     "clave": "lambda",
+     "forma": "valor",
+     "muestra": "función () → entero",
+     "nombre": "función anónima"
+    }
+   ],
+   "icono": "ƒ",
+   "id": "subrutinas",
+   "nombre": "Subrutinas",
+   "oscuro": {
+    "borde": "#F08AA6",
+    "relleno": "#74203A",
+    "texto": "#FFFFFF"
+   }
+  },
+  {
+   "claro": {
+    "borde": "#55399A",
+    "relleno": "#D6C6F5",
+    "texto": "#111111"
+   },
+   "entradas": [
+    {
+     "clave": "clase",
+     "forma": "definicion",
+     "muestra": "clase",
+     "nombre": "clase"
+    },
+    {
+     "clave": "interfaz",
+     "forma": "definicion",
+     "muestra": "interfaz",
+     "nombre": "interfaz"
+    },
+    {
+     "clave": "atributo",
+     "forma": "miembro",
+     "muestra": "público entero",
+     "nombre": "atributo"
+    },
+    {
+     "clave": "metodo",
+     "forma": "miembro",
+     "muestra": "público vacio ()",
+     "nombre": "método"
+    },
+    {
+     "clave": "constructor",
+     "forma": "miembro",
+     "muestra": "público constructor ()",
+     "nombre": "constructor"
+    },
+    {
+     "clave": "nuevo",
+     "forma": "valor",
+     "muestra": "nuevo ()",
+     "nombre": "nuevo objeto"
+    },
+    {
+     "clave": "propiedad",
+     "forma": "valor",
+     "muestra": ".",
+     "nombre": "campo de objeto"
+    },
+    {
+     "clave": "llamada_metodo",
+     "forma": "valor",
+     "muestra": ". ()",
+     "nombre": "llamar a método"
+    },
+    {
+     "clave": "este",
+     "forma": "valor",
+     "muestra": "este",
+     "nombre": "este"
+    },
+    {
+     "clave": "padre",
+     "forma": "valor",
+     "muestra": "padre",
+     "nombre": "padre"
+    },
+    {
+     "clave": "llamar_padre",
+     "forma": "instruccion",
+     "muestra": "constructor del padre ()",
+     "nombre": "constructor del padre"
+    },
+    {
+     "clave": "enumeracion",
+     "forma": "definicion",
+     "muestra": "enumeración",
+     "nombre": "enumeración"
+    },
+    {
+     "clave": "miembro_enum",
+     "forma": "parte",
+     "muestra": "valor de enumeración",
+     "nombre": "valor de enumeración"
+    }
+   ],
+   "icono": "◇",
+   "id": "clases",
+   "nombre": "Clases y objetos",
+   "oscuro": {
+    "borde": "#B79BEF",
+    "relleno": "#4A2F80",
+    "texto": "#FFFFFF"
+   }
+  },
+  {
+   "claro": {
+    "borde": "#1B6658",
+    "relleno": "#A6E3D6",
+    "texto": "#111111"
+   },
+   "entradas": [
+    {
+     "clave": "arreglo",
+     "forma": "instruccion",
+     "muestra": "arreglo entero [3]",
+     "nombre": "arreglo"
+    },
+    {
+     "clave": "matriz",
+     "forma": "instruccion",
+     "muestra": "arreglo entero [3, 3]",
+     "nombre": "matriz"
+    },
+    {
+     "clave": "fila",
+     "forma": "parte",
+     "muestra": "fila 0",
+     "nombre": "fila"
+    },
+    {
+     "clave": "indice",
+     "forma": "valor",
+     "muestra": "[]",
+     "nombre": "elemento a[i]"
+    },
+    {
+     "clave": "nuevo_arreglo",
+     "forma": "valor",
+     "muestra": "nuevo entero []",
+     "nombre": "arreglo nuevo"
+    }
+   ],
+   "icono": "▦",
+   "id": "arreglos",
+   "nombre": "Arreglos y matrices",
+   "oscuro": {
+    "borde": "#62CDB6",
+    "relleno": "#16564A",
+    "texto": "#FFFFFF"
+   }
+  },
+  {
+   "claro": {
+    "borde": "#6B5530",
+    "relleno": "#DCCDB0",
+    "texto": "#111111"
+   },
+   "entradas": [
+    {
+     "clave": "importar",
+     "forma": "definicion",
+     "muestra": "importar \"modulo.inv\"",
+     "nombre": "importar"
+    }
+   ],
+   "icono": "⎘",
+   "id": "modulos",
+   "nombre": "Módulos",
+   "oscuro": {
+    "borde": "#CDB383",
+    "relleno": "#56442A",
+    "texto": "#FFFFFF"
+   }
+  }
+ ],
+ "problemas": [],
+ "programa": "clase Contador {\n    privado entero n;\n    Contador(entero inicio) {\n        este.n = inicio;\n    }\n    publico entero valor() {\n        retornar este.n;\n    }\n}\n\nentero doble(entero x) {\n    retornar x * 2;\n}\n\nvacio main() {\n    Contador c = nuevo Contador(1);\n    para (entero i = 0; i < 3; i++) {\n        si (i % 2 == 0) {\n            imprimir(doble(i));\n        } sino {\n            romper;\n        }\n    }\n    imprimir(c.valor());\n}\n",
+ "vista": [
+  {
+   "bocas": [
+    {
+     "etiqueta": "miembros",
+     "hijos": [
+      {
+       "bocas": [],
+       "cabecera": [
+        {
+         "clase": "opcion",
+         "etiqueta": "visibilidad",
+         "nombre": "visibilidad",
+         "opciones": [
+          {
+           "texto": "público",
+           "valor": "publico"
+          },
+          {
+           "texto": "privado",
+           "valor": "privado"
+          }
+         ],
+         "t": "campo",
+         "texto": "privado",
+         "valor": "privado"
+        },
+        {
+         "clase": "opcion",
+         "etiqueta": "modificador",
+         "nombre": "modificador",
+         "opciones": [
+          {
+           "texto": "estático",
+           "valor": "estatico"
+          },
+          {
+           "texto": "abstracto",
+           "valor": "abstracto"
+          }
+         ],
+         "t": "campo",
+         "texto": "",
+         "valor": ""
+        },
+        {
+         "clase": "tipo",
+         "etiqueta": "tipo",
+         "nombre": "tipo",
+         "t": "campo",
+         "texto": "entero",
+         "valor": "entero"
+        },
+        {
+         "clase": "identificador",
+         "etiqueta": "nombre",
+         "nombre": "nombre",
+         "t": "campo",
+         "texto": "n",
+         "valor": "n"
+        },
+        {
+         "t": "texto",
+         "texto": "="
+        },
+        {
+         "acepta": "valor",
+         "etiqueta": "valor",
+         "hijo": null,
+         "nombre": "valor",
+         "t": "hueco"
+        }
+       ],
+       "categoria": "clases",
+       "forma": "miembro",
+       "id": "b2",
+       "linea": 0,
+       "nombre": "atributo",
+       "rotulo": "privado entero n",
+       "salida": null,
+       "tipo": "atributo"
+      },
+      {
+       "bocas": [
+        {
+         "etiqueta": "cuerpo",
+         "hijos": [
+          {
+           "bocas": [],
+           "cabecera": [
+            {
+             "acepta": "asignable",
+             "etiqueta": "destino",
+             "hijo": {
+              "bocas": [],
+              "cabecera": [
+               {
+                "acepta": "valor",
+                "etiqueta": "objeto",
+                "hijo": {
+                 "bocas": [],
+                 "cabecera": [
+                  {
+                   "t": "texto",
+                   "texto": "este"
+                  }
+                 ],
+                 "categoria": "clases",
+                 "forma": "valor",
+                 "id": "b5",
+                 "linea": 4,
+                 "nombre": "este",
+                 "rotulo": "este",
+                 "salida": "objeto",
+                 "tipo": "este"
+                },
+                "nombre": "objeto",
+                "t": "hueco"
+               },
+               {
+                "clase": "bandera",
+                "etiqueta": "acceso seguro ?.",
+                "nombre": "seguro",
+                "t": "campo",
+                "texto": ".",
+                "valor": false
+               },
+               {
+                "clase": "identificador",
+                "etiqueta": "nombre",
+                "nombre": "nombre",
+                "t": "campo",
+                "texto": "n",
+                "valor": "n"
+               }
+              ],
+              "categoria": "clases",
+              "forma": "valor",
+              "id": "b6",
+              "linea": 4,
+              "nombre": "campo de objeto",
+              "rotulo": "este.n",
+              "salida": "cualquiera",
+              "tipo": "propiedad"
+             },
+             "nombre": "destino",
+             "t": "hueco"
+            },
+            {
+             "clase": "opcion",
+             "etiqueta": "operador",
+             "nombre": "op",
+             "opciones": [
+              {
+               "texto": "=",
+               "valor": "="
+              },
+              {
+               "texto": "+=",
+               "valor": "+="
+              },
+              {
+               "texto": "-=",
+               "valor": "-="
+              },
+              {
+               "texto": "*=",
+               "valor": "*="
+              },
+              {
+               "texto": "/=",
+               "valor": "/="
+              },
+              {
+               "texto": "%=",
+               "valor": "%="
+              }
+             ],
+             "t": "campo",
+             "texto": "=",
+             "valor": "="
+            },
+            {
+             "acepta": "valor",
+             "etiqueta": "valor",
+             "hijo": {
+              "bocas": [],
+              "cabecera": [
+               {
+                "clase": "identificador",
+                "etiqueta": "nombre",
+                "nombre": "nombre",
+                "t": "campo",
+                "texto": "inicio",
+                "valor": "inicio"
+               }
+              ],
+              "categoria": "variables",
+              "forma": "valor",
+              "id": "b8",
+              "linea": 4,
+              "nombre": "variable",
+              "rotulo": "inicio",
+              "salida": "cualquiera",
+              "tipo": "variable"
+             },
+             "nombre": "valor",
+             "t": "hueco"
+            }
+           ],
+           "categoria": "variables",
+           "forma": "instruccion",
+           "id": "n1",
+           "linea": 4,
+           "nombre": "asignar",
+           "rotulo": "este.n = inicio",
+           "salida": null,
+           "tipo": "asignar"
+          }
+         ],
+         "nombre": "cuerpo",
+         "rotulo": ""
+        }
+       ],
+       "cabecera": [
+        {
+         "clase": "opcion",
+         "etiqueta": "visibilidad",
+         "nombre": "visibilidad",
+         "opciones": [
+          {
+           "texto": "público",
+           "valor": "publico"
+          },
+          {
+           "texto": "privado",
+           "valor": "privado"
+          }
+         ],
+         "t": "campo",
+         "texto": "",
+         "valor": ""
+        },
+        {
+         "t": "texto",
+         "texto": "constructor"
+        },
+        {
+         "clase": "identificador",
+         "etiqueta": "nombre",
+         "nombre": "nombre",
+         "t": "campo",
+         "texto": "Contador",
+         "valor": "Contador"
+        },
+        {
+         "t": "texto",
+         "texto": "("
+        },
+        {
+         "etiqueta": "parámetros",
+         "hijos": [
+          {
+           "bocas": [],
+           "cabecera": [
+            {
+             "clase": "tipo",
+             "etiqueta": "tipo",
+             "nombre": "tipo",
+             "t": "campo",
+             "texto": "entero",
+             "valor": "entero"
+            },
+            {
+             "clase": "identificador",
+             "etiqueta": "nombre",
+             "nombre": "nombre",
+             "t": "campo",
+             "texto": "inicio",
+             "valor": "inicio"
+            }
+           ],
+           "categoria": "subrutinas",
+           "forma": "parte",
+           "id": "b4",
+           "linea": 0,
+           "nombre": "parámetro",
+           "rotulo": "entero inicio",
+           "salida": null,
+           "tipo": "parametro"
+          }
+         ],
+         "nombre": "parametros",
+         "t": "lista"
+        },
+        {
+         "t": "texto",
+         "texto": ")"
+        }
+       ],
+       "categoria": "clases",
+       "forma": "miembro",
+       "id": "b3",
+       "linea": 3,
+       "nombre": "constructor",
+       "rotulo": "constructor Contador (entero inicio)",
+       "salida": null,
+       "tipo": "constructor"
+      },
+      {
+       "bocas": [
+        {
+         "etiqueta": "cuerpo",
+         "hijos": [
+          {
+           "bocas": [],
+           "cabecera": [
+            {
+             "t": "texto",
+             "texto": "retornar"
+            },
+            {
+             "acepta": "valor",
+             "etiqueta": "valor",
+             "hijo": {
+              "bocas": [],
+              "cabecera": [
+               {
+                "acepta": "valor",
+                "etiqueta": "objeto",
+                "hijo": {
+                 "bocas": [],
+                 "cabecera": [
+                  {
+                   "t": "texto",
+                   "texto": "este"
+                  }
+                 ],
+                 "categoria": "clases",
+                 "forma": "valor",
+                 "id": "b11",
+                 "linea": 7,
+                 "nombre": "este",
+                 "rotulo": "este",
+                 "salida": "objeto",
+                 "tipo": "este"
+                },
+                "nombre": "objeto",
+                "t": "hueco"
+               },
+               {
+                "clase": "bandera",
+                "etiqueta": "acceso seguro ?.",
+                "nombre": "seguro",
+                "t": "campo",
+                "texto": ".",
+                "valor": false
+               },
+               {
+                "clase": "identificador",
+                "etiqueta": "nombre",
+                "nombre": "nombre",
+                "t": "campo",
+                "texto": "n",
+                "valor": "n"
+               }
+              ],
+              "categoria": "clases",
+              "forma": "valor",
+              "id": "b12",
+              "linea": 7,
+              "nombre": "campo de objeto",
+              "rotulo": "este.n",
+              "salida": "cualquiera",
+              "tipo": "propiedad"
+             },
+             "nombre": "valor",
+             "t": "hueco"
+            }
+           ],
+           "categoria": "subrutinas",
+           "forma": "instruccion",
+           "id": "n2",
+           "linea": 7,
+           "nombre": "retornar",
+           "rotulo": "retornar este.n",
+           "salida": null,
+           "tipo": "retornar"
+          }
+         ],
+         "nombre": "cuerpo",
+         "rotulo": ""
+        }
+       ],
+       "cabecera": [
+        {
+         "clase": "opcion",
+         "etiqueta": "visibilidad",
+         "nombre": "visibilidad",
+         "opciones": [
+          {
+           "texto": "público",
+           "valor": "publico"
+          },
+          {
+           "texto": "privado",
+           "valor": "privado"
+          }
+         ],
+         "t": "campo",
+         "texto": "público",
+         "valor": "publico"
+        },
+        {
+         "clase": "opcion",
+         "etiqueta": "modificador",
+         "nombre": "modificador",
+         "opciones": [
+          {
+           "texto": "estático",
+           "valor": "estatico"
+          },
+          {
+           "texto": "abstracto",
+           "valor": "abstracto"
+          }
+         ],
+         "t": "campo",
+         "texto": "",
+         "valor": ""
+        },
+        {
+         "clase": "tipo_retorno",
+         "etiqueta": "tipo de retorno",
+         "nombre": "retorno",
+         "t": "campo",
+         "texto": "entero",
+         "valor": "entero"
+        },
+        {
+         "clase": "identificador",
+         "etiqueta": "nombre",
+         "nombre": "nombre",
+         "t": "campo",
+         "texto": "valor",
+         "valor": "valor"
+        },
+        {
+         "t": "texto",
+         "texto": "("
+        },
+        {
+         "etiqueta": "parámetros",
+         "hijos": [],
+         "nombre": "parametros",
+         "t": "lista"
+        },
+        {
+         "t": "texto",
+         "texto": ")"
+        },
+        {
+         "clase": "bandera",
+         "etiqueta": "con cuerpo",
+         "nombre": "con_cuerpo",
+         "t": "campo",
+         "texto": "",
+         "valor": true
+        }
+       ],
+       "categoria": "clases",
+       "forma": "miembro",
+       "id": "b9",
+       "linea": 6,
+       "nombre": "método",
+       "rotulo": "público entero valor ()",
+       "salida": null,
+       "tipo": "metodo"
+      }
+     ],
+     "nombre": "miembros",
+     "rotulo": ""
+    }
+   ],
+   "cabecera": [
+    {
+     "clase": "bandera",
+     "etiqueta": "abstracta",
+     "nombre": "abstracta",
+     "t": "campo",
+     "texto": "",
+     "valor": false
+    },
+    {
+     "t": "texto",
+     "texto": "clase"
+    },
+    {
+     "clase": "identificador",
+     "etiqueta": "nombre",
+     "nombre": "nombre",
+     "t": "campo",
+     "texto": "Contador",
+     "valor": "Contador"
+    },
+    {
+     "t": "texto",
+     "texto": "<"
+    },
+    {
+     "clase": "identificador",
+     "etiqueta": "parámetro genérico",
+     "nombre": "generico",
+     "t": "campo",
+     "texto": "",
+     "valor": ""
+    },
+    {
+     "t": "texto",
+     "texto": ">"
+    },
+    {
+     "t": "texto",
+     "texto": "hereda"
+    },
+    {
+     "clase": "identificador",
+     "etiqueta": "hereda de",
+     "nombre": "hereda",
+     "t": "campo",
+     "texto": "",
+     "valor": ""
+    },
+    {
+     "t": "texto",
+     "texto": "implementa"
+    },
+    {
+     "clase": "identificadores",
+     "etiqueta": "implementa",
+     "nombre": "implementa",
+     "t": "campo",
+     "texto": "",
+     "valor": ""
+    }
+   ],
+   "categoria": "clases",
+   "forma": "definicion",
+   "id": "b1",
+   "linea": 0,
+   "nombre": "clase",
+   "rotulo": "clase Contador",
+   "salida": null,
+   "tipo": "clase"
+  },
+  {
+   "bocas": [
+    {
+     "etiqueta": "cuerpo",
+     "hijos": [
+      {
+       "bocas": [],
+       "cabecera": [
+        {
+         "t": "texto",
+         "texto": "retornar"
+        },
+        {
+         "acepta": "valor",
+         "etiqueta": "valor",
+         "hijo": {
+          "bocas": [],
+          "cabecera": [
+           {
+            "acepta": "valor",
+            "etiqueta": "operando izquierdo",
+            "hijo": {
+             "bocas": [],
+             "cabecera": [
+              {
+               "clase": "identificador",
+               "etiqueta": "nombre",
+               "nombre": "nombre",
+               "t": "campo",
+               "texto": "x",
+               "valor": "x"
+              }
+             ],
+             "categoria": "variables",
+             "forma": "valor",
+             "id": "b16",
+             "linea": 12,
+             "nombre": "variable",
+             "rotulo": "x",
+             "salida": "cualquiera",
+             "tipo": "variable"
+            },
+            "nombre": "izquierda",
+            "t": "hueco"
+           },
+           {
+            "clase": "opcion",
+            "etiqueta": "operador",
+            "nombre": "op",
+            "opciones": [
+             {
+              "texto": "+",
+              "valor": "+"
+             },
+             {
+              "texto": "-",
+              "valor": "-"
+             },
+             {
+              "texto": "*",
+              "valor": "*"
+             },
+             {
+              "texto": "/",
+              "valor": "/"
+             },
+             {
+              "texto": "%",
+              "valor": "%"
+             },
+             {
+              "texto": "==",
+              "valor": "=="
+             },
+             {
+              "texto": "!=",
+              "valor": "!="
+             },
+             {
+              "texto": "<",
+              "valor": "<"
+             },
+             {
+              "texto": ">",
+              "valor": ">"
+             },
+             {
+              "texto": "<=",
+              "valor": "<="
+             },
+             {
+              "texto": ">=",
+              "valor": ">="
+             },
+             {
+              "texto": "&&",
+              "valor": "&&"
+             },
+             {
+              "texto": "||",
+              "valor": "||"
+             },
+             {
+              "texto": "&",
+              "valor": "&"
+             },
+             {
+              "texto": "|",
+              "valor": "|"
+             },
+             {
+              "texto": "^",
+              "valor": "^"
+             },
+             {
+              "texto": "<<",
+              "valor": "<<"
+             },
+             {
+              "texto": ">>",
+              "valor": ">>"
+             },
+             {
+              "texto": "??",
+              "valor": "??"
+             }
+            ],
+            "t": "campo",
+            "texto": "*",
+            "valor": "*"
+           },
+           {
+            "acepta": "valor",
+            "etiqueta": "operando derecho",
+            "hijo": {
+             "bocas": [],
+             "cabecera": [
+              {
+               "clase": "numero",
+               "etiqueta": "valor",
+               "nombre": "valor",
+               "t": "campo",
+               "texto": "2",
+               "valor": "2"
+              }
+             ],
+             "categoria": "valores",
+             "forma": "valor",
+             "id": "b17",
+             "linea": 12,
+             "nombre": "número",
+             "rotulo": "2",
+             "salida": "numero",
+             "tipo": "numero"
+            },
+            "nombre": "derecha",
+            "t": "hueco"
+           }
+          ],
+          "categoria": "operadores",
+          "forma": "valor",
+          "id": "b18",
+          "linea": 12,
+          "nombre": "operación",
+          "rotulo": "x * 2",
+          "salida": "cualquiera",
+          "tipo": "binaria"
+         },
+         "nombre": "valor",
+         "t": "hueco"
+        }
+       ],
+       "categoria": "subrutinas",
+       "forma": "instruccion",
+       "id": "n3",
+       "linea": 12,
+       "nombre": "retornar",
+       "rotulo": "retornar x * 2",
+       "salida": null,
+       "tipo": "retornar"
+      }
+     ],
+     "nombre": "cuerpo",
+     "rotulo": ""
+    }
+   ],
+   "cabecera": [
+    {
+     "t": "texto",
+     "texto": "definir"
+    },
+    {
+     "clase": "tipo_retorno",
+     "etiqueta": "tipo de retorno",
+     "nombre": "retorno",
+     "t": "campo",
+     "texto": "entero",
+     "valor": "entero"
+    },
+    {
+     "clase": "nombre_subrutina",
+     "etiqueta": "nombre",
+     "nombre": "nombre",
+     "t": "campo",
+     "texto": "doble",
+     "valor": "doble"
+    },
+    {
+     "t": "texto",
+     "texto": "("
+    },
+    {
+     "etiqueta": "parámetros",
+     "hijos": [
+      {
+       "bocas": [],
+       "cabecera": [
+        {
+         "clase": "tipo",
+         "etiqueta": "tipo",
+         "nombre": "tipo",
+         "t": "campo",
+         "texto": "entero",
+         "valor": "entero"
+        },
+        {
+         "clase": "identificador",
+         "etiqueta": "nombre",
+         "nombre": "nombre",
+         "t": "campo",
+         "texto": "x",
+         "valor": "x"
+        }
+       ],
+       "categoria": "subrutinas",
+       "forma": "parte",
+       "id": "b14",
+       "linea": 0,
+       "nombre": "parámetro",
+       "rotulo": "entero x",
+       "salida": null,
+       "tipo": "parametro"
+      }
+     ],
+     "nombre": "parametros",
+     "t": "lista"
+    },
+    {
+     "t": "texto",
+     "texto": ")"
+    }
+   ],
+   "categoria": "subrutinas",
+   "forma": "definicion",
+   "id": "b13",
+   "linea": 11,
+   "nombre": "subrutina",
+   "rotulo": "definir entero doble (entero x)",
+   "salida": null,
+   "tipo": "subrutina"
+  },
+  {
+   "bocas": [
+    {
+     "etiqueta": "cuerpo",
+     "hijos": [
+      {
+       "bocas": [],
+       "cabecera": [
+        {
+         "t": "texto",
+         "texto": "declarar"
+        },
+        {
+         "clase": "bandera",
+         "etiqueta": "constante",
+         "nombre": "constante",
+         "t": "campo",
+         "texto": "",
+         "valor": false
+        },
+        {
+         "clase": "tipo",
+         "etiqueta": "tipo",
+         "nombre": "tipo",
+         "t": "campo",
+         "texto": "Contador",
+         "valor": "Contador"
+        },
+        {
+         "clase": "identificador",
+         "etiqueta": "nombre",
+         "nombre": "nombre",
+         "t": "campo",
+         "texto": "c",
+         "valor": "c"
+        },
+        {
+         "t": "texto",
+         "texto": "="
+        },
+        {
+         "acepta": "valor",
+         "etiqueta": "valor",
+         "hijo": {
+          "bocas": [],
+          "cabecera": [
+           {
+            "t": "texto",
+            "texto": "nuevo"
+           },
+           {
+            "clase": "identificador",
+            "etiqueta": "clase",
+            "nombre": "clase",
+            "t": "campo",
+            "texto": "Contador",
+            "valor": "Contador"
+           },
+           {
+            "t": "texto",
+            "texto": "<"
+           },
+           {
+            "clase": "tipo",
+            "etiqueta": "parámetro genérico",
+            "nombre": "generico",
+            "t": "campo",
+            "texto": "",
+            "valor": ""
+           },
+           {
+            "t": "texto",
+            "texto": ">"
+           },
+           {
+            "t": "texto",
+            "texto": "("
+           },
+           {
+            "etiqueta": "argumentos",
+            "hijos": [
+             {
+              "bocas": [],
+              "cabecera": [
+               {
+                "clase": "numero",
+                "etiqueta": "valor",
+                "nombre": "valor",
+                "t": "campo",
+                "texto": "1",
+                "valor": "1"
+               }
+              ],
+              "categoria": "valores",
+              "forma": "valor",
+              "id": "b22",
+              "linea": 16,
+              "nombre": "número",
+              "rotulo": "1",
+              "salida": "numero",
+              "tipo": "numero"
+             }
+            ],
+            "nombre": "argumentos",
+            "t": "lista"
+           },
+           {
+            "t": "texto",
+            "texto": ")"
+           }
+          ],
+          "categoria": "clases",
+          "forma": "valor",
+          "id": "b21",
+          "linea": 16,
+          "nombre": "nuevo objeto",
+          "rotulo": "nuevo Contador (1)",
+          "salida": "objeto",
+          "tipo": "nuevo"
+         },
+         "nombre": "valor",
+         "t": "hueco"
+        }
+       ],
+       "categoria": "variables",
+       "forma": "instruccion",
+       "id": "n4",
+       "linea": 16,
+       "nombre": "declarar variable",
+       "rotulo": "declarar Contador c = nuevo Contador(1)",
+       "salida": null,
+       "tipo": "declarar"
+      },
+      {
+       "bocas": [
+        {
+         "etiqueta": "inicio",
+         "hijos": [
+          {
+           "bocas": [],
+           "cabecera": [
+            {
+             "t": "texto",
+             "texto": "declarar"
+            },
+            {
+             "clase": "bandera",
+             "etiqueta": "constante",
+             "nombre": "constante",
+             "t": "campo",
+             "texto": "",
+             "valor": false
+            },
+            {
+             "clase": "tipo",
+             "etiqueta": "tipo",
+             "nombre": "tipo",
+             "t": "campo",
+             "texto": "entero",
+             "valor": "entero"
+            },
+            {
+             "clase": "identificador",
+             "etiqueta": "nombre",
+             "nombre": "nombre",
+             "t": "campo",
+             "texto": "i",
+             "valor": "i"
+            },
+            {
+             "t": "texto",
+             "texto": "="
+            },
+            {
+             "acepta": "valor",
+             "etiqueta": "valor",
+             "hijo": {
+              "bocas": [],
+              "cabecera": [
+               {
+                "clase": "numero",
+                "etiqueta": "valor",
+                "nombre": "valor",
+                "t": "campo",
+                "texto": "0",
+                "valor": "0"
+               }
+              ],
+              "categoria": "valores",
+              "forma": "valor",
+              "id": "b25",
+              "linea": 17,
+              "nombre": "número",
+              "rotulo": "0",
+              "salida": "numero",
+              "tipo": "numero"
+             },
+             "nombre": "valor",
+             "t": "hueco"
+            }
+           ],
+           "categoria": "variables",
+           "forma": "instruccion",
+           "id": "b24",
+           "linea": 17,
+           "nombre": "declarar variable",
+           "rotulo": "declarar entero i = 0",
+           "salida": null,
+           "tipo": "declarar"
+          }
+         ],
+         "nombre": "inicio",
+         "rotulo": "inicio"
+        },
+        {
+         "etiqueta": "paso",
+         "hijos": [
+          {
+           "bocas": [],
+           "cabecera": [
+            {
+             "acepta": "variable",
+             "etiqueta": "variable",
+             "hijo": {
+              "bocas": [],
+              "cabecera": [
+               {
+                "clase": "identificador",
+                "etiqueta": "nombre",
+                "nombre": "nombre",
+                "t": "campo",
+                "texto": "i",
+                "valor": "i"
+               }
+              ],
+              "categoria": "variables",
+              "forma": "valor",
+              "id": "b29",
+              "linea": 17,
+              "nombre": "variable",
+              "rotulo": "i",
+              "salida": "cualquiera",
+              "tipo": "variable"
+             },
+             "nombre": "objetivo",
+             "t": "hueco"
+            },
+            {
+             "clase": "opcion",
+             "etiqueta": "operador",
+             "nombre": "op",
+             "opciones": [
+              {
+               "texto": "++",
+               "valor": "++"
+              },
+              {
+               "texto": "--",
+               "valor": "--"
+              }
+             ],
+             "t": "campo",
+             "texto": "++",
+             "valor": "++"
+            },
+            {
+             "t": "texto",
+             "texto": "("
+            },
+            {
+             "clase": "opcion",
+             "etiqueta": "posición",
+             "nombre": "posicion",
+             "opciones": [
+              {
+               "texto": "antes",
+               "valor": "prefijo"
+              },
+              {
+               "texto": "después",
+               "valor": "sufijo"
+              }
+             ],
+             "t": "campo",
+             "texto": "después",
+             "valor": "sufijo"
+            },
+            {
+             "t": "texto",
+             "texto": ")"
+            }
+           ],
+           "categoria": "variables",
+           "forma": "instruccion",
+           "id": "b30",
+           "linea": 17,
+           "nombre": "incrementar",
+           "rotulo": "i ++ (después)",
+           "salida": null,
+           "tipo": "incrementar"
+          }
+         ],
+         "nombre": "paso",
+         "rotulo": "paso (tras cada vuelta)"
+        },
+        {
+         "etiqueta": "cuerpo",
+         "hijos": [
+          {
+           "bocas": [
+            {
+             "etiqueta": "ramas",
+             "hijos": [
+              {
+               "bocas": [
+                {
+                 "etiqueta": "cuerpo",
+                 "hijos": [
+                  {
+                   "bocas": [],
+                   "cabecera": [
+                    {
+                     "t": "texto",
+                     "texto": "imprimir"
+                    },
+                    {
+                     "acepta": "valor",
+                     "etiqueta": "valor",
+                     "hijo": {
+                      "bocas": [],
+                      "cabecera": [
+                       {
+                        "clase": "identificador",
+                        "etiqueta": "nombre",
+                        "nombre": "nombre",
+                        "t": "campo",
+                        "texto": "doble",
+                        "valor": "doble"
+                       },
+                       {
+                        "t": "texto",
+                        "texto": "("
+                       },
+                       {
+                        "etiqueta": "argumentos",
+                        "hijos": [
+                         {
+                          "bocas": [],
+                          "cabecera": [
+                           {
+                            "clase": "identificador",
+                            "etiqueta": "nombre",
+                            "nombre": "nombre",
+                            "t": "campo",
+                            "texto": "i",
+                            "valor": "i"
+                           }
+                          ],
+                          "categoria": "variables",
+                          "forma": "valor",
+                          "id": "b40",
+                          "linea": 19,
+                          "nombre": "variable",
+                          "rotulo": "i",
+                          "salida": "cualquiera",
+                          "tipo": "variable"
+                         }
+                        ],
+                        "nombre": "argumentos",
+                        "t": "lista"
+                       },
+                       {
+                        "t": "texto",
+                        "texto": ")"
+                       }
+                      ],
+                      "categoria": "subrutinas",
+                      "forma": "valor",
+                      "id": "b39",
+                      "linea": 19,
+                      "nombre": "llamada",
+                      "rotulo": "doble (i)",
+                      "salida": "cualquiera",
+                      "tipo": "llamada"
+                     },
+                     "nombre": "valor",
+                     "t": "hueco"
+                    }
+                   ],
+                   "categoria": "entrada_salida",
+                   "forma": "instruccion",
+                   "id": "n7",
+                   "linea": 19,
+                   "nombre": "imprimir",
+                   "rotulo": "imprimir doble(i)",
+                   "salida": null,
+                   "tipo": "imprimir"
+                  }
+                 ],
+                 "nombre": "cuerpo",
+                 "rotulo": ""
+                }
+               ],
+               "cabecera": [
+                {
+                 "t": "texto",
+                 "texto": "si"
+                },
+                {
+                 "acepta": "logico",
+                 "etiqueta": "condición",
+                 "hijo": {
+                  "bocas": [],
+                  "cabecera": [
+                   {
+                    "acepta": "valor",
+                    "etiqueta": "operando izquierdo",
+                    "hijo": {
+                     "bocas": [],
+                     "cabecera": [
+                      {
+                       "acepta": "valor",
+                       "etiqueta": "operando izquierdo",
+                       "hijo": {
+                        "bocas": [],
+                        "cabecera": [
+                         {
+                          "clase": "identificador",
+                          "etiqueta": "nombre",
+                          "nombre": "nombre",
+                          "t": "campo",
+                          "texto": "i",
+                          "valor": "i"
+                         }
+                        ],
+                        "categoria": "variables",
+                        "forma": "valor",
+                        "id": "b33",
+                        "linea": 18,
+                        "nombre": "variable",
+                        "rotulo": "i",
+                        "salida": "cualquiera",
+                        "tipo": "variable"
+                       },
+                       "nombre": "izquierda",
+                       "t": "hueco"
+                      },
+                      {
+                       "clase": "opcion",
+                       "etiqueta": "operador",
+                       "nombre": "op",
+                       "opciones": [
+                        {
+                         "texto": "+",
+                         "valor": "+"
+                        },
+                        {
+                         "texto": "-",
+                         "valor": "-"
+                        },
+                        {
+                         "texto": "*",
+                         "valor": "*"
+                        },
+                        {
+                         "texto": "/",
+                         "valor": "/"
+                        },
+                        {
+                         "texto": "%",
+                         "valor": "%"
+                        },
+                        {
+                         "texto": "==",
+                         "valor": "=="
+                        },
+                        {
+                         "texto": "!=",
+                         "valor": "!="
+                        },
+                        {
+                         "texto": "<",
+                         "valor": "<"
+                        },
+                        {
+                         "texto": ">",
+                         "valor": ">"
+                        },
+                        {
+                         "texto": "<=",
+                         "valor": "<="
+                        },
+                        {
+                         "texto": ">=",
+                         "valor": ">="
+                        },
+                        {
+                         "texto": "&&",
+                         "valor": "&&"
+                        },
+                        {
+                         "texto": "||",
+                         "valor": "||"
+                        },
+                        {
+                         "texto": "&",
+                         "valor": "&"
+                        },
+                        {
+                         "texto": "|",
+                         "valor": "|"
+                        },
+                        {
+                         "texto": "^",
+                         "valor": "^"
+                        },
+                        {
+                         "texto": "<<",
+                         "valor": "<<"
+                        },
+                        {
+                         "texto": ">>",
+                         "valor": ">>"
+                        },
+                        {
+                         "texto": "??",
+                         "valor": "??"
+                        }
+                       ],
+                       "t": "campo",
+                       "texto": "%",
+                       "valor": "%"
+                      },
+                      {
+                       "acepta": "valor",
+                       "etiqueta": "operando derecho",
+                       "hijo": {
+                        "bocas": [],
+                        "cabecera": [
+                         {
+                          "clase": "numero",
+                          "etiqueta": "valor",
+                          "nombre": "valor",
+                          "t": "campo",
+                          "texto": "2",
+                          "valor": "2"
+                         }
+                        ],
+                        "categoria": "valores",
+                        "forma": "valor",
+                        "id": "b34",
+                        "linea": 18,
+                        "nombre": "número",
+                        "rotulo": "2",
+                        "salida": "numero",
+                        "tipo": "numero"
+                       },
+                       "nombre": "derecha",
+                       "t": "hueco"
+                      }
+                     ],
+                     "categoria": "operadores",
+                     "forma": "valor",
+                     "id": "b35",
+                     "linea": 18,
+                     "nombre": "operación",
+                     "rotulo": "i % 2",
+                     "salida": "cualquiera",
+                     "tipo": "binaria"
+                    },
+                    "nombre": "izquierda",
+                    "t": "hueco"
+                   },
+                   {
+                    "clase": "opcion",
+                    "etiqueta": "operador",
+                    "nombre": "op",
+                    "opciones": [
+                     {
+                      "texto": "+",
+                      "valor": "+"
+                     },
+                     {
+                      "texto": "-",
+                      "valor": "-"
+                     },
+                     {
+                      "texto": "*",
+                      "valor": "*"
+                     },
+                     {
+                      "texto": "/",
+                      "valor": "/"
+                     },
+                     {
+                      "texto": "%",
+                      "valor": "%"
+                     },
+                     {
+                      "texto": "==",
+                      "valor": "=="
+                     },
+                     {
+                      "texto": "!=",
+                      "valor": "!="
+                     },
+                     {
+                      "texto": "<",
+                      "valor": "<"
+                     },
+                     {
+                      "texto": ">",
+                      "valor": ">"
+                     },
+                     {
+                      "texto": "<=",
+                      "valor": "<="
+                     },
+                     {
+                      "texto": ">=",
+                      "valor": ">="
+                     },
+                     {
+                      "texto": "&&",
+                      "valor": "&&"
+                     },
+                     {
+                      "texto": "||",
+                      "valor": "||"
+                     },
+                     {
+                      "texto": "&",
+                      "valor": "&"
+                     },
+                     {
+                      "texto": "|",
+                      "valor": "|"
+                     },
+                     {
+                      "texto": "^",
+                      "valor": "^"
+                     },
+                     {
+                      "texto": "<<",
+                      "valor": "<<"
+                     },
+                     {
+                      "texto": ">>",
+                      "valor": ">>"
+                     },
+                     {
+                      "texto": "??",
+                      "valor": "??"
+                     }
+                    ],
+                    "t": "campo",
+                    "texto": "==",
+                    "valor": "=="
+                   },
+                   {
+                    "acepta": "valor",
+                    "etiqueta": "operando derecho",
+                    "hijo": {
+                     "bocas": [],
+                     "cabecera": [
+                      {
+                       "clase": "numero",
+                       "etiqueta": "valor",
+                       "nombre": "valor",
+                       "t": "campo",
+                       "texto": "0",
+                       "valor": "0"
+                      }
+                     ],
+                     "categoria": "valores",
+                     "forma": "valor",
+                     "id": "b36",
+                     "linea": 18,
+                     "nombre": "número",
+                     "rotulo": "0",
+                     "salida": "numero",
+                     "tipo": "numero"
+                    },
+                    "nombre": "derecha",
+                    "t": "hueco"
+                   }
+                  ],
+                  "categoria": "operadores",
+                  "forma": "valor",
+                  "id": "b37",
+                  "linea": 18,
+                  "nombre": "operación",
+                  "rotulo": "i % 2 == 0",
+                  "salida": "cualquiera",
+                  "tipo": "binaria"
+                 },
+                 "nombre": "condicion",
+                 "t": "hueco"
+                },
+                {
+                 "t": "texto",
+                 "texto": "entonces"
+                }
+               ],
+               "categoria": "control",
+               "forma": "parte",
+               "id": "b32",
+               "linea": 18,
+               "nombre": "rama si",
+               "rotulo": "si i % 2 == 0 entonces",
+               "salida": null,
+               "tipo": "rama_si"
+              }
+             ],
+             "nombre": "ramas",
+             "rotulo": ""
+            },
+            {
+             "etiqueta": "sino",
+             "hijos": [
+              {
+               "bocas": [],
+               "cabecera": [
+                {
+                 "t": "texto",
+                 "texto": "romper"
+                }
+               ],
+               "categoria": "control",
+               "forma": "instruccion",
+               "id": "n8",
+               "linea": 21,
+               "nombre": "romper",
+               "rotulo": "romper",
+               "salida": null,
+               "tipo": "romper"
+              }
+             ],
+             "nombre": "sino",
+             "rotulo": "sino"
+            }
+           ],
+           "cabecera": [
+            {
+             "t": "texto",
+             "texto": "si"
+            },
+            {
+             "clase": "bandera",
+             "etiqueta": "con sino",
+             "nombre": "tiene_sino",
+             "t": "campo",
+             "texto": "(con sino)",
+             "valor": true
+            }
+           ],
+           "categoria": "control",
+           "forma": "c",
+           "id": "n6",
+           "linea": 18,
+           "nombre": "si",
+           "rotulo": "si (con sino)",
+           "salida": null,
+           "tipo": "si"
+          }
+         ],
+         "nombre": "cuerpo",
+         "rotulo": "repetir"
+        }
+       ],
+       "cabecera": [
+        {
+         "t": "texto",
+         "texto": "para"
+        },
+        {
+         "t": "texto",
+         "texto": "mientras"
+        },
+        {
+         "acepta": "logico",
+         "etiqueta": "condición",
+         "hijo": {
+          "bocas": [],
+          "cabecera": [
+           {
+            "acepta": "valor",
+            "etiqueta": "operando izquierdo",
+            "hijo": {
+             "bocas": [],
+             "cabecera": [
+              {
+               "clase": "identificador",
+               "etiqueta": "nombre",
+               "nombre": "nombre",
+               "t": "campo",
+               "texto": "i",
+               "valor": "i"
+              }
+             ],
+             "categoria": "variables",
+             "forma": "valor",
+             "id": "b26",
+             "linea": 17,
+             "nombre": "variable",
+             "rotulo": "i",
+             "salida": "cualquiera",
+             "tipo": "variable"
+            },
+            "nombre": "izquierda",
+            "t": "hueco"
+           },
+           {
+            "clase": "opcion",
+            "etiqueta": "operador",
+            "nombre": "op",
+            "opciones": [
+             {
+              "texto": "+",
+              "valor": "+"
+             },
+             {
+              "texto": "-",
+              "valor": "-"
+             },
+             {
+              "texto": "*",
+              "valor": "*"
+             },
+             {
+              "texto": "/",
+              "valor": "/"
+             },
+             {
+              "texto": "%",
+              "valor": "%"
+             },
+             {
+              "texto": "==",
+              "valor": "=="
+             },
+             {
+              "texto": "!=",
+              "valor": "!="
+             },
+             {
+              "texto": "<",
+              "valor": "<"
+             },
+             {
+              "texto": ">",
+              "valor": ">"
+             },
+             {
+              "texto": "<=",
+              "valor": "<="
+             },
+             {
+              "texto": ">=",
+              "valor": ">="
+             },
+             {
+              "texto": "&&",
+              "valor": "&&"
+             },
+             {
+              "texto": "||",
+              "valor": "||"
+             },
+             {
+              "texto": "&",
+              "valor": "&"
+             },
+             {
+              "texto": "|",
+              "valor": "|"
+             },
+             {
+              "texto": "^",
+              "valor": "^"
+             },
+             {
+              "texto": "<<",
+              "valor": "<<"
+             },
+             {
+              "texto": ">>",
+              "valor": ">>"
+             },
+             {
+              "texto": "??",
+              "valor": "??"
+             }
+            ],
+            "t": "campo",
+            "texto": "<",
+            "valor": "<"
+           },
+           {
+            "acepta": "valor",
+            "etiqueta": "operando derecho",
+            "hijo": {
+             "bocas": [],
+             "cabecera": [
+              {
+               "clase": "numero",
+               "etiqueta": "valor",
+               "nombre": "valor",
+               "t": "campo",
+               "texto": "3",
+               "valor": "3"
+              }
+             ],
+             "categoria": "valores",
+             "forma": "valor",
+             "id": "b27",
+             "linea": 17,
+             "nombre": "número",
+             "rotulo": "3",
+             "salida": "numero",
+             "tipo": "numero"
+            },
+            "nombre": "derecha",
+            "t": "hueco"
+           }
+          ],
+          "categoria": "operadores",
+          "forma": "valor",
+          "id": "b28",
+          "linea": 17,
+          "nombre": "operación",
+          "rotulo": "i < 3",
+          "salida": "cualquiera",
+          "tipo": "binaria"
+         },
+         "nombre": "condicion",
+         "t": "hueco"
+        }
+       ],
+       "categoria": "control",
+       "forma": "c",
+       "id": "n5",
+       "linea": 17,
+       "nombre": "para",
+       "rotulo": "para mientras i < 3",
+       "salida": null,
+       "tipo": "para"
+      },
+      {
+       "bocas": [],
+       "cabecera": [
+        {
+         "t": "texto",
+         "texto": "imprimir"
+        },
+        {
+         "acepta": "valor",
+         "etiqueta": "valor",
+         "hijo": {
+          "bocas": [],
+          "cabecera": [
+           {
+            "acepta": "valor",
+            "etiqueta": "objeto",
+            "hijo": {
+             "bocas": [],
+             "cabecera": [
+              {
+               "clase": "identificador",
+               "etiqueta": "nombre",
+               "nombre": "nombre",
+               "t": "campo",
+               "texto": "c",
+               "valor": "c"
+              }
+             ],
+             "categoria": "variables",
+             "forma": "valor",
+             "id": "b43",
+             "linea": 24,
+             "nombre": "variable",
+             "rotulo": "c",
+             "salida": "cualquiera",
+             "tipo": "variable"
+            },
+            "nombre": "objeto",
+            "t": "hueco"
+           },
+           {
+            "clase": "bandera",
+            "etiqueta": "acceso seguro ?.",
+            "nombre": "seguro",
+            "t": "campo",
+            "texto": ".",
+            "valor": false
+           },
+           {
+            "clase": "identificador",
+            "etiqueta": "nombre",
+            "nombre": "nombre",
+            "t": "campo",
+            "texto": "valor",
+            "valor": "valor"
+           },
+           {
+            "t": "texto",
+            "texto": "("
+           },
+           {
+            "etiqueta": "argumentos",
+            "hijos": [],
+            "nombre": "argumentos",
+            "t": "lista"
+           },
+           {
+            "t": "texto",
+            "texto": ")"
+           }
+          ],
+          "categoria": "clases",
+          "forma": "valor",
+          "id": "b44",
+          "linea": 24,
+          "nombre": "llamada a método",
+          "rotulo": "c.valor ()",
+          "salida": "cualquiera",
+          "tipo": "llamada_metodo"
+         },
+         "nombre": "valor",
+         "t": "hueco"
+        }
+       ],
+       "categoria": "entrada_salida",
+       "forma": "instruccion",
+       "id": "n9",
+       "linea": 24,
+       "nombre": "imprimir",
+       "rotulo": "imprimir c.valor()",
+       "salida": null,
+       "tipo": "imprimir"
+      }
+     ],
+     "nombre": "cuerpo",
+     "rotulo": ""
+    }
+   ],
+   "cabecera": [
+    {
+     "t": "texto",
+     "texto": "definir"
+    },
+    {
+     "clase": "tipo_retorno",
+     "etiqueta": "tipo de retorno",
+     "nombre": "retorno",
+     "t": "campo",
+     "texto": "vacio",
+     "valor": "vacio"
+    },
+    {
+     "clase": "nombre_subrutina",
+     "etiqueta": "nombre",
+     "nombre": "nombre",
+     "t": "campo",
+     "texto": "main",
+     "valor": "main"
+    },
+    {
+     "t": "texto",
+     "texto": "("
+    },
+    {
+     "etiqueta": "parámetros",
+     "hijos": [],
+     "nombre": "parametros",
+     "t": "lista"
+    },
+    {
+     "t": "texto",
+     "texto": ")"
+    }
+   ],
+   "categoria": "subrutinas",
+   "forma": "definicion",
+   "id": "b19",
+   "linea": 15,
+   "nombre": "subrutina",
+   "rotulo": "definir vacio main ()",
+   "salida": null,
+   "tipo": "subrutina"
+  }
+ ]
+}

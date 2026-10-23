@@ -1,0 +1,22 @@
+{
+  "id": "N07-E06",
+  "nivel": 7,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Convertir entre números y texto",
+  "enunciado": "Escribe aBinario(n) que devuelva la representación binaria de n como texto, y deBinario(s) que haga lo contrario recorriendo los caracteres. Prueba con 0, 5, 42 y 255, y comprueba que deBinario(aBinario(n)) == n.",
+  "objetivos": [
+    "Construir texto a partir de dígitos",
+    "Interpretar texto como número (esquema de Horner)"
+  ],
+  "pistas": [
+    "Cada bit es n % 2; se agrega a la IZQUIERDA del resultado.",
+    "El caso n = 0 debe devolver \"0\".",
+    "valor = valor * 2 + bit, de izquierda a derecha."
+  ],
+  "conceptos": [
+    "base 2",
+    "esquema de Horner",
+    "conversión"
+  ]
+}

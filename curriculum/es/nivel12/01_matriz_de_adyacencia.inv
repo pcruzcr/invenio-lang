@@ -1,0 +1,54 @@
+// Nivel 12 · Ejercicio 01 — Matriz de adyacencia
+// Objetivos:
+//   - Representar un grafo con una matriz
+//   - Calcular grados y vecinos
+//
+constante entero N = 7;
+entero [N][N] adj;
+
+vacio agregarArista(entero a, entero b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;   // no dirigido: la relación va en ambos sentidos
+}
+
+vacio limpiar() {
+    para (entero i = 0; i < N; i++) {
+        para (entero j = 0; j < N; j++) {
+            adj[i][j] = 0;
+        }
+    }
+}
+
+vacio main() {
+    limpiar();
+    agregarArista(0, 1);
+    agregarArista(0, 2);
+    agregarArista(1, 3);
+    agregarArista(2, 3);
+    agregarArista(3, 4);
+    agregarArista(4, 5);
+    para (entero i = 0; i < N; i++) {
+        para (entero j = 0; j < N; j++) {
+            imprimir(adj[i][j]); imprimir(" ");
+        }
+        imprimir("\n");
+    }
+    entero sumaGrados = 0;
+    para (entero i = 0; i < N; i++) {
+        entero grado = 0;
+        para (entero j = 0; j < N; j++) {
+            grado += adj[i][j];
+        }
+        imprimir("deg("); imprimir(i); imprimir(")="); imprimir(grado); imprimir(" ");
+        sumaGrados += grado;
+    }
+    imprimir("\n");
+    imprimir("neighbors(3):");
+    para (entero j = 0; j < N; j++) {
+        si (adj[3][j] == 1) {
+            imprimir(" "); imprimir(j);
+        }
+    }
+    imprimir("\n");
+    imprimir("edges = "); imprimir(sumaGrados / 2); imprimir("\n");
+}

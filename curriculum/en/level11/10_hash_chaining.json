@@ -1,0 +1,23 @@
+{
+  "id": "N11-E10",
+  "nivel": 11,
+  "numero": 10,
+  "idioma": "en",
+  "titulo": "Hash table with chaining",
+  "enunciado": "Implement a string -> int dictionary with 5 buckets; each bucket is a linked list of HashNode. The hash of a string is the sum of its letters' positions in the alphabet, modulo 5. Store the ages of 6 people, update one and show the buckets.",
+  "objetivos": [
+    "Resolve collisions with linked lists",
+    "Write a hash function for strings",
+    "Update the value if the key already exists"
+  ],
+  "pistas": [
+    "The bucket array is local or global: classes have no array attributes.",
+    "Before inserting, walk the bucket looking for the key.",
+    "Inserting at the head of the bucket is O(1)."
+  ],
+  "conceptos": [
+    "chaining",
+    "dictionary",
+    "hash function"
+  ]
+}

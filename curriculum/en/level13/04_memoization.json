@@ -1,0 +1,22 @@
+{
+  "id": "N13-E04",
+  "nivel": 13,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "From exponential to linear: memoization",
+  "enunciado": "Count the calls of naive fib(n) and of a memoized version (an array that remembers already computed results) for n = 5, 10, 15 and 20.",
+  "objetivos": [
+    "Identify repeated subproblems",
+    "Go from O(2^n) to O(n) by storing results"
+  ],
+  "pistas": [
+    "memo[i] = -1 means 'not computed yet'.",
+    "Before computing, check whether it is already in memo.",
+    "Naive calls grow like the Fibonacci sequence itself."
+  ],
+  "conceptos": [
+    "memoization",
+    "dynamic programming",
+    "O(2^n)"
+  ]
+}

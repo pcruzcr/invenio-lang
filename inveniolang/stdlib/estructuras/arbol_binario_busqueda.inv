@@ -1,0 +1,204 @@
+// estructuras/arbol_binario_busqueda.inv -- Árbol binario de búsqueda (ABB)
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "estructuras/arbol_binario_busqueda";
+//
+// Invariante: para cada nodo, todo lo que está a su IZQUIERDA es menor y
+// todo lo que está a su DERECHA es mayor (no se guardan repetidos). Gracias
+// a eso buscar, insertar y eliminar bajan por UNA sola rama: O(altura),
+// que es O(log n) si el árbol está balanceado y O(n) en el peor caso
+// (por ejemplo, si se insertan los valores ya ordenados).
+//
+//              8
+//            /   \
+//           3     10
+//          / \      \
+//         1   6      14
+
+clase NodoArbol {
+    publico entero valor;
+    publico NodoArbol izquierdo;
+    publico NodoArbol derecho;
+
+    NodoArbol(entero v) {
+        este.valor = v;
+    }
+}
+
+clase ArbolBinarioBusqueda {
+    privado NodoArbol raiz;
+    privado entero cantidad;
+
+    // Inserta v si no estaba. Retorna verdadero si lo insertó.
+    publico logico insertar(entero v) {
+        si (este.contiene(v)) {
+            retornar falso;
+        }
+        este.raiz = este.insertar_en(este.raiz, v);
+        este.cantidad = este.cantidad + 1;
+        retornar verdadero;
+    }
+
+    // Búsqueda iterativa: en cada paso se descarta medio árbol.
+    publico logico contiene(entero v) {
+        NodoArbol actual = este.raiz;
+        mientras (actual != nulo) {
+            si (v == actual.valor) {
+                retornar verdadero;
+            }
+            si (v < actual.valor) {
+                actual = actual.izquierdo;
+            } sino {
+                actual = actual.derecho;
+            }
+        }
+        retornar falso;
+    }
+
+    // Elimina v si estaba. Retorna verdadero si lo eliminó.
+    publico logico eliminar(entero v) {
+        si (!este.contiene(v)) {
+            retornar falso;
+        }
+        este.raiz = este.eliminar_en(este.raiz, v);
+        este.cantidad = este.cantidad - 1;
+        retornar verdadero;
+    }
+
+    // El menor valor está en el nodo de más a la izquierda.
+    publico entero minimo() {
+        si (este.raiz == nulo) {
+            lanzar_error("minimo: el árbol está vacío");
+        }
+        NodoArbol actual = este.raiz;
+        mientras (actual.izquierdo != nulo) {
+            actual = actual.izquierdo;
+        }
+        retornar actual.valor;
+    }
+
+    // El mayor valor está en el nodo de más a la derecha.
+    publico entero maximo() {
+        si (este.raiz == nulo) {
+            lanzar_error("maximo: el árbol está vacío");
+        }
+        NodoArbol actual = este.raiz;
+        mientras (actual.derecho != nulo) {
+            actual = actual.derecho;
+        }
+        retornar actual.valor;
+    }
+
+    // Cantidad de niveles: árbol vacío 0, solo la raíz 1.
+    publico entero altura() {
+        retornar este.altura_de(este.raiz);
+    }
+
+    publico entero tamano() {
+        retornar este.cantidad;
+    }
+
+    publico logico esta_vacio() {
+        retornar este.raiz == nulo;
+    }
+
+    // Recorrido en orden (izquierdo, raíz, derecho): valores ORDENADOS.
+    publico texto inorden() {
+        retornar "[" + este.inorden_de(este.raiz) + "]";
+    }
+
+    // Preorden (raíz, izquierdo, derecho): sirve para copiar el árbol.
+    publico texto preorden() {
+        retornar "[" + este.preorden_de(este.raiz) + "]";
+    }
+
+    // Postorden (izquierdo, derecho, raíz): sirve para liberar/evaluar.
+    publico texto postorden() {
+        retornar "[" + este.postorden_de(este.raiz) + "]";
+    }
+
+    // ---- Auxiliares recursivos ----
+
+    // Devuelve la raíz del subárbol ya con v insertado.
+    privado NodoArbol insertar_en(NodoArbol nodo, entero v) {
+        si (nodo == nulo) {
+            retornar nuevo NodoArbol(v);
+        }
+        si (v < nodo.valor) {
+            nodo.izquierdo = este.insertar_en(nodo.izquierdo, v);
+        } sino {
+            nodo.derecho = este.insertar_en(nodo.derecho, v);
+        }
+        retornar nodo;
+    }
+
+    // Devuelve la raíz del subárbol ya sin v (v está en el subárbol).
+    privado NodoArbol eliminar_en(NodoArbol nodo, entero v) {
+        si (v < nodo.valor) {
+            nodo.izquierdo = este.eliminar_en(nodo.izquierdo, v);
+            retornar nodo;
+        }
+        si (v > nodo.valor) {
+            nodo.derecho = este.eliminar_en(nodo.derecho, v);
+            retornar nodo;
+        }
+        // Encontrado. Casos 1 y 2: le falta al menos un hijo -> lo
+        // reemplaza el otro hijo (que puede ser nulo).
+        si (nodo.izquierdo == nulo) {
+            retornar nodo.derecho;
+        }
+        si (nodo.derecho == nulo) {
+            retornar nodo.izquierdo;
+        }
+        // Caso 3: dos hijos -> se copia el SUCESOR (el menor del subárbol
+        // derecho) y luego se elimina ese sucesor, que tiene a lo sumo un hijo.
+        NodoArbol sucesor = nodo.derecho;
+        mientras (sucesor.izquierdo != nulo) {
+            sucesor = sucesor.izquierdo;
+        }
+        nodo.valor = sucesor.valor;
+        nodo.derecho = este.eliminar_en(nodo.derecho, sucesor.valor);
+        retornar nodo;
+    }
+
+    privado entero altura_de(NodoArbol nodo) {
+        si (nodo == nulo) {
+            retornar 0;
+        }
+        entero izq = este.altura_de(nodo.izquierdo);
+        entero der = este.altura_de(nodo.derecho);
+        retornar 1 + (izq > der ? izq : der);
+    }
+
+    privado texto inorden_de(NodoArbol nodo) {
+        si (nodo == nulo) {
+            retornar "";
+        }
+        retornar este.unir(este.unir(este.inorden_de(nodo.izquierdo), entero_a_texto(nodo.valor)), este.inorden_de(nodo.derecho));
+    }
+
+    privado texto preorden_de(NodoArbol nodo) {
+        si (nodo == nulo) {
+            retornar "";
+        }
+        retornar este.unir(este.unir(entero_a_texto(nodo.valor), este.preorden_de(nodo.izquierdo)), este.preorden_de(nodo.derecho));
+    }
+
+    privado texto postorden_de(NodoArbol nodo) {
+        si (nodo == nulo) {
+            retornar "";
+        }
+        retornar este.unir(este.unir(este.postorden_de(nodo.izquierdo), este.postorden_de(nodo.derecho)), entero_a_texto(nodo.valor));
+    }
+
+    // Une dos fragmentos con ", " sin dejar comas sueltas si uno está vacío.
+    privado texto unir(texto a, texto b) {
+        si (a == "") {
+            retornar b;
+        }
+        si (b == "") {
+            retornar a;
+        }
+        retornar a + ", " + b;
+    }
+}

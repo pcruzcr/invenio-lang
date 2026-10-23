@@ -1,0 +1,17 @@
+// Nivel 1 · Ejercicio 02 — Variables y asignación
+// Objetivos:
+//   - Declarar e inicializar variables
+//   - Entender que asignar reemplaza el valor anterior
+//   - Intercambiar dos valores con una variable auxiliar
+//
+vacio main() {
+    entero a = 7;
+    entero b = 3;
+    imprimir("a = "); imprimir(a); imprimir(", b = "); imprimir(b); imprimir("\n");
+
+    // Intercambio: aux conserva el valor de a antes de sobrescribirlo.
+    entero aux = a;
+    a = b;
+    b = aux;
+    imprimir("a = "); imprimir(a); imprimir(", b = "); imprimir(b); imprimir("\n");
+}

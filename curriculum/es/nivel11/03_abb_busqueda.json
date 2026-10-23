@@ -1,0 +1,22 @@
+{
+  "id": "N11-E03",
+  "nivel": 11,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Búsqueda, mínimo y máximo en un ABB",
+  "enunciado": "En el ABB de 8, 3, 10, 1, 6, 14, 4, 7, 13 busca 7 y 5 mostrando el camino recorrido, y encuentra el mínimo y el máximo bajando solo por la izquierda o por la derecha.",
+  "objetivos": [
+    "Buscar en un ABB descartando un subárbol en cada paso",
+    "Relacionar la altura con el costo de búsqueda"
+  ],
+  "pistas": [
+    "Compara con la raíz y baja por un solo lado.",
+    "El mínimo es el nodo más a la izquierda.",
+    "El costo es proporcional a la altura, no al número de nodos."
+  ],
+  "conceptos": [
+    "búsqueda en ABB",
+    "camino",
+    "O(h)"
+  ]
+}

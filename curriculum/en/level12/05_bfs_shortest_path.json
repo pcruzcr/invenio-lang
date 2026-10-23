@@ -1,0 +1,22 @@
+{
+  "id": "N12-E05",
+  "nivel": 12,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Reconstructing the shortest path",
+  "enunciado": "In a maze modelled as a graph (edges 0-1, 1-2, 2-6, 0-3, 3-4, 4-5, 5-6) use BFS storing each vertex's parent to rebuild and print the shortest path from 0 to 6 and from 0 to 5.",
+  "objetivos": [
+    "Store each vertex's predecessor",
+    "Rebuild paths recursively from the target"
+  ],
+  "pistas": [
+    "parentOf[v] = u when you discover v from u.",
+    "The path comes out backwards: from target to source.",
+    "Print recursively: first the path to the parent, then the vertex."
+  ],
+  "conceptos": [
+    "predecessor",
+    "shortest path",
+    "BFS"
+  ]
+}

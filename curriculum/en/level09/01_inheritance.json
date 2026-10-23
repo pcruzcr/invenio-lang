@@ -1,0 +1,23 @@
+{
+  "id": "N09-E01",
+  "nivel": 9,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Inheritance",
+  "enunciado": "Create Employee (name, salary) with totalSalary() and describe(). Create Manager which extends Employee, adds a bonus and overrides totalSalary() adding the bonus. Show both.",
+  "objetivos": [
+    "Inherit attributes and methods with extends",
+    "Call the parent constructor with super(...)",
+    "Reuse the parent's method with super.method()"
+  ],
+  "pistas": [
+    "A Manager IS-AN Employee: it has everything an employee has.",
+    "The first statement of the child constructor must be super(...).",
+    "super.totalSalary() + this.bonus avoids repeating the computation."
+  ],
+  "conceptos": [
+    "inheritance",
+    "is-a",
+    "super"
+  ]
+}

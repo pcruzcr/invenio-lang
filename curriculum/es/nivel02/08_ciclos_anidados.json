@@ -1,0 +1,21 @@
+{
+  "id": "N02-E08",
+  "nivel": 2,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Ciclos anidados: figuras",
+  "enunciado": "Con ciclos anidados dibuja un triángulo rectángulo de 4 filas con '*' y después un triángulo centrado (pirámide) de 4 filas usando espacios y '*'.",
+  "objetivos": [
+    "Anidar un ciclo dentro de otro",
+    "Relacionar el número de fila con la cantidad de símbolos"
+  ],
+  "pistas": [
+    "El ciclo externo recorre las filas; el interno, las columnas.",
+    "En la fila f (desde 1) del triángulo hay f asteriscos.",
+    "En la pirámide, la fila f tiene N - f espacios y 2f - 1 asteriscos."
+  ],
+  "conceptos": [
+    "ciclos anidados",
+    "patrones"
+  ]
+}

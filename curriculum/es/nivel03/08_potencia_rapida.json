@@ -1,0 +1,21 @@
+{
+  "id": "N03-E08",
+  "nivel": 3,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Potencia rápida",
+  "enunciado": "Implementa potencia(b, e) recursiva usando que b^e = (b^(e/2))^2 si e es par y b * b^(e-1) si es impar. Muestra 2^10, 3^7, 5^0 y 7^9, y el número de multiplicaciones para 2^30.",
+  "objetivos": [
+    "Diseñar una recursión que divide el problema a la mitad",
+    "Contar operaciones"
+  ],
+  "pistas": [
+    "Caso base: e == 0 devuelve 1.",
+    "Calcula la mitad UNA sola vez y guárdala en una variable.",
+    "Para e = 30 bastan muy pocas multiplicaciones, no 30."
+  ],
+  "conceptos": [
+    "divide y vencerás",
+    "recursión"
+  ]
+}

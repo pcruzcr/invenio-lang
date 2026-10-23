@@ -1,0 +1,44 @@
+// Ejercita algoritmos/ordenamiento, algoritmos/busqueda y algoritmos/matriz (INV-1430).
+importar "algoritmos/ordenamiento";
+importar "algoritmos/busqueda";
+importar "algoritmos/matriz";
+
+constante entero N = 8;
+
+vacio cargar(entero[] a) {
+    entero[8] base = {5, 3, 9, 1, 7, 3, 8, 2};
+    para (entero i = 0; i < N; i++) {
+        a[i] = base[i];
+    }
+}
+
+vacio mostrar(entero[] a) {
+    para (entero i = 0; i < N; i++) {
+        imprimir(a[i]); imprimir(" ");
+    }
+    imprimir("\n");
+}
+
+vacio main() {
+    entero[8] a;
+    entero[8] aux;
+    cargar(a); ordenar_burbuja(a, N); mostrar(a);
+    cargar(a); ordenar_seleccion(a, N); mostrar(a);
+    cargar(a); ordenar_insercion(a, N); mostrar(a);
+    cargar(a); ordenar_mezcla(a, aux, N); mostrar(a);
+    cargar(a); ordenar_rapido(a, longitud_arreglo(a)); mostrar(a);
+    cargar(a); imprimir(esta_ordenado(a, N)); imprimir(" "); ordenar_monticulo(a, N); mostrar(a);
+    imprimir(esta_ordenado(a, N)); imprimir(" ");
+    imprimir(busqueda_binaria(a, N, 7)); imprimir(busqueda_binaria_recursiva(a, 0, N - 1, 4)); imprimir(busqueda_lineal(a, N, 9));
+    imprimir(" "); imprimir(posicion_maximo(a, N)); imprimir(posicion_minimo(a, N)); imprimir(contar_apariciones(a, N, 3)); imprimir("\n");
+    entero[2][3] m = {{1, 2, 3}, {4, 5, 6}};
+    entero[3][2] t;
+    entero[2][2] p;
+    entero[2][2] s;
+    entero[3][3] id;
+    transponer_matriz(m, t, 2, 3); imprimir(matriz_a_texto(t, 3, 2));
+    multiplicar_matrices(m, t, p, 2, 3, 2); imprimir(matriz_a_texto(p, 2, 2));
+    sumar_matrices(p, p, s, 2, 2); imprimir(matriz_a_texto(s, 2, 2));
+    matriz_identidad(id, 3); imprimir(traza_matriz(id, 3)); imprimir(es_simetrica(p, 2)); imprimir(es_simetrica(m, 2));
+    llenar_matriz(id, 3, 3, 2); imprimir(traza_matriz(id, 3)); imprimir("\n");
+}

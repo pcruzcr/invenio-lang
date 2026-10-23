@@ -1,0 +1,15 @@
+// Nivel 1 · Ejercicio 06 — Precedencia de operadores
+// Objetivos:
+//   - Aplicar la precedencia: unarios, luego * / %, luego + -
+//   - Usar paréntesis para cambiar el orden
+//
+vacio main() {
+    // Primero 3 * 4 = 12; después 2 + 12.
+    imprimir(2 + 3 * 4); imprimir("\n");
+    imprimir((2 + 3) * 4); imprimir("\n");
+    // 6 / 2 se evalúa antes que la resta.
+    imprimir(20 - 6 / 2); imprimir("\n");
+    imprimir((20 - 6) / 2); imprimir("\n");
+    imprimir(2 * 3 % 4); imprimir("\n");
+    imprimir(-2 * -3); imprimir("\n");
+}

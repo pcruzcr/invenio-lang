@@ -1,0 +1,41 @@
+// Nivel 10 · Ejercicio 01 — Pila con arreglo
+// Objetivos:
+//   - Entender la política LIFO (último en entrar, primero en salir)
+//   - Controlar desbordamiento y subdesbordamiento
+//
+constante entero CAP = 4;
+entero [CAP] pila;
+entero tope = -1;
+
+logico estaVacia() { retornar tope == -1; }
+
+logico apilar(entero v) {
+    si (tope == CAP - 1) {
+        retornar falso;   // pila llena: desbordamiento
+    }
+    tope++;
+    pila[tope] = v;
+    retornar verdadero;
+}
+
+entero desapilar() {
+    entero v = pila[tope];
+    tope--;
+    retornar v;
+}
+
+entero cima() { retornar pila[tope]; }
+
+vacio main() {
+    para (entero v = 10; v <= 50; v = v + 10) {
+        si (apilar(v)) {
+            imprimir("push "); imprimir(v); imprimir("\n");
+        } sino {
+            imprimir("full, cannot push "); imprimir(v); imprimir("\n");
+        }
+    }
+    imprimir("peek "); imprimir(cima()); imprimir("\n");
+    mientras (!estaVacia()) {
+        imprimir("pop "); imprimir(desapilar()); imprimir("\n");
+    }
+}

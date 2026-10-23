@@ -1,0 +1,22 @@
+{
+  "id": "N13-E08",
+  "nivel": 13,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Quick sort: the worst case matters",
+  "enunciado": "Count the comparisons of quick sort (pivot = last element) with n = 60 on a shuffled permutation and on an already sorted input. Explain why sorted input makes it O(n²) and compare with n(n-1)/2.",
+  "objetivos": [
+    "Understand that average and worst case can differ a lot",
+    "Relate pivot choice to complexity"
+  ],
+  "pistas": [
+    "With sorted data, the last element is always the maximum.",
+    "Then each partition leaves n - 1 elements on one side and 0 on the other.",
+    "Choosing a random pivot or the median of three avoids that case."
+  ],
+  "conceptos": [
+    "quick sort",
+    "worst case",
+    "pivot"
+  ]
+}

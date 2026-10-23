@@ -21,7 +21,7 @@ a veces, sobre el mismo equipo compartido. El programa del estudiante es
 | **fork bomb / procesos** | `RLIMIT_NPROC=64` (Unix), `--pids-limit=64` (Docker), `CREATE_NEW_PROCESS_GROUP` (Windows) | `sandbox.py` |
 | **Ventanas emergentes ocultas** | `CREATE_NO_WINDOW` en subprocess de sandbox | `sandbox.py` |
 | **Codificación no UTF-8** | Rechazo temprano con `IL-LEX-001` antes del lexer | `cli.py::leer_fuente`, `gui_qt.py`, `gui.py` |
-| **Inyección / XSS en salida** | Salida sanitizada/truncada en GUI, sin `eval`/`exec` de código del estudiante | `security.py::sanitizar_salida` |
+| **Inyección / XSS en salida** | Sin `eval`/`exec` de código del estudiante; la salida del sandbox se trunca (5000 caracteres) | `sandbox.py::ResourceSandbox` |
 | **Sobrescritura de binarios** | Extensiones `.py/.exe/.dll/.sh` bloqueadas en builtins | `builtins.py` |
 
 ## Lo que NO se promete
@@ -53,6 +53,6 @@ objetivo: 5 días hábiles.
 ## Auditoría
 
 ```bash
-python -c "from inveniolang.security import auditar_seguridad; print(auditar_seguridad())"
+python -m pytest tests/test_auditoria.py -q   # rutas peligrosas rechazadas por validar_ruta_relativa
 python pruebas/conformidad.py   # 391 casos, debe pasar al 100%
 ```

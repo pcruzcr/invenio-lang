@@ -1,0 +1,21 @@
+{
+  "id": "N01-E08",
+  "nivel": 1,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Reading input",
+  "enunciado": "Read a name (string) and a birth year (int). Show a greeting and the age the person turns in 2026.",
+  "objetivos": [
+    "Read values with read",
+    "Combine input data in computations"
+  ],
+  "pistas": [
+    "The variable must be declared before reading into it.",
+    "read converts the typed text to the variable's type.",
+    "Age = 2026 - birth year."
+  ],
+  "conceptos": [
+    "input",
+    "read"
+  ]
+}

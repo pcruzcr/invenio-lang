@@ -1,0 +1,25 @@
+// Nivel 2 · Ejercicio 08 — Ciclos anidados: figuras
+// Objetivos:
+//   - Anidar un ciclo dentro de otro
+//   - Relacionar el número de fila con la cantidad de símbolos
+//
+constante entero FILAS = 4;
+
+vacio main() {
+    para (entero f = 1; f <= FILAS; f++) {
+        para (entero c = 1; c <= f; c++) {
+            imprimir("*");
+        }
+        imprimir("\n");
+    }
+    // Pirámide: espacios a la izquierda y luego 2f - 1 asteriscos.
+    para (entero f = 1; f <= FILAS; f++) {
+        para (entero e = 1; e <= FILAS - f; e++) {
+            imprimir(" ");
+        }
+        para (entero c = 1; c <= 2 * f - 1; c++) {
+            imprimir("*");
+        }
+        imprimir("\n");
+    }
+}

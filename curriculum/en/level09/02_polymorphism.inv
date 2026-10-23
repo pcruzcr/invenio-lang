@@ -1,0 +1,32 @@
+// Level 9 · Exercise 02 — Polymorphism
+// Learning goals:
+//   - Override methods in subclasses
+//   - Use dynamic dispatch: the method depends on the real object
+//
+class Animal {
+    public string name;
+    Animal(string n) { this.name = n; }
+    public string speak() { return "..."; }
+    public string introduce() { return this.name + " says " + this.speak(); }
+}
+
+class Dog extends Animal {
+    Dog(string n) { super(n); }
+    public string speak() { return "woof"; }
+}
+
+class Cat extends Animal {
+    Cat(string n) { super(n); }
+    public string speak() { return "meow"; }
+}
+
+void main() {
+    Animal animals[3];
+    animals[0] = new Dog("Rex");
+    animals[1] = new Cat("Misu");
+    animals[2] = new Animal("Nemo");
+    for (int i = 0; i < 3; i++) {
+        // Same message, different behaviours.
+        print(animals[i].introduce()); print("\n");
+    }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N13-E04",
+  "nivel": 13,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "De exponencial a lineal: memoización",
+  "enunciado": "Cuenta las llamadas de fib(n) ingenuo y de una versión con memoización (un arreglo que recuerda los resultados ya calculados) para n = 5, 10, 15 y 20.",
+  "objetivos": [
+    "Identificar subproblemas repetidos",
+    "Bajar de O(2^n) a O(n) guardando resultados"
+  ],
+  "pistas": [
+    "memo[i] = -1 significa 'aún no calculado'.",
+    "Antes de calcular, mira si ya está en memo.",
+    "Las llamadas ingenuas crecen como la propia sucesión de Fibonacci."
+  ],
+  "conceptos": [
+    "memoización",
+    "programación dinámica",
+    "O(2^n)"
+  ]
+}

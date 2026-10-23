@@ -1,0 +1,44 @@
+// Level 9 · Exercise 11 — Decorator pattern
+// Learning goals:
+//   - Add responsibilities by wrapping objects
+//   - Combine decorators in any order
+//
+abstract class TextComponent {
+    public abstract string render();
+}
+
+class PlainText extends TextComponent {
+    private string content;
+    PlainText(string c) { this.content = c; }
+    public string render() { return this.content; }
+}
+
+class Bold extends TextComponent {
+    private TextComponent wrapped;
+    Bold(TextComponent t) { this.wrapped = t; }
+    public string render() {
+        TextComponent t = this.wrapped;
+        return "*" + t.render() + "*";
+    }
+}
+
+class Underline extends TextComponent {
+    private TextComponent wrapped;
+    Underline(TextComponent t) { this.wrapped = t; }
+    public string render() {
+        TextComponent t = this.wrapped;
+        return "_" + t.render() + "_";
+    }
+}
+
+void main() {
+    TextComponent base = new PlainText("hola");
+    TextComponent a = new Bold(base);
+    TextComponent b = new Underline(a);
+    // Decorators stack: each layer wraps the previous one.
+    TextComponent c = new Bold(new Bold(new Underline(base)));
+    print(base.render()); print("\n");
+    print(a.render()); print("\n");
+    print(b.render()); print("\n");
+    print(c.render()); print("\n");
+}

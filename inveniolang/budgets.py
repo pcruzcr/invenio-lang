@@ -1,10 +1,14 @@
-# budgets.py — Presupuestos de tiempo/memoria y alertas, monitorizable
-#
-# Cubre: monitorizable, alertable, costo-eficiente, energéticamente eficiente,
-# elástico, tolerante a degradación, auto-monitoreable, gobernable.
+"""Presupuestos de tiempo por fase y alertas sobre ``PipelineMetrics``.
+
+INV-1026: la CLI (``--metrics``) adjunta estas alertas a las métricas; antes
+solo las usaban las pruebas. Se eliminaron ``max_salida_chars`` (nadie lo
+comprobaba) y ``dentro_de_presupuesto`` (sin llamadores).
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -13,7 +17,6 @@ class Budget:
 
     max_total_ms: float = 5000.0
     max_fase_ms: float = 2000.0
-    max_salida_chars: int = 10000
 
 
 @dataclass(frozen=True)
@@ -26,7 +29,7 @@ class Alerta:
     ms: float = 0.0
 
 
-def evaluar_metricas(metrics, budget: Budget | None = None) -> list[Alerta]:
+def evaluar_metricas(metrics: Any, budget: Budget | None = None) -> list[Alerta]:
     """Evalúa PipelineMetrics contra un presupuesto y retorna alertas."""
     budget = budget or Budget()
     alertas: list[Alerta] = []
@@ -48,8 +51,3 @@ def evaluar_metricas(metrics, budget: Budget | None = None) -> list[Alerta]:
     if not alertas:
         alertas.append(Alerta(nivel="INFO", mensaje="dentro de presupuesto", ms=total))
     return alertas
-
-
-def dentro_de_presupuesto(metrics, budget: Budget | None = None) -> bool:
-    """True si no hay alertas WARN/CRIT."""
-    return all(a.nivel == "INFO" for a in evaluar_metricas(metrics, budget))

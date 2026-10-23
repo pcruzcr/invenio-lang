@@ -1,0 +1,21 @@
+{
+  "id": "N03-E05",
+  "nivel": 3,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Funciones lógicas",
+  "enunciado": "Escribe esBisiesto(anio) (divisible entre 4 y no entre 100, o divisible entre 400) y muéstralo para 1900, 2000, 2024 y 2026. Después cuenta los bisiestos entre 1901 y 2000.",
+  "objetivos": [
+    "Escribir funciones que retornan logico",
+    "Traducir una regla del lenguaje natural a una expresión lógica"
+  ],
+  "pistas": [
+    "Retorna directamente la expresión lógica, sin si.",
+    "Usa paréntesis para dejar clara la combinación de && y ||.",
+    "Entre 1901 y 2000 debería haber 25."
+  ],
+  "conceptos": [
+    "función lógica",
+    "año bisiesto"
+  ]
+}

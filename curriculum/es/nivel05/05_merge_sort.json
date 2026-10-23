@@ -1,0 +1,22 @@
+{
+  "id": "N05-E05",
+  "nivel": 5,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Merge sort (ordenamiento por mezcla)",
+  "enunciado": "Ordena {38, 27, 43, 3, 9, 82, 10, 5} con merge sort recursivo. Muestra cada mezcla («merge [izq..der]» y el subarreglo resultante).",
+  "objetivos": [
+    "Aplicar divide y vencerás",
+    "Reutilizar la mezcla de dos ordenados"
+  ],
+  "pistas": [
+    "Divide en mitades hasta que cada parte tenga un elemento.",
+    "Mezcla usando un arreglo temporal.",
+    "Copia el temporal de vuelta a a[izq..der]."
+  ],
+  "conceptos": [
+    "merge sort",
+    "divide y vencerás",
+    "O(n log n)"
+  ]
+}

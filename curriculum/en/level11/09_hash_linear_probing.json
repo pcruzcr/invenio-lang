@@ -1,0 +1,22 @@
+{
+  "id": "N11-E09",
+  "nivel": 11,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Hash table with linear probing",
+  "enunciado": "Implement a hash table of capacity 11 with parallel arrays keys/values/used and hash function h(k) = k % 11. Collisions are resolved with linear probing. Insert the keys 22, 33, 5, 16, 44 with their values, show how many probes each needed and look up 33, 16 and 7.",
+  "objetivos": [
+    "Understand hash functions and collisions",
+    "Implement open addressing with linear probing"
+  ],
+  "pistas": [
+    "22, 33 and 44 all land at position 0: collision.",
+    "If the slot is taken try the next one: (p + 1) % CAP.",
+    "The search stops when it finds the key or an empty slot."
+  ],
+  "conceptos": [
+    "hash table",
+    "collision",
+    "linear probing"
+  ]
+}

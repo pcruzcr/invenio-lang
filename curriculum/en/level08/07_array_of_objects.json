@@ -1,0 +1,21 @@
+{
+  "id": "N08-E07",
+  "nivel": 8,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Array of objects",
+  "enunciado": "Store 5 students (name, grade) in an array of objects. Show the average, the best student and the list of those who passed (grade >= 70).",
+  "objetivos": [
+    "Declare and traverse arrays of objects",
+    "Call methods on array elements"
+  ],
+  "pistas": [
+    "An array of objects is declared Student list[5];",
+    "students[i].getGrade() calls the method of element i.",
+    "Keep the position of the best, not only its grade."
+  ],
+  "conceptos": [
+    "array of objects",
+    "traversal"
+  ]
+}

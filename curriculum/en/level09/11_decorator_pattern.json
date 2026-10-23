@@ -1,0 +1,22 @@
+{
+  "id": "N09-E11",
+  "nivel": 9,
+  "numero": 11,
+  "idioma": "en",
+  "titulo": "Decorator pattern",
+  "enunciado": "A PlainText renders as is. The decorators Bold (\"*...*\") and Underline (\"_..._\") wrap any TextComponent and add their formatting. Combine them in several ways.",
+  "objetivos": [
+    "Add responsibilities by wrapping objects",
+    "Combine decorators in any order"
+  ],
+  "pistas": [
+    "Decorators extend TextComponent and HAVE a TextComponent.",
+    "The decorator's render() calls the wrapped one and adds something.",
+    "Bold(Underline(x)) and Underline(Bold(x)) give different results."
+  ],
+  "conceptos": [
+    "Decorator",
+    "wrapping",
+    "composition"
+  ]
+}

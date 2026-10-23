@@ -1,0 +1,77 @@
+// Nivel 11 · Ejercicio 04 — Altura, nodos y hojas
+// Objetivos:
+//   - Definir propiedades del árbol recursivamente
+//   - Ver cómo el orden de inserción determina la forma del árbol
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo izq;
+    publico Nodo der;
+    Nodo(entero v) { este.valor = v; }
+}
+
+// Inserción recursiva: devuelve la raíz (posiblemente nueva) del subárbol.
+Nodo insertar(Nodo r, entero v) {
+    si (r == nulo) {
+        retornar nuevo Nodo(v);
+    }
+    si (v < r.valor) {
+        r.izq = insertar(r.izq, v);
+    } sino {
+        si (v > r.valor) {
+            r.der = insertar(r.der, v);
+        }
+    }
+    retornar r;
+}
+
+vacio inorden(Nodo r) {
+    si (r != nulo) {
+        inorden(r.izq);
+        imprimir(r.valor); imprimir(" ");
+        inorden(r.der);
+    }
+}
+
+entero altura(Nodo r) {
+    si (r == nulo) {
+        retornar -1;
+    }
+    entero hi = altura(r.izq);
+    entero hd = altura(r.der);
+    retornar 1 + (hi > hd ? hi : hd);
+}
+
+entero contarNodos(Nodo r) {
+    si (r == nulo) {
+        retornar 0;
+    }
+    retornar 1 + contarNodos(r.izq) + contarNodos(r.der);
+}
+
+entero contarHojas(Nodo r) {
+    si (r == nulo) {
+        retornar 0;
+    }
+    si (r.izq == nulo && r.der == nulo) {
+        retornar 1;
+    }
+    retornar contarHojas(r.izq) + contarHojas(r.der);
+}
+
+vacio informe(entero [] datos) {
+    Nodo raiz = nulo;
+    para (entero i = 0; i < 7; i++) {
+        raiz = insertar(raiz, datos[i]);
+    }
+    imprimir("height="); imprimir(altura(raiz));
+    imprimir(" nodes="); imprimir(contarNodos(raiz));
+    imprimir(" leaves="); imprimir(contarHojas(raiz)); imprimir("\n");
+}
+
+vacio main() {
+    entero [7] equilibrado = {4, 2, 6, 1, 3, 5, 7};
+    entero [7] degenerado = {1, 2, 3, 4, 5, 6, 7};
+    informe(equilibrado);
+    informe(degenerado);
+}

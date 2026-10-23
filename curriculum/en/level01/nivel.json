@@ -1,0 +1,14 @@
+{
+  "nivel": 1,
+  "titulo": "Fundamentals: variables, types, operators and I/O",
+  "descripcion": "First programs: display data, store values in variables, compute with them and read user input.",
+  "temas": [
+    "output with print",
+    "variables and constants",
+    "int, float, string and bool types",
+    "arithmetic, relational and logical operators",
+    "input with read",
+    "type conversions"
+  ],
+  "idioma": "en"
+}

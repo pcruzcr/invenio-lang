@@ -1,0 +1,21 @@
+{
+  "id": "N06-E08",
+  "nivel": 6,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Pascal's triangle",
+  "enunciado": "Build the first 7 rows of Pascal's triangle in a matrix (each number is the sum of the two above it) and show them.",
+  "objetivos": [
+    "Compute each cell from cells already computed",
+    "Introduce dynamic programming"
+  ],
+  "pistas": [
+    "The ends of every row are 1.",
+    "p[i][j] = p[i-1][j-1] + p[i-1][j].",
+    "Row i has i + 1 elements."
+  ],
+  "conceptos": [
+    "dynamic programming",
+    "binomial coefficients"
+  ]
+}

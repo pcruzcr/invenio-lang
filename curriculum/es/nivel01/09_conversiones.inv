@@ -1,0 +1,13 @@
+// Nivel 1 · Ejercicio 09 — Conversión de tipos
+// Objetivos:
+//   - Usar las funciones de conversión
+//   - Saber que real→entero trunca
+//
+vacio main() {
+    imprimir(entero_a_real(7)); imprimir("\n");
+    // Truncar no es redondear: 9.99 se convierte en 9.
+    imprimir(real_a_entero(9.99)); imprimir("\n");
+    entero n = texto_a_entero("42");
+    imprimir(n + 8); imprimir("\n");
+    imprimir("año " + entero_a_texto(2026)); imprimir("\n");
+}

@@ -1,0 +1,14 @@
+{
+  "nivel": 13,
+  "titulo": "Complejidad algorítmica",
+  "descripcion": "Medir el trabajo de los algoritmos contando operaciones y relacionarlo con la notación O: O(1), O(log n), O(n), O(n log n), O(n²) y O(2^n).",
+  "temas": [
+    "conteo de operaciones",
+    "órdenes de crecimiento",
+    "mejor, peor y caso promedio",
+    "O(n²) frente a O(n log n)",
+    "memoización",
+    "rediseñar un algoritmo para bajar su orden"
+  ],
+  "idioma": "es"
+}

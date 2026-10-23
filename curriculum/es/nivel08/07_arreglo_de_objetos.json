@@ -1,0 +1,21 @@
+{
+  "id": "N08-E07",
+  "nivel": 8,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Arreglo de objetos",
+  "enunciado": "Guarda 5 estudiantes (nombre, nota) en un arreglo de objetos. Muestra el promedio, el mejor estudiante y la lista de aprobados (nota >= 70).",
+  "objetivos": [
+    "Declarar y recorrer arreglos de objetos",
+    "Invocar métodos sobre elementos del arreglo"
+  ],
+  "pistas": [
+    "Un arreglo de objetos se declara Estudiante lista[5];",
+    "estudiantes[i].getNota() invoca el método del elemento i.",
+    "Guarda la posición del mejor, no solo su nota."
+  ],
+  "conceptos": [
+    "arreglo de objetos",
+    "recorrido"
+  ]
+}

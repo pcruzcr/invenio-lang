@@ -1,0 +1,28 @@
+// Nivel 3 · Ejercicio 12 — Funciones como valores
+// Objetivos:
+//   - Tratar funciones como valores
+//   - Usar funciones de orden superior: mapear, filtrar, reducir
+//
+entero sumar(entero a, entero b) {
+    retornar a + b;
+}
+
+vacio main() {
+    entero [5] datos = {3, 8, 1, 6, 5};
+    entero [5] dobles;
+    entero [5] pares;
+
+    // Una función anónima (lambda) guardada en una variable.
+    funcion(entero x) entero duplicar;
+    duplicar = funcion(entero x) entero { retornar x * 2; };
+    mapear(datos, dobles, duplicar);
+    para_cada (entero d : dobles) { imprimir(d); imprimir(" "); }
+    imprimir("\n");
+
+    entero cuantos = filtrar(datos, pares, funcion(entero x) logico { retornar x % 2 == 0; });
+    para (entero i = 0; i < cuantos; i++) { imprimir(pares[i]); imprimir(" "); }
+    imprimir("\n");
+
+    // Una función con nombre también es un valor.
+    imprimir(reducir(datos, sumar, 0)); imprimir("\n");
+}

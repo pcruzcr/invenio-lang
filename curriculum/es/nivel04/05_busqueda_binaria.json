@@ -1,0 +1,23 @@
+{
+  "id": "N04-E05",
+  "nivel": 4,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Búsqueda binaria",
+  "enunciado": "En el arreglo ordenado {2, 5, 8, 12, 16, 23, 38, 56, 72, 91} busca 23 y 7 con búsqueda binaria iterativa, mostrando en cada paso los límites izq, der y el medio.",
+  "objetivos": [
+    "Implementar búsqueda binaria",
+    "Entender por qué el arreglo debe estar ordenado",
+    "Ver cómo el intervalo se reduce a la mitad"
+  ],
+  "pistas": [
+    "medio = (izq + der) / 2.",
+    "Si a[medio] < x, la respuesta está a la derecha: izq = medio + 1.",
+    "El ciclo termina cuando izq > der."
+  ],
+  "conceptos": [
+    "búsqueda binaria",
+    "divide y vencerás",
+    "O(log n)"
+  ]
+}

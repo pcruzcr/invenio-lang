@@ -11,14 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      # INV-4413: las pruebas del estudio web y de la extensión VS Code se
+      # ejecutan con `node --test`; las de la GUI Qt sin pantalla.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
       - name: Install dependencies
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -31,14 +38,16 @@ jobs:
         run: |
           pip install mypy
           mypy inveniolang --config-file mypy.ini
-      - name: Conformidad 1.0 + 2.0 (391 casos)
+      - name: Conformidad 1.0 + 2.0 + 11 (408 casos)
         run: python pruebas/conformidad.py
       - name: Lexer 28 casos
         run: python test_lexer_errors.py
       - name: Audit general
         run: python _audit.py <<< ""
-      - name: Curriculum H1
-        run: python curriculum/runner.py nivel1 && python curriculum/runner.py nivel2
+      # INV-1204: todos los niveles, versión es y en, con comparación es==en;
+      # el runner sale con código != 0 si cualquier ejercicio falla.
+      - name: Curriculum (13 niveles, es + en)
+        run: python curriculum/runner.py todos --version ambas
       - name: CLI flags smoke
         run: |
           python main.py --check pruebas/hola_mundo.inv
@@ -48,18 +57,24 @@ jobs:
           python main.py --check pruebas/estructurado.inv
           python main.py --check pruebas/poo_completo.inv
       - name: Coverage (>80% bloqueante)
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: |
           pip install pytest-cov
           pytest --cov=inveniolang --cov-report=term-missing --cov-fail-under=80 -q
-          python -c "from inveniolang.error_explainer import explicar; print(explicar('IL-SEM-003'))"
-          python -c "from inveniolang.ds_visualizer import VisualizerObserver; print('ds_visualizer OK')"
-          python -c "from inveniolang.complexity import analyze; print(analyze('void main(){ int x=0; }'))"
-          python -m inveniolang.grammar_validator
-          python -m inveniolang.sandbox --help || echo "sandbox ok"
-      - name: Mutation smoke
+      # INV-1033: se quitaron pasos que no verificaban nada (`sandbox --help ||
+      # echo ok`, "Mutation smoke" que solo hacía echo, import de ds_visualizer).
+      - name: Herramientas documentadas
         run: |
-          pip install mutmut || true
-          echo "mutmut installed"
+          python -m inveniolang.grammar_validator
+          python main.py --cli --complejidad pruebas/mergesort.inv
+          python main.py --cli --ssa pruebas/ciclos.inv > /dev/null
+          python -m inveniolang.cli trazar pruebas/ciclos.inv --texto > /dev/null
+          python -m inveniolang.cli flujo pruebas/ciclos.inv --texto > /dev/null
+          python -m inveniolang.cli bloques pruebas/ciclos.inv --texto > /dev/null
+          python scripts/empaquetar_web.py && python scripts/empaquetar_web.py --comprobar
+          python scripts/limpiar_obsoletos.py
+          python scripts/verify_release.py
 
   lint:
     runs-on: ubuntu-latest
@@ -72,6 +87,10 @@ jobs:
         run: |
           pip install flake8
           flake8 inveniolang/
+      - name: ruff — bloqueante (configuración de pyproject)
+        run: |
+          pip install ruff
+          ruff check .
       - name: black — sin cambios de formato pendientes
         run: |
           pip install black

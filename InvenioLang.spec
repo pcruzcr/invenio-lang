@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('inveniolang/parsetab.py', 'inveniolang')],
+    datas=[('inveniolang/parsetab.py', 'inveniolang'), ('inveniolang/stdlib', 'inveniolang/stdlib')],
     hiddenimports=['ply.lex', 'ply.yacc'],
     hookspath=[],
     hooksconfig={},

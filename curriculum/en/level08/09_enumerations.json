@@ -1,0 +1,22 @@
+{
+  "id": "N08-E09",
+  "nivel": 8,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Enumerations",
+  "enunciado": "Define enum TrafficLight { RED, GREEN, YELLOW } and a function nextColor that, using match, returns the next color (RED -> GREEN -> YELLOW -> RED). Simulate 5 changes showing the name of each color.",
+  "objetivos": [
+    "Represent a closed set of values with enum",
+    "Use exhaustive match"
+  ],
+  "pistas": [
+    "Values are used as TrafficLight.RED.",
+    "match requires covering every case (or a default).",
+    "An enum is not an int: it cannot be compared with 0."
+  ],
+  "conceptos": [
+    "enumeration",
+    "match",
+    "exhaustiveness"
+  ]
+}

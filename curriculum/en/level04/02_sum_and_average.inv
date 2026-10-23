@@ -1,0 +1,29 @@
+// Level 4 · Exercise 02 — Sum, average and values above average
+// Learning goals:
+//   - Fill an array with input data
+//   - Traverse twice: once to compute and once to compare
+//
+const int N = 6;
+
+void main() {
+    float [N] grades;
+    float sum = 0.0;
+    for (int i = 0; i < N; i++) {
+        float x;
+        read(x);   // read takes a variable; then it is copied into the array
+        grades[i] = x;
+        sum += x;
+    }
+    float average = sum / 6.0;
+    print("sum = "); print(sum); print("\n");
+    print("average = "); print(average); print("\n");
+    int above = 0;
+    for (int i = 0; i < N; i++) {
+        if (grades[i] > average) {
+            print(grades[i]); print(" ");
+            above++;
+        }
+    }
+    print("\n");
+    print("above = "); print(above); print("\n");
+}

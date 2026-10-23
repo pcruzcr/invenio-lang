@@ -1,0 +1,42 @@
+// Level 6 · Exercise 04 — Matrix product
+// Learning goals:
+//   - Implement the row-by-column product
+//   - Check compatible dimensions
+//
+const int N = 3;
+
+void printMatrix(int [][] m, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            print(m[i][j]);
+            if (j < cols - 1) {
+                print("\t");
+            }
+        }
+        print("\n");
+    }
+}
+
+void multiply(int [][] A, int [][] B, int [][] C, int n, int m, int p) {
+    // A is n x m, B is m x p and C will be n x p.
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < p; j++) {
+            C[i][j] = 0;
+            for (int k = 0; k < m; k++) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+}
+
+void main() {
+    int [2][3] A = {{1, 2, 3}, {4, 5, 6}};
+    int [3][2] B = {{7, 8}, {9, 10}, {11, 12}};
+    int [2][2] C;
+    multiply(A, B, C, 2, 3, 2);
+    printMatrix(C, 2, 2);
+    int [3][3] I = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    int [2][3] D;
+    multiply(A, I, D, 2, 3, 3);
+    printMatrix(D, 2, 3);
+}

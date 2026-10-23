@@ -1,0 +1,22 @@
+{
+  "id": "N08-E06",
+  "nivel": 8,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Composición: un auto tiene un motor",
+  "enunciado": "Modela Motor (potencia, encendido) y Auto que TIENE un Motor y un kilometraje. Auto.conducir(km) solo suma kilómetros si el motor está encendido. Muestra el kilometraje antes y después de arrancar.",
+  "objetivos": [
+    "Construir objetos a partir de otros objetos (relación tiene-un)",
+    "Delegar trabajo en el objeto contenido"
+  ],
+  "pistas": [
+    "El Auto crea su Motor en el constructor.",
+    "Para usar el motor guarda primero este.motor en una variable local: Motor m = este.motor;",
+    "Composición: el motor vive y muere con el auto."
+  ],
+  "conceptos": [
+    "composición",
+    "delegación",
+    "tiene-un"
+  ]
+}

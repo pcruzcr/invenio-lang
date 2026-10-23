@@ -1,0 +1,37 @@
+// Nivel 3 · Ejercicio 11 — Recursión con cadenas y dígitos
+// Objetivos:
+//   - Aplicar recursión sobre números y cadenas
+//   - Imprimir en el orden correcto aprovechando la vuelta de la recursión
+//
+entero sumaDigitos(entero n) {
+    si (n < 10) {
+        retornar n;
+    }
+    retornar n % 10 + sumaDigitos(n / 10);
+}
+
+logico esPalindromo(texto s, entero i, entero j) {
+    si (i >= j) {
+        retornar verdadero;   // 0 o 1 caracteres: siempre palíndromo
+    }
+    si (caracter_en(s, i) != caracter_en(s, j)) {
+        retornar falso;
+    }
+    retornar esPalindromo(s, i + 1, j - 1);
+}
+
+vacio binario(entero n) {
+    si (n >= 2) {
+        binario(n / 2);   // primero los bits más significativos
+    }
+    imprimir(n % 2);
+}
+
+vacio main() {
+    imprimir(sumaDigitos(9045)); imprimir("\n");
+    texto p = "reconocer";
+    texto q = "recursion";
+    imprimir(esPalindromo(p, 0, longitud_texto(p) - 1)); imprimir("\n");
+    imprimir(esPalindromo(q, 0, longitud_texto(q) - 1)); imprimir("\n");
+    binario(37); imprimir("\n");
+}

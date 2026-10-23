@@ -1,0 +1,15 @@
+// Nivel 1 · Ejercicio 12 — Conversor de temperatura
+// Objetivos:
+//   - Resolver un problema completo: entrada, proceso y salida
+//   - Escribir fórmulas con reales
+//
+vacio main() {
+    real celsius;
+    leer(celsius);
+    // Proceso: aplicar las fórmulas.
+    real fahrenheit = celsius * 9.0 / 5.0 + 32.0;
+    real kelvin = celsius + 273.15;
+    // Salida
+    imprimir(fahrenheit); imprimir(" F\n");
+    imprimir(kelvin); imprimir(" K\n");
+}

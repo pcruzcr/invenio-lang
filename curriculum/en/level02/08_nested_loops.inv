@@ -1,0 +1,25 @@
+// Level 2 · Exercise 08 — Nested loops: shapes
+// Learning goals:
+//   - Nest one loop inside another
+//   - Relate the row number to the number of symbols
+//
+const int ROWS = 4;
+
+void main() {
+    for (int f = 1; f <= ROWS; f++) {
+        for (int c = 1; c <= f; c++) {
+            print("*");
+        }
+        print("\n");
+    }
+    // Pyramid: spaces on the left and then 2f - 1 stars.
+    for (int f = 1; f <= ROWS; f++) {
+        for (int e = 1; e <= ROWS - f; e++) {
+            print(" ");
+        }
+        for (int c = 1; c <= 2 * f - 1; c++) {
+            print("*");
+        }
+        print("\n");
+    }
+}

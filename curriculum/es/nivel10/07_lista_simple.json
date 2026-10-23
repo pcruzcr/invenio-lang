@@ -1,0 +1,23 @@
+{
+  "id": "N10-E07",
+  "nivel": 10,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Lista simplemente enlazada",
+  "enunciado": "Implementa ListaSimple con insertarInicio, insertarFinal, buscar, eliminar (primera aparición) e invertir (cambiando los enlaces, sin crear nodos). Ejecuta una secuencia de operaciones mostrando la lista.",
+  "objetivos": [
+    "Manipular enlaces entre nodos",
+    "Tratar los casos especiales: lista vacía y primer nodo",
+    "Invertir una lista con tres referencias"
+  ],
+  "pistas": [
+    "Para eliminar, necesitas el nodo ANTERIOR al que se borra.",
+    "Si se elimina la cabeza, la cabeza pasa a ser su siguiente.",
+    "Invertir: anterior, actual, siguiente; voltea un enlace por vuelta."
+  ],
+  "conceptos": [
+    "lista enlazada",
+    "nodo",
+    "enlace"
+  ]
+}

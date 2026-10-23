@@ -1,0 +1,22 @@
+{
+  "id": "N10-E03",
+  "nivel": 10,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Balanced brackets",
+  "enunciado": "Use a stack of strings to decide whether each expression has its ( ) [ ] { } symbols properly balanced: \"{a[(b+c)*d]}\", \"(a+b]\", \"((x)\", \"x+y)\" and \"[{()()}]\".",
+  "objetivos": [
+    "Apply a stack to a real compiler problem",
+    "Detect the three kinds of error: wrong closer, closer without opener and opener without closer"
+  ],
+  "pistas": [
+    "Push every opening symbol.",
+    "On a closer, the top must be its partner; if the stack is empty, it fails.",
+    "At the end the stack must be empty."
+  ],
+  "conceptos": [
+    "stack",
+    "parsing",
+    "balancing"
+  ]
+}

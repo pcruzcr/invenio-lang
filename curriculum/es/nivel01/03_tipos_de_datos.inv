@@ -1,0 +1,16 @@
+// Nivel 1 · Ejercicio 03 — Tipos de datos
+// Objetivos:
+//   - Distinguir los cuatro tipos primitivos
+//   - Ver cómo se imprime cada tipo
+//
+vacio main() {
+    entero edad = 15;           // número sin decimales
+    real estatura = 1.68;       // número con decimales
+    texto pais = "Costa Rica";  // cadena de caracteres
+    logico estudiante = verdadero;
+
+    imprimir("int: "); imprimir(edad); imprimir("\n");
+    imprimir("float: "); imprimir(estatura); imprimir("\n");
+    imprimir("string: "); imprimir(pais); imprimir("\n");
+    imprimir("bool: "); imprimir(estudiante); imprimir("\n");
+}

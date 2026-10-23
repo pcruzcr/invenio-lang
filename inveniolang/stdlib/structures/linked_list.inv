@@ -1,0 +1,152 @@
+// structures/linked_list.inv -- Singly linked list
+//
+// InvenioLang educational standard library (INV-1430).
+// Usage:   import "structures/linked_list";
+//
+// Idea: a chain of nodes where each one knows ONLY the next one.
+// Inserting or removing at the beginning costs O(1); reaching position i
+// requires walking i nodes, O(n). Positions start at 0, as in an array.
+//
+//      head -> [ 7 ] -> [ 4 ] -> [ 9 ] -> null
+
+class ListNode {
+    public int value;
+    public ListNode next;
+
+    ListNode(int v) {
+        this.value = v;
+    }
+}
+
+class LinkedList {
+    private ListNode head;
+    private int count;
+
+    // Inserts v as the first element. O(1).
+    public void add_first(int v) {
+        ListNode node = new ListNode(v);
+        node.next = this.head;
+        this.head = node;
+        this.count = this.count + 1;
+    }
+
+    // Inserts v as the last element. O(n): the end has to be reached.
+    public void add_last(int v) {
+        this.insert(this.count, v);
+    }
+
+    // Inserts v so that it ends up at position pos (0..size). O(pos).
+    public void insert(int pos, int v) {
+        if (pos < 0 || pos > this.count) {
+            throw_error("insert: position out of range");
+        }
+        if (pos == 0) {
+            this.add_first(v);
+            return;
+        }
+        // Find the node BEFORE the position and "hook" the new one in.
+        ListNode previous = this.node_at(pos - 1);
+        ListNode node = new ListNode(v);
+        node.next = previous.next;
+        previous.next = node;
+        this.count = this.count + 1;
+    }
+
+    // Removes the element at position pos and returns it. O(pos).
+    public int remove_at(int pos) {
+        this.check_position(pos);
+        ListNode removed = this.head;
+        if (pos == 0) {
+            this.head = removed.next;
+        } else {
+            ListNode previous = this.node_at(pos - 1);
+            removed = previous.next;
+            previous.next = removed.next;
+        }
+        this.count = this.count - 1;
+        return removed.value;
+    }
+
+    // Value at position pos. O(pos).
+    public int get(int pos) {
+        this.check_position(pos);
+        ListNode node = this.node_at(pos);
+        return node.value;
+    }
+
+    // Replaces the value at position pos. O(pos).
+    public void set(int pos, int v) {
+        this.check_position(pos);
+        ListNode node = this.node_at(pos);
+        node.value = v;
+    }
+
+    // Position of the first occurrence of v, or -1 if absent. O(n).
+    public int find(int v) {
+        int pos = 0;
+        ListNode current = this.head;
+        while (current != null) {
+            if (current.value == v) {
+                return pos;
+            }
+            pos = pos + 1;
+            current = current.next;
+        }
+        return -1;
+    }
+
+    public bool contains(int v) {
+        return this.find(v) != -1;
+    }
+
+    // Reverses the list in place, without creating new nodes. O(n).
+    // The links are turned around one by one.
+    public void reverse() {
+        ListNode prev = null;
+        ListNode current = this.head;
+        while (current != null) {
+            ListNode next_node = current.next;
+            current.next = prev;
+            prev = current;
+            current = next_node;
+        }
+        this.head = prev;
+    }
+
+    public int size() {
+        return this.count;
+    }
+
+    public bool is_empty() {
+        return this.count == 0;
+    }
+
+    // Representation, e.g. "[7, 4, 9]".
+    public string to_text() {
+        string s = "[";
+        ListNode current = this.head;
+        while (current != null) {
+            s = s + int_to_string(current.value);
+            if (current.next != null) {
+                s = s + ", ";
+            }
+            current = current.next;
+        }
+        return s + "]";
+    }
+
+    // Node at position pos (assumes 0 <= pos < size).
+    private ListNode node_at(int pos) {
+        ListNode current = this.head;
+        for (int i = 0; i < pos; i++) {
+            current = current.next;
+        }
+        return current;
+    }
+
+    private void check_position(int pos) {
+        if (pos < 0 || pos >= this.count) {
+            throw_error("position out of range: " + int_to_string(pos));
+        }
+    }
+}

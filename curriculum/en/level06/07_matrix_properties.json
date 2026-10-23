@@ -1,0 +1,22 @@
+{
+  "id": "N06-E07",
+  "nivel": 6,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Properties: symmetric and identity",
+  "enunciado": "Write the functions isSymmetric(m, n) and isIdentity(m, n) and test them with three 3x3 matrices: the identity, a symmetric non-identity and a non-symmetric one.",
+  "objetivos": [
+    "Check a property over all elements",
+    "Exit as soon as a counterexample is found"
+  ],
+  "pistas": [
+    "Symmetric: m[i][j] == m[j][i] for all i, j.",
+    "Identity: 1 on the diagonal and 0 elsewhere.",
+    "Return false as soon as one position fails."
+  ],
+  "conceptos": [
+    "symmetric matrix",
+    "identity matrix",
+    "counterexample"
+  ]
+}

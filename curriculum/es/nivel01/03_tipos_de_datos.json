@@ -1,0 +1,23 @@
+{
+  "id": "N01-E03",
+  "nivel": 1,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Tipos de datos",
+  "enunciado": "Declara una variable de cada tipo básico (entero, real, texto, logico) y muestra cada una en su propia línea con el formato «tipo: valor».",
+  "objetivos": [
+    "Distinguir los cuatro tipos primitivos",
+    "Ver cómo se imprime cada tipo"
+  ],
+  "pistas": [
+    "Los literales reales llevan punto decimal: 2.5.",
+    "Los textos van entre comillas dobles.",
+    "verdadero/true y falso/false son los valores lógicos."
+  ],
+  "conceptos": [
+    "entero",
+    "real",
+    "texto",
+    "logico"
+  ]
+}

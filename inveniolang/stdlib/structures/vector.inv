@@ -1,0 +1,114 @@
+// structures/vector.inv -- Dynamic vector (an array that grows by itself)
+//
+// InvenioLang educational standard library (INV-1430).
+// Usage:   import "structures/vector";
+//
+// Idea: a plain array has a fixed size. The vector keeps its data in an
+// array with spare CAPACITY; when it fills up, it creates one with DOUBLE
+// the capacity and copies the elements (new int[n], INV-1440). Copying
+// costs O(n), but since the capacity doubles it happens less and less
+// often: adding at the end costs O(1) AMORTIZED. Reading or writing
+// position i is O(1), just like in an array.
+//
+//   data:  [ 5 | 8 | 2 | _ | _ | _ | _ | _ ]   count = 3, capacity = 8
+
+const int VECTOR_INITIAL_CAPACITY = 4;
+
+class Vector {
+    private int[] data;
+    private int[] spare;
+    private int count;
+
+    Vector() {
+        this.data = new int[VECTOR_INITIAL_CAPACITY];
+    }
+
+    // Adds v at the end. O(1) amortized.
+    public void add(int v) {
+        if (this.count == array_length(this.data)) {
+            this.grow();
+        }
+        this.data[this.count] = v;
+        this.count = this.count + 1;
+    }
+
+    // Inserts v at position pos (0..size), shifting the others to the
+    // right. O(n).
+    public void insert(int pos, int v) {
+        if (pos < 0 || pos > this.count) {
+            throw_error("insert: position out of range");
+        }
+        if (this.count == array_length(this.data)) {
+            this.grow();
+        }
+        for (int i = this.count; i > pos; i--) {
+            this.data[i] = this.data[i - 1];
+        }
+        this.data[pos] = v;
+        this.count = this.count + 1;
+    }
+
+    // Removes the element at position pos (shifting the others to the
+    // left) and returns it. O(n).
+    public int remove_at(int pos) {
+        this.check_position(pos);
+        int removed = this.data[pos];
+        for (int i = pos; i < this.count - 1; i++) {
+            this.data[i] = this.data[i + 1];
+        }
+        this.count = this.count - 1;
+        return removed;
+    }
+
+    // O(1)
+    public int get(int pos) {
+        this.check_position(pos);
+        return this.data[pos];
+    }
+
+    // O(1)
+    public void set(int pos, int v) {
+        this.check_position(pos);
+        this.data[pos] = v;
+    }
+
+    public int size() {
+        return this.count;
+    }
+
+    // Reserved space (always >= size).
+    public int capacity() {
+        return array_length(this.data);
+    }
+
+    public bool is_empty() {
+        return this.count == 0;
+    }
+
+    // Representation, e.g. "[5, 8, 2]".
+    public string to_text() {
+        string s = "[";
+        for (int i = 0; i < this.count; i++) {
+            s = s + int_to_string(this.data[i]);
+            if (i < this.count - 1) {
+                s = s + ", ";
+            }
+        }
+        return s + "]";
+    }
+
+    // Doubles the capacity by copying the elements into a new array.
+    private void grow() {
+        this.spare = new int[2 * array_length(this.data)];
+        for (int i = 0; i < this.count; i++) {
+            this.spare[i] = this.data[i];
+        }
+        this.data = this.spare;
+    }
+
+    private void check_position(int pos) {
+        if (pos < 0 || pos >= this.count) {
+            throw_error("position out of range: " + int_to_string(pos));
+        }
+    }
+}

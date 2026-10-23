@@ -8,6 +8,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, replace
 
+from ._version import __version__
+
 
 def _env_int(name: str, default: int) -> int:
     try:
@@ -38,7 +40,7 @@ class Config:
     max_string_len: int = 100_000
     max_errores: int = 50
     ruta_max_len: int = 512
-    compiler_version: str = "10.0.0"
+    compiler_version: str = __version__
 
     @classmethod
     def desde_entorno(cls) -> Config:
@@ -72,4 +74,6 @@ class Config:
         }
 
 
-DEFAULT_CONFIG = Config()
+# La documentación de este módulo promete overrides por INVE_*, pero antes
+# DEFAULT_CONFIG era `Config()` y `desde_entorno()` no se llamaba nunca.
+DEFAULT_CONFIG = Config.desde_entorno()

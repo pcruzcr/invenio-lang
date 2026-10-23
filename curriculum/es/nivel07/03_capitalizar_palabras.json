@@ -1,0 +1,21 @@
+{
+  "id": "N07-E03",
+  "nivel": 7,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Capitalizar palabras",
+  "enunciado": "Convierte \"  hola   mundo de  invenio \" en \"Hola Mundo De Invenio\": elimina espacios sobrantes y pon en mayúscula la primera letra de cada palabra. Muestra también cuántas palabras hay.",
+  "objetivos": [
+    "Detectar inicio y fin de palabras",
+    "Usar una bandera de estado (dentro/fuera de palabra)"
+  ],
+  "pistas": [
+    "Una palabra empieza cuando ves una letra y estabas fuera de palabra.",
+    "Antes de cada palabra, salvo la primera, agrega un único espacio.",
+    "mayusculas / to_upper sobre un solo carácter lo convierte."
+  ],
+  "conceptos": [
+    "máquina de estados",
+    "palabras"
+  ]
+}

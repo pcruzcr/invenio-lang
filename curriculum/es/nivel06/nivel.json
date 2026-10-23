@@ -1,0 +1,14 @@
+{
+  "nivel": 6,
+  "titulo": "Matrices",
+  "descripcion": "Arreglos bidimensionales: recorridos por filas y columnas, operaciones de álgebra lineal y problemas sobre tablas.",
+  "temas": [
+    "declaración y recorrido por filas/columnas",
+    "suma y producto de matrices",
+    "transpuesta",
+    "diagonales",
+    "propiedades: simetría, identidad",
+    "matrices como tablas de datos"
+  ],
+  "idioma": "es"
+}

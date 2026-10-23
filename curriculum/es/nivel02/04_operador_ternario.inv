@@ -1,0 +1,23 @@
+// Nivel 2 · Ejercicio 04 — Operador ternario
+// Objetivos:
+//   - Escribir expresiones condicionales con ? :
+//   - Saber cuándo un ternario es más claro que un si
+//
+texto plural(entero n) {
+    retornar n == 1 ? "1 item" : entero_a_texto(n) + " items";
+}
+
+vacio main() {
+    entero a = 12;
+    entero b = 30;
+    // Se lee: si a > b entonces a, si no b.
+    entero mayor = a > b ? a : b;
+    imprimir(mayor); imprimir("\n");
+
+    entero v = -9;
+    entero absoluto_v = v < 0 ? -v : v;
+    imprimir(absoluto_v); imprimir("\n");
+
+    imprimir(plural(1)); imprimir("\n");
+    imprimir(plural(3)); imprimir("\n");
+}

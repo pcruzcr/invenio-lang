@@ -1,0 +1,19 @@
+// Nivel 2 · Ejercicio 09 — romper y continuar
+// Objetivos:
+//   - Saltar una vuelta con continuar
+//   - Salir de un ciclo con romper
+//
+vacio main() {
+    para (entero n = 1; n <= 20; n++) {
+        // continuar salta el resto del cuerpo, pero el n++ del para sí se ejecuta.
+        si (n % 3 == 0) {
+            continuar;
+        }
+        si (n > 10 && n % 7 == 0) {
+            imprimir("| stop at "); imprimir(n);
+            romper;
+        }
+        imprimir(n); imprimir(" ");
+    }
+    imprimir("\n");
+}

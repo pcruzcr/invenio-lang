@@ -1,0 +1,22 @@
+{
+  "id": "N01-E05",
+  "nivel": 1,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Operadores aritméticos",
+  "enunciado": "Con a=17 y b=5 muestra a+b, a-b, a*b, a/b (división entera), a%b (residuo) y la división real 17.0/5.0, uno por línea.",
+  "objetivos": [
+    "Usar + - * / %",
+    "Distinguir división entera y división real"
+  ],
+  "pistas": [
+    "Entre dos enteros, / descarta los decimales.",
+    "% da el residuo de la división entera.",
+    "Si un operando es real, el resultado es real."
+  ],
+  "conceptos": [
+    "división entera",
+    "módulo",
+    "división real"
+  ]
+}

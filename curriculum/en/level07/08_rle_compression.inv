@@ -1,0 +1,32 @@
+// Level 7 · Exercise 08 — RLE compression
+// Learning goals:
+//   - Detect runs of equal characters
+//   - Correctly close the last group
+//
+string compress(string s) {
+    if (text_length(s) == 0) {
+        return "";
+    }
+    string r = "";
+    string current = char_at(s, 0);
+    int times = 1;
+    for (int i = 1; i < text_length(s); i++) {
+        string c = char_at(s, i);
+        if (c == current) {
+            times++;
+        } else {
+            r = r + current + int_to_string(times);   // emit the finished group
+            current = c;
+            times = 1;
+        }
+    }
+    return r + current + int_to_string(times);   // last pending group
+}
+
+void main() {
+    string s = "aaabccddddde";
+    string z = compress(s);
+    print(z); print("\n");
+    print(text_length(s)); print(" -> "); print(text_length(z)); print("\n");
+    print(compress("abc")); print("\n");
+}

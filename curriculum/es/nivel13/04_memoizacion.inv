@@ -1,0 +1,36 @@
+// Nivel 13 · Ejercicio 04 — De exponencial a lineal: memoización
+// Objetivos:
+//   - Identificar subproblemas repetidos
+//   - Bajar de O(2^n) a O(n) guardando resultados
+//
+entero llamadas = 0;
+entero [32] memo;
+
+entero fibIngenuo(entero n) {
+    llamadas++;
+    si (n < 2) { retornar n; }
+    retornar fibIngenuo(n - 1) + fibIngenuo(n - 2);
+}
+
+entero fibMemo(entero n) {
+    llamadas++;
+    si (n < 2) { retornar n; }
+    si (memo[n] != -1) {
+        retornar memo[n];   // ya calculado: no se repite el trabajo
+    }
+    memo[n] = fibMemo(n - 1) + fibMemo(n - 2);
+    retornar memo[n];
+}
+
+vacio main() {
+    imprimir("n\tfib\tnaive\tmemo\n");
+    para (entero n = 5; n <= 20; n = n + 5) {
+        llamadas = 0;
+        entero r = fibIngenuo(n);
+        entero ingenuas = llamadas;
+        para (entero i = 0; i < 32; i++) { memo[i] = -1; }
+        llamadas = 0;
+        fibMemo(n);
+        imprimir(n); imprimir("\t"); imprimir(r); imprimir("\t"); imprimir(ingenuas); imprimir("\t"); imprimir(llamadas); imprimir("\n");
+    }
+}

@@ -1,0 +1,42 @@
+// Level 8 · Exercise 08 — References, null and equality
+// Learning goals:
+//   - Understand that a class variable holds a reference
+//   - Define value equality with equals
+//   - Avoid null reference errors
+//
+class Box {
+    public int value;
+    Box(int v) { this.value = v; }
+}
+
+class Point {
+    public int x;
+    public int y;
+    Point(int a, int b) { this.x = a; this.y = b; }
+    public bool equals(Point other) {
+        return this.x == other.x && this.y == other.y;
+    }
+}
+
+void main() {
+    Box a = new Box(1);
+    Box b = a;          // alias: same box
+    b.value = 99;
+    print(a.value); print("\n");
+    Box c = new Box(99);
+    print(a == b); print(" "); print(a == c); print("\n");
+
+    Point p1 = new Point(1, 2);
+    Point p2 = new Point(1, 2);
+    print(p1 == p2); print("\n");   // uses equals: compares values
+
+    Box none = null;
+    if (none != null) {
+        print(none.value);
+    } else {
+        print("null box");
+    }
+    print("\n");
+    Box chosen = none ?? a;   // ?? picks the first non-null one
+    print(chosen.value); print("\n");
+}

@@ -1,0 +1,52 @@
+// Nivel 9 · Ejercicio 06 — Patrón Strategy
+// Objetivos:
+//   - Encapsular algoritmos intercambiables detrás de una abstracción
+//   - Preferir composición a condicionales sobre el tipo
+//
+interfaz EstrategiaEnvio {
+    publico abstracto entero costo(entero peso);
+    publico abstracto texto nombre();
+}
+
+clase EnvioNormal implementa EstrategiaEnvio {
+    publico entero costo(entero peso) { retornar 5 + 2 * peso; }
+    publico texto nombre() { retornar "standard"; }
+}
+
+clase EnvioExpress implementa EstrategiaEnvio {
+    publico entero costo(entero peso) { retornar 15 + 3 * peso; }
+    publico texto nombre() { retornar "express"; }
+}
+
+clase EnvioGratis implementa EstrategiaEnvio {
+    publico entero costo(entero peso) { retornar 0; }
+    publico texto nombre() { retornar "free"; }
+}
+
+clase Pedido {
+    privado entero peso;
+    privado EstrategiaEnvio estrategia;
+
+    Pedido(entero kg) {
+        este.peso = kg;
+        este.estrategia = nuevo EnvioNormal();
+    }
+
+    publico vacio fijarEstrategia(EstrategiaEnvio e) {
+        este.estrategia = e;
+    }
+
+    publico texto costoEnvio() {
+        EstrategiaEnvio e = este.estrategia;   // delegar en la estrategia actual
+        retornar e.nombre() + ": " + entero_a_texto(e.costo(este.peso));
+    }
+}
+
+vacio main() {
+    Pedido pedido = nuevo Pedido(4);
+    imprimir(pedido.costoEnvio()); imprimir("\n");
+    pedido.fijarEstrategia(nuevo EnvioExpress());
+    imprimir(pedido.costoEnvio()); imprimir("\n");
+    pedido.fijarEstrategia(nuevo EnvioGratis());
+    imprimir(pedido.costoEnvio()); imprimir("\n");
+}

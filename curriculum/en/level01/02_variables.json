@@ -1,0 +1,23 @@
+{
+  "id": "N01-E02",
+  "nivel": 1,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Variables and assignment",
+  "enunciado": "Declare two int variables a=7 and b=3, show their values, swap them using a helper variable and show them again.",
+  "objetivos": [
+    "Declare and initialize variables",
+    "Understand that assignment replaces the previous value",
+    "Swap two values with a helper variable"
+  ],
+  "pistas": [
+    "A variable holds a single value at a time.",
+    "If you do a = b first, you lose the original value of a.",
+    "Store a in tmp, then a = b and finally b = tmp."
+  ],
+  "conceptos": [
+    "variable",
+    "assignment",
+    "swap"
+  ]
+}

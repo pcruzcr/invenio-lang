@@ -1,0 +1,21 @@
+{
+  "id": "N02-E04",
+  "nivel": 2,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Ternary operator",
+  "enunciado": "Use the ternary operator to compute the larger of two numbers, the absolute value of -9 and to show \"1 item\" or \"n items\" depending on the count (1 and 3).",
+  "objetivos": [
+    "Write conditional expressions with ? :",
+    "Know when a ternary is clearer than an if"
+  ],
+  "pistas": [
+    "condition ? valueIfTrue : valueIfFalse",
+    "Both values must have the same type.",
+    "Use it to pick a value, not to run long actions."
+  ],
+  "conceptos": [
+    "ternary",
+    "conditional expression"
+  ]
+}

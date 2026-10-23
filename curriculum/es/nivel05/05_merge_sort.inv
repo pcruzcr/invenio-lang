@@ -1,0 +1,63 @@
+// Nivel 5 · Ejercicio 05 — Merge sort (ordenamiento por mezcla)
+// Objetivos:
+//   - Aplicar divide y vencerás
+//   - Reutilizar la mezcla de dos ordenados
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio intercambiar(entero [] a, entero i, entero j) {
+    entero aux = a[i];
+    a[i] = a[j];
+    a[j] = aux;
+}
+
+constante entero MAXN = 16;
+
+vacio combinar(entero [] a, entero izq, entero medio, entero der) {
+    entero [MAXN] temp;
+    entero i = izq;
+    entero j = medio + 1;
+    entero k = izq;
+    mientras (i <= medio && j <= der) {
+        si (a[i] <= a[j]) {   // <= mantiene el orden de los iguales (estable)
+            temp[k] = a[i];
+            i++;
+        } sino {
+            temp[k] = a[j];
+            j++;
+        }
+        k++;
+    }
+    mientras (i <= medio) { temp[k] = a[i]; i++; k++; }
+    mientras (j <= der) { temp[k] = a[j]; j++; k++; }
+    imprimir("merge ["); imprimir(izq); imprimir(".."); imprimir(der); imprimir("]: ");
+    para (entero x = izq; x <= der; x++) {
+        a[x] = temp[x];
+        imprimir(a[x]); imprimir(" ");
+    }
+    imprimir("\n");
+}
+
+vacio mergeSort(entero [] a, entero izq, entero der) {
+    si (izq < der) {
+        entero medio = (izq + der) / 2;
+        mergeSort(a, izq, medio);
+        mergeSort(a, medio + 1, der);
+        combinar(a, izq, medio, der);
+    }
+}
+
+vacio main() {
+    entero [8] a = {38, 27, 43, 3, 9, 82, 10, 5};
+    mergeSort(a, 0, 7);
+    imprimirArreglo(a, 8);
+}

@@ -1,0 +1,34 @@
+// Level 4 · Exercise 07 — Reverse in place
+// Learning goals:
+//   - Use the two-pointer technique
+//   - Write a swap procedure
+//
+void printArray(int [] a, int n) {
+    print("[");
+    for (int i = 0; i < n; i++) {
+        print(a[i]);
+        if (i < n - 1) {
+            print(", ");
+        }
+    }
+    print("]\n");
+}
+
+void swap(int [] a, int i, int j) {
+    int tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+}
+
+void main() {
+    int [7] a = {1, 2, 3, 4, 5, 6, 7};
+    int i = 0;
+    int j = 6;
+    // Both indexes move toward the center and stop when they cross.
+    while (i < j) {
+        swap(a, i, j);
+        printArray(a, 7);
+        i++;
+        j--;
+    }
+}

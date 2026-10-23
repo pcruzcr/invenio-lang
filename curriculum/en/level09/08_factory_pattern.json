@@ -1,0 +1,21 @@
+{
+  "id": "N09-E08",
+  "nivel": 9,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Factory pattern",
+  "enunciado": "Write a ShapeFactory with a static method create(kind, size) that returns a Circle, a Square or null depending on the text received. The client only knows the abstract class Shape.",
+  "objetivos": [
+    "Centralize object creation",
+    "Program against the abstraction, not concrete classes"
+  ],
+  "pistas": [
+    "The client never writes new Circle(...).",
+    "Use switch on the kind string.",
+    "Return null for an unknown kind and check it in the client."
+  ],
+  "conceptos": [
+    "Factory",
+    "object creation"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N02-E12",
+  "nivel": 2,
+  "numero": 12,
+  "idioma": "es",
+  "titulo": "Números primos",
+  "enunciado": "Muestra todos los números primos entre 2 y 50 en una línea, y cuántos son. Prueba divisores solo hasta la raíz cuadrada (d * d <= n).",
+  "objetivos": [
+    "Combinar un ciclo con una bandera lógica",
+    "Reducir trabajo cortando la búsqueda en la raíz"
+  ],
+  "pistas": [
+    "Un primo solo es divisible entre 1 y sí mismo.",
+    "Usa una variable logico esPrimo que empieza en verdadero.",
+    "Si n tiene un divisor mayor que su raíz, también tiene uno menor."
+  ],
+  "conceptos": [
+    "bandera",
+    "ciclos anidados",
+    "primalidad"
+  ]
+}

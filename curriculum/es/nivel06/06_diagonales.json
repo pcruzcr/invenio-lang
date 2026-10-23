@@ -1,0 +1,22 @@
+{
+  "id": "N06-E06",
+  "nivel": 6,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Diagonales",
+  "enunciado": "En una matriz 4x4 con m[i][j] = i * 4 + j, suma la diagonal principal (i == j) y la secundaria (i + j == n - 1), y suma los elementos por encima de la diagonal principal.",
+  "objetivos": [
+    "Recorrer diagonales con un solo ciclo",
+    "Describir regiones de la matriz con condiciones sobre i y j"
+  ],
+  "pistas": [
+    "Diagonal principal: m[i][i].",
+    "Diagonal secundaria: m[i][n - 1 - i].",
+    "Por encima de la diagonal: j > i."
+  ],
+  "conceptos": [
+    "diagonal principal",
+    "diagonal secundaria",
+    "triángulo superior"
+  ]
+}

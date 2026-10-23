@@ -1,0 +1,22 @@
+{
+  "id": "N12-E01",
+  "nivel": 12,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Matriz de adyacencia",
+  "enunciado": "Representa un grafo no dirigido de 7 vértices con aristas 0-1, 0-2, 1-3, 2-3, 3-4, 4-5 en una matriz de adyacencia. Muestra la matriz, el grado de cada vértice, los vecinos del vértice 3 y el número de aristas.",
+  "objetivos": [
+    "Representar un grafo con una matriz",
+    "Calcular grados y vecinos"
+  ],
+  "pistas": [
+    "adj[i][j] == 1 si existe la arista i-j.",
+    "El grado de i es la suma de la fila i.",
+    "La suma de todos los grados es el doble del número de aristas."
+  ],
+  "conceptos": [
+    "grafo",
+    "matriz de adyacencia",
+    "grado"
+  ]
+}

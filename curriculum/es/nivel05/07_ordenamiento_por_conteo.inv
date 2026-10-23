@@ -1,0 +1,42 @@
+// Nivel 5 · Ejercicio 07 — Ordenamiento por conteo
+// Objetivos:
+//   - Ordenar sin comparaciones cuando el rango es pequeño
+//   - Reutilizar el arreglo de frecuencias
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio intercambiar(entero [] a, entero i, entero j) {
+    entero aux = a[i];
+    a[i] = a[j];
+    a[j] = aux;
+}
+
+vacio main() {
+    entero [10] a = {4, 2, 7, 2, 9, 4, 0, 7, 7, 1};
+    entero [10] cuenta;
+    para (entero v = 0; v < 10; v++) {
+        cuenta[v] = 0;
+    }
+    para_cada (entero x : a) {
+        cuenta[x] = cuenta[x] + 1;
+    }
+    imprimirArreglo(cuenta, 10);
+    // Reconstruir: cada valor v se escribe cuenta[v] veces, en orden creciente.
+    entero k = 0;
+    para (entero v = 0; v < 10; v++) {
+        para (entero r = 0; r < cuenta[v]; r++) {
+            a[k] = v;
+            k++;
+        }
+    }
+    imprimirArreglo(a, 10);
+}

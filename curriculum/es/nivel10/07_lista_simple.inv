@@ -1,0 +1,101 @@
+// Nivel 10 · Ejercicio 07 — Lista simplemente enlazada
+// Objetivos:
+//   - Manipular enlaces entre nodos
+//   - Tratar los casos especiales: lista vacía y primer nodo
+//   - Invertir una lista con tres referencias
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo siguiente;
+    Nodo(entero v) { este.valor = v; }
+}
+
+clase ListaSimple {
+    privado Nodo cabeza;
+
+    publico vacio insertarInicio(entero v) {
+        Nodo n = nuevo Nodo(v);
+        n.siguiente = este.cabeza;
+        este.cabeza = n;
+    }
+
+    publico vacio insertarFinal(entero v) {
+        Nodo n = nuevo Nodo(v);
+        si (este.cabeza == nulo) {
+            este.cabeza = n;
+            retornar;
+        }
+        Nodo actual = este.cabeza;
+        mientras (actual.siguiente != nulo) {
+            actual = actual.siguiente;
+        }
+        actual.siguiente = n;
+    }
+
+    publico logico buscar(entero v) {
+        Nodo actual = este.cabeza;
+        mientras (actual != nulo) {
+            si (actual.valor == v) {
+                retornar verdadero;
+            }
+            actual = actual.siguiente;
+        }
+        retornar falso;
+    }
+
+    publico logico eliminar(entero v) {
+        Nodo actual = este.cabeza;
+        Nodo anterior = nulo;
+        mientras (actual != nulo && actual.valor != v) {
+            anterior = actual;
+            actual = actual.siguiente;
+        }
+        si (actual == nulo) {
+            retornar falso;
+        }
+        si (anterior == nulo) {
+            este.cabeza = actual.siguiente;   // se borra la cabeza
+        } sino {
+            anterior.siguiente = actual.siguiente;   // el anterior salta al borrado
+        }
+        retornar verdadero;
+    }
+
+    publico vacio invertir() {
+        Nodo anterior = nulo;
+        Nodo actual = este.cabeza;
+        mientras (actual != nulo) {
+            Nodo sig = actual.siguiente;
+            actual.siguiente = anterior;   // voltear el enlace
+            anterior = actual;
+            actual = sig;
+        }
+        este.cabeza = anterior;
+    }
+
+    publico vacio imprimirLista() {
+        Nodo actual = este.cabeza;
+        mientras (actual != nulo) {
+            imprimir(actual.valor); imprimir(" -> ");
+            actual = actual.siguiente;
+        }
+        imprimir("null\n");
+    }
+}
+
+vacio main() {
+    ListaSimple l = nuevo ListaSimple();
+    l.insertarFinal(20);
+    l.insertarFinal(30);
+    l.insertarInicio(10);
+    l.insertarFinal(40);
+    l.imprimirLista();
+    imprimir(l.buscar(30)); imprimir(" "); imprimir(l.buscar(99)); imprimir("\n");
+    l.eliminar(10);
+    l.eliminar(30);
+    imprimir(l.eliminar(77)); imprimir("\n");
+    l.imprimirLista();
+    l.insertarFinal(50);
+    l.invertir();
+    l.imprimirLista();
+}

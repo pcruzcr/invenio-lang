@@ -11,14 +11,14 @@
   ],
   "ficheros_clave": [
     {
-      "bytes": 4452,
+      "bytes": 4902,
       "ruta": "main.py",
-      "sha256": "1049ff12582a0e95a45e2b367d618c789116870e107810a5d4a09b120b023ba8"
+      "sha256": "fb5eff7e5e3bde6a0040e18ea8b576c156fac8f08af0a0021a88ad2941ce6b02"
     },
     {
-      "bytes": 3470,
+      "bytes": 4779,
       "ruta": "pyproject.toml",
-      "sha256": "0c59022e66ea6aa1f1cf4285c2dad5a97b73f73cf148c30cdef826c331fcf11f"
+      "sha256": "918d134896b8115de78220fd8730091a38a9282fabf577584c1b2a4bb3256f2d"
     },
     {
       "bytes": 1065,
@@ -29,5 +29,5 @@
   "plataforma": "win32",
   "producto": "inveniolang",
   "python": "3.14.6",
-  "version": "10.0.0"
+  "version": "11.0.0"
 }

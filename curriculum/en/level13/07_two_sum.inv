@@ -1,0 +1,49 @@
+// Level 13 · Exercise 07 — Pair with a given sum: O(n²) versus O(n)
+// Learning goals:
+//   - Take advantage of sorted data
+//   - Apply the two-pointer technique to reduce complexity
+//
+const int N = 300;
+int [N] a;
+int comparisons = 0;
+
+void twoSumBrute(int target) {
+    comparisons = 0;
+    for (int i = 0; i < N; i++) {
+        for (int j = i + 1; j < N; j++) {
+            comparisons++;
+            if (a[i] + a[j] == target) {
+                print("brute ("); print(i); print(", "); print(j); print(") "); print(comparisons); print("\n");
+                return;
+            }
+        }
+    }
+    print("brute none "); print(comparisons); print("\n");
+}
+
+void twoSumPointers(int target) {
+    comparisons = 0;
+    int i = 0;
+    int j = N - 1;
+    while (i < j) {
+        comparisons++;
+        int s = a[i] + a[j];
+        if (s == target) {
+            print("pointers ("); print(i); print(", "); print(j); print(") "); print(comparisons); print("\n");
+            return;
+        }
+        // Sum too small: it can only grow by moving i; too large: only shrink by moving j.
+        if (s < target) { i++; } else { j--; }
+    }
+    print("pointers none "); print(comparisons); print("\n");
+}
+
+void main() {
+    for (int i = 0; i < N; i++) {
+        a[i] = 3 * i + 1;
+    }
+    twoSumBrute(1787);
+    twoSumPointers(1787);
+    twoSumBrute(3);
+    twoSumPointers(3);
+}

@@ -1,0 +1,47 @@
+// Nivel 11 · Ejercicio 01 — Árbol binario de búsqueda: inserción
+// Objetivos:
+//   - Implementar la inserción recursiva en un ABB
+//   - Ver que el recorrido en orden de un ABB está ordenado
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo izq;
+    publico Nodo der;
+    Nodo(entero v) { este.valor = v; }
+}
+
+// Inserción recursiva: devuelve la raíz (posiblemente nueva) del subárbol.
+Nodo insertar(Nodo r, entero v) {
+    si (r == nulo) {
+        retornar nuevo Nodo(v);
+    }
+    si (v < r.valor) {
+        r.izq = insertar(r.izq, v);
+    } sino {
+        si (v > r.valor) {
+            r.der = insertar(r.der, v);
+        }
+    }
+    retornar r;
+}
+
+vacio inorden(Nodo r) {
+    si (r != nulo) {
+        inorden(r.izq);
+        imprimir(r.valor); imprimir(" ");
+        inorden(r.der);
+    }
+}
+
+vacio main() {
+    entero [8] datos = {50, 30, 70, 20, 40, 60, 80, 30};
+    Nodo raiz = nulo;
+    para_cada (entero v : datos) {
+        raiz = insertar(raiz, v);
+    }
+    inorden(raiz);
+    imprimir("\n");
+    Nodo i = raiz.izq;
+    Nodo d = raiz.der;
+    imprimir("root "); imprimir(raiz.valor); imprimir(": left "); imprimir(i.valor); imprimir(", right "); imprimir(d.valor); imprimir("\n");
+}

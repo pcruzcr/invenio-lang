@@ -1,0 +1,21 @@
+{
+  "id": "N06-E09",
+  "nivel": 6,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Rotar una matriz 90 grados",
+  "enunciado": "Rota 90 grados en sentido horario la matriz {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}} usando dos pasos en el lugar: transponer y después invertir cada fila.",
+  "objetivos": [
+    "Componer transformaciones de matrices",
+    "Reutilizar la transpuesta en el lugar"
+  ],
+  "pistas": [
+    "Tras transponer, la primera fila es la primera columna original.",
+    "Invertir cada fila equivale a un espejo horizontal.",
+    "Transpuesta + espejo = rotación horaria."
+  ],
+  "conceptos": [
+    "rotación",
+    "composición"
+  ]
+}

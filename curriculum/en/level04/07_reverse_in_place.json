@@ -1,0 +1,22 @@
+{
+  "id": "N04-E07",
+  "nivel": 4,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Reverse in place",
+  "enunciado": "Reverse the array {1, 2, 3, 4, 5, 6, 7} without another array, swapping the ends with two indexes that move toward the center. Show the array after each swap.",
+  "objetivos": [
+    "Use the two-pointer technique",
+    "Write a swap procedure"
+  ],
+  "pistas": [
+    "i starts at 0 and j at n - 1.",
+    "Swap a[i] and a[j] while i < j.",
+    "With odd n, the middle element does not move."
+  ],
+  "conceptos": [
+    "two pointers",
+    "swap",
+    "in place"
+  ]
+}

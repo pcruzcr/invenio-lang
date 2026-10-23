@@ -1,0 +1,23 @@
+// Level 6 · Exercise 08 — Pascal's triangle
+// Learning goals:
+//   - Compute each cell from cells already computed
+//   - Introduce dynamic programming
+//
+const int ROWS = 7;
+
+void main() {
+    int [ROWS][ROWS] p;
+    for (int i = 0; i < ROWS; i++) {
+        p[i][0] = 1;
+        p[i][i] = 1;
+        for (int j = 1; j < i; j++) {
+            p[i][j] = p[i - 1][j - 1] + p[i - 1][j];   // uses the previous row
+        }
+    }
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j <= i; j++) {
+            print(p[i][j]); print(" ");
+        }
+        print("\n");
+    }
+}

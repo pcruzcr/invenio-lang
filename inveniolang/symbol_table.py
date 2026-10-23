@@ -177,6 +177,10 @@ class SymbolTable(Subject):
         info = ClaseInfo("Excepcion", None, 0, 0)
         info.atributos["codigo"] = MiembroInfo("codigo", "publico", "string", 0, 0)
         info.atributos["mensaje"] = MiembroInfo("mensaje", "publico", "string", 0, 0)
+        # INV-1404: los mismos campos con nombre en inglés, para que un
+        # programa escrito (o traducido) en inglés use `e.code`/`e.message`.
+        info.atributos["code"] = MiembroInfo("code", "publico", "string", 0, 0)
+        info.atributos["message"] = MiembroInfo("message", "publico", "string", 0, 0)
         self.clases["Excepcion"] = info
 
     def entrar_ambito(self):

@@ -1,0 +1,27 @@
+// Nivel 4 · Ejercicio 06 — Búsqueda binaria recursiva
+// Objetivos:
+//   - Expresar la búsqueda binaria como recursión
+//   - Identificar los dos casos base
+//
+entero busquedaBinariaRec(entero [] a, entero izq, entero der, entero x) {
+    // Intervalo vacío: x no está en el arreglo.
+    si (izq > der) {
+        retornar -1;
+    }
+    entero medio = (izq + der) / 2;
+    si (a[medio] == x) {
+        retornar medio;
+    }
+    si (a[medio] < x) {
+        retornar busquedaBinariaRec(a, medio + 1, der, x);
+    }
+    retornar busquedaBinariaRec(a, izq, medio - 1, x);
+}
+
+vacio main() {
+    entero [5] a = {1, 3, 4, 6, 9};
+    para (entero x = 0; x <= 10; x++) {
+        imprimir(busquedaBinariaRec(a, 0, 4, x)); imprimir(" ");
+    }
+    imprimir("\n");
+}

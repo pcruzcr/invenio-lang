@@ -1,0 +1,33 @@
+// Nivel 4 · Ejercicio 05 — Búsqueda binaria
+// Objetivos:
+//   - Implementar búsqueda binaria
+//   - Entender por qué el arreglo debe estar ordenado
+//   - Ver cómo el intervalo se reduce a la mitad
+//
+entero busquedaBinaria(entero [] a, entero n, entero x) {
+    entero izq = 0;
+    entero der = n - 1;
+    mientras (izq <= der) {
+        entero medio = (izq + der) / 2;
+        imprimir("  lo="); imprimir(izq); imprimir(" hi="); imprimir(der); imprimir(" mid="); imprimir(medio); imprimir("\n");
+        si (a[medio] == x) {
+            retornar medio;
+        }
+        si (a[medio] < x) {
+            izq = medio + 1;   // descartar la mitad izquierda
+        } sino {
+            der = medio - 1;   // descartar la mitad derecha
+        }
+    }
+    retornar -1;
+}
+
+vacio main() {
+    entero [10] a = {2, 5, 8, 12, 16, 23, 38, 56, 72, 91};
+    entero [2] buscados = {23, 7};
+    para_cada (entero x : buscados) {
+        imprimir("search "); imprimir(x); imprimir("\n");
+        entero p = busquedaBinaria(a, 10, x);
+        imprimir("-> "); imprimir(p); imprimir("\n");
+    }
+}

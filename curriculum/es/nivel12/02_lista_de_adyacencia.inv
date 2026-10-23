@@ -1,0 +1,48 @@
+// Nivel 12 · Ejercicio 02 — Lista de adyacencia
+// Objetivos:
+//   - Representar un grafo disperso de forma compacta
+//   - Recorrer los vecinos de un vértice en O(grado)
+//
+constante entero N = 7;
+
+clase NodoAdj {
+    publico entero vertice;
+    publico NodoAdj siguiente;
+    NodoAdj(entero v) { este.vertice = v; }
+}
+
+entero nodosCreados = 0;
+
+// Arista no dirigida: b entra en la lista de a y a en la de b.
+vacio agregarArista(NodoAdj [] cabezas, entero a, entero b) {
+    NodoAdj na = nuevo NodoAdj(b);
+    na.siguiente = cabezas[a];
+    cabezas[a] = na;
+    NodoAdj nb = nuevo NodoAdj(a);
+    nb.siguiente = cabezas[b];
+    cabezas[b] = nb;
+    nodosCreados = nodosCreados + 2;
+}
+
+vacio main() {
+    NodoAdj cabezas[N];
+    para (entero i = 0; i < N; i++) {
+        cabezas[i] = nulo;
+    }
+    agregarArista(cabezas, 0, 1);
+    agregarArista(cabezas, 0, 2);
+    agregarArista(cabezas, 1, 3);
+    agregarArista(cabezas, 2, 3);
+    agregarArista(cabezas, 3, 4);
+    agregarArista(cabezas, 4, 5);
+    para (entero i = 0; i < N; i++) {
+        imprimir(i); imprimir(":");
+        NodoAdj n = cabezas[i];
+        mientras (n != nulo) {
+            imprimir(" "); imprimir(n.vertice);
+            n = n.siguiente;
+        }
+        imprimir("\n");
+    }
+    imprimir("list nodes = "); imprimir(nodosCreados); imprimir(", matrix cells = "); imprimir(N * N); imprimir("\n");
+}

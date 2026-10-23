@@ -1,0 +1,35 @@
+// Nivel 6 · Ejercicio 01 — Recorrer una matriz
+// Objetivos:
+//   - Declarar matrices y acceder con dos índices
+//   - Distinguir recorrido por filas y por columnas
+//
+constante entero N = 3;
+
+vacio imprimirMatriz(entero [][] m, entero filas, entero columnas) {
+    para (entero i = 0; i < filas; i++) {
+        para (entero j = 0; j < columnas; j++) {
+            imprimir(m[i][j]);
+            si (j < columnas - 1) {
+                imprimir("\t");
+            }
+        }
+        imprimir("\n");
+    }
+}
+
+vacio main() {
+    entero [3][4] m;
+    para (entero i = 0; i < 3; i++) {
+        para (entero j = 0; j < 4; j++) {
+            m[i][j] = i * 4 + j + 1;
+        }
+    }
+    imprimirMatriz(m, 3, 4);
+    // Por columnas: primero bajamos por la columna 0, luego la 1...
+    para (entero j = 0; j < 4; j++) {
+        para (entero i = 0; i < 3; i++) {
+            imprimir(m[i][j]); imprimir(" ");
+        }
+    }
+    imprimir("\n");
+}

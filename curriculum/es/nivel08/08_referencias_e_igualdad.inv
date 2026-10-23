@@ -1,0 +1,42 @@
+// Nivel 8 · Ejercicio 08 — Referencias, nulo e igualdad
+// Objetivos:
+//   - Entender que una variable de clase guarda una referencia
+//   - Definir igualdad por valor con esIgual/equals
+//   - Evitar errores por referencias nulas
+//
+clase Caja {
+    publico entero valor;
+    Caja(entero v) { este.valor = v; }
+}
+
+clase Punto {
+    publico entero x;
+    publico entero y;
+    Punto(entero a, entero b) { este.x = a; este.y = b; }
+    publico logico esIgual(Punto otro) {
+        retornar este.x == otro.x && este.y == otro.y;
+    }
+}
+
+vacio main() {
+    Caja a = nuevo Caja(1);
+    Caja b = a;          // alias: misma caja
+    b.valor = 99;
+    imprimir(a.valor); imprimir("\n");
+    Caja c = nuevo Caja(99);
+    imprimir(a == b); imprimir(" "); imprimir(a == c); imprimir("\n");
+
+    Punto p1 = nuevo Punto(1, 2);
+    Punto p2 = nuevo Punto(1, 2);
+    imprimir(p1 == p2); imprimir("\n");   // usa esIgual: compara valores
+
+    Caja vacia = nulo;
+    si (vacia != nulo) {
+        imprimir(vacia.valor);
+    } sino {
+        imprimir("null box");
+    }
+    imprimir("\n");
+    Caja elegida = vacia ?? a;   // ?? elige la primera que no sea nula
+    imprimir(elegida.valor); imprimir("\n");
+}

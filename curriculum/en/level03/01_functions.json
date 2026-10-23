@@ -1,0 +1,22 @@
+{
+  "id": "N03-E01",
+  "nivel": 3,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Functions with return values",
+  "enunciado": "Write the functions square(x), max3(a, b, c) and rectangleArea(b, h) and use them to show square(9), max3(4, 11, 7) and rectangleArea(2.5, 4.0).",
+  "objetivos": [
+    "Declare functions with a return type and parameters",
+    "Reuse one function from another"
+  ],
+  "pistas": [
+    "The first word of the declaration is the type of the returned value.",
+    "return ends the function and hands back the value.",
+    "max3 can rely on a max2 function."
+  ],
+  "conceptos": [
+    "function",
+    "parameter",
+    "return"
+  ]
+}

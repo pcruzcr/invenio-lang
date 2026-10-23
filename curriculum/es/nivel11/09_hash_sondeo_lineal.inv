@@ -1,0 +1,51 @@
+// Nivel 11 · Ejercicio 09 — Tabla hash con sondeo lineal
+// Objetivos:
+//   - Comprender la función hash y las colisiones
+//   - Implementar direccionamiento abierto con sondeo lineal
+//
+constante entero CAP = 11;
+entero [CAP] claves;
+entero [CAP] valores;
+logico [CAP] ocupado;
+
+entero hash(entero k) { retornar k % CAP; }
+
+entero insertarHash(entero k, entero v) {
+    entero p = hash(k);
+    entero sondeos = 1;
+    mientras (ocupado[p] && claves[p] != k) {
+        p = (p + 1) % CAP;   // probar la siguiente casilla
+        sondeos++;
+    }
+    claves[p] = k;
+    valores[p] = v;
+    ocupado[p] = verdadero;
+    retornar sondeos;
+}
+
+entero buscarHash(entero k) {
+    entero p = hash(k);
+    mientras (ocupado[p]) {
+        si (claves[p] == k) {
+            retornar valores[p];
+        }
+        p = (p + 1) % CAP;
+    }
+    retornar -1;
+}
+
+vacio main() {
+    para (entero i = 0; i < CAP; i++) {
+        ocupado[i] = falso;
+    }
+    entero [5] ks = {22, 33, 5, 16, 44};
+    para (entero i = 0; i < 5; i++) {
+        entero s = insertarHash(ks[i], ks[i] * 10);
+        imprimir(ks[i]); imprimir(" -> h="); imprimir(hash(ks[i])); imprimir(" probes="); imprimir(s); imprimir("\n");
+    }
+    imprimir(buscarHash(33)); imprimir(" "); imprimir(buscarHash(16)); imprimir(" "); imprimir(buscarHash(7)); imprimir("\n");
+    para (entero i = 0; i < CAP; i++) {
+        imprimir(ocupado[i] ? entero_a_texto(claves[i]) : "."); imprimir(" ");
+    }
+    imprimir("\n");
+}

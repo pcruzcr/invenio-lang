@@ -1,0 +1,114 @@
+// estructuras/vector.inv -- Vector dinámico (arreglo que crece solo)
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "estructuras/vector";
+//
+// Idea: un arreglo normal tiene tamaño fijo. El vector guarda sus datos en
+// un arreglo con CAPACIDAD de sobra; cuando se llena, crea uno del DOBLE de
+// capacidad y copia los elementos (nuevo entero[n], INV-1440). Copiar
+// cuesta O(n), pero como la capacidad se duplica, eso pasa cada vez menos:
+// agregar al final cuesta O(1) AMORTIZADO. Leer o escribir la posición i
+// es O(1), igual que en un arreglo.
+//
+//   datos:  [ 5 | 8 | 2 | _ | _ | _ | _ | _ ]   cantidad = 3, capacidad = 8
+
+constante entero CAPACIDAD_INICIAL_VECTOR = 4;
+
+clase Vector {
+    privado entero[] datos;
+    privado entero[] reserva;
+    privado entero cantidad;
+
+    Vector() {
+        este.datos = nuevo entero[CAPACIDAD_INICIAL_VECTOR];
+    }
+
+    // Agrega v al final. O(1) amortizado.
+    publico vacio agregar(entero v) {
+        si (este.cantidad == longitud_arreglo(este.datos)) {
+            este.crecer();
+        }
+        este.datos[este.cantidad] = v;
+        este.cantidad = este.cantidad + 1;
+    }
+
+    // Inserta v en la posición pos (0..tamano), corriendo los demás a la
+    // derecha. O(n).
+    publico vacio insertar(entero pos, entero v) {
+        si (pos < 0 || pos > este.cantidad) {
+            lanzar_error("insertar: posición fuera de rango");
+        }
+        si (este.cantidad == longitud_arreglo(este.datos)) {
+            este.crecer();
+        }
+        para (entero i = este.cantidad; i > pos; i--) {
+            este.datos[i] = este.datos[i - 1];
+        }
+        este.datos[pos] = v;
+        este.cantidad = este.cantidad + 1;
+    }
+
+    // Quita el elemento de la posición pos (corriendo los demás a la
+    // izquierda) y lo devuelve. O(n).
+    publico entero eliminar_en(entero pos) {
+        este.validar_posicion(pos);
+        entero quitado = este.datos[pos];
+        para (entero i = pos; i < este.cantidad - 1; i++) {
+            este.datos[i] = este.datos[i + 1];
+        }
+        este.cantidad = este.cantidad - 1;
+        retornar quitado;
+    }
+
+    // O(1)
+    publico entero obtener(entero pos) {
+        este.validar_posicion(pos);
+        retornar este.datos[pos];
+    }
+
+    // O(1)
+    publico vacio asignar(entero pos, entero v) {
+        este.validar_posicion(pos);
+        este.datos[pos] = v;
+    }
+
+    publico entero tamano() {
+        retornar este.cantidad;
+    }
+
+    // Espacio reservado (siempre >= tamano).
+    publico entero capacidad() {
+        retornar longitud_arreglo(este.datos);
+    }
+
+    publico logico esta_vacio() {
+        retornar este.cantidad == 0;
+    }
+
+    // Representación, p. ej. "[5, 8, 2]".
+    publico texto a_texto() {
+        texto s = "[";
+        para (entero i = 0; i < este.cantidad; i++) {
+            s = s + entero_a_texto(este.datos[i]);
+            si (i < este.cantidad - 1) {
+                s = s + ", ";
+            }
+        }
+        retornar s + "]";
+    }
+
+    // Duplica la capacidad copiando los elementos a un arreglo nuevo.
+    privado vacio crecer() {
+        este.reserva = nuevo entero[2 * longitud_arreglo(este.datos)];
+        para (entero i = 0; i < este.cantidad; i++) {
+            este.reserva[i] = este.datos[i];
+        }
+        este.datos = este.reserva;
+    }
+
+    privado vacio validar_posicion(entero pos) {
+        si (pos < 0 || pos >= este.cantidad) {
+            lanzar_error("posición fuera de rango: " + entero_a_texto(pos));
+        }
+    }
+}

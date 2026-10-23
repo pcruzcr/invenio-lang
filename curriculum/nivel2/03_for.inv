@@ -1,1 +1,0 @@
-void main(){ para(int i=0;i<3;i++){ imprimir(i);} }

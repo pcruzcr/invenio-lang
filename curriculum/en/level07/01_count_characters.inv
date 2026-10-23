@@ -1,0 +1,31 @@
+// Level 7 · Exercise 01 — Count vowels, consonants and spaces
+// Learning goals:
+//   - Traverse a string with char_at
+//   - Classify characters with a reference string
+//
+const string VOWELS = "aeiou";
+const string ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+
+void main() {
+    string sentence = to_lower("El codigo es poesia");
+    int vowels = 0;
+    int consonants = 0;
+    int spaces = 0;
+    for (int i = 0; i < text_length(sentence); i++) {
+        string c = char_at(sentence, i);   // a character is a string of length 1
+        if (index_of(VOWELS, c) >= 0) {
+            vowels++;
+        } else {
+            if (index_of(ALPHABET, c) >= 0) {
+                consonants++;
+            } else {
+                if (c == " ") {
+                    spaces++;
+                }
+            }
+        }
+    }
+    print("vowels = "); print(vowels); print("\n");
+    print("consonants = "); print(consonants); print("\n");
+    print("spaces = "); print(spaces); print("\n");
+}

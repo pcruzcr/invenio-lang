@@ -1,0 +1,21 @@
+{
+  "id": "N08-E03",
+  "nivel": 8,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Sobrecarga de constructores",
+  "enunciado": "Crea la clase Punto con tres constructores: sin argumentos (origen), con un valor (punto en la diagonal (v, v)) y con dos valores (x, y). Agrega trasladar(dx, dy) y distancia2(otro) (distancia al cuadrado). Muestra los tres puntos y sus distancias al origen.",
+  "objetivos": [
+    "Ofrecer varias formas de crear un objeto",
+    "Distinguir sobrecargas por número de parámetros"
+  ],
+  "pistas": [
+    "Todos los constructores se llaman como la clase; cambian sus parámetros.",
+    "nuevo Punto() invoca el de cero parámetros.",
+    "Un método puede recibir otro objeto de su misma clase."
+  ],
+  "conceptos": [
+    "sobrecarga",
+    "constructor"
+  ]
+}

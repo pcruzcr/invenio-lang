@@ -1,0 +1,21 @@
+{
+  "id": "N05-E03",
+  "nivel": 5,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Ordenamiento por selección",
+  "enunciado": "Ordena {29, 10, 14, 37, 13, 5} por selección: en cada pasada busca el mínimo de la parte no ordenada y colócalo al inicio. Muestra el mínimo elegido y el arreglo tras cada pasada.",
+  "objetivos": [
+    "Implementar selección",
+    "Ver que hace a lo sumo n - 1 intercambios"
+  ],
+  "pistas": [
+    "La parte a[0..i-1] ya está ordenada.",
+    "Busca la posición del mínimo en a[i..n-1].",
+    "Intercambia a[i] con ese mínimo."
+  ],
+  "conceptos": [
+    "selección",
+    "invariante"
+  ]
+}

@@ -1,0 +1,46 @@
+// Level 8 · Exercise 07 — Array of objects
+// Learning goals:
+//   - Declare and traverse arrays of objects
+//   - Call methods on array elements
+//
+class Student {
+    private string name;
+    private int grade;
+
+    Student(string n, int g) {
+        this.name = n;
+        this.grade = g;
+    }
+
+    public string getName() { return this.name; }
+    public int getGrade() { return this.grade; }
+    public bool hasPassed() { return this.grade >= 70; }
+}
+
+void main() {
+    // Array of references: each position holds a Student object.
+    Student students[5];
+    students[0] = new Student("Ana", 88);
+    students[1] = new Student("Beto", 64);
+    students[2] = new Student("Carla", 95);
+    students[3] = new Student("Dani", 70);
+    students[4] = new Student("Eli", 52);
+
+    int sum = 0;
+    int best = 0;
+    for (int i = 0; i < 5; i++) {
+        sum += students[i].getGrade();
+        if (students[i].getGrade() > students[best].getGrade()) {
+            best = i;
+        }
+    }
+    print("average = "); print(int_to_float(sum) / 5.0); print("\n");
+    print("best = "); print(students[best].getName()); print("\n");
+    print("passed:");
+    for (int i = 0; i < 5; i++) {
+        if (students[i].hasPassed()) {
+            print(" "); print(students[i].getName());
+        }
+    }
+    print("\n");
+}

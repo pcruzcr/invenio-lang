@@ -1,0 +1,15 @@
+{
+  "nivel": 9,
+  "titulo": "POO II: herencia, polimorfismo y patrones de diseño",
+  "descripcion": "Reutilizar y extender comportamiento con herencia, programar contra abstracciones (clases abstractas e interfaces) y aplicar patrones de diseño clásicos.",
+  "temas": [
+    "herencia y padre/super",
+    "sobrescritura y polimorfismo",
+    "clases abstractas",
+    "interfaces",
+    "sobrecarga y genéricos",
+    "patrones: Strategy, Observer, Factory, Singleton, Template Method, Decorator",
+    "tipos suma y emparejar"
+  ],
+  "idioma": "es"
+}

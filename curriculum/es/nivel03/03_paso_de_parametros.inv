@@ -1,0 +1,28 @@
+// Nivel 3 · Ejercicio 03 — Paso por valor y por referencia
+// Objetivos:
+//   - Comprender el paso por valor
+//   - Comprender que los arreglos se comparten por referencia
+//
+vacio duplicarValor(entero x) {
+    x = x * 2;   // solo cambia la copia local
+    imprimir("inside: "); imprimir(x); imprimir("\n");
+}
+
+vacio duplicarArreglo(entero [] a, entero n) {
+    para (entero i = 0; i < n; i++) {
+        a[i] = a[i] * 2;   // modifica el arreglo original
+    }
+}
+
+vacio main() {
+    entero v = 5;
+    duplicarValor(v);
+    imprimir("after: "); imprimir(v); imprimir("\n");
+
+    entero [3] nums = {1, 2, 3};
+    duplicarArreglo(nums, 3);
+    para_cada (entero e : nums) {
+        imprimir(e); imprimir(" ");
+    }
+    imprimir("\n");
+}

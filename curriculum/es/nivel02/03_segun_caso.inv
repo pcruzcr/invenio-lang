@@ -1,0 +1,26 @@
+// Nivel 2 · Ejercicio 03 — Selección múltiple con segun
+// Objetivos:
+//   - Usar segun / caso / por_defecto
+//   - Aprovechar casos agrupados (caída en cascada)
+//   - Terminar cada grupo con romper
+//
+vacio main() {
+    para (entero mes = 1; mes <= 12; mes++) {
+        entero dias = 0;
+        segun (mes) {
+            caso 2:
+                dias = 28;
+                romper;
+            // Los meses de 30 días comparten bloque.
+            caso 4:
+            caso 6:
+            caso 9:
+            caso 11:
+                dias = 30;
+                romper;
+            por_defecto:
+                dias = 31;
+        }
+        imprimir(mes); imprimir(": "); imprimir(dias); imprimir("\n");
+    }
+}

@@ -1,0 +1,57 @@
+// Nivel 10 · Ejercicio 03 — Paréntesis balanceados
+// Objetivos:
+//   - Aplicar una pila a un problema real de compiladores
+//   - Detectar los tres tipos de error: cierre incorrecto, cierre sin
+//   - apertura y apertura sin cierre
+//
+clase NodoTexto {
+    publico texto valor;
+    publico NodoTexto siguiente;
+    NodoTexto(texto v) { este.valor = v; }
+}
+
+clase PilaTexto {
+    privado NodoTexto cabeza;
+    publico vacio apilar(texto v) {
+        NodoTexto n = nuevo NodoTexto(v);
+        n.siguiente = este.cabeza;
+        este.cabeza = n;
+    }
+    publico texto desapilar() {
+        NodoTexto n = este.cabeza;
+        este.cabeza = n.siguiente;
+        retornar n.valor;
+    }
+    publico logico estaVacia() { retornar este.cabeza == nulo; }
+}
+
+constante texto ABRE = "([{";
+constante texto CIERRA = ")]}";
+
+logico balanceado(texto s) {
+    PilaTexto p = nuevo PilaTexto();
+    para (entero i = 0; i < longitud_texto(s); i++) {
+        texto c = caracter_en(s, i);
+        si (indice_de(ABRE, c) >= 0) {
+            p.apilar(c);
+        } sino {
+            entero k = indice_de(CIERRA, c);
+            si (k >= 0) {
+                si (p.estaVacia()) {
+                    retornar falso;   // cierre sin apertura
+                }
+                si (p.desapilar() != caracter_en(ABRE, k)) {
+                    retornar falso;   // no es su pareja
+                }
+            }
+        }
+    }
+    retornar p.estaVacia();   // aperturas sin cerrar
+}
+
+vacio main() {
+    texto [5] expresiones = {"{a[(b+c)*d]}", "(a+b]", "((x)", "x+y)", "[{()()}]"};
+    para_cada (texto e : expresiones) {
+        imprimir(e); imprimir(" -> "); imprimir(balanceado(e)); imprimir("\n");
+    }
+}

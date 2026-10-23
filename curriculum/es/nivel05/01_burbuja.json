@@ -1,0 +1,22 @@
+{
+  "id": "N05-E01",
+  "nivel": 5,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Ordenamiento burbuja",
+  "enunciado": "Ordena {64, 34, 25, 12, 22, 11, 90} con el método de la burbuja. Muestra el arreglo al final de cada pasada y el total de comparaciones e intercambios.",
+  "objetivos": [
+    "Implementar burbuja con dos ciclos",
+    "Observar cómo el mayor 'sube' al final en cada pasada"
+  ],
+  "pistas": [
+    "Compara elementos vecinos a[j] y a[j + 1].",
+    "Tras la pasada p, los últimos p + 1 elementos ya están en su lugar.",
+    "Por eso el ciclo interno llega hasta n - 1 - p."
+  ],
+  "conceptos": [
+    "burbuja",
+    "comparación",
+    "O(n²)"
+  ]
+}

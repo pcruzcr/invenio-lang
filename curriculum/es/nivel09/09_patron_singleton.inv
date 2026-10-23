@@ -1,0 +1,44 @@
+// Nivel 9 · Ejercicio 09 — Patrón Singleton
+// Objetivos:
+//   - Garantizar una única instancia con constructor privado
+//   - Combinar atributos y métodos estáticos
+//
+clase Registro {
+    privado estatico Registro instancia;
+    privado entero lineas;
+
+    privado constructor Registro() {
+        este.lineas = 0;
+    }
+
+    publico estatico Registro obtenerInstancia() {
+        si (Registro.instancia == nulo) {
+            Registro.instancia = nuevo Registro();   // solo la primera vez
+        }
+        retornar Registro.instancia;
+    }
+
+    publico vacio registrar(texto msg) {
+        este.lineas = este.lineas + 1;
+        imprimir("["); imprimir(este.lineas); imprimir("] "); imprimir(msg); imprimir("\n");
+    }
+}
+
+vacio cargar() {
+    Registro r = Registro.obtenerInstancia();
+    r.registrar("loading data");
+}
+
+vacio guardarDatos() {
+    Registro r = Registro.obtenerInstancia();
+    r.registrar("saving data");
+}
+
+vacio main() {
+    cargar();
+    guardarDatos();
+    Registro a = Registro.obtenerInstancia();
+    Registro b = Registro.obtenerInstancia();
+    a.registrar("done");
+    imprimir(a == b); imprimir("\n");
+}

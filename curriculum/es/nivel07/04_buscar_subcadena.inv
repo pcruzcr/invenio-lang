@@ -1,0 +1,31 @@
+// Nivel 7 · Ejercicio 04 — Buscar una subcadena
+// Objetivos:
+//   - Comparar un patrón en cada posición posible
+//   - Encontrar apariciones solapadas
+//
+entero buscarSubcadena(texto txt, texto patron, entero desde) {
+    entero n = longitud_texto(txt);
+    entero m = longitud_texto(patron);
+    para (entero i = desde; i <= n - m; i++) {
+        entero j = 0;
+        mientras (j < m && caracter_en(txt, i + j) == caracter_en(patron, j)) {
+            j++;
+        }
+        si (j == m) {
+            retornar i;   // todos los caracteres coincidieron
+        }
+    }
+    retornar -1;
+}
+
+vacio main() {
+    texto txt = "bananas y ananas";
+    texto patron = "ana";
+    entero p = buscarSubcadena(txt, patron, 0);
+    mientras (p != -1) {
+        imprimir(p); imprimir(" ");
+        p = buscarSubcadena(txt, patron, p + 1);
+    }
+    imprimir("\n");
+    imprimir(indice_de(txt, patron)); imprimir("\n");
+}

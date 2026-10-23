@@ -1,0 +1,38 @@
+// Level 8 · Exercise 03 — Constructor overloading
+// Learning goals:
+//   - Offer several ways to create an object
+//   - Tell overloads apart by number of parameters
+//
+class Point {
+    public int x;
+    public int y;
+
+    // Three constructors: one is chosen based on the arguments to new.
+    Point() { this.x = 0; this.y = 0; }
+    Point(int v) { this.x = v; this.y = v; }
+    Point(int a, int b) { this.x = a; this.y = b; }
+
+    public void translate(int dx, int dy) {
+        this.x = this.x + dx;
+        this.y = this.y + dy;
+    }
+
+    public int distanceSq(Point other) {
+        int dx = this.x - other.x;
+        int dy = this.y - other.y;
+        return dx * dx + dy * dy;
+    }
+
+    public string toString() {
+        return "(" + int_to_string(this.x) + ", " + int_to_string(this.y) + ")";
+    }
+}
+
+void main() {
+    Point origin = new Point();
+    Point p1 = new Point(2);
+    Point p2 = new Point(3, -4);
+    p1.translate(1, 0);
+    print(origin); print(" "); print(p1); print(" "); print(p2); print("\n");
+    print(p1.distanceSq(origin)); print(" "); print(p2.distanceSq(origin)); print("\n");
+}

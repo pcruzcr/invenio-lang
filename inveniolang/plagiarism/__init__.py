@@ -1,7 +1,5 @@
-# plagiarism — v10 cluster
-from .cluster import cluster, plagiarism_score
+"""Anti-plagio para el docente (ver ``python -m inveniolang.evaluation plagio``)."""
 
-__all__ = [
-    "cluster",
-    "plagiarism_score",
-]
+from .cluster import cluster, gramas, normalizar, plagiarism_score, similitud_gramas
+
+__all__ = ["cluster", "gramas", "normalizar", "plagiarism_score", "similitud_gramas"]

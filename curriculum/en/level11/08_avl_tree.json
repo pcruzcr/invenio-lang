@@ -1,0 +1,22 @@
+{
+  "id": "N11-E08",
+  "nivel": 11,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "AVL tree: insertion with rotations",
+  "enunciado": "Insert 1 to 7 in order into an AVL tree. After each insertion recompute heights and, if a node becomes unbalanced (|balance| > 1), apply the right rotation (single or double), showing it. Compare the final height with the degenerate BST's (6).",
+  "objetivos": [
+    "Keep a tree balanced automatically",
+    "Apply single and double rotations"
+  ],
+  "pistas": [
+    "balance = height(left) - height(right).",
+    "Balance < -1 with insertion right of the right child: rotate left.",
+    "Rotations return the new root of the subtree."
+  ],
+  "conceptos": [
+    "AVL",
+    "rotation",
+    "balance factor"
+  ]
+}

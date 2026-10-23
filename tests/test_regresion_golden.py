@@ -39,15 +39,12 @@ def test_pipeline_sin_crash_y_errores_catalogados(ruta: Path):
 
 def test_sandbox_stdin_y_aislamiento(tmp_path):
     """El sandbox debe alimentar stdin por caso y aislar la ejecución."""
-    import subprocess
-
     from inveniolang.sandbox import run_sandboxed
 
     # Programa que lee una línea de entrada y la imprime
     prog = tmp_path / "leer.inv"
     prog.write_text(
-        "string nombre = leer();\n"
-        "imprimir(nombre);\n",
+        "string nombre = leer();\nimprimir(nombre);\n",
         encoding="utf-8",
     )
     # Rápido: timeout corto; en CI sin sandbox externo debe funcionar igual
@@ -64,9 +61,18 @@ def test_cli_caret_y_metrics_salida():
     import subprocess
 
     proc = subprocess.run(
-        [sys.executable, "-m", "inveniolang.cli", "--metrics",
-         str(RAIZ / "pruebas" / "hola_mundo.inv")],
-        capture_output=True, text=True, timeout=60, cwd=str(RAIZ),
+        [
+            sys.executable,
+            "-m",
+            "inveniolang.cli",
+            "--metrics",
+            str(RAIZ / "pruebas" / "hola_mundo.inv"),
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=60,
+        cwd=str(RAIZ),
     )
     assert proc.returncode == 0
     import json

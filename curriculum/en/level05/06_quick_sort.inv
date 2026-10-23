@@ -1,0 +1,49 @@
+// Level 5 · Exercise 06 — Quick sort
+// Learning goals:
+//   - Implement partitioning around a pivot
+//   - Recursively sort each side
+//
+void printArray(int [] a, int n) {
+    print("[");
+    for (int i = 0; i < n; i++) {
+        print(a[i]);
+        if (i < n - 1) {
+            print(", ");
+        }
+    }
+    print("]\n");
+}
+
+void swap(int [] a, int i, int j) {
+    int tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+}
+
+int partition(int [] a, int left, int right) {
+    int pivot = a[right];
+    int i = left - 1;
+    for (int j = left; j < right; j++) {
+        if (a[j] < pivot) {
+            i++;
+            swap(a, i, j);
+        }
+    }
+    swap(a, i + 1, right);   // the pivot goes to its final place
+    print("pivot "); print(pivot); print(": ");
+    printArray(a, 7);
+    return i + 1;
+}
+
+void quickSort(int [] a, int left, int right) {
+    if (left < right) {
+        int p = partition(a, left, right);
+        quickSort(a, left, p - 1);
+        quickSort(a, p + 1, right);
+    }
+}
+
+void main() {
+    int [7] a = {10, 80, 30, 90, 40, 50, 70};
+    quickSort(a, 0, 6);
+}

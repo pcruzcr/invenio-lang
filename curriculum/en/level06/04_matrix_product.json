@@ -1,0 +1,22 @@
+{
+  "id": "N06-E04",
+  "nivel": 6,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Matrix product",
+  "enunciado": "Multiply A (2x3) = {{1, 2, 3}, {4, 5, 6}} by B (3x2) = {{7, 8}, {9, 10}, {11, 12}} and show the resulting 2x2 matrix. Also check that multiplying by the identity leaves the matrix unchanged.",
+  "objetivos": [
+    "Implement the row-by-column product",
+    "Check compatible dimensions"
+  ],
+  "pistas": [
+    "C[i][j] is the dot product of row i of A and column j of B.",
+    "You need three loops: i, j and k.",
+    "Initialize C[i][j] to 0 before accumulating."
+  ],
+  "conceptos": [
+    "matrix product",
+    "dot product",
+    "O(n³)"
+  ]
+}

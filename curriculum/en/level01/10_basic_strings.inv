@@ -1,0 +1,14 @@
+// Level 1 · Exercise 10 — Basic strings
+// Learning goals:
+//   - Use the string library
+//   - Understand that positions start at 0
+//
+void main() {
+    string s = "Programacion";
+    print(text_length(s)); print("\n");
+    print(to_upper(s)); print("\n");
+    print(substring(s, 0, 3)); print("\n");
+    // Positions: P=0 r=1 o=2 g=3 r=4
+    print(char_at(s, 4)); print("\n");
+    print(s + " I"); print("\n");
+}

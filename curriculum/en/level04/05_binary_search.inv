@@ -1,0 +1,33 @@
+// Level 4 · Exercise 05 — Binary search
+// Learning goals:
+//   - Implement binary search
+//   - Understand why the array must be sorted
+//   - See how the interval is halved
+//
+int binarySearch(int [] a, int n, int x) {
+    int left = 0;
+    int right = n - 1;
+    while (left <= right) {
+        int mid = (left + right) / 2;
+        print("  lo="); print(left); print(" hi="); print(right); print(" mid="); print(mid); print("\n");
+        if (a[mid] == x) {
+            return mid;
+        }
+        if (a[mid] < x) {
+            left = mid + 1;   // discard the left half
+        } else {
+            right = mid - 1;   // discard the right half
+        }
+    }
+    return -1;
+}
+
+void main() {
+    int [10] a = {2, 5, 8, 12, 16, 23, 38, 56, 72, 91};
+    int [2] queries = {23, 7};
+    foreach (int x : queries) {
+        print("search "); print(x); print("\n");
+        int p = binarySearch(a, 10, x);
+        print("-> "); print(p); print("\n");
+    }
+}

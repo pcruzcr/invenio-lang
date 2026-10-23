@@ -1,0 +1,69 @@
+// Nivel 12 · Ejercicio 05 — Reconstruir el camino más corto
+// Objetivos:
+//   - Guardar el predecesor de cada vértice
+//   - Reconstruir caminos recursivamente desde el destino
+//
+constante entero N = 7;
+entero [N][N] adj;
+
+vacio agregarArista(entero a, entero b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;   // no dirigido: la relación va en ambos sentidos
+}
+
+vacio limpiar() {
+    para (entero i = 0; i < N; i++) {
+        para (entero j = 0; j < N; j++) {
+            adj[i][j] = 0;
+        }
+    }
+}
+
+entero [N] padreDe;
+
+vacio imprimirCamino(entero v) {
+    si (padreDe[v] != -1) {
+        imprimirCamino(padreDe[v]);
+        imprimir(" -> ");
+    }
+    imprimir(v);
+}
+
+vacio bfs(entero origen) {
+    logico [N] visto;
+    para (entero i = 0; i < N; i++) {
+        visto[i] = falso;
+        padreDe[i] = -1;
+    }
+    entero [N] cola;
+    entero frente = 0;
+    entero final = 1;
+    cola[0] = origen;
+    visto[origen] = verdadero;
+    mientras (frente < final) {
+        entero u = cola[frente];
+        frente++;
+        para (entero v = 0; v < N; v++) {
+            si (adj[u][v] == 1 && !visto[v]) {
+                visto[v] = verdadero;
+                padreDe[v] = u;   // recordar de dónde vinimos
+                cola[final] = v;
+                final++;
+            }
+        }
+    }
+}
+
+vacio main() {
+    limpiar();
+    agregarArista(0, 1);
+    agregarArista(1, 2);
+    agregarArista(2, 6);
+    agregarArista(0, 3);
+    agregarArista(3, 4);
+    agregarArista(4, 5);
+    agregarArista(5, 6);
+    bfs(0);
+    imprimirCamino(6); imprimir("\n");
+    imprimirCamino(5); imprimir("\n");
+}

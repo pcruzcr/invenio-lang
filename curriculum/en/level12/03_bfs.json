@@ -1,0 +1,22 @@
+{
+  "id": "N12-E03",
+  "nivel": 12,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Breadth-first search (BFS)",
+  "enunciado": "Run a breadth-first search on the graph (adjacency matrix) from vertex 0 using an array queue. Show the visit order and the distance (in edges) of every reachable vertex; unreachable ones show -1.",
+  "objetivos": [
+    "Implement BFS with a queue",
+    "Get shortest distances in unweighted graphs"
+  ],
+  "pistas": [
+    "Mark a vertex as visited when ENQUEUING it, not when dequeuing it.",
+    "dist[neighbor] = dist[current] + 1.",
+    "Initialize distances to -1: it means 'not reached'."
+  ],
+  "conceptos": [
+    "BFS",
+    "queue",
+    "distance"
+  ]
+}

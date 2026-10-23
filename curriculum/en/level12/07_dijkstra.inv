@@ -1,0 +1,58 @@
+// Level 12 · Exercise 07 — Weighted shortest paths: Dijkstra
+// Learning goals:
+//   - Implement Dijkstra with a weight matrix
+//   - Understand edge relaxation
+//
+const int N = 6;
+const int INF = 1000000;
+int [N][N] weights;
+int [N] dist;
+int [N] parentOf;
+
+void edge(int a, int b, int w) {
+    weights[a][b] = w;
+    weights[b][a] = w;
+}
+
+void printPath(int v) {
+    if (parentOf[v] != -1) {
+        printPath(parentOf[v]);
+        print("-");
+    }
+    print(v);
+}
+
+void main() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) { weights[i][j] = 0; }
+    }
+    edge(0, 1, 4); edge(0, 2, 1); edge(2, 1, 2); edge(1, 3, 5);
+    edge(2, 3, 8); edge(3, 4, 3); edge(4, 5, 2);
+
+    bool [N] done;
+    for (int i = 0; i < N; i++) {
+        dist[i] = INF;
+        parentOf[i] = -1;
+        done[i] = false;
+    }
+    dist[0] = 0;
+    for (int step = 0; step < N; step++) {
+        // Pick the closest pending vertex (greedy choice).
+        int u = -1;
+        for (int v = 0; v < N; v++) {
+            if (!done[v] && (u == -1 || dist[v] < dist[u])) {
+                u = v;
+            }
+        }
+        done[u] = true;
+        for (int v = 0; v < N; v++) {
+            if (weights[u][v] > 0 && dist[u] + weights[u][v] < dist[v]) {
+                dist[v] = dist[u] + weights[u][v];   // relaxation
+                parentOf[v] = u;
+            }
+        }
+    }
+    for (int v = 0; v < N; v++) {
+        print(v); print(": "); print(dist[v]); print("  "); printPath(v); print("\n");
+    }
+}

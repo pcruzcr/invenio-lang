@@ -1,0 +1,59 @@
+// Nivel 12 · Ejercicio 06 — Componentes conexas
+// Objetivos:
+//   - Lanzar recorridos desde cada vértice no visitado
+//   - Etiquetar vértices por componente
+//
+constante entero N = 7;
+entero [N][N] adj;
+
+vacio agregarArista(entero a, entero b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;   // no dirigido: la relación va en ambos sentidos
+}
+
+vacio limpiar() {
+    para (entero i = 0; i < N; i++) {
+        para (entero j = 0; j < N; j++) {
+            adj[i][j] = 0;
+        }
+    }
+}
+
+entero [N] componente;
+
+vacio marcar(entero u, entero c) {
+    componente[u] = c;
+    para (entero v = 0; v < N; v++) {
+        si (adj[u][v] == 1 && componente[v] == -1) {
+            marcar(v, c);
+        }
+    }
+}
+
+vacio main() {
+    limpiar();
+    agregarArista(0, 1);
+    agregarArista(1, 2);
+    agregarArista(3, 4);
+    agregarArista(5, 6);
+    para (entero i = 0; i < N; i++) {
+        componente[i] = -1;
+    }
+    entero total = 0;
+    para (entero i = 0; i < N; i++) {
+        si (componente[i] == -1) {
+            marcar(i, total);   // nueva componente
+            total++;
+        }
+    }
+    imprimir("components = "); imprimir(total); imprimir("\n");
+    para (entero c = 0; c < total; c++) {
+        imprimir(c); imprimir(":");
+        para (entero i = 0; i < N; i++) {
+            si (componente[i] == c) {
+                imprimir(" "); imprimir(i);
+            }
+        }
+        imprimir("\n");
+    }
+}

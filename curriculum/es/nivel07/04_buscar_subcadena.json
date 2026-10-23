@@ -1,0 +1,21 @@
+{
+  "id": "N07-E04",
+  "nivel": 7,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Buscar una subcadena",
+  "enunciado": "Implementa la búsqueda ingenua buscarSubcadena(texto, patron, desde) y úsala para listar todas las posiciones de \"ana\" en \"bananas y ananas\". Compara la primera con indice_de.",
+  "objetivos": [
+    "Comparar un patrón en cada posición posible",
+    "Encontrar apariciones solapadas"
+  ],
+  "pistas": [
+    "Las posiciones candidatas van de desde a n - m.",
+    "Compara carácter a carácter y abandona al primer fallo.",
+    "Para la siguiente aparición busca desde la posición encontrada + 1."
+  ],
+  "conceptos": [
+    "búsqueda de patrones",
+    "solapamiento"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "N05-E08",
+  "nivel": 5,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Sorting records with parallel arrays",
+  "enunciado": "You have names {\"Ana\", \"Luis\", \"Eva\", \"Juan\", \"Sofi\"} and points {85, 92, 85, 70, 92}. Sort them from highest to lowest score with insertion sort (stable), moving name and points together. Notice that ties keep their original order.",
+  "objetivos": [
+    "Keep parallel arrays in sync",
+    "Understand sort stability",
+    "Sort in descending order"
+  ],
+  "pistas": [
+    "Every time you move a score, move its name too.",
+    "For descending order shift while points[j] < key.",
+    "With strict <, ties do not jump ahead: the sort is stable."
+  ],
+  "conceptos": [
+    "parallel arrays",
+    "stability",
+    "descending order"
+  ]
+}

@@ -1,0 +1,48 @@
+// Level 12 · Exercise 02 — Adjacency list
+// Learning goals:
+//   - Represent a sparse graph compactly
+//   - Go through a vertex's neighbors in O(degree)
+//
+const int N = 7;
+
+class AdjNode {
+    public int vertex;
+    public AdjNode next;
+    AdjNode(int v) { this.vertex = v; }
+}
+
+int nodesCreated = 0;
+
+// Undirected edge: b goes into a's list and a into b's.
+void addEdge(AdjNode [] heads, int a, int b) {
+    AdjNode na = new AdjNode(b);
+    na.next = heads[a];
+    heads[a] = na;
+    AdjNode nb = new AdjNode(a);
+    nb.next = heads[b];
+    heads[b] = nb;
+    nodesCreated = nodesCreated + 2;
+}
+
+void main() {
+    AdjNode heads[N];
+    for (int i = 0; i < N; i++) {
+        heads[i] = null;
+    }
+    addEdge(heads, 0, 1);
+    addEdge(heads, 0, 2);
+    addEdge(heads, 1, 3);
+    addEdge(heads, 2, 3);
+    addEdge(heads, 3, 4);
+    addEdge(heads, 4, 5);
+    for (int i = 0; i < N; i++) {
+        print(i); print(":");
+        AdjNode n = heads[i];
+        while (n != null) {
+            print(" "); print(n.vertex);
+            n = n.next;
+        }
+        print("\n");
+    }
+    print("list nodes = "); print(nodesCreated); print(", matrix cells = "); print(N * N); print("\n");
+}

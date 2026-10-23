@@ -1,0 +1,21 @@
+{
+  "id": "N12-E02",
+  "nivel": 12,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Adjacency list",
+  "enunciado": "Represent the same graph with adjacency lists: an array of AdjNode heads, one linked list per vertex. Show each vertex's list and compare the memory used (list nodes) with the matrix's N*N cells.",
+  "objetivos": [
+    "Represent a sparse graph compactly",
+    "Go through a vertex's neighbors in O(degree)"
+  ],
+  "pistas": [
+    "Each undirected edge creates two nodes: one in each list.",
+    "Inserting at the head of the list is O(1).",
+    "With few edges, the list saves a lot of memory."
+  ],
+  "conceptos": [
+    "adjacency list",
+    "sparse graph"
+  ]
+}

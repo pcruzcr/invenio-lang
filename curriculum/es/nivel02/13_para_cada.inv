@@ -1,0 +1,21 @@
+// Nivel 2 · Ejercicio 13 — Recorrido con para_cada
+// Objetivos:
+//   - Recorrer una colección sin manejar índices
+//   - Saber cuándo conviene para y cuándo para_cada
+//
+vacio main() {
+    entero [6] temps = {21, 25, 19, 30, 27, 18};
+    entero calurosos = 0;
+    entero suma = 0;
+    // t toma, uno por uno, cada valor del arreglo; no hay índice que controlar.
+    para_cada (entero t : temps) {
+        imprimir(t); imprimir(" ");
+        si (t >= 25) {
+            calurosos++;
+        }
+        suma += t;
+    }
+    imprimir("\n");
+    imprimir("hot = "); imprimir(calurosos); imprimir("\n");
+    imprimir("sum = "); imprimir(suma); imprimir("\n");
+}

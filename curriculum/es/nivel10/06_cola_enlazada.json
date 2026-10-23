@@ -1,0 +1,22 @@
+{
+  "id": "N10-E06",
+  "nivel": 10,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "Cola enlazada: simulación de turnos",
+  "enunciado": "Implementa ColaEnlazada con referencias al frente y al final. Simula una fila de banco: llegan los clientes 101, 102 y 103; se atiende uno; llegan 104 y 105; se atienden todos. Muestra cada llegada y cada atención.",
+  "objetivos": [
+    "Implementar una cola con nodos y dos referencias",
+    "Mantener consistentes frente y final en los casos límite"
+  ],
+  "pistas": [
+    "Encolar agrega al final en O(1) gracias a la referencia final.",
+    "Si la cola estaba vacía, el nuevo nodo es frente y final a la vez.",
+    "Al quedar vacía tras desencolar, final también debe ser nulo."
+  ],
+  "conceptos": [
+    "cola",
+    "FIFO",
+    "simulación"
+  ]
+}

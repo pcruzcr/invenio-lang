@@ -1,0 +1,22 @@
+{
+  "id": "N13-E03",
+  "nivel": 13,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "O(n²) frente a O(n log n): burbuja y merge sort",
+  "enunciado": "Genera datos pseudoaleatorios reproducibles de tamaño 8, 16, 32 y 64 y cuenta las comparaciones de burbuja y de merge sort sobre copias idénticas. Muestra la tabla y el cociente burbuja/merge.",
+  "objetivos": [
+    "Contar comparaciones en algoritmos de ordenamiento",
+    "Observar cómo crece la diferencia al aumentar n"
+  ],
+  "pistas": [
+    "Ordena dos copias del mismo arreglo para que la comparación sea justa.",
+    "Burbuja (sin optimizar) siempre hace n(n-1)/2 comparaciones.",
+    "Merge sort hace a lo sumo n log2(n) comparaciones."
+  ],
+  "conceptos": [
+    "O(n²)",
+    "O(n log n)",
+    "análisis empírico"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N12-E02",
+  "nivel": 12,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Lista de adyacencia",
+  "enunciado": "Representa el mismo grafo con listas de adyacencia: un arreglo de cabezas NodoAdj, una lista enlazada por vértice. Muestra la lista de cada vértice y compara la memoria usada (nodos de lista) con las N*N celdas de la matriz.",
+  "objetivos": [
+    "Representar un grafo disperso de forma compacta",
+    "Recorrer los vecinos de un vértice en O(grado)"
+  ],
+  "pistas": [
+    "Cada arista no dirigida crea dos nodos: uno en cada lista.",
+    "Insertar al inicio de la lista es O(1).",
+    "Con pocas aristas, la lista ahorra mucha memoria."
+  ],
+  "conceptos": [
+    "lista de adyacencia",
+    "grafo disperso"
+  ]
+}

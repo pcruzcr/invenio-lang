@@ -1,0 +1,22 @@
+{
+  "id": "N07-E02",
+  "nivel": 7,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Invertir y detectar palíndromos",
+  "enunciado": "Escribe invertir(s) construyendo la cadena al revés carácter a carácter, y esPalindromo(s) que ignore espacios y mayúsculas. Pruébalas con \"Anita lava la tina\", \"Hola mundo\" y \"Oso\".",
+  "objetivos": [
+    "Construir una cadena por concatenación",
+    "Normalizar texto antes de compararlo"
+  ],
+  "pistas": [
+    "Recorre desde el último carácter hasta el primero.",
+    "Quita los espacios y pasa a minúsculas antes de comparar.",
+    "Puedes comprobar tu función contra invertir_texto / reverse_string."
+  ],
+  "conceptos": [
+    "concatenación",
+    "normalización",
+    "palíndromo"
+  ]
+}

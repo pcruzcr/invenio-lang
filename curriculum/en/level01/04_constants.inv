@@ -1,0 +1,16 @@
+// Level 1 · Exercise 04 — Constants
+// Learning goals:
+//   - Declare constants with const
+//   - Use constants in expressions
+//
+// Global constants are written in UPPERCASE by convention.
+const float PI = 3.14;
+
+void main() {
+    float radius = 2.0;
+    float area = PI * radius * radius;
+    float perimeter = 2.0 * PI * radius;
+    print("area = "); print(area); print("\n");
+    print("perimeter = "); print(perimeter); print("\n");
+    // PI = 3.0;  <- would be an error: a constant cannot be reassigned.
+}

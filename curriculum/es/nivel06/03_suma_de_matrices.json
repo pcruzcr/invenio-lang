@@ -1,0 +1,21 @@
+{
+  "id": "N06-E03",
+  "nivel": 6,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Suma de matrices",
+  "enunciado": "Suma A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}} y B = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}} elemento a elemento en C con un procedimiento sumaMatrices(A, B, C, n) y muestra C.",
+  "objetivos": [
+    "Pasar matrices como parámetros",
+    "Implementar una operación elemento a elemento"
+  ],
+  "pistas": [
+    "C[i][j] = A[i][j] + B[i][j].",
+    "Los parámetros matriz se declaran como entero [][] nombre.",
+    "Las matrices se pasan por referencia: C se llena dentro del procedimiento."
+  ],
+  "conceptos": [
+    "suma de matrices",
+    "parámetro matriz"
+  ]
+}

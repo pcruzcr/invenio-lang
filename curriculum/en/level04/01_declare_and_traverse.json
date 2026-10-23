@@ -1,0 +1,22 @@
+{
+  "id": "N04-E01",
+  "nivel": 4,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Declare and traverse an array",
+  "enunciado": "Declare an array of 6 ints with {4, 8, 15, 16, 23, 42}. Show it with a printArray procedure, traverse it backwards and show the elements at even positions.",
+  "objetivos": [
+    "Declare and initialize arrays",
+    "Traverse with indexes forward, backward and with steps"
+  ],
+  "pistas": [
+    "Valid indexes go from 0 to size - 1.",
+    "Backwards: for (int i = N - 1; i >= 0; i--).",
+    "Even positions: advance with i = i + 2."
+  ],
+  "conceptos": [
+    "array",
+    "index",
+    "traversal"
+  ]
+}

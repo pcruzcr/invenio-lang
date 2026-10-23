@@ -1,0 +1,22 @@
+{
+  "id": "N13-E05",
+  "nivel": 13,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Mejor, peor y caso promedio: inserción",
+  "enunciado": "Cuenta las comparaciones del ordenamiento por inserción con n = 40 para una entrada ya ordenada, una invertida y una pseudoaleatoria. Relaciona los resultados con n - 1 y n(n-1)/2.",
+  "objetivos": [
+    "Distinguir mejor, peor y caso promedio",
+    "Ver que un mismo algoritmo puede ser O(n) u O(n²) según la entrada"
+  ],
+  "pistas": [
+    "Cuenta una comparación cada vez que se evalúa a[j] > clave.",
+    "Ordenada: cada clave se compara una sola vez.",
+    "Invertida: cada clave recorre toda la parte ordenada."
+  ],
+  "conceptos": [
+    "mejor caso",
+    "peor caso",
+    "caso promedio"
+  ]
+}

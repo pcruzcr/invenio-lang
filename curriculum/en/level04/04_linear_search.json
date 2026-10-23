@@ -1,0 +1,23 @@
+{
+  "id": "N04-E04",
+  "nivel": 4,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Linear search",
+  "enunciado": "Write linearSearch(a, n, x) returning the position of x or -1 if it is absent, counting comparisons. Search for 23, 4 and 99 in {16, 4, 42, 8, 23, 15}.",
+  "objetivos": [
+    "Implement sequential search",
+    "Use -1 as a 'not found' sentinel value",
+    "See that the worst case traverses the whole array"
+  ],
+  "pistas": [
+    "Traverse from 0 and return as soon as you find it.",
+    "If the loop ends without finding it, return -1.",
+    "Count one comparison for each visited element."
+  ],
+  "conceptos": [
+    "linear search",
+    "sentinel",
+    "O(n)"
+  ]
+}

@@ -1,0 +1,5 @@
+10 -> 20 -> 30 -> 40 -> null
+true false
+false
+20 -> 40 -> null
+50 -> 40 -> 20 -> null

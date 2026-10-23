@@ -1,0 +1,22 @@
+{
+  "id": "N03-E12",
+  "nivel": 3,
+  "numero": 12,
+  "idioma": "es",
+  "titulo": "Funciones como valores",
+  "enunciado": "Guarda funciones en variables de tipo funcion y úsalas con mapear, filtrar y reducir sobre {3, 8, 1, 6, 5}: el doble de cada elemento, los pares y la suma total.",
+  "objetivos": [
+    "Tratar funciones como valores",
+    "Usar funciones de orden superior: mapear, filtrar, reducir"
+  ],
+  "pistas": [
+    "funcion(entero x) entero f; declara una variable que guarda una función.",
+    "filtrar escribe en el arreglo de salida y retorna cuántos elementos pasaron.",
+    "reducir(arreglo, f, inicial) combina todos los elementos de izquierda a derecha."
+  ],
+  "conceptos": [
+    "función de primera clase",
+    "orden superior",
+    "lambda"
+  ]
+}

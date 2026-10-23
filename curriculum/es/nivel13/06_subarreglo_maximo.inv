@@ -1,0 +1,60 @@
+// Nivel 13 · Ejercicio 06 — Subarreglo de suma máxima: O(n²) frente a O(n)
+// Objetivos:
+//   - Rediseñar un algoritmo para bajar su orden
+//   - Verificar que ambas versiones dan el mismo resultado
+//
+// Generador pseudoaleatorio congruencial lineal: siempre la misma secuencia,
+// para que la salida sea reproducible.
+entero semilla = 7;
+
+entero aleatorio(entero limite) {
+    semilla = (semilla * 1103 + 12345) % 65536;
+    retornar semilla % limite;
+}
+
+entero ops = 0;
+
+entero fuerzaBruta(entero [] a, entero n) {
+    entero mejor = a[0];
+    para (entero i = 0; i < n; i++) {
+        entero suma = 0;
+        para (entero j = i; j < n; j++) {
+            ops++;
+            suma += a[j];
+            si (suma > mejor) { mejor = suma; }
+        }
+    }
+    retornar mejor;
+}
+
+entero kadane(entero [] a, entero n) {
+    entero mejor = a[0];
+    entero actual = a[0];
+    para (entero i = 1; i < n; i++) {
+        ops++;
+        // O extendemos el subarreglo anterior o empezamos uno nuevo en i.
+        actual = actual + a[i] > a[i] ? actual + a[i] : a[i];
+        si (actual > mejor) { mejor = actual; }
+    }
+    retornar mejor;
+}
+
+vacio comparar(entero [] a, entero n) {
+    ops = 0;
+    entero r1 = fuerzaBruta(a, n);
+    entero o1 = ops;
+    ops = 0;
+    entero r2 = kadane(a, n);
+    imprimir("n="); imprimir(n); imprimir(" brute="); imprimir(r1); imprimir(" ("); imprimir(o1); imprimir(" ops)");
+    imprimir(" kadane="); imprimir(r2); imprimir(" ("); imprimir(ops); imprimir(" ops)\n");
+}
+
+vacio main() {
+    entero [9] a = {-2, 1, -3, 4, -1, 2, 1, -5, 4};
+    comparar(a, 9);
+    entero [200] b;
+    para (entero i = 0; i < 200; i++) {
+        b[i] = aleatorio(21) - 10;
+    }
+    comparar(b, 200);
+}

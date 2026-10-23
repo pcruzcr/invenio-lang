@@ -1,0 +1,21 @@
+{
+  "id": "N02-E11",
+  "nivel": 2,
+  "numero": 11,
+  "idioma": "en",
+  "titulo": "Digits of a number",
+  "enunciado": "For n = 90471 compute the number of digits, the sum of its digits and the reversed number (17409), extracting digits with % 10 and / 10.",
+  "objetivos": [
+    "Extract digits with % 10 and / 10",
+    "Build a number digit by digit"
+  ],
+  "pistas": [
+    "n % 10 is the last digit; n / 10 removes it.",
+    "Repeat while n > 0.",
+    "reversed = reversed * 10 + digit."
+  ],
+  "conceptos": [
+    "digit decomposition",
+    "while"
+  ]
+}

@@ -1,0 +1,29 @@
+// Level 3 · Exercise 08 — Fast exponentiation
+// Learning goals:
+//   - Design a recursion that halves the problem
+//   - Count operations
+//
+int multiplications = 0;
+
+int power(int b, int e) {
+    if (e == 0) {
+        return 1;
+    }
+    if (e % 2 == 0) {
+        int half = power(b, e / 2);   // a single recursive call
+        multiplications++;
+        return half * half;
+    }
+    multiplications++;
+    return b * power(b, e - 1);
+}
+
+void main() {
+    print(power(2, 10)); print("\n");
+    print(power(3, 7)); print("\n");
+    print(power(5, 0)); print("\n");
+    print(power(7, 9)); print("\n");
+    multiplications = 0;
+    print(power(2, 30)); print("\n");
+    print("multiplications = "); print(multiplications); print("\n");
+}

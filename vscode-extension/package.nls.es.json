@@ -1,0 +1,7 @@
+{
+  "descripcion": "Soporte de InvenioLang: diagnósticos con explicación (LSP), resaltado en español e inglés, ejecutar, traza paso a paso y diagrama de flujo.",
+  "comando.ejecutar": "Ejecutar programa",
+  "comando.trazarHtml": "Traza paso a paso (HTML)",
+  "comando.flujoSvg": "Diagrama de flujo (SVG)",
+  "config.python": "Intérprete de Python que tiene instalado el paquete inveniolang."
+}

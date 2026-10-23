@@ -1,0 +1,34 @@
+// Level 7 · Exercise 06 — Converting between numbers and text
+// Learning goals:
+//   - Build text out of digits
+//   - Interpret text as a number (Horner's scheme)
+//
+string toBinary(int n) {
+    if (n == 0) {
+        return "0";
+    }
+    string r = "";
+    while (n > 0) {
+        // The new bit goes on the left: bits come out from least to most significant.
+        r = int_to_string(n % 2) + r;
+        n = n / 2;
+    }
+    return r;
+}
+
+int fromBinary(string s) {
+    int value = 0;
+    for (int i = 0; i < text_length(s); i++) {
+        value = value * 2 + string_to_int(char_at(s, i));
+    }
+    return value;
+}
+
+void main() {
+    int [4] nums = {0, 5, 42, 255};
+    foreach (int n : nums) {
+        string b = toBinary(n);
+        print(n); print(" -> "); print(b); print(" -> "); print(fromBinary(b));
+        print(" "); print(fromBinary(b) == n); print("\n");
+    }
+}

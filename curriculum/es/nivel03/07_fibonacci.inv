@@ -1,0 +1,35 @@
+// Nivel 3 · Ejercicio 07 — Fibonacci: recursivo e iterativo
+// Objetivos:
+//   - Escribir una recursión con dos llamadas
+//   - Ver por qué la recursión ingenua repite trabajo
+//
+entero llamadas = 0;
+
+entero fib(entero n) {
+    llamadas++;
+    si (n < 2) {
+        retornar n;
+    }
+    retornar fib(n - 1) + fib(n - 2);
+}
+
+entero fibIter(entero n) {
+    entero a = 0;   // fib(i)
+    entero b = 1;   // fib(i + 1)
+    para (entero i = 0; i < n; i++) {
+        entero nuevo_t = a + b;
+        a = b;
+        b = nuevo_t;
+    }
+    retornar a;
+}
+
+vacio main() {
+    para (entero i = 0; i < 15; i++) {
+        imprimir(fibIter(i)); imprimir(" ");
+    }
+    imprimir("\n");
+    imprimir(fib(20)); imprimir(" == "); imprimir(fibIter(20)); imprimir("\n");
+    // La versión recursiva recalcula los mismos valores muchísimas veces.
+    imprimir("calls = "); imprimir(llamadas); imprimir("\n");
+}

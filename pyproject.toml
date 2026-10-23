@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "inveniolang"
-version = "10.0.0"
+version = "11.0.0"
 description = "Compilador educativo InvenioLang — Lenguajes Formales II (Universidad Invenio)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -53,9 +53,14 @@ invenio-gui = "inveniolang.gui_qt:main"
 [tool.setuptools.packages.find]
 include = ["inveniolang*"]
 
+# INV-1430: la biblioteca estándar está escrita en InvenioLang (.inv) y se
+# importa en ejecución; sin esto no viaja en el wheel.
+[tool.setuptools.package-data]
+inveniolang = ["stdlib/*/*.inv"]
+
 [tool.pytest.ini_options]
-testpaths = ["pruebas"]
-python_files = ["test_*.py", "conformidad.py", "_audit.py"]
+testpaths = ["pruebas", "tests"]
+python_files = ["test_*.py", "conformidad.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-q --tb=short"
@@ -77,10 +82,21 @@ lint.select = ["E","F","W","I","B","C4","UP","S","N","D"]
 # gui, tests); renombrar rompería compatibilidad.
 lint.ignore = ["D100","D104","D105","D107","S101","S603","S607","N802","N818","N801"]
 
+# INV-1030: pruebas y scripts de conformidad. D103: cada test se documenta por
+# su nombre (`test_*`, `caso_*`) y por el ID/§ que cita el propio caso.
+# E501 solo en las TABLAS de casos (_audit.py, test_lexer_errors.py,
+# pruebas/conformidad.py): una línea = un caso (fuente + esperado), de modo que
+# añadir o cambiar un caso es un diff de una sola línea. Igual en los catálogos
+# i18n (es.py/en.py): una clave = una plantilla por línea, para compararlas
+# entre idiomas línea a línea y buscarlas por clave.
+# Pruebas (INV-5003): S314 = parsean con ElementTree el SVG que genera el propio
+# proyecto (no XML externo); S311 = datos pseudoaleatorios de prueba, no
+# criptografía; S108 = rutas de /tmp ficticias que se validan, no se abren;
+# E501 = programas .inv incrustados como datos de prueba (partirlos cambia el caso).
 # parser.py/lexer.py: la gramática LALR vive en docstrings (producciones
 # p_* y tokens t_* exigidos por PLY). Las reglas de prosa-docstring y de
 # nombres no aplican ahí; E501 cubre líneas de la tabla gramatical.
-lint.per-file-ignores = {"inveniolang/parser.py" = ["D205","D208","D209","D210","D212","D213","D214","D215","D300","D301","D403","D404","D415","D416","N815","E501"], "inveniolang/lexer.py" = ["D205","D208","D209","D210","D212","D213","D214","D215","D300","D301","D403","D404","D415","D416","N815","E501"]}
+lint.per-file-ignores = {"inveniolang/parser.py" = ["D205","D208","D209","D210","D212","D213","D214","D215","D300","D301","D403","D404","D415","D416","N815","E501"], "inveniolang/lexer.py" = ["D205","D208","D209","D210","D212","D213","D214","D215","D300","D301","D403","D404","D415","D416","N815","E501"], "tests/**" = ["D103", "E501", "S108", "S311", "S314"], "pruebas/**" = ["D103"], "_audit.py" = ["D103", "E501"], "test_lexer_errors.py" = ["D103", "E501"], "pruebas/conformidad.py" = ["E501"], "inveniolang/i18n/es.py" = ["E501"], "inveniolang/i18n/en.py" = ["E501"]}
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

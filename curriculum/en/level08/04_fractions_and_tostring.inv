@@ -1,0 +1,50 @@
+// Level 8 · Exercise 04 — Fractions: toString and immutable objects
+// Learning goals:
+//   - Customize the representation with toString
+//   - Design immutable objects that return new objects
+//
+int gcd(int a, int b) {
+    if (b == 0) {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+
+class Fraction {
+    private int numerator;
+    private int denominator;
+
+    Fraction(int n, int d) {
+        int g = gcd(n, d);
+        this.numerator = n / g;
+        this.denominator = d / g;
+    }
+
+    public int num() { return this.numerator; }
+    public int den() { return this.denominator; }
+
+    // It does not modify this object: it creates and returns a new one.
+    public Fraction plus(Fraction other) {
+        return new Fraction(this.numerator * other.den() + other.num() * this.denominator,
+                                this.denominator * other.den());
+    }
+
+    public Fraction times(Fraction other) {
+        return new Fraction(this.numerator * other.num(), this.denominator * other.den());
+    }
+
+    public string toString() {
+        return int_to_string(this.numerator) + "/" + int_to_string(this.denominator);
+    }
+}
+
+void main() {
+    Fraction a = new Fraction(1, 2);
+    Fraction b = new Fraction(1, 3);
+    print(a.plus(b)); print("\n");
+    Fraction c = new Fraction(2, 4);
+    Fraction d = new Fraction(6, 9);
+    print(c); print(" * "); print(d); print(" = "); print(c.times(d)); print("\n");
+    Fraction e = new Fraction(3, 4);
+    print(e.plus(new Fraction(1, 4))); print("\n");
+}

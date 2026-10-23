@@ -1,0 +1,53 @@
+// Nivel 5 · Ejercicio 09 — Criterio de orden intercambiable
+// Objetivos:
+//   - Separar el algoritmo del criterio de comparación
+//   - Usar funciones como valores
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio intercambiar(entero [] a, entero i, entero j) {
+    entero aux = a[i];
+    a[i] = a[j];
+    a[j] = aux;
+}
+
+// Variable global de tipo función: el criterio que usará ordenar.
+funcion(entero x, entero y) logico antes;
+
+logico ascendente(entero x, entero y) { retornar x < y; }
+logico descendente(entero x, entero y) { retornar x > y; }
+logico porUltimoDigito(entero x, entero y) { retornar x % 10 < y % 10; }
+
+vacio ordenar(entero [] a, entero n) {
+    para (entero i = 1; i < n; i++) {
+        entero clave = a[i];
+        entero j = i - 1;
+        mientras (j >= 0 && antes(clave, a[j])) {
+            a[j + 1] = a[j];
+            j--;
+        }
+        a[j + 1] = clave;
+    }
+}
+
+vacio main() {
+    entero [5] a = {15, 3, 42, 8, 23};
+    antes = ascendente;
+    ordenar(a, 5);
+    imprimirArreglo(a, 5);
+    antes = descendente;
+    ordenar(a, 5);
+    imprimirArreglo(a, 5);
+    antes = porUltimoDigito;
+    ordenar(a, 5);
+    imprimirArreglo(a, 5);
+}

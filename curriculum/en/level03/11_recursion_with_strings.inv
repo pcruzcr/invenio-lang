@@ -1,0 +1,37 @@
+// Level 3 · Exercise 11 — Recursion with strings and digits
+// Learning goals:
+//   - Apply recursion to numbers and strings
+//   - Print in the right order by using the unwinding of the recursion
+//
+int digitSum(int n) {
+    if (n < 10) {
+        return n;
+    }
+    return n % 10 + digitSum(n / 10);
+}
+
+bool isPalindrome(string s, int i, int j) {
+    if (i >= j) {
+        return true;   // 0 or 1 characters: always a palindrome
+    }
+    if (char_at(s, i) != char_at(s, j)) {
+        return false;
+    }
+    return isPalindrome(s, i + 1, j - 1);
+}
+
+void binary(int n) {
+    if (n >= 2) {
+        binary(n / 2);   // most significant bits first
+    }
+    print(n % 2);
+}
+
+void main() {
+    print(digitSum(9045)); print("\n");
+    string p = "reconocer";
+    string q = "recursion";
+    print(isPalindrome(p, 0, text_length(p) - 1)); print("\n");
+    print(isPalindrome(q, 0, text_length(q) - 1)); print("\n");
+    binary(37); print("\n");
+}

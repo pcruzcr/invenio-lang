@@ -1,0 +1,24 @@
+{
+  "id": "N08-E08",
+  "nivel": 8,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Referencias, nulo e igualdad",
+  "enunciado": "Muestra que dos variables pueden referirse al mismo objeto (alias), que == compara identidad salvo que la clase defina esIgual/equals, y cómo usar nulo de forma segura con != y con ??.",
+  "objetivos": [
+    "Entender que una variable de clase guarda una referencia",
+    "Definir igualdad por valor con esIgual/equals",
+    "Evitar errores por referencias nulas"
+  ],
+  "pistas": [
+    "Asignar un objeto a otra variable NO lo copia.",
+    "Sin esIgual, dos objetos con los mismos datos son distintos para ==.",
+    "Antes de usar una referencia que puede ser nula, compárala con nulo."
+  ],
+  "conceptos": [
+    "referencia",
+    "alias",
+    "nulo",
+    "igualdad"
+  ]
+}

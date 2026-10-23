@@ -72,30 +72,37 @@ miembro_clase         ::= visibilidad tipo IDENTIFICADOR ";"                    
 visibilidad           ::= "publico" | "privado"
 
 receptor              ::= IDENTIFICADOR | "este" | "padre"
+                        | IDENTIFICADOR "[" expresion "]"      (* §8 *)
+
+acceso                ::= receptor "." IDENTIFICADOR
+                        | receptor "." IDENTIFICADOR "(" args? ")"
+                        | acceso "." IDENTIFICADOR               (* §14, encadenado *)
+                        | acceso "." IDENTIFICADOR "(" args? ")"
 
 expr_primaria         ::= ...(formas de la v1.0)...
                         | "nuevo" IDENTIFICADOR "(" args? ")"
-                        | receptor "." IDENTIFICADOR
-                        | receptor "." IDENTIFICADOR "(" args? ")"
+                        | acceso
+                        | acceso "." IDENTIFICADOR "[" expresion "]"
 
 lvalue                ::= ...(formas de la v1.0)...
                         | receptor "." IDENTIFICADOR
+                        | acceso "." IDENTIFICADOR
+                        | acceso "." IDENTIFICADOR "[" expresion "]"
 
 instruccion_llamada    ::= ...(formas de la v1.0)...
                         | "padre" "(" args? ")" ";"           (* super(...), solo como
                                                                    primera instruccion de
                                                                    un constructor *)
                         | receptor "." IDENTIFICADOR "(" args? ")" ";"
+                        | acceso "." IDENTIFICADOR "(" args? ")" ";"
 ```
 
-**Limitación deliberada** (documentada, no un descuido): el acceso a
-miembros es de **un solo nivel** — `receptor.miembro` o
-`receptor.metodo(args)`, con `receptor` siempre un identificador simple,
-`este` o `padre`. No se admite encadenar (`a.b.c()`) ni indexar un miembro
-(`objeto.campo[i]`). Evita generalizar `expr_primaria`/`lvalue` de la v1.0 a
-una cadena postfija recursiva, lo que habría sido mucho más invasivo sobre
-una gramática LALR ya densa. Es revisable en un incremento posterior si algún
-curso lo necesita.
+El acceso a miembros fue de **un solo nivel** hasta InvenioLang 10: el
+receptor era siempre un identificador simple, `este`, `padre` o un elemento
+de arreglo, y había que copiar cada eslabón en una variable local. Desde
+InvenioLang 11 (INV-4406) se puede **encadenar**: `a.b.c`, `a.b.c = v`,
+`a.b.m()`, `a.m().c`, `este.cola.siguiente` y `a.b.datos[i]`. Las reglas
+están en §14. El acceso seguro `?.` (§12.2) sigue siendo de un solo nivel.
 
 ## 3. Reglas semánticas
 
@@ -293,10 +300,8 @@ arreglos de tipo primitivo:
   (`personas[i].saludar()`, `personas[i].edad = 30`) es válido: el
   receptor de un acceso a miembro ahora también puede ser
   `IDENTIFICADOR '[' expresion ']'`, además de `IDENTIFICADOR`/`este`/
-  `padre` (§2). Sigue siendo de un solo nivel: no se puede seguir
-  encadenando después del método/atributo (`personas[i].mascota.nombre`
-  no es válido; asígnese `Mascota m = personas[i].mascota;` y continúe
-  desde `m`).
+  `padre` (§2). Desde InvenioLang 11 se puede seguir encadenando
+  después del método/atributo (`personas[i].mascota.nombre`, §14).
 - **Fuera de alcance**: arreglos de matrices de objetos
   (`Clase[f][c] nombre`).
 
@@ -689,10 +694,10 @@ miembros estáticos, visibilidad de constructor). Programas de referencia:
 observadores — los atributos de tipo arreglo siguen sin soportarse, §8),
 [`patron_strategy.inv`](../pruebas/patron_strategy.inv),
 [`patron_decorator.inv`](../pruebas/patron_decorator.inv). `strategy` y
-`decorator` ilustran la limitación de "un solo nivel de acceso a miembro"
-(§0): `this.estrategia.calcular(...)` no se puede escribir directo, se
-resuelve con una variable local intermedia (`Estrategia e = this.estrategia;
-return e.calcular(...);`).
+`decorator` se escribieron cuando el acceso a miembro era de un solo nivel
+y resuelven `this.estrategia.calcular(...)` con una variable local intermedia
+(`Estrategia e = this.estrategia; return e.calcular(...);`); desde
+InvenioLang 11 la forma directa también es válida (§14).
 
 ### 11.4 Algoritmos de grafos con peso y MST
 
@@ -728,8 +733,9 @@ sobre la lista doble).
 [`pruebas/arbol_avl.inv`](../pruebas/arbol_avl.inv): árbol binario de
 búsqueda auto-balanceado con las cuatro rotaciones (izquierda, derecha,
 izquierda-derecha, derecha-izquierda) y factor de balance recalculado tras
-cada inserción. También ilustra la limitación de acceso encadenado (§0):
-`n.izquierda.valor` se resuelve con una variable local intermedia.
+cada inserción. Se escribió antes del acceso encadenado y resuelve
+`n.izquierda.valor` con una variable local intermedia; desde InvenioLang 11
+`n.izquierda.valor` es válido directamente (§14).
 
 ### 11.8 Enumeraciones (`enum`/`enumeracion`)
 
@@ -911,14 +917,20 @@ la tabla `precedence` es vestigial excepto para `UMINUS`/`OP_NOT`.
 ### 12.5/12.6 Funciones de primera clase (closures)
 
 ```
-funcion(entero, entero) entero operar;
+funcion(entero a, entero b) entero operar;
 operar = funcion(entero x, entero y) entero { return x + y; };
 imprimir(operar(3, 4));   // 7
 ```
 
-- **Tipo función** (`funcion(tipos) tipoRetorno`) con equivalencia
-  **estructural**, no nominal — la única excepción deliberada a que
-  InvenioLang es nominal en todo lo demás.
+- **Tipo función** (`funcion(tipo1 nombre1, tipo2 nombre2) tipoRetorno`)
+  con equivalencia **estructural**, no nominal — la única excepción
+  deliberada a que InvenioLang es nominal en todo lo demás. *Errata
+  (INV-4407):* versiones anteriores de este documento escribían el tipo como
+  `funcion(entero, entero) entero`, que el parser rechaza (IL-SIN-010): la
+  lista del tipo función usa la misma regla `lista_params` que cualquier
+  subrutina, así que cada parámetro lleva nombre. El nombre no forma parte
+  del tipo: `funcion(entero a, entero b) entero` y `funcion(entero x, entero
+  y) entero` son el mismo tipo `funcion(int,int)->int`.
 - **Captura por referencia**: al crear un lambda se guarda
   `list(self.pila_marcos)` (referencia a los mismos diccionarios de
   ámbito, no una copia) — una variable capturada que cambia después
@@ -1039,7 +1051,7 @@ simultáneamente vivos que registros) y produce el mismo resultado.
 
 ### 12.13 Parser LL(1) de comparación
 
-[`inveniolang/ll1_demo.py`](../inveniolang/ll1_demo.py) — módulo
+[`inveniolang/ll1.py`](../inveniolang/ll1.py) — módulo
 completamente aparte, no conectado al pipeline principal, acotado a
 expresiones aritméticas (`+ - * / ( )` con precedencia y unario `-`).
 Recursivo-descendente escrito a mano sobre la gramática sin recursión
@@ -1048,7 +1060,7 @@ FIRST/FOLLOW derivados a mano en la cabecera del archivo — el contraste
 directo con la tabla LALR(1) real de la misma subgramática (documentada
 en `docs/InvenioLang_GramaticaFormal.md`, §12.4). Verificado: el mismo
 conjunto de expresiones de prueba produce el mismo resultado numérico
-en ambos analizadores (`ll1_demo.py::verificar_contra_lalr`).
+en ambos analizadores (`ll1.py::verificar_contra_lalr`).
 
 ### 12.14 Catálogo de códigos de error nuevos
 
@@ -1060,10 +1072,16 @@ en ambos analizadores (`ll1_demo.py::verificar_contra_lalr`).
 
 ## 13. Etapa 13 — Constructor de diagramas de flujo
 
+> **Nota (Fase 3, INV-3011):** `flowchart.py` y `flowchart_builder.py`, descritos
+> abajo como registro histórico, se sustituyeron por el paquete `inveniolang/flujo/`
+> (modelo JSON v1 de todo el programa, ida y vuelta código ⇄ diagrama en es/en,
+> edición estructurada y un único panel en la GUI). Ver `docs/diagramas_de_flujo.md`.
+
 Al revisar qué faltaba para dar por concluidas Fase 1 y Fase 2 (Etapas
 1-12, todas completas y verificadas) surgió un hueco real: el panel
 "Diagrama de flujo" existente desde la Etapa 4
-(`inveniolang/flowchart.py` + el dock de solo lectura de `gui_qt.py`) es
+(el antiguo `flowchart.py`, retirado en INV-3011 y sustituido por
+`inveniolang/flujo/`, + el dock de solo lectura de `gui_qt.py`) era
 una herramienta de **revelar** — toma el AST de un archivo `.inv` ya
 escrito y genera automáticamente las cajas y flechas — nunca de
 **dibujar**: el estudiante solo hace panorámica/zoom, no coloca ni
@@ -1099,23 +1117,25 @@ El estado interno del diagrama que arma el estudiante es literalmente un
 `WhileStmt`, `DoWhileStmt`, `ForStmt`, `PrintStmt`, `ReadStmt`,
 `AssignStmt`, ...) que produce el parser real sobre cualquier archivo
 `.inv`. Esto habilita tres reusos directos, documentados en detalle en
-`inveniolang/flowchart_builder.py` (módulo nuevo, sin Qt, mismo criterio
-de testeabilidad aislada que `flowchart.py` desde la Etapa 4):
+el antiguo `flowchart_builder.py` (retirado en INV-3011; hoy la edición
+estructurada vive en [`inveniolang/flujo/edicion.py`](../inveniolang/flujo/edicion.py)
+y la validación en `flujo/modelo.py`):
 
 - **Validación de cada fragmento** que escribe el estudiante (una
   instrucción, una condición, ...): se envuelve en un programa mínimo
   (`void main() { ... }`, o `si (...) { }`/`mientras (...) { }` para una
   condición, etc.) y se corre por el `Lexer`/`Parser` REALES — mismo
   patrón que ya usaban `pruebas/conformidad.py::analizar()` e
-  `inveniolang/ll1_demo.py::_evaluar_lalr()`. Nunca se escribe un segundo
+  `inveniolang/ll1.py::_evaluar_lalr()`. Nunca se escribe un segundo
   analizador.
 - **Validación de todo el diagrama junto** (no caja por caja aislada —
   así una caja que lee una variable declarada en una caja anterior no se
   marca como error falso): se genera el texto completo
-  (`generar_texto_main`) y se corre el pipeline entero (`Lexer` →
+  (`generar_texto_main`; hoy `flujo.codigo_desde_modelo`) y se corre el pipeline entero (`Lexer` →
   `Parser` → `SemanticAnalyzer` → `TypeChecker`), reasignando cada error
   a la caja que lo originó vía un mapa de números de línea.
-- **Vista previa en vivo**: `flowchart.py::construir_diagrama(bloque)`
+- **Vista previa en vivo**: `construir_diagrama(bloque)` del antiguo
+  `flowchart.py` (retirado; hoy `flujo.modelo_desde_codigo` + `flujo/esquema.py`)
   ya sabía construir un diagrama a partir de CUALQUIER `Bloque` — funciona
   sin cambios sobre el `Bloque` que arma el estudiante.
   `gui_qt.py::_pintar_diagrama` se generalizó (antes solo pintaba en la
@@ -1145,5 +1165,53 @@ excluye POO/matrices de `ir.py`): `switch`/`case`, `try`/`catch`,
 `romper`/`continuar` dentro del constructor, múltiples funciones/
 procedimientos por diagrama, clases/POO/arreglos dentro del diagrama.
 Generar una función/procedimiento con nombre y firma propios (en vez de
-siempre `main`) es una extensión natural y acotada de
-`generar_texto_main` si se pide después.
+siempre `main`) quedó cubierto por el sustituto: `inveniolang/flujo/`
+modela el programa completo (todas las subrutinas y clases), ver
+[`diagramas_de_flujo.md`](diagramas_de_flujo.md).
+
+
+## 14. InvenioLang 11 — Acceso a miembro encadenado (INV-4406)
+
+```
+clase Motor { publico entero potencia; publico entero doble() { retornar este.potencia * 2; } }
+clase Auto  { publico Motor motor; publico Motor getMotor() { retornar este.motor; } }
+clase Garaje { publico Auto auto; }
+
+imprimir(g.auto.motor.potencia);       // lectura encadenada
+g.auto.motor.potencia = 150;           // escritura (también +=, -=, ...)
+imprimir(g.auto.motor.doble());        // llamada al final de la cadena
+imprimir(g.auto.getMotor().potencia);  // la cadena sigue tras una llamada
+g.auto.km[1] = 7;                      // atributo arreglo al final de la cadena
+este.cola.siguiente = n;               // dentro de un método
+```
+
+**Gramática.** Un `acceso` (§2) es un acceso a atributo o una llamada a método
+completos sobre los que se puede seguir encadenando con `.`. Tras un `acceso`
+el punto solo puede continuar la cadena (`.` no pertenece a FOLLOW de
+`expr_primaria`), así que la tabla LALR(1) conserva sus 20 resoluciones
+shift/reduce documentadas y 0 reduce/reduce.
+
+**Semántica estática.** Cada eslabón se resuelve de izquierda a derecha con
+las reglas de §3: la clase del eslabón siguiente es el tipo declarado del
+atributo o el tipo de retorno del método anterior.
+
+* El atributo o método debe existir en esa clase o en sus ancestros
+  (`IL-POO-006`) y ser accesible desde el punto de uso (`IL-POO-005`):
+  `g.secreto.x` falla si `secreto` es privado, aunque `x` sea público.
+* Un eslabón intermedio que no es de tipo clase (`a.edad.x`) es
+  `IL-POO-006` ("no es una instancia de una clase").
+* El tipo de toda la expresión es el del último eslabón y se verifica como
+  cualquier otro (`IL-POO-013`, `IL-TIPO-001`, `IL-POO-017`/`018` para los
+  argumentos de la llamada final).
+
+**Semántica de ejecución.** Los eslabones se evalúan de izquierda a derecha,
+una sola vez cada uno; si uno intermedio es `nulo` se lanza `IL-EJE-010`
+(acceso a miembro sobre una referencia nula), como en un acceso de un nivel.
+En una asignación compuesta (`g.auto.motor.potencia += 5`) la cadena del
+receptor se evalúa una vez.
+
+**Alcance.** El acceso seguro `?.` y la coalescencia `??` (§12.2) siguen
+aplicándose a un receptor variable de un solo nivel (`a?.b.c` no es válido):
+su cortocircuito está definido sobre la variable. El código intermedio
+(`--ir`) sigue sin cubrir POO (§12.5). Casos de conformidad: grupo
+"InvenioLang 11 — acceso encadenado" de `pruebas/conformidad.py`.

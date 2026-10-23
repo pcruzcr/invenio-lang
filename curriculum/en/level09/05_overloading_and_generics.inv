@@ -1,0 +1,31 @@
+// Level 9 · Exercise 05 — Method overloading and generics
+// Learning goals:
+//   - Overload methods by number and type of parameters
+//   - Write a reusable generic class
+//
+class Calculator {
+    public int add(int a, int b) { return a + b; }
+    public int add(int a, int b, int c) { return a + b + c; }
+    public float add(float a, float b) { return a + b; }
+}
+
+// T is a type parameter: it is fixed when the box is created (int, string...).
+class Box<T> {
+    private T content;
+    public void put(T v) { this.content = v; }
+    public T get() { return this.content; }
+}
+
+void main() {
+    Calculator calc = new Calculator();
+    print(calc.add(2, 3)); print("\n");
+    print(calc.add(2, 3, 4)); print("\n");
+    print(calc.add(2.5, 0.25)); print("\n");
+
+    Box<int> numbers = new Box<int>();
+    numbers.put(42);
+    Box<string> words = new Box<string>();
+    words.put("generic");
+    print(numbers.get() + 1); print("\n");
+    print(words.get() + "!"); print("\n");
+}

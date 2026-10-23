@@ -1,0 +1,21 @@
+{
+  "id": "N05-E04",
+  "nivel": 5,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Ordenamiento por inserción",
+  "enunciado": "Ordena {12, 11, 13, 5, 6, 7} por inserción: toma cada elemento (la clave) y desplaza a la derecha los mayores que él hasta encontrar su lugar. Muestra la clave y el arreglo tras insertarla.",
+  "objetivos": [
+    "Implementar inserción con desplazamientos",
+    "Relacionarlo con ordenar cartas en la mano"
+  ],
+  "pistas": [
+    "Guarda la clave antes de desplazar: se sobrescribirá.",
+    "Desplaza mientras j >= 0 y a[j] > clave.",
+    "La clave va en a[j + 1]."
+  ],
+  "conceptos": [
+    "inserción",
+    "desplazamiento"
+  ]
+}

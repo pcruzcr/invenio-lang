@@ -1,0 +1,41 @@
+// Level 10 · Exercise 01 — Array-based stack
+// Learning goals:
+//   - Understand the LIFO policy (last in, first out)
+//   - Handle overflow and underflow
+//
+const int CAP = 4;
+int [CAP] stack;
+int top = -1;
+
+bool isEmpty() { return top == -1; }
+
+bool push(int v) {
+    if (top == CAP - 1) {
+        return false;   // stack full: overflow
+    }
+    top++;
+    stack[top] = v;
+    return true;
+}
+
+int pop() {
+    int v = stack[top];
+    top--;
+    return v;
+}
+
+int peek() { return stack[top]; }
+
+void main() {
+    for (int v = 10; v <= 50; v = v + 10) {
+        if (push(v)) {
+            print("push "); print(v); print("\n");
+        } else {
+            print("full, cannot push "); print(v); print("\n");
+        }
+    }
+    print("peek "); print(peek()); print("\n");
+    while (!isEmpty()) {
+        print("pop "); print(pop()); print("\n");
+    }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "N08-E01",
+  "nivel": 8,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "My first class",
+  "enunciado": "Define the class Rectangle with attributes base and height, a constructor and the methods area(), perimeter() and scale(factor). Create two rectangles, scale one and show their areas and perimeters.",
+  "objetivos": [
+    "Declare a class with attributes and methods",
+    "Create objects with new and send them messages",
+    "See that each object has its own state"
+  ],
+  "pistas": [
+    "this.base refers to the attribute of the current object.",
+    "The constructor has the same name as the class.",
+    "Scaling one does not change the other: they are different objects."
+  ],
+  "conceptos": [
+    "class",
+    "object",
+    "method",
+    "constructor"
+  ]
+}

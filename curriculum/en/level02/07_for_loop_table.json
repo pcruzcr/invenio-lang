@@ -1,0 +1,21 @@
+{
+  "id": "N02-E07",
+  "nivel": 2,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "For loop: multiplication table",
+  "enunciado": "Show the multiplication table of 7 from 7 x 1 to 7 x 10 using the format \"7 x i = r\".",
+  "objetivos": [
+    "Use for with initialization, condition and update",
+    "Iterate over a known range of values"
+  ],
+  "pistas": [
+    "for (int i = 1; i <= 10; i++)",
+    "The result is 7 * i.",
+    "Print each part separately and finish with \\n."
+  ],
+  "conceptos": [
+    "for",
+    "loop variable"
+  ]
+}

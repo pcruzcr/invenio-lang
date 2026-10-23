@@ -1,0 +1,22 @@
+{
+  "id": "N06-E01",
+  "nivel": 6,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Traversing a matrix",
+  "enunciado": "Fill a 3x4 matrix with m[i][j] = i * 4 + j + 1 and show it traversing by rows; then show its elements traversing by columns on a single line.",
+  "objetivos": [
+    "Declare matrices and access them with two indexes",
+    "Tell row-major from column-major traversal"
+  ],
+  "pistas": [
+    "m[i][j]: i is the row, j the column.",
+    "By rows: the outer loop goes over i.",
+    "By columns: the outer loop goes over j."
+  ],
+  "conceptos": [
+    "matrix",
+    "row",
+    "column"
+  ]
+}

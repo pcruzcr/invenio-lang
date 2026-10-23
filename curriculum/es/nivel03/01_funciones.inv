@@ -1,0 +1,27 @@
+// Nivel 3 · Ejercicio 01 — Funciones con retorno
+// Objetivos:
+//   - Declarar funciones con tipo de retorno y parámetros
+//   - Reutilizar una función desde otra
+//
+entero cuadrado(entero x) {
+    retornar x * x;
+}
+
+entero maximo2(entero a, entero b) {
+    retornar a > b ? a : b;
+}
+
+// Una función puede usar otras funciones: así se divide el problema.
+entero maximo3(entero a, entero b, entero c) {
+    retornar maximo2(maximo2(a, b), c);
+}
+
+real areaRectangulo(real b, real h) {
+    retornar b * h;
+}
+
+vacio main() {
+    imprimir(cuadrado(9)); imprimir("\n");
+    imprimir(maximo3(4, 11, 7)); imprimir("\n");
+    imprimir(areaRectangulo(2.5, 4.0)); imprimir("\n");
+}

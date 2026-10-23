@@ -1,0 +1,13 @@
+// Level 2 · Exercise 07 — For loop: multiplication table
+// Learning goals:
+//   - Use for with initialization, condition and update
+//   - Iterate over a known range of values
+//
+const int TABLE = 7;
+
+void main() {
+    // for (start; condition; update)
+    for (int i = 1; i <= 10; i++) {
+        print(TABLE); print(" x "); print(i); print(" = "); print(TABLE * i); print("\n");
+    }
+}

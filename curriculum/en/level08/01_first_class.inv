@@ -1,0 +1,37 @@
+// Level 8 · Exercise 01 — My first class
+// Learning goals:
+//   - Declare a class with attributes and methods
+//   - Create objects with new and send them messages
+//   - See that each object has its own state
+//
+// A class is a blueprint: it describes the data and behaviour each object will have.
+class Rectangle {
+    public int base;
+    public int height;
+
+    Rectangle(int b, int h) {
+        this.base = b;
+        this.height = h;
+    }
+
+    public int area() {
+        return this.base * this.height;
+    }
+
+    public int perimeter() {
+        return 2 * (this.base + this.height);
+    }
+
+    public void scale(int factor) {
+        this.base = this.base * factor;
+        this.height = this.height * factor;
+    }
+}
+
+void main() {
+    Rectangle r1 = new Rectangle(3, 4);
+    Rectangle r2 = new Rectangle(5, 2);
+    r2.scale(3);
+    print("r1: "); print(r1.area()); print(" "); print(r1.perimeter()); print("\n");
+    print("r2: "); print(r2.area()); print(" "); print(r2.perimeter()); print("\n");
+}

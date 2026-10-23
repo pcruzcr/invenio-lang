@@ -1,0 +1,157 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "InvenioLang",
+  "scopeName": "source.inveniolang",
+  "fileTypes": [
+    "inv"
+  ],
+  "patterns": [
+    {
+      "include": "#comentarios"
+    },
+    {
+      "include": "#textos"
+    },
+    {
+      "include": "#numeros"
+    },
+    {
+      "include": "#integradas"
+    },
+    {
+      "include": "#palabras"
+    },
+    {
+      "include": "#operadores"
+    }
+  ],
+  "repository": {
+    "comentarios": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.inveniolang",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.inveniolang",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "textos": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.inveniolang",
+          "begin": "\"",
+          "end": "\"|$",
+          "patterns": [
+            {
+              "name": "constant.character.escape.inveniolang",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.inveniolang",
+          "begin": "'",
+          "end": "'|$",
+          "patterns": [
+            {
+              "name": "constant.character.escape.inveniolang",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numeros": {
+      "patterns": [
+        {
+          "name": "constant.numeric.inveniolang",
+          "match": "\\b\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?\\b"
+        }
+      ]
+    },
+    "integradas": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.inveniolang",
+          "match": "\\b(?:escribir_archivo|longitud_arreglo|agregar_archivo|float_to_string|string_to_float|bool_to_string|entero_a_texto|existe_archivo|invertir_texto|logico_a_texto|longitud_texto|reverse_string|string_to_bool|texto_a_entero|texto_a_logico|absoluto_real|entero_a_real|int_to_string|raiz_cuadrada|real_a_entero|string_to_int|array_length|float_to_int|int_to_float|lanzar_error|leer_archivo|real_a_texto|texto_a_real|append_file|caracter_en|file_exists|text_length|throw_error|mayusculas|minusculas|write_file|indice_de|read_file|redondear|subcadena|substring|absoluto|index_of|recortar|to_lower|to_upper|char_at|filtrar|reducir|elevar|filter|mapear|random|reduce|floor|round|techo|azar|ceil|fabs|piso|sqrt|trim|abs|map|pow)\\b(?=\\s*\\()"
+        }
+      ]
+    },
+    "palabras": {
+      "patterns": [
+        {
+          "name": "constant.language.inveniolang",
+          "match": "\\b(?:verdadero|false|falso|null|nulo|true)\\b"
+        },
+        {
+          "name": "entity.name.function.main.inveniolang",
+          "match": "\\b(?:main)\\b"
+        },
+        {
+          "name": "keyword.control.inveniolang",
+          "match": "\\b(?:por_defecto|continuar|emparejar|para_cada|capturar|continue|intentar|mientras|retornar|default|foreach|return|romper|switch|break|catch|hacer|match|segun|while|case|caso|else|para|sino|for|try|do|if|si)\\b"
+        },
+        {
+          "name": "keyword.control.import.inveniolang",
+          "match": "\\b(?:importar|import)\\b"
+        },
+        {
+          "name": "keyword.operator.new.inveniolang",
+          "match": "\\b(?:nuevo|new)\\b"
+        },
+        {
+          "name": "storage.modifier.inveniolang",
+          "match": "\\b(?:abstracta|abstracto|constante|abstract|estatico|privado|private|publico|public|static|const)\\b"
+        },
+        {
+          "name": "storage.modifier.extends.inveniolang",
+          "match": "\\b(?:extends|hereda)\\b"
+        },
+        {
+          "name": "storage.modifier.implements.inveniolang",
+          "match": "\\b(?:implementa|implements)\\b"
+        },
+        {
+          "name": "storage.type.inveniolang",
+          "match": "\\b(?:entero|logico|string|float|texto|vacio|bool|real|void|int)\\b"
+        },
+        {
+          "name": "storage.type.class.inveniolang",
+          "match": "\\b(?:clase|class)\\b"
+        },
+        {
+          "name": "storage.type.enum.inveniolang",
+          "match": "\\b(?:enumeracion|enum)\\b"
+        },
+        {
+          "name": "storage.type.function.inveniolang",
+          "match": "\\b(?:constructor|function|funcion)\\b"
+        },
+        {
+          "name": "storage.type.interface.inveniolang",
+          "match": "\\b(?:interface|interfaz)\\b"
+        },
+        {
+          "name": "support.function.io.inveniolang",
+          "match": "\\b(?:imprimir|print|leer|read)\\b"
+        },
+        {
+          "name": "variable.language.inveniolang",
+          "match": "\\b(?:padre|super|este|this)\\b"
+        }
+      ]
+    },
+    "operadores": {
+      "patterns": [
+        {
+          "name": "keyword.operator.inveniolang",
+          "match": "\\?\\.|\\?\\?|\\+\\+|--|[+\\-*/%]=|==|!=|<=|>=|&&|\\|\\||<<|>>|[-+*/%=<>!&|^~?:]"
+        }
+      ]
+    }
+  }
+}

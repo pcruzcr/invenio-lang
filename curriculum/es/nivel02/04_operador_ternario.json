@@ -1,0 +1,21 @@
+{
+  "id": "N02-E04",
+  "nivel": 2,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Operador ternario",
+  "enunciado": "Usa el operador ternario para calcular el mayor de dos números, el valor absoluto de -9 y para mostrar \"1 item\" o \"n items\" según la cantidad (1 y 3).",
+  "objetivos": [
+    "Escribir expresiones condicionales con ? :",
+    "Saber cuándo un ternario es más claro que un si"
+  ],
+  "pistas": [
+    "condición ? valorSiVerdadero : valorSiFalso",
+    "Ambos valores deben tener el mismo tipo.",
+    "Úsalo para elegir un valor, no para ejecutar acciones largas."
+  ],
+  "conceptos": [
+    "ternario",
+    "expresión condicional"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N06-E05",
+  "nivel": 6,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Matriz transpuesta",
+  "enunciado": "Calcula la transpuesta de una matriz 2x3 en otra matriz 3x2, y después transpón en el lugar una matriz cuadrada 3x3 intercambiando solo los elementos sobre la diagonal.",
+  "objetivos": [
+    "Intercambiar filas por columnas",
+    "Transponer en el lugar sin deshacer el trabajo"
+  ],
+  "pistas": [
+    "T[j][i] = M[i][j].",
+    "En el lugar, recorre solo j > i.",
+    "Si recorres toda la matriz, cada par se intercambia dos veces y vuelve a su sitio."
+  ],
+  "conceptos": [
+    "transpuesta",
+    "en el lugar"
+  ]
+}

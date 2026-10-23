@@ -1,0 +1,21 @@
+{
+  "id": "N05-E07",
+  "nivel": 5,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Ordenamiento por conteo",
+  "enunciado": "Ordena las notas {4, 2, 7, 2, 9, 4, 0, 7, 7, 1} (valores de 0 a 9) sin comparar elementos: cuenta cuántas veces aparece cada valor y reconstruye el arreglo.",
+  "objetivos": [
+    "Ordenar sin comparaciones cuando el rango es pequeño",
+    "Reutilizar el arreglo de frecuencias"
+  ],
+  "pistas": [
+    "Necesitas un contador por cada valor posible (10).",
+    "Recorre los valores de 0 a 9 y escribe cada uno tantas veces como apareció.",
+    "El costo es O(n + k), con k el tamaño del rango."
+  ],
+  "conceptos": [
+    "conteo",
+    "O(n + k)"
+  ]
+}

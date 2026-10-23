@@ -1,0 +1,21 @@
+{
+  "id": "N03-E03",
+  "nivel": 3,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Paso por valor y por referencia",
+  "enunciado": "Demuestra que un entero se pasa por valor (cambiarlo dentro de la función no afecta al original) y que un arreglo se pasa por referencia (sus elementos sí cambian).",
+  "objetivos": [
+    "Comprender el paso por valor",
+    "Comprender que los arreglos se comparten por referencia"
+  ],
+  "pistas": [
+    "El parámetro escalar es una copia local.",
+    "El parámetro arreglo apunta a los mismos datos que el original.",
+    "Imprime antes y después de cada llamada."
+  ],
+  "conceptos": [
+    "paso por valor",
+    "paso por referencia"
+  ]
+}

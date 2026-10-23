@@ -1,0 +1,53 @@
+// Level 5 · Exercise 09 — Pluggable sort criterion
+// Learning goals:
+//   - Separate the algorithm from the comparison criterion
+//   - Use functions as values
+//
+void printArray(int [] a, int n) {
+    print("[");
+    for (int i = 0; i < n; i++) {
+        print(a[i]);
+        if (i < n - 1) {
+            print(", ");
+        }
+    }
+    print("]\n");
+}
+
+void swap(int [] a, int i, int j) {
+    int tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+}
+
+// Global function-typed variable: the criterion that sortArr will use.
+function(int x, int y) bool comesBefore;
+
+bool ascending(int x, int y) { return x < y; }
+bool descending(int x, int y) { return x > y; }
+bool byLastDigit(int x, int y) { return x % 10 < y % 10; }
+
+void sortArr(int [] a, int n) {
+    for (int i = 1; i < n; i++) {
+        int key = a[i];
+        int j = i - 1;
+        while (j >= 0 && comesBefore(key, a[j])) {
+            a[j + 1] = a[j];
+            j--;
+        }
+        a[j + 1] = key;
+    }
+}
+
+void main() {
+    int [5] a = {15, 3, 42, 8, 23};
+    comesBefore = ascending;
+    sortArr(a, 5);
+    printArray(a, 5);
+    comesBefore = descending;
+    sortArr(a, 5);
+    printArray(a, 5);
+    comesBefore = byLastDigit;
+    sortArr(a, 5);
+    printArray(a, 5);
+}

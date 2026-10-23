@@ -1,0 +1,67 @@
+// Nivel 11 · Ejercicio 07 — Montículo mínimo (cola de prioridad)
+// Objetivos:
+//   - Representar un árbol completo en un arreglo
+//   - Mantener la propiedad de montículo con subir/bajar
+//
+constante entero CAP = 16;
+entero [CAP] heap;
+entero tamHeap = 0;
+
+vacio intercambiar(entero i, entero j) {
+    entero aux = heap[i];
+    heap[i] = heap[j];
+    heap[j] = aux;
+}
+
+vacio insertar(entero v) {
+    heap[tamHeap] = v;
+    entero i = tamHeap;
+    tamHeap++;
+    // Subir: mientras sea menor que su padre, intercambiar.
+    mientras (i > 0 && heap[i] < heap[(i - 1) / 2]) {
+        intercambiar(i, (i - 1) / 2);
+        i = (i - 1) / 2;
+    }
+}
+
+entero extraerMin() {
+    entero minimo = heap[0];
+    tamHeap--;
+    heap[0] = heap[tamHeap];
+    entero i = 0;
+    logico seguir = verdadero;
+    mientras (seguir) {
+        entero menor = i;
+        entero l = 2 * i + 1;
+        entero r = 2 * i + 2;
+        si (l < tamHeap && heap[l] < heap[menor]) { menor = l; }
+        si (r < tamHeap && heap[r] < heap[menor]) { menor = r; }
+        si (menor == i) {
+            seguir = falso;   // ya cumple la propiedad
+        } sino {
+            intercambiar(i, menor);
+            i = menor;
+        }
+    }
+    retornar minimo;
+}
+
+vacio mostrar() {
+    para (entero i = 0; i < tamHeap; i++) {
+        imprimir(heap[i]); imprimir(" ");
+    }
+    imprimir("\n");
+}
+
+vacio main() {
+    entero [7] datos = {15, 4, 20, 8, 1, 30, 6};
+    para_cada (entero v : datos) {
+        insertar(v);
+        mostrar();
+    }
+    imprimir("out:");
+    mientras (tamHeap > 0) {
+        imprimir(" "); imprimir(extraerMin());
+    }
+    imprimir("\n");
+}

@@ -1,0 +1,69 @@
+// Level 12 · Exercise 05 — Reconstructing the shortest path
+// Learning goals:
+//   - Store each vertex's predecessor
+//   - Rebuild paths recursively from the target
+//
+const int N = 7;
+int [N][N] adj;
+
+void addEdge(int a, int b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;   // undirected: the relation goes both ways
+}
+
+void clearGraph() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            adj[i][j] = 0;
+        }
+    }
+}
+
+int [N] parentOf;
+
+void printPath(int v) {
+    if (parentOf[v] != -1) {
+        printPath(parentOf[v]);
+        print(" -> ");
+    }
+    print(v);
+}
+
+void bfs(int source) {
+    bool [N] seen;
+    for (int i = 0; i < N; i++) {
+        seen[i] = false;
+        parentOf[i] = -1;
+    }
+    int [N] queue;
+    int front = 0;
+    int rear = 1;
+    queue[0] = source;
+    seen[source] = true;
+    while (front < rear) {
+        int u = queue[front];
+        front++;
+        for (int v = 0; v < N; v++) {
+            if (adj[u][v] == 1 && !seen[v]) {
+                seen[v] = true;
+                parentOf[v] = u;   // remember where we came from
+                queue[rear] = v;
+                rear++;
+            }
+        }
+    }
+}
+
+void main() {
+    clearGraph();
+    addEdge(0, 1);
+    addEdge(1, 2);
+    addEdge(2, 6);
+    addEdge(0, 3);
+    addEdge(3, 4);
+    addEdge(4, 5);
+    addEdge(5, 6);
+    bfs(0);
+    printPath(6); print("\n");
+    printPath(5); print("\n");
+}

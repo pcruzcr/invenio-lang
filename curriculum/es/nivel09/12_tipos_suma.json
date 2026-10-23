@@ -1,0 +1,22 @@
+{
+  "id": "N09-E12",
+  "nivel": 9,
+  "numero": 12,
+  "idioma": "es",
+  "titulo": "Tipos suma y emparejar",
+  "enunciado": "Define enum Forma con variantes con datos: Circulo(radio), Rect(ancho, alto) y Punto. Escribe areaForma(f) con emparejar/match y calcula el área de varias formas. Compara esta solución con la versión polimórfica del ejercicio de clases abstractas.",
+  "objetivos": [
+    "Modelar un conjunto cerrado de variantes con datos",
+    "Desestructurar variantes con emparejar"
+  ],
+  "pistas": [
+    "Cada caso de emparejar da nombre a los campos de la variante.",
+    "El compilador comprueba que cubras todas las variantes.",
+    "Tipos suma: variantes cerradas, operaciones abiertas. Herencia: lo contrario."
+  ],
+  "conceptos": [
+    "tipo suma",
+    "emparejar",
+    "desestructuración"
+  ]
+}

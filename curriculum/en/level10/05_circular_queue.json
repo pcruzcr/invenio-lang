@@ -1,0 +1,22 @@
+{
+  "id": "N10-E05",
+  "nivel": 10,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Circular array queue",
+  "enunciado": "Implement a FIFO queue of capacity 4 with a circular array (front and rear indexes that wrap around with %). Enqueue 1, 2, 3, dequeue two, enqueue 4, 5, 6 and 7 (7 does not fit) and empty the queue showing the front index.",
+  "objetivos": [
+    "Understand the FIFO policy (first in, first out)",
+    "Reuse array space with modular arithmetic"
+  ],
+  "pistas": [
+    "Keep an element counter to tell empty from full.",
+    "rear = (front + count) % CAP is where you enqueue.",
+    "When dequeuing: front = (front + 1) % CAP."
+  ],
+  "conceptos": [
+    "queue",
+    "FIFO",
+    "circular buffer"
+  ]
+}

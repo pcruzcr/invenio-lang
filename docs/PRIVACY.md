@@ -7,13 +7,12 @@ and emits no telemetry by default. Logging via `observability.py:94`
 Optional modules that may handle student data:
 
 * `lms.py:27` xAPI statements (failed/passed, error codes).
-* `plagiarism/cluster.py:1` similarity over submitted sources.
-* `analytics/predict.py:1` risk scores.
+* `plagiarism/cluster.py` similarity over submitted sources (`python -m inveniolang.evaluation plagio`).
 * GUI `QSettings` persistence (theme, font size).
 
 Classroom policy for worldwide use:
 
-1. Disable LMS/analytics by default; enable only with institutional consent.
+1. Disable the LMS log by default (it is only written when `--store` is given); enable only with institutional consent.
 2. Retain submissions max 12 months unless regulation requires less.
 3. No third-party tracking in CLI/core. Qt GUI makes no network calls.
 4. Isolate untrusted code with `--sandbox` / `api.ejecutar_aislado`.

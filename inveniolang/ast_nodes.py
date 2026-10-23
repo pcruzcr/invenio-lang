@@ -50,6 +50,7 @@ __all__ = [
     "FunctionDecl",
     "Identifier",
     "IfStmt",
+    "ImportDecl",
     "IncDecStmt",
     "Instruccion",
     "LValue",
@@ -61,10 +62,13 @@ __all__ = [
     "MatrixDecl",
     "MatrixLValue",
     "MemberAccess",
+    "MemberIndexAccess",
+    "MemberIndexLValue",
     "MemberLValue",
     "MethodCallExpr",
     "MethodCallStmt",
     "MethodDecl",
+    "NewArrayExpr",
     "NewExpr",
     "NullExpr",
     "Parametro",
@@ -132,9 +136,32 @@ class Program(ASTNode):
         self.declaraciones_posteriores = []
         self.clases = []
         self.enums = []
+        # INV-1420: instrucciones `importar "ruta";` en orden de aparicion.
+        # El enlazador (modulos.py) las resuelve y agrega aqui las
+        # declaraciones de los modulos; `modulos` guarda las rutas cargadas.
+        self.importaciones = []
+        self.modulos = []
+        # INV-4404: nombre mostrado de cada módulo -> ruta real, para que
+        # `--step` pueda citar la línea de código de un archivo importado.
+        self.rutas_modulos = {}
 
     def __repr__(self):
         return f"Program(main={self.main is not None}, subrutinas={len(self.subrutinas)})"
+
+
+class ImportDecl(ASTNode):
+    """`importar "ruta";` / `import "path";` (INV-1420).
+
+    Atributos:
+        ruta: texto literal de la ruta tal como se escribio (sin comillas)
+    """
+
+    def __init__(self, ruta, linea=1, columna=1):
+        super().__init__(linea, columna)
+        self.ruta = ruta
+
+    def __repr__(self):
+        return f"ImportDecl({self.ruta!r})"
 
 
 # ============================================================
@@ -415,7 +442,7 @@ class ForEachStmt(Instruccion):
     propio por iteracion (igual que el cuerpo de cualquier ciclo). No es
     azucar sintactica desarmada en el parser -- se ejecuta con un helper
     dedicado en cada capa (ver interpreter.py::_ejecutar_foreach,
-    flowchart.py, ir.py) porque desazucararlo de verdad requeriria una
+    flujo/extraccion.py, ir.py) porque desazucararlo de verdad requeriria una
     forma de conocer en tiempo de ejecucion la longitud de un arreglo
     pasado por referencia (un parametro), que hoy no existe como
     expresion de InvenioLang -- mas simple y de igual riesgo mantenerlo
@@ -644,6 +671,20 @@ class MatrixLValue(LValue):
 
     def __repr__(self):
         return f"MatrixLValue({self.nombre}[...][...])"
+
+
+class MemberIndexLValue(LValue):
+    """Destino `este.datos[i] = v` (INV-1440), ver MemberIndexAccess."""
+
+    def __init__(self, receptor, nombre_miembro, indice, linea=1, columna=1):
+        super().__init__(linea, columna)
+        self.receptor = receptor
+        self.nombre_miembro = nombre_miembro
+        self.indice = indice
+        self.acceso = MemberAccess(receptor, nombre_miembro, linea, columna)
+
+    def __repr__(self):
+        return f"MemberIndexLValue(...->{self.nombre_miembro}[...])"
 
 
 class MemberLValue(LValue):
@@ -919,6 +960,42 @@ class MemberAccess(Expresion):
         return f"MemberAccess(...->{self.nombre_miembro}, seguro={self.es_seguro})"
 
 
+class NewArrayExpr(Expresion):
+    """Arreglo dinámico: `nuevo entero[n]` (INV-1440).
+
+    Crea en ejecución un arreglo de `tam` elementos (expresión entera
+    cualquiera, no solo una constante) con el valor por defecto del tipo. Su
+    tipo estático es "<tipo>[]" y solo puede guardarse en un atributo
+    arreglo (`privado entero[] datos;`) o pasarse a un parámetro `entero[]`.
+    """
+
+    def __init__(self, tipo, tam, linea=1, columna=1):
+        super().__init__(linea, columna)
+        self.tipo = tipo
+        self.tam = tam
+
+    def __repr__(self):
+        return f"NewArrayExpr({self.tipo}[...])"
+
+
+class MemberIndexAccess(Expresion):
+    """Elemento de un atributo arreglo: `este.datos[i]` / `obj.datos[i]` (INV-1440).
+
+    `acceso` es el MemberAccess del arreglo completo, para reutilizar la
+    resolución de miembros (visibilidad, estáticos, nulos) ya existente.
+    """
+
+    def __init__(self, receptor, nombre_miembro, indice, linea=1, columna=1):
+        super().__init__(linea, columna)
+        self.receptor = receptor
+        self.nombre_miembro = nombre_miembro
+        self.indice = indice
+        self.acceso = MemberAccess(receptor, nombre_miembro, linea, columna)
+
+    def __repr__(self):
+        return f"MemberIndexAccess(...->{self.nombre_miembro}[...])"
+
+
 class MethodCallExpr(Expresion):
     """Llamada a metodo como expresion: receptor.nombre_metodo(argumentos).
 
@@ -1172,6 +1249,22 @@ class ASTVisitor(Visitor):
 
     def visit_EnumDecl(self, node: EnumDecl) -> Any:
         """Visita un nodo EnumDecl del AST."""
+        return self.generic_visit(node)
+
+    def visit_ImportDecl(self, node: ImportDecl) -> Any:
+        """Visita un nodo ImportDecl del AST (INV-1420)."""
+        return self.generic_visit(node)
+
+    def visit_NewArrayExpr(self, node: NewArrayExpr) -> Any:
+        """Visita un nodo NewArrayExpr del AST (INV-1440)."""
+        return self.generic_visit(node)
+
+    def visit_MemberIndexAccess(self, node: MemberIndexAccess) -> Any:
+        """Visita un nodo MemberIndexAccess del AST (INV-1440)."""
+        return self.generic_visit(node)
+
+    def visit_MemberIndexLValue(self, node: MemberIndexLValue) -> Any:
+        """Visita un nodo MemberIndexLValue del AST (INV-1440)."""
         return self.generic_visit(node)
 
 

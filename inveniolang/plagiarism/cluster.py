@@ -1,33 +1,72 @@
-# plagiarism/cluster.py — v10 cluster a escala 1000 envíos (Winnowing + Union-Find)
+"""Detección de similitud entre entregas: huellas de k-gramas + Union-Find.
+
+INV-1024: estas funciones vivían en ``evaluation.py`` y aquí solo se
+reexportaban (con un ``noqa: F401``); ahora este es su único hogar y
+``evaluation`` las consume.
+"""
+
 from __future__ import annotations
 
-from ..evaluation import plagiarism_score
+import re
+
+__all__ = ["cluster", "gramas", "normalizar", "plagiarism_score", "similitud_gramas"]
+
+_TIPOS = r"\b(int|float|string|bool|void|texto|entero|real|logico)\b"
+
+
+def normalizar(codigo: str) -> str:
+    """Quita comentarios y reduce tipos e identificadores a comodines.
+
+    Renombrar variables o cambiar ``int`` por ``entero`` no oculta una copia.
+    """
+    codigo = re.sub(r"//.*|/\*.*?\*/", "", codigo, flags=re.S)
+    codigo = re.sub(_TIPOS, "TIPO", codigo)
+    codigo = re.sub(r"\b[A-Za-z_][A-Za-z0-9_]*\b", "X", codigo)
+    return " ".join(codigo.split())
+
+
+def gramas(codigo: str, k: int = 5) -> frozenset[str]:
+    """K-gramas del código normalizado (huella para comparar entregas)."""
+    s = normalizar(codigo)
+    if not s:
+        return frozenset()
+    if len(s) < k:
+        return frozenset({s})
+    return frozenset(s[i : i + k] for i in range(len(s) - k + 1))
+
+
+def similitud_gramas(grams_a: frozenset[str], grams_b: frozenset[str]) -> float:
+    """Índice de Jaccard entre dos huellas."""
+    if not grams_a or not grams_b:
+        return 0.0
+    return len(grams_a & grams_b) / len(grams_a | grams_b)
+
+
+def plagiarism_score(a: str, b: str, k: int = 5) -> float:
+    """Similitud 0..1 entre dos entregas; dos vacías no cuentan como idénticas."""
+    return similitud_gramas(gramas(a, k), gramas(b, k))
 
 
 def cluster(codes: list[str], threshold: float = 0.7) -> list[set[int]]:
-    """Agrupa entregas similares."""
+    """Agrupa (por índice) las entregas cuya similitud supera ``threshold``."""
     n = len(codes)
-    parent = list(range(n))
+    padre = list(range(n))
 
-    def find(x):
-        """Busca el representante."""
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
+    def raiz(x: int) -> int:
+        while padre[x] != x:
+            padre[x] = padre[padre[x]]
+            x = padre[x]
         return x
 
-    def union(a, b):
-        """Une dos grupos."""
-        ra, rb = find(a), find(b)
-        if ra != rb:
-            parent[rb] = ra
-
+    # Huellas calculadas UNA vez por entrega (no por par).
+    huellas = [gramas(c) for c in codes]
     for i in range(n):
         for j in range(i + 1, n):
-            if plagiarism_score(codes[i], codes[j]) >= threshold:
-                union(i, j)
-    groups: dict[int, set[int]] = {}
+            if similitud_gramas(huellas[i], huellas[j]) >= threshold:
+                ri, rj = raiz(i), raiz(j)
+                if ri != rj:
+                    padre[rj] = ri
+    grupos: dict[int, set[int]] = {}
     for i in range(n):
-        r = find(i)
-        groups.setdefault(r, set()).add(i)
-    return [g for g in groups.values() if len(g) > 1]
+        grupos.setdefault(raiz(i), set()).add(i)
+    return [g for g in grupos.values() if len(g) > 1]

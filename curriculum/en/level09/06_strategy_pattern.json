@@ -1,0 +1,22 @@
+{
+  "id": "N09-E06",
+  "nivel": 9,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Strategy pattern",
+  "enunciado": "An Order computes its shipping cost by delegating to an interchangeable ShippingStrategy: StandardShipping (5 + 2 per kg), ExpressShipping (15 + 3 per kg) and FreeShipping (0). Change the strategy at run time for a 4 kg order.",
+  "objetivos": [
+    "Encapsulate interchangeable algorithms behind an abstraction",
+    "Prefer composition over conditionals on the type"
+  ],
+  "pistas": [
+    "The Order does not know which concrete strategy it uses.",
+    "Adding a new strategy does not require touching Order.",
+    "Remember: ShippingStrategy e = this.strategy; return e.cost(...);"
+  ],
+  "conceptos": [
+    "Strategy",
+    "composition",
+    "open/closed"
+  ]
+}

@@ -1,0 +1,85 @@
+// estructuras/cola.inv -- Cola (FIFO: el primero en entrar es el primero en salir)
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "estructuras/cola";
+//
+// Idea: como la fila de un banco. Se atiende por el FRENTE y se llega por
+// el FINAL. Guardar los dos extremos permite encolar y desencolar en O(1).
+//
+//      frente -> [ 1 ] -> [ 2 ] -> [ 3 ] <- final
+
+// Un nodo de la cola: un valor y el enlace al nodo que llegó después.
+clase NodoCola {
+    publico entero valor;
+    publico NodoCola siguiente;
+
+    NodoCola(entero v) {
+        este.valor = v;
+    }
+}
+
+clase Cola {
+    privado NodoCola frente;
+    privado NodoCola final;
+    privado entero cantidad;
+
+    // Agrega v al final de la cola. O(1).
+    publico vacio encolar(entero v) {
+        NodoCola nuevo_nodo = nuevo NodoCola(v);
+        si (este.final == nulo) {
+            // Cola vacía: el nuevo nodo es a la vez frente y final.
+            este.frente = nuevo_nodo;
+        } sino {
+            NodoCola ultimo = este.final;
+            ultimo.siguiente = nuevo_nodo;
+        }
+        este.final = nuevo_nodo;
+        este.cantidad = este.cantidad + 1;
+    }
+
+    // Quita y devuelve el elemento del frente. O(1).
+    // Error IL-EJE-060 si la cola está vacía.
+    publico entero desencolar() {
+        si (este.frente == nulo) {
+            lanzar_error("desencolar: la cola está vacía");
+        }
+        NodoCola primero = este.frente;
+        este.frente = primero.siguiente;
+        si (este.frente == nulo) {
+            este.final = nulo;
+        }
+        este.cantidad = este.cantidad - 1;
+        retornar primero.valor;
+    }
+
+    // Devuelve el frente SIN quitarlo. O(1).
+    publico entero frente_valor() {
+        si (este.frente == nulo) {
+            lanzar_error("frente_valor: la cola está vacía");
+        }
+        NodoCola primero = este.frente;
+        retornar primero.valor;
+    }
+
+    publico logico esta_vacia() {
+        retornar este.frente == nulo;
+    }
+
+    publico entero tamano() {
+        retornar este.cantidad;
+    }
+
+    // Representación del frente al final, p. ej. "[1, 2, 3]".
+    publico texto a_texto() {
+        texto s = "[";
+        NodoCola actual = este.frente;
+        mientras (actual != nulo) {
+            s = s + entero_a_texto(actual.valor);
+            si (actual.siguiente != nulo) {
+                s = s + ", ";
+            }
+            actual = actual.siguiente;
+        }
+        retornar s + "]";
+    }
+}

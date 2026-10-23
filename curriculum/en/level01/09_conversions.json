@@ -1,0 +1,22 @@
+{
+  "id": "N01-E09",
+  "nivel": 1,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "Type conversion",
+  "enunciado": "Convert 7 to float, 9.99 to int, the string \"42\" to int (add 8) and the int 2026 to string (concatenate it after \"año \"). Show each result.",
+  "objetivos": [
+    "Use the conversion functions",
+    "Know that float→int truncates"
+  ],
+  "pistas": [
+    "int_to_float adds .0",
+    "float_to_int drops decimals (it does not round).",
+    "To concatenate a number with text, convert it with int_to_string."
+  ],
+  "conceptos": [
+    "conversion",
+    "truncation",
+    "concatenation"
+  ]
+}

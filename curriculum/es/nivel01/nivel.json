@@ -1,0 +1,14 @@
+{
+  "nivel": 1,
+  "titulo": "Fundamentos: variables, tipos, operadores y E/S",
+  "descripcion": "Primeros programas: mostrar datos, guardar valores en variables, operar con ellos y leer datos del usuario.",
+  "temas": [
+    "salida con imprimir",
+    "variables y constantes",
+    "tipos entero, real, texto y logico",
+    "operadores aritméticos, relacionales y lógicos",
+    "entrada con leer",
+    "conversiones de tipo"
+  ],
+  "idioma": "es"
+}

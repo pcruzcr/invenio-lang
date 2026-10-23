@@ -1,0 +1,22 @@
+{
+  "id": "N05-E02",
+  "nivel": 5,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Optimized bubble sort",
+  "enunciado": "Improve bubble sort so it stops when a pass makes no swap. Sort {1, 2, 3, 5, 4, 6, 7, 8} and {8, 7, 6, 5, 4, 3, 2, 1} and show how many passes and comparisons each case needed.",
+  "objetivos": [
+    "Use a flag to detect that the array is already sorted",
+    "Compare the best and the worst case"
+  ],
+  "pistas": [
+    "Set swapped = false at the start of each pass.",
+    "If it is still false at the end of the pass, it is sorted.",
+    "A nearly sorted array finishes in very few passes."
+  ],
+  "conceptos": [
+    "flag",
+    "best case",
+    "worst case"
+  ]
+}

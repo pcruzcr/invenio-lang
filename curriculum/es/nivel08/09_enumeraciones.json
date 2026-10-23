@@ -1,0 +1,22 @@
+{
+  "id": "N08-E09",
+  "nivel": 8,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Enumeraciones",
+  "enunciado": "Define enum Semaforo { ROJO, VERDE, AMARILLO } y una función siguienteColor que, con emparejar/match, devuelva el color que sigue (ROJO -> VERDE -> AMARILLO -> ROJO). Simula 5 cambios mostrando el nombre de cada color.",
+  "objetivos": [
+    "Representar un conjunto cerrado de valores con enum",
+    "Usar emparejar/match exhaustivo"
+  ],
+  "pistas": [
+    "Los valores se usan como Semaforo.ROJO.",
+    "emparejar exige cubrir todos los casos (o un por_defecto).",
+    "Un enum no es un entero: no se puede comparar con 0."
+  ],
+  "conceptos": [
+    "enumeración",
+    "emparejar",
+    "exhaustividad"
+  ]
+}

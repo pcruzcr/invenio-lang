@@ -1,0 +1,58 @@
+// Level 12 · Exercise 03 — Breadth-first search (BFS)
+// Learning goals:
+//   - Implement BFS with a queue
+//   - Get shortest distances in unweighted graphs
+//
+const int N = 7;
+int [N][N] adj;
+
+void addEdge(int a, int b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;   // undirected: the relation goes both ways
+}
+
+void clearGraph() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            adj[i][j] = 0;
+        }
+    }
+}
+
+void main() {
+    clearGraph();
+    addEdge(0, 1);
+    addEdge(0, 2);
+    addEdge(1, 3);
+    addEdge(2, 3);
+    addEdge(3, 4);
+    addEdge(4, 5);
+    int [N] dist;
+    for (int i = 0; i < N; i++) {
+        dist[i] = -1;
+    }
+    int [N] queue;
+    int front = 0;
+    int rear = 0;
+    queue[rear] = 0;
+    rear++;
+    dist[0] = 0;
+    print("order:");
+    while (front < rear) {
+        int u = queue[front];
+        front++;
+        print(" "); print(u);
+        for (int v = 0; v < N; v++) {
+            if (adj[u][v] == 1 && dist[v] == -1) {
+                dist[v] = dist[u] + 1;   // one level further
+                queue[rear] = v;
+                rear++;
+            }
+        }
+    }
+    print("\n");
+    for (int i = 0; i < N; i++) {
+        print("dist("); print(i); print(")="); print(dist[i]); print(" ");
+    }
+    print("\n");
+}

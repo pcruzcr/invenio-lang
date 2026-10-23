@@ -1,0 +1,38 @@
+// Level 5 · Exercise 03 — Selection sort
+// Learning goals:
+//   - Implement selection sort
+//   - See that it makes at most n - 1 swaps
+//
+void printArray(int [] a, int n) {
+    print("[");
+    for (int i = 0; i < n; i++) {
+        print(a[i]);
+        if (i < n - 1) {
+            print(", ");
+        }
+    }
+    print("]\n");
+}
+
+void swap(int [] a, int i, int j) {
+    int tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+}
+
+void main() {
+    int [6] a = {29, 10, 14, 37, 13, 5};
+    int n = 6;
+    for (int i = 0; i < n - 1; i++) {
+        // Find the minimum of the unsorted part a[i..n-1].
+        int minPos = i;
+        for (int j = i + 1; j < n; j++) {
+            if (a[j] < a[minPos]) {
+                minPos = j;
+            }
+        }
+        print("min = "); print(a[minPos]); print("  ");
+        swap(a, i, minPos);
+        printArray(a, n);
+    }
+}

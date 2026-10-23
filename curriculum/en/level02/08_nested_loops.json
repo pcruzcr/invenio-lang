@@ -1,0 +1,21 @@
+{
+  "id": "N02-E08",
+  "nivel": 2,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Nested loops: shapes",
+  "enunciado": "With nested loops draw a right triangle of 4 rows with '*' and then a centered triangle (pyramid) of 4 rows using spaces and '*'.",
+  "objetivos": [
+    "Nest one loop inside another",
+    "Relate the row number to the number of symbols"
+  ],
+  "pistas": [
+    "The outer loop goes through rows; the inner one, through columns.",
+    "Row f (from 1) of the triangle has f stars.",
+    "In the pyramid, row f has N - f spaces and 2f - 1 stars."
+  ],
+  "conceptos": [
+    "nested loops",
+    "patterns"
+  ]
+}

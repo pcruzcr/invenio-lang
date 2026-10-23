@@ -1,0 +1,61 @@
+// Nivel 9 · Ejercicio 07 — Patrón Observer
+// Objetivos:
+//   - Desacoplar quien produce eventos de quien reacciona
+//   - Mantener una colección de objetos con una lista enlazada
+//
+interfaz Observador {
+    publico abstracto vacio actualizar(entero temperatura);
+}
+
+clase Pantalla implementa Observador {
+    publico vacio actualizar(entero temperatura) {
+        imprimir("  display: "); imprimir(temperatura); imprimir("\n");
+    }
+}
+
+clase Alarma implementa Observador {
+    privado entero limite;
+    Alarma(entero l) { este.limite = l; }
+    publico vacio actualizar(entero temperatura) {
+        si (temperatura > este.limite) {
+            imprimir("  ALARM! "); imprimir(temperatura); imprimir(" > "); imprimir(este.limite); imprimir("\n");
+        }
+    }
+}
+
+clase NodoObs {
+    publico Observador obs;
+    publico NodoObs siguiente;
+    NodoObs(Observador o) { este.obs = o; }
+}
+
+clase Termometro {
+    privado NodoObs primerObs;
+    privado entero temperatura;
+
+    publico vacio suscribir(Observador o) {
+        NodoObs n = nuevo NodoObs(o);
+        n.siguiente = este.primerObs;
+        este.primerObs = n;
+    }
+
+    publico vacio fijarTemp(entero t) {
+        este.temperatura = t;
+        imprimir("temp = "); imprimir(t); imprimir("\n");
+        NodoObs actual = este.primerObs;
+        mientras (actual != nulo) {
+            Observador o = actual.obs;
+            o.actualizar(t);   // el sujeto no conoce la clase concreta
+            actual = actual.siguiente;
+        }
+    }
+}
+
+vacio main() {
+    Termometro termometro = nuevo Termometro();
+    termometro.suscribir(nuevo Pantalla());
+    termometro.suscribir(nuevo Alarma(30));
+    termometro.fijarTemp(22);
+    termometro.fijarTemp(31);
+    termometro.fijarTemp(18);
+}

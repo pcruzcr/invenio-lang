@@ -1,0 +1,23 @@
+{
+  "id": "N04-E04",
+  "nivel": 4,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Búsqueda lineal",
+  "enunciado": "Escribe busquedaLineal(a, n, x) que retorne la posición de x o -1 si no está, contando las comparaciones. Busca 23, 4 y 99 en {16, 4, 42, 8, 23, 15}.",
+  "objetivos": [
+    "Implementar la búsqueda secuencial",
+    "Usar -1 como valor centinela de 'no encontrado'",
+    "Ver que el peor caso recorre todo el arreglo"
+  ],
+  "pistas": [
+    "Recorre desde 0 y retorna en cuanto lo encuentres.",
+    "Si el ciclo termina sin encontrarlo, retorna -1.",
+    "Cuenta una comparación por cada elemento visitado."
+  ],
+  "conceptos": [
+    "búsqueda lineal",
+    "centinela",
+    "O(n)"
+  ]
+}

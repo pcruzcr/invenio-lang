@@ -1,0 +1,22 @@
+{
+  "id": "N13-E02",
+  "nivel": 13,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Linear versus binary search",
+  "enunciado": "With sorted arrays a[i] = 2i of size 10, 100 and 1000, count the worst-case comparisons (searching an absent value larger than all) for linear and binary search.",
+  "objetivos": [
+    "Compare O(n) with O(log n) with real data",
+    "Analyze the worst case"
+  ],
+  "pistas": [
+    "Linear search checks all n elements.",
+    "Binary search makes about log2(n) + 1 comparisons.",
+    "Multiplying n by 10 adds only about 3 or 4 comparisons to binary search."
+  ],
+  "conceptos": [
+    "worst case",
+    "O(n)",
+    "O(log n)"
+  ]
+}

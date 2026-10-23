@@ -1,0 +1,58 @@
+// Nivel 12 · Ejercicio 03 — Recorrido en anchura (BFS)
+// Objetivos:
+//   - Implementar BFS con una cola
+//   - Obtener distancias mínimas en grafos sin pesos
+//
+constante entero N = 7;
+entero [N][N] adj;
+
+vacio agregarArista(entero a, entero b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;   // no dirigido: la relación va en ambos sentidos
+}
+
+vacio limpiar() {
+    para (entero i = 0; i < N; i++) {
+        para (entero j = 0; j < N; j++) {
+            adj[i][j] = 0;
+        }
+    }
+}
+
+vacio main() {
+    limpiar();
+    agregarArista(0, 1);
+    agregarArista(0, 2);
+    agregarArista(1, 3);
+    agregarArista(2, 3);
+    agregarArista(3, 4);
+    agregarArista(4, 5);
+    entero [N] dist;
+    para (entero i = 0; i < N; i++) {
+        dist[i] = -1;
+    }
+    entero [N] cola;
+    entero frente = 0;
+    entero final = 0;
+    cola[final] = 0;
+    final++;
+    dist[0] = 0;
+    imprimir("order:");
+    mientras (frente < final) {
+        entero u = cola[frente];
+        frente++;
+        imprimir(" "); imprimir(u);
+        para (entero v = 0; v < N; v++) {
+            si (adj[u][v] == 1 && dist[v] == -1) {
+                dist[v] = dist[u] + 1;   // un nivel más lejos
+                cola[final] = v;
+                final++;
+            }
+        }
+    }
+    imprimir("\n");
+    para (entero i = 0; i < N; i++) {
+        imprimir("dist("); imprimir(i); imprimir(")="); imprimir(dist[i]); imprimir(" ");
+    }
+    imprimir("\n");
+}

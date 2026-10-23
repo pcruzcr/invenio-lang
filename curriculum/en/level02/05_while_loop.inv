@@ -1,0 +1,24 @@
+// Level 2 · Exercise 05 — While loop
+// Learning goals:
+//   - Repeat while a condition is true
+//   - Use counters and maximums inside a loop
+//
+void main() {
+    int n = 27;
+    int steps = 0;
+    int maximum = n;
+    // The condition is checked BEFORE each iteration.
+    while (n != 1) {
+        if (n % 2 == 0) {
+            n = n / 2;
+        } else {
+            n = 3 * n + 1;
+        }
+        steps++;
+        if (n > maximum) {
+            maximum = n;
+        }
+    }
+    print("steps = "); print(steps); print("\n");
+    print("max = "); print(maximum); print("\n");
+}

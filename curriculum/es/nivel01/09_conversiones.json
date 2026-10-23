@@ -1,0 +1,22 @@
+{
+  "id": "N01-E09",
+  "nivel": 1,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Conversión de tipos",
+  "enunciado": "Convierte 7 a real, 9.99 a entero, el texto \"42\" a entero (súmale 8) y el entero 2026 a texto (concaténalo con \"año \"). Muestra cada resultado.",
+  "objetivos": [
+    "Usar las funciones de conversión",
+    "Saber que real→entero trunca"
+  ],
+  "pistas": [
+    "entero_a_real / int_to_float agrega .0",
+    "real_a_entero / float_to_int descarta los decimales (no redondea).",
+    "Para concatenar un número con texto, conviértelo con entero_a_texto / int_to_string."
+  ],
+  "conceptos": [
+    "conversión",
+    "truncamiento",
+    "concatenación"
+  ]
+}

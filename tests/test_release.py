@@ -5,22 +5,27 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from inveniolang import policy
+from inveniolang import api
+from inveniolang.config import DEFAULT_CONFIG
 
 
-def test_politica_aula_aislada():
-    """Lo no confiable corre aislado por defecto."""
-    r = policy.ejecutar_no_confiable("void main() { imprimir(9); }", timeout=10)
+def test_codigo_no_confiable_corre_aislado():
+    """INV-1025: `policy.ejecutar_no_confiable` era un alias de `api.ejecutar_aislado`.
+
+    La política de aula es usar la fachada aislada directamente (con entrada).
+    """
+    r = api.ejecutar_aislado(
+        "void main() { int x; leer(x); imprimir(x + 1); }", timeout=10, entrada=("8",)
+    )
     assert r.ok
     assert "9" in "".join(r.salida)
-    assert "sandbox" in policy.AVISO_AULA.lower()
 
 
 def test_limites_para_acta():
-    """Límites serializables para examen."""
-    d = policy.limites_aula()
+    """Límites serializables para examen (antes `policy.limites_aula`)."""
+    d = DEFAULT_CONFIG.como_dict()
     assert d["max_recursion"] == 500
-    assert d["compiler_version"] == "10.0.0"
+    assert d["compiler_version"] == "11.0.0"
 
 
 def test_artefactos_release():

@@ -1,0 +1,61 @@
+// Nivel 11 · Ejercicio 02 — Recorridos de un árbol
+// Objetivos:
+//   - Implementar los tres recorridos en profundidad
+//   - Relacionar cada recorrido con sus usos
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo izq;
+    publico Nodo der;
+    Nodo(entero v) { este.valor = v; }
+}
+
+// Inserción recursiva: devuelve la raíz (posiblemente nueva) del subárbol.
+Nodo insertar(Nodo r, entero v) {
+    si (r == nulo) {
+        retornar nuevo Nodo(v);
+    }
+    si (v < r.valor) {
+        r.izq = insertar(r.izq, v);
+    } sino {
+        si (v > r.valor) {
+            r.der = insertar(r.der, v);
+        }
+    }
+    retornar r;
+}
+
+vacio inorden(Nodo r) {
+    si (r != nulo) {
+        inorden(r.izq);
+        imprimir(r.valor); imprimir(" ");
+        inorden(r.der);
+    }
+}
+
+vacio preorden(Nodo r) {
+    si (r != nulo) {
+        imprimir(r.valor); imprimir(" ");
+        preorden(r.izq);
+        preorden(r.der);
+    }
+}
+
+vacio postorden(Nodo r) {
+    si (r != nulo) {
+        postorden(r.izq);
+        postorden(r.der);
+        imprimir(r.valor); imprimir(" ");
+    }
+}
+
+vacio main() {
+    entero [9] datos = {8, 3, 10, 1, 6, 14, 4, 7, 13};
+    Nodo raiz = nulo;
+    para_cada (entero v : datos) {
+        raiz = insertar(raiz, v);
+    }
+    imprimir("pre:  "); preorden(raiz); imprimir("\n");
+    imprimir("in:   "); inorden(raiz); imprimir("\n");
+    imprimir("post: "); postorden(raiz); imprimir("\n");
+}

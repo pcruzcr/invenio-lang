@@ -1,0 +1,22 @@
+{
+  "id": "N12-E09",
+  "nivel": 12,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Detección de ciclos en grafos dirigidos",
+  "enunciado": "Usa DFS con tres colores (BLANCO sin visitar, GRIS en la pila de recursión, NEGRO terminado) para decidir si un grafo dirigido tiene ciclos. Prueba con 0->1, 1->2, 2->3 (sin ciclo) y luego agrega 3->1.",
+  "objetivos": [
+    "Detectar aristas de retroceso",
+    "Usar estados de visita más ricos que un logico"
+  ],
+  "pistas": [
+    "Una arista hacia un vértice GRIS cierra un ciclo.",
+    "Al terminar de explorar un vértice, píntalo de NEGRO.",
+    "Una arista hacia un vértice NEGRO no indica ciclo."
+  ],
+  "conceptos": [
+    "ciclo",
+    "arista de retroceso",
+    "DFS"
+  ]
+}

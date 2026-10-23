@@ -1,0 +1,48 @@
+// Nivel 13 · Ejercicio 01 — Órdenes de crecimiento
+// Objetivos:
+//   - Contar operaciones en lugar de medir tiempo
+//   - Reconocer patrones de código con su orden de crecimiento
+//
+entero opsLog(entero n) {
+    entero ops = 0;
+    entero i = 1;
+    mientras (i < n) {
+        ops++;
+        i = i * 2;   // el problema se duplica hacia n: log2(n) vueltas
+    }
+    retornar ops;
+}
+
+entero opsLineal(entero n) {
+    entero ops = 0;
+    para (entero i = 0; i < n; i++) {
+        ops++;
+    }
+    retornar ops;
+}
+
+entero opsNLogN(entero n) {
+    entero ops = 0;
+    para (entero k = 0; k < n; k++) {
+        ops += opsLog(n);
+    }
+    retornar ops;
+}
+
+entero opsCuadratica(entero n) {
+    entero ops = 0;
+    para (entero i = 0; i < n; i++) {
+        para (entero j = 0; j < n; j++) {
+            ops++;
+        }
+    }
+    retornar ops;
+}
+
+vacio main() {
+    imprimir("n\tlog n\tn\tn log n\tn^2\n");
+    para (entero n = 8; n <= 64; n = n * 2) {
+        imprimir(n); imprimir("\t"); imprimir(opsLog(n)); imprimir("\t"); imprimir(opsLineal(n)); imprimir("\t");
+        imprimir(opsNLogN(n)); imprimir("\t"); imprimir(opsCuadratica(n)); imprimir("\n");
+    }
+}

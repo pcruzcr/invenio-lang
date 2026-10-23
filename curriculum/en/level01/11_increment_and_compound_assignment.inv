@@ -1,0 +1,16 @@
+// Level 1 · Exercise 11 — Increment and compound assignment
+// Learning goals:
+//   - Use ++ and --
+//   - Use += -= *= /= %=
+//
+void main() {
+    int x = 10;
+    x++;     print(x); print("\n");
+    x += 5;  print(x); print("\n");
+    x *= 2;  print(x); print("\n");
+    x -= 4;  print(x); print("\n");
+    // 28 / 3 = 9 (integer division)
+    x /= 3;  print(x); print("\n");
+    x %= 5;  print(x); print("\n");
+    x--;     print(x); print("\n");
+}

@@ -1,0 +1,27 @@
+// Level 7 · Exercise 05 — Caesar cipher
+// Learning goals:
+//   - Turn letters into positions and positions into letters
+//   - Use modular arithmetic
+//
+const string ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+
+string encrypt(string s, int k) {
+    string r = "";
+    for (int i = 0; i < text_length(s); i++) {
+        string c = char_at(s, i);
+        int pos = index_of(ALPHABET, c);
+        if (pos < 0) {
+            r = r + c;   // not a letter: copied as is
+        } else {
+            r = r + char_at(ALPHABET, (pos + k) % 26);
+        }
+    }
+    return r;
+}
+
+void main() {
+    string message = "ataque al amanecer";
+    string cipherText = encrypt(message, 3);
+    print(cipherText); print("\n");
+    print(encrypt(cipherText, 26 - 3)); print("\n");
+}

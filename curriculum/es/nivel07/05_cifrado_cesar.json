@@ -1,0 +1,21 @@
+{
+  "id": "N07-E05",
+  "nivel": 7,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Cifrado César",
+  "enunciado": "Cifra \"ataque al amanecer\" desplazando cada letra 3 posiciones en el alfabeto (con vuelta de z a a, dejando los espacios), y descifra el resultado para recuperar el mensaje.",
+  "objetivos": [
+    "Convertir letras en posiciones y posiciones en letras",
+    "Usar aritmética modular"
+  ],
+  "pistas": [
+    "La posición de una letra es indice_de(ALFABETO, c).",
+    "La nueva posición es (pos + k) % 26.",
+    "Para descifrar, desplaza 26 - k."
+  ],
+  "conceptos": [
+    "cifrado",
+    "aritmética modular"
+  ]
+}

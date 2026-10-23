@@ -1,0 +1,22 @@
+{
+  "id": "N12-E04",
+  "nivel": 12,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Recorrido en profundidad (DFS)",
+  "enunciado": "Recorre en profundidad el grafo desde el vértice 0 de dos formas: recursiva y con una pila explícita. Muestra ambos órdenes y explica por qué pueden diferir.",
+  "objetivos": [
+    "Implementar DFS recursivo",
+    "Sustituir la recursión por una pila explícita"
+  ],
+  "pistas": [
+    "DFS recursivo: visita el vértice y llama recursivamente a cada vecino no visitado.",
+    "Con pila: apila vecinos en orden inverso para imitar el orden recursivo.",
+    "En la versión con pila, un vértice puede apilarse dos veces: compruébalo al sacarlo."
+  ],
+  "conceptos": [
+    "DFS",
+    "recursión",
+    "pila"
+  ]
+}

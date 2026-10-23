@@ -1,0 +1,24 @@
+{
+  "id": "N08-E01",
+  "nivel": 8,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Mi primera clase",
+  "enunciado": "Define la clase Rectangulo con atributos base y altura, un constructor y los métodos area(), perimetro() y escalar(factor). Crea dos rectángulos, escala uno y muestra sus áreas y perímetros.",
+  "objetivos": [
+    "Declarar una clase con atributos y métodos",
+    "Crear objetos con nuevo y enviarles mensajes",
+    "Ver que cada objeto tiene su propio estado"
+  ],
+  "pistas": [
+    "este.base se refiere al atributo del objeto actual.",
+    "El constructor se llama igual que la clase.",
+    "Escalar uno no cambia al otro: son objetos distintos."
+  ],
+  "conceptos": [
+    "clase",
+    "objeto",
+    "método",
+    "constructor"
+  ]
+}

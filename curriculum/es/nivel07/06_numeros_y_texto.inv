@@ -1,0 +1,34 @@
+// Nivel 7 · Ejercicio 06 — Convertir entre números y texto
+// Objetivos:
+//   - Construir texto a partir de dígitos
+//   - Interpretar texto como número (esquema de Horner)
+//
+texto aBinario(entero n) {
+    si (n == 0) {
+        retornar "0";
+    }
+    texto r = "";
+    mientras (n > 0) {
+        // El nuevo bit va a la izquierda: los bits salen del menos al más significativo.
+        r = entero_a_texto(n % 2) + r;
+        n = n / 2;
+    }
+    retornar r;
+}
+
+entero deBinario(texto s) {
+    entero valor = 0;
+    para (entero i = 0; i < longitud_texto(s); i++) {
+        valor = valor * 2 + texto_a_entero(caracter_en(s, i));
+    }
+    retornar valor;
+}
+
+vacio main() {
+    entero [4] nums = {0, 5, 42, 255};
+    para_cada (entero n : nums) {
+        texto b = aBinario(n);
+        imprimir(n); imprimir(" -> "); imprimir(b); imprimir(" -> "); imprimir(deBinario(b));
+        imprimir(" "); imprimir(deBinario(b) == n); imprimir("\n");
+    }
+}

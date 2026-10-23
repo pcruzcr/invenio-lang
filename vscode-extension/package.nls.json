@@ -1,0 +1,7 @@
+{
+  "descripcion": "InvenioLang language support: diagnostics with explanations (LSP), syntax highlighting in Spanish and English, run, step-by-step trace and flowchart.",
+  "comando.ejecutar": "Run program",
+  "comando.trazarHtml": "Step-by-step trace (HTML)",
+  "comando.flujoSvg": "Flowchart (SVG)",
+  "config.python": "Python interpreter that has the inveniolang package installed."
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N07-E07",
+  "nivel": 7,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Anagramas",
+  "enunciado": "Dos palabras son anagramas si tienen las mismas letras con la misma frecuencia. Usa un arreglo de 26 contadores para decidir si son anagramas: (\"roma\", \"amor\"), (\"listen\", \"silent\") y (\"casa\", \"cosa\").",
+  "objetivos": [
+    "Combinar cadenas con arreglos de conteo",
+    "Resolver en O(n) un problema que parece necesitar ordenar"
+  ],
+  "pistas": [
+    "Suma 1 por cada letra de la primera palabra y resta 1 por cada letra de la segunda.",
+    "Son anagramas si al final todos los contadores valen 0.",
+    "Si las longitudes difieren, ya sabes la respuesta."
+  ],
+  "conceptos": [
+    "anagrama",
+    "arreglo de conteo"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "nivel": 8,
+  "titulo": "OOP I: classes and objects",
+  "descripcion": "Programming II: model entities with classes, protect their state (encapsulation), build objects in several ways and combine them.",
+  "temas": [
+    "classes, attributes and methods",
+    "encapsulation: public/private",
+    "constructors and overloading",
+    "toString and equals",
+    "static members",
+    "composition",
+    "arrays of objects",
+    "references and null",
+    "enumerations"
+  ],
+  "idioma": "en"
+}

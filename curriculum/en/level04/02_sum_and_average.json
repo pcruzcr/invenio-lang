@@ -1,0 +1,22 @@
+{
+  "id": "N04-E02",
+  "nivel": 4,
+  "numero": 2,
+  "idioma": "en",
+  "titulo": "Sum, average and values above average",
+  "enunciado": "Read 6 float grades into an array, compute the sum and the average and show how many and which grades are above the average.",
+  "objetivos": [
+    "Fill an array with input data",
+    "Traverse twice: once to compute and once to compare"
+  ],
+  "pistas": [
+    "You cannot know which grades are above average until you have read them all.",
+    "That is why you store them in an array.",
+    "Second pass: compare each grade with the average."
+  ],
+  "conceptos": [
+    "array",
+    "accumulator",
+    "two passes"
+  ]
+}

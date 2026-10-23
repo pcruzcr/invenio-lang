@@ -1,0 +1,21 @@
+{
+  "id": "N06-E03",
+  "nivel": 6,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "Matrix addition",
+  "enunciado": "Add A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}} and B = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}} element by element into C with a procedure addMatrices(A, B, C, n) and show C.",
+  "objetivos": [
+    "Pass matrices as parameters",
+    "Implement an element-wise operation"
+  ],
+  "pistas": [
+    "C[i][j] = A[i][j] + B[i][j].",
+    "Matrix parameters are declared as int [][] name.",
+    "Matrices are passed by reference: C is filled inside the procedure."
+  ],
+  "conceptos": [
+    "matrix addition",
+    "matrix parameter"
+  ]
+}

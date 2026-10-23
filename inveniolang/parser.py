@@ -35,6 +35,7 @@ from .ast_nodes import (
     FunctionDecl,
     Identifier,
     IfStmt,
+    ImportDecl,
     IncDecStmt,
     LambdaExpr,
     Literal,
@@ -44,10 +45,13 @@ from .ast_nodes import (
     MatrixDecl,
     MatrixLValue,
     MemberAccess,
+    MemberIndexAccess,
+    MemberIndexLValue,
     MemberLValue,
     MethodCallExpr,
     MethodCallStmt,
     MethodDecl,
+    NewArrayExpr,
     NewExpr,
     NullExpr,
     Parametro,
@@ -68,6 +72,7 @@ from .ast_nodes import (
     WhileStmt,
 )
 from .errors import ErrorManager
+from .i18n import M
 from .lexer import Lexer
 
 
@@ -90,6 +95,11 @@ class Parser:
 
     def build(self, **kwargs):
         """Construye el parser LALR con PLY."""
+        # INV-4409: sin debug=False PLY dejaba un parser.out de ~2 MB dentro
+        # del paquete en cada regeneración de tablas; una copia vieja de ese
+        # archivo describe una gramática anterior. Quien lo quiera lo genera
+        # aparte (docs/InvenioLang_GramaticaFormal.md §7).
+        kwargs.setdefault("debug", False)
         self.parser_obj = yacc.yacc(module=self, **kwargs)
 
     # ---- Precedencia de operadores (de menor a mayor) ----
@@ -122,7 +132,7 @@ class Parser:
                     # Solo puede existir una main por archivo (§3.2)
                     self.error_manager.error_semantico(
                         'IL-SEM-002',
-                        'Identificador duplicado: ya existe una función "main"',
+                        M("IL-SEM-002.identificador_duplicado_ya_existe"),
                         elem.linea, elem.columna
                     )
                     continue
@@ -133,6 +143,8 @@ class Parser:
                 prog.clases.append(elem)
             elif isinstance(elem, EnumDecl):
                 prog.enums.append(elem)
+            elif isinstance(elem, ImportDecl):
+                prog.importaciones.append(elem)
             else:
                 if prog.main is None:
                     prog.declaraciones_globales.append(elem)
@@ -156,8 +168,18 @@ class Parser:
                              | def_main
                              | class_decl
                              | enum_decl
-                             | interface_decl"""
+                             | interface_decl
+                             | importacion"""
         p[0] = p[1]
+
+    def p_importacion(self, p):
+        """importacion : KW_IMPORT TEXTO_LIT DEL_PUNTO_COMA"""
+        # INV-1420: KW_IMPORT es un token de apertura propio en
+        # elemento_programa (como KW_CLASS/KW_ENUM): sin conflictos LALR.
+        # La ruta es un literal de texto para admitir subcarpetas
+        # ("estructuras/pila") sin inventar una sintaxis de nombres con
+        # puntos que chocaria con el acceso a miembros.
+        p[0] = ImportDecl(p[2], p.lineno(1), self._col(p, 1))
 
     def p_interface_decl(self, p):
         """interface_decl : KW_INTERFACE IDENTIFICADOR DEL_LLAVE_A lista_miembros_clase DEL_LLAVE_C"""
@@ -219,7 +241,7 @@ class Parser:
         # IL-SEM-021: main debe declararse con tipo de retorno void (§3.2)
         self.error_manager.error_semantico(
             'IL-SEM-021',
-            f'main debe declararse con tipo de retorno void, no {p[1]}',
+            M("IL-SEM-021.main_debe_declararse_tipo", p1=p[1]),
             p.lineno(2), self._col(p, 2)
         )
         p[0] = MainDecl(p[5], p.lineno(1), self._col(p, 1))
@@ -231,13 +253,13 @@ class Parser:
         if p[4]:
             self.error_manager.error_semantico(
                 'IL-SEM-022',
-                'main no admite parámetros en InvenioLang 1.0',
+                M("IL-SEM-022.main_no_admite_parametros"),
                 p.lineno(2), self._col(p, 2)
             )
         if p.slice[1].type != 'KW_VOID':
             self.error_manager.error_semantico(
                 'IL-SEM-021',
-                f'main debe declararse con tipo de retorno void, no {p[1]}',
+                M("IL-SEM-021.main_debe_declararse_tipo", p1=p[1]),
                 p.lineno(2), self._col(p, 2)
             )
         p[0] = MainDecl(p[6], p.lineno(1), self._col(p, 1))
@@ -266,8 +288,7 @@ class Parser:
         # IL-SIN-015: cada variable debe declararse por separado (§5.1.2)
         self.error_manager.error_sintactico(
             'IL-SIN-015',
-            'No se admite declarar varias variables en una sola instrucción; '
-            'declare cada una por separado',
+            M("IL-SIN-015.no_admite_declarar_varias"),
             p.lineno(2), self._col(p, 2)
         )
         p[0] = VarDecl(p[1], p[2], None, p.lineno(2), self._col(p, 2))
@@ -286,7 +307,7 @@ class Parser:
         # IL-SEM-030: la inicialización de una constante es obligatoria (§5.4.1)
         self.error_manager.error_semantico(
             'IL-SEM-030',
-            f'La constante "{p[3]}" debe inicializarse en su declaración',
+            M("IL-SEM-030.constante_debe_inicializarse_declaracion", p3=p[3]),
             p.lineno(3), self._col(p, 3)
         )
         p[0] = ConstDecl(p[2], p[3],
@@ -328,8 +349,7 @@ class Parser:
     def _avisar_postfijo(self, p, idx, nombre):
         self.error_manager.advertencia(
             'IL-WARN-040',
-            f'Declaración postfija de "{nombre}": la forma canónica de '
-            f'InvenioLang es prefija, con las dimensiones antes del nombre',
+            M("IL-WARN-040.declaracion_postfija_forma_canonica", nombre=nombre),
             p.lineno(idx), self._col(p, idx)
         )
 
@@ -365,8 +385,7 @@ class Parser:
         # IL-SIN-081: InvenioLang 1.0 admite como máximo dos dimensiones (§13.6)
         self.error_manager.error_sintactico(
             'IL-SIN-081',
-            'InvenioLang 1.0 admite arreglos de una dimensión y matrices de '
-            'dos; no existen tres o más dimensiones',
+            M("IL-SIN-081.inveniolang_admite_arreglos_dimension"),
             p.lineno(11), self._col(p, 11)
         )
         p[0] = ArrayDecl(p[1], p[3], p[11], [], p.lineno(11), self._col(p, 11))
@@ -537,8 +556,7 @@ class Parser:
         sub = p[1]
         self.error_manager.error_sintactico(
             'IL-SIN-050',
-            f'No se permite declarar la subrutina "{sub.nombre}" dentro de un '
-            f'bloque local; debe definirse al nivel más externo del archivo',
+            M("IL-SIN-050.no_permite_declarar_subrutina", nombre=sub.nombre),
             sub.linea, sub.columna
         )
         p[0] = Bloque([], sub.linea, sub.columna)
@@ -573,7 +591,11 @@ class Parser:
                        | call_stmt
                        | instruccion_error"""
         if len(p) == 5:
-            p[0] = AssignStmt(p[1], p[2], p[3], p.lineno(1), self._col(p, 1))
+            # INV-2004: p.lineno(1) de un NO terminal (lvalue) vale 0 en PLY;
+            # la posicion real es la del lvalue. Con 0, ni los puntos de
+            # ruptura del depurador ni la traza paso a paso ubicaban una
+            # asignacion en su linea.
+            p[0] = AssignStmt(p[1], p[2], p[3], *self._pos_lvalue(p[1]))
         else:
             p[0] = p[1]
 
@@ -586,7 +608,7 @@ class Parser:
     def _falta_punto_coma(self, p, idx):
         self.error_manager.error_sintactico(
             'IL-SIN-010',
-            'Falta el punto y coma ";" al final de la instrucción',
+            M("IL-SIN-010.falta_punto_coma_final"),
             p.lineno(idx), self._col(p, idx)
         )
 
@@ -600,7 +622,7 @@ class Parser:
     def p_asignacion_sin_pc_error(self, p):
         """instruccion_error : lvalue op_asig expresion"""
         self._falta_punto_coma(p, 1)
-        p[0] = AssignStmt(p[1], p[2], p[3], p.lineno(1), self._col(p, 1))
+        p[0] = AssignStmt(p[1], p[2], p[3], *self._pos_lvalue(p[1]))  # INV-2004
 
     def p_print_sin_pc_error(self, p):
         """print_stmt : KW_PRINT DEL_PAREN_A expresion DEL_PAREN_C"""
@@ -612,8 +634,7 @@ class Parser:
         # IL-SIN-012: InvenioLang no define instrucción nula (§3.4.2)
         self.error_manager.error_sintactico(
             'IL-SIN-012',
-            'Punto y coma aislado: InvenioLang no define una instrucción '
-            'nula; use un bloque vacío { }',
+            M("IL-SIN-012.punto_coma_aislado_inveniolang"),
             p.lineno(1), self._col(p, 1)
         )
         p[0] = Bloque([], p.lineno(1), self._col(p, 1))
@@ -625,8 +646,7 @@ class Parser:
         # IL-SIN-011: las instrucciones compuestas no llevan ; de cierre (§3.4.1)
         self.error_manager.error_sintactico(
             'IL-SIN-011',
-            'Las instrucciones compuestas (if, while, for) no llevan punto y '
-            'coma después de la llave de cierre',
+            M("IL-SIN-011.instrucciones_compuestas_if_while"),
             p.lineno(2), self._col(p, 2)
         )
         p[0] = p[1]
@@ -636,11 +656,10 @@ class Parser:
         # IL-SIN-020: la asignación no produce valor (§5.3.1)
         self.error_manager.error_sintactico(
             'IL-SIN-020',
-            'Asignación encadenada: la asignación no produce un valor y no '
-            'puede usarse dentro de una expresión',
+            M("IL-SIN-020.asignacion_encadenada_asignacion_no"),
             p.lineno(1), self._col(p, 1)
         )
-        p[0] = AssignStmt(p[1], p[2], p[3].expr, p.lineno(1), self._col(p, 1))
+        p[0] = AssignStmt(p[1], p[2], p[3].expr, *self._pos_lvalue(p[1]))  # INV-2004
 
     def p_lvalue(self, p):
         """lvalue : IDENTIFICADOR
@@ -685,7 +704,7 @@ class Parser:
         # IL-SIN-025: print/imprimir requiere exactamente un argumento (§7.1)
         self.error_manager.error_sintactico(
             'IL-SIN-025',
-            'print / imprimir requiere exactamente un argumento',
+            M("IL-SIN-025.print_imprimir_requiere_exactamente"),
             p.lineno(1), self._col(p, 1)
         )
         p[0] = PrintStmt(Literal('', 'string', p.lineno(1), self._col(p, 1)),
@@ -696,8 +715,7 @@ class Parser:
         # IL-SIN-026: print/imprimir no admite varios argumentos (§7.1)
         self.error_manager.error_sintactico(
             'IL-SIN-026',
-            'print / imprimir admite un solo argumento; use una instrucción '
-            'de salida por cada valor',
+            M("IL-SIN-026.print_imprimir_admite_solo"),
             p.lineno(1), self._col(p, 1)
         )
         p[0] = PrintStmt(p[3], p.lineno(1), self._col(p, 1))
@@ -713,8 +731,7 @@ class Parser:
         else:
             self.error_manager.error_sintactico(
                 'IL-SIN-027',
-                'El argumento de read / leer debe ser un identificador de '
-                'variable, no una expresión',
+                M("IL-SIN-027.argumento_read_leer_debe"),
                 p.lineno(1), self._col(p, 1)
             )
             p[0] = ReadStmt('<inválido>', p.lineno(1), self._col(p, 1))
@@ -734,7 +751,7 @@ class Parser:
         # entre llaves, aunque contenga una sola instrucción (§8.1)
         self.error_manager.error_sintactico(
             'IL-SIN-031',
-            'El cuerpo de if / si debe ir entre llaves { }',
+            M("IL-SIN-031.cuerpo_if_si_debe"),
             p.lineno(1), self._col(p, 1)
         )
         cuerpo = Bloque([p[5]], p.lineno(1), self._col(p, 1))
@@ -749,7 +766,7 @@ class Parser:
         # cuya condición siempre empieza por "(".
         self.error_manager.error_sintactico(
             'IL-SIN-030',
-            'La condición de if / si debe ir entre paréntesis: if (condición) { }',
+            M("IL-SIN-030.condicion_if_si_debe"),
             p.lineno(1), self._col(p, 1)
         )
         alterno = p[5] if len(p) == 6 else None
@@ -760,8 +777,7 @@ class Parser:
         # IL-SIN-035: la condición debe ir entre paréntesis (§9.1)
         self.error_manager.error_sintactico(
             'IL-SIN-035',
-            'La condición de while / mientras debe ir entre paréntesis: '
-            'while (condición) { }',
+            M("IL-SIN-035.condicion_while_mientras_debe"),
             p.lineno(1), self._col(p, 1)
         )
         p[0] = WhileStmt(p[2], p[3], p.lineno(1), self._col(p, 1))
@@ -774,8 +790,7 @@ class Parser:
         # identificador de variable (§14.4)
         self.error_manager.error_semantico(
             'IL-SEM-005',
-            'El lado izquierdo de una asignación debe ser una variable, '
-            'no un literal',
+            M("IL-SEM-005.lado_izquierdo_asignacion_debe"),
             p.lineno(1), self._col(p, 1)
         )
         p[0] = Bloque([], p.lineno(1), self._col(p, 1))
@@ -798,14 +813,13 @@ class Parser:
         if self._if_sin_else is not None and self._elems_tras_if > 0:
             self.error_manager.error_sintactico(
                 'IL-SIN-033',
-                f'No puede aparecer una instrucción entre el bloque del if '
-                f'(línea {self._if_sin_else[0]}) y su cláusula else / sino',
+                M("IL-SIN-033.no_puede_aparecer_instruccion", if_sin_else0=self._if_sin_else[0]),
                 p.lineno(1), self._col(p, 1)
             )
         else:
             self.error_manager.error_sintactico(
                 'IL-SIN-032',
-                'Cláusula else / sino sin un if previo en el mismo alcance',
+                M("IL-SIN-032.clausula_else_sino_sin"),
                 p.lineno(1), self._col(p, 1)
             )
         self._if_sin_else = None
@@ -821,7 +835,7 @@ class Parser:
         # IL-SIN-031: cuerpo de while sin llaves (§9.1)
         self.error_manager.error_sintactico(
             'IL-SIN-031',
-            'El cuerpo de while / mientras debe ir entre llaves { }',
+            M("IL-SIN-031.cuerpo_while_mientras_debe"),
             p.lineno(1), self._col(p, 1)
         )
         p[0] = WhileStmt(p[3], Bloque([p[5]], p.lineno(1), self._col(p, 1)),
@@ -1222,8 +1236,7 @@ class Parser:
             if ctor.nombre != nombre:
                 self.error_manager.error_poo(
                     'IL-POO-019',
-                    f'El constructor debe llamarse igual que la clase "{nombre}", '
-                    f'no "{ctor.nombre}"',
+                    M("IL-POO-019.constructor_debe_llamarse_igual", nombre=nombre, nombre2=ctor.nombre),
                     ctor.linea, ctor.columna
                 )
 
@@ -1334,8 +1347,7 @@ class Parser:
         if mod == 'abstract':
             self.error_manager.error_poo(
                 'IL-POO-023',
-                'El modificador "abstracto"/"abstract" no es válido en un '
-                'atributo, solo en métodos',
+                M("IL-POO-023.modificador_abstracto_abstract_no"),
                 p.lineno(idx), self._col(p, idx)
             )
 
@@ -1410,10 +1422,50 @@ class Parser:
         # compatible con tipos de clase (ver _compatible en type_checker.py).
         p[0] = NullExpr(p.lineno(1), self._col(p, 1))
 
+    # ---- Acceso a miembro encadenable (INV-4406) ----
+    # `acceso` es un acceso a atributo o una llamada a método ya completos
+    # (a.b, este.b, padre.b, a.m(...), v[i].b, v[i].m(...)) sobre los que se
+    # puede seguir encadenando: a.b.c, a.b.m(), a.m().c, este.cola.siguiente.
+    # Antes cada una de estas formas producía directamente `expr_primaria`
+    # y la cadena terminaba en el primer punto. Separarlas en su propio no
+    # terminal evita conflictos nuevos: tras un `acceso` el token `.` solo
+    # puede continuar la cadena (FOLLOW(expr_primaria) no contiene `.`), así
+    # que la tabla LALR(1) conserva exactamente sus 20 resoluciones
+    # shift/reduce documentadas. El acceso seguro `?.` sigue siendo de un
+    # solo nivel (su cortocircuito se define sobre un receptor variable).
+
+    def p_expr_primaria_acceso(self, p):
+        """expr_primaria : acceso"""
+        p[0] = p[1]
+
+    def p_acceso_encadenado(self, p):
+        """acceso : acceso DEL_PUNTO IDENTIFICADOR"""
+        p[0] = MemberAccess(p[1], p[3], p[1].linea, p[1].columna)
+
+    def p_acceso_llamada_encadenada(self, p):
+        """acceso : acceso DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C"""
+        p[0] = MethodCallExpr(p[1], p[3], p[5], p[1].linea, p[1].columna)
+
+    def p_expr_primaria_indice_encadenado(self, p):
+        """expr_primaria : acceso DEL_PUNTO IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C"""
+        p[0] = MemberIndexAccess(p[1], p[3], p[5], p[1].linea, p[1].columna)
+
+    def p_lvalue_encadenado(self, p):
+        """lvalue : acceso DEL_PUNTO IDENTIFICADOR"""
+        p[0] = MemberLValue(p[1], p[3], p[1].linea, p[1].columna)
+
+    def p_lvalue_indice_encadenado(self, p):
+        """lvalue : acceso DEL_PUNTO IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C"""
+        p[0] = MemberIndexLValue(p[1], p[3], p[5], p[1].linea, p[1].columna)
+
+    def p_call_stmt_encadenado(self, p):
+        """call_stmt : acceso DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C DEL_PUNTO_COMA"""
+        p[0] = MethodCallStmt(p[1], p[3], p[5], p[1].linea, p[1].columna)
+
     def p_expr_primaria_miembro(self, p):
-        """expr_primaria : IDENTIFICADOR DEL_PUNTO IDENTIFICADOR
-                         | KW_THIS DEL_PUNTO IDENTIFICADOR
-                         | KW_SUPER DEL_PUNTO IDENTIFICADOR"""
+        """acceso : IDENTIFICADOR DEL_PUNTO IDENTIFICADOR
+                  | KW_THIS DEL_PUNTO IDENTIFICADOR
+                  | KW_SUPER DEL_PUNTO IDENTIFICADOR"""
         p[0] = MemberAccess(self._receptor(p, 1), p[3], p.lineno(1), self._col(p, 1))
 
     def p_expr_primaria_miembro_seguro(self, p):
@@ -1427,9 +1479,9 @@ class Parser:
                             p.lineno(1), self._col(p, 1), es_seguro=True)
 
     def p_expr_primaria_llamada_metodo(self, p):
-        """expr_primaria : IDENTIFICADOR DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
-                         | KW_THIS DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
-                         | KW_SUPER DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C"""
+        """acceso : IDENTIFICADOR DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
+                  | KW_THIS DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
+                  | KW_SUPER DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C"""
         p[0] = MethodCallExpr(self._receptor(p, 1), p[3], p[5],
                               p.lineno(1), self._col(p, 1))
 
@@ -1491,6 +1543,35 @@ class Parser:
         """def_funcion : IDENTIFICADOR IDENTIFICADOR DEL_PAREN_A lista_params DEL_PAREN_C bloque"""
         p[0] = FunctionDecl(p[1], p[2], p[4], p[6], p.lineno(2), self._col(p, 2))
 
+    # ---- Arreglos dinámicos (INV-1440) ----
+    # Un atributo puede ser un arreglo SIN tamaño fijo (`privado entero[]
+    # datos;`) que se crea en ejecución con `nuevo entero[n]`; es lo que
+    # permite implementar un vector dinámico (duplicar la capacidad) en el
+    # propio lenguaje. Tras `tipo [` el siguiente token (`]` frente a un
+    # tamaño) distingue esta forma de las existentes: sin conflictos LALR
+    # nuevos (verificado con debug=True: siguen las 20 resoluciones
+    # shift/reduce previas).
+
+    def p_miembro_atributo_arreglo(self, p):
+        """miembro_clase : visibilidad modificador_miembro tipo DEL_CORCHETE_A DEL_CORCHETE_C IDENTIFICADOR DEL_PUNTO_COMA"""
+        self._validar_mod_attr(p[2], p, 6)
+        p[0] = AttrDecl(p[1], p[3] + '[]', p[6], None, es_estatico=(p[2] == 'static'),
+                        linea=p.lineno(6), columna=self._col(p, 6))
+
+    def p_expr_primaria_nuevo_arreglo(self, p):
+        """expr_primaria : KW_NEW tipo DEL_CORCHETE_A expresion DEL_CORCHETE_C"""
+        p[0] = NewArrayExpr(p[2], p[4], p.lineno(1), self._col(p, 1))
+
+    def p_expr_primaria_miembro_indice(self, p):
+        """expr_primaria : IDENTIFICADOR DEL_PUNTO IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C
+                         | KW_THIS DEL_PUNTO IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C"""
+        p[0] = MemberIndexAccess(self._receptor(p, 1), p[3], p[5], p.lineno(1), self._col(p, 1))
+
+    def p_lvalue_miembro_indice(self, p):
+        """lvalue : IDENTIFICADOR DEL_PUNTO IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C
+                  | KW_THIS DEL_PUNTO IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C"""
+        p[0] = MemberIndexLValue(self._receptor(p, 1), p[3], p[5], p.lineno(1), self._col(p, 1))
+
     def p_miembro_atributo_clase(self, p):
         """miembro_clase : visibilidad modificador_miembro IDENTIFICADOR IDENTIFICADOR DEL_PUNTO_COMA
                          | visibilidad modificador_miembro IDENTIFICADOR IDENTIFICADOR OP_ASIG expresion DEL_PUNTO_COMA"""
@@ -1534,17 +1615,17 @@ class Parser:
     # ---- Receptor = elemento de arreglo (Estructuras de Datos) ----
     # personas[i].saludar() / personas[i].edad = 30 -- el receptor de un
     # acceso a miembro tambien puede ser un elemento de arreglo de objetos,
-    # ademas de IDENTIFICADOR/este/padre. Sigue siendo "un solo nivel": no se
-    # puede seguir encadenando despues del metodo/atributo. Se construye el
+    # ademas de IDENTIFICADOR/este/padre. Desde INV-4406 es un `acceso` y se
+    # puede seguir encadenando (personas[i].mascota.nombre). Se construye el
     # nodo ArrayAccess ya existente directamente como receptor, sin AST nuevo.
 
     def p_expr_primaria_miembro_arreglo(self, p):
-        """expr_primaria : IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C DEL_PUNTO IDENTIFICADOR"""
+        """acceso : IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C DEL_PUNTO IDENTIFICADOR"""
         receptor = ArrayAccess(p[1], p[3], p.lineno(1), self._col(p, 1))
         p[0] = MemberAccess(receptor, p[6], p.lineno(1), self._col(p, 1))
 
     def p_expr_primaria_llamada_metodo_arreglo(self, p):
-        """expr_primaria : IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C"""
+        """acceso : IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C"""
         receptor = ArrayAccess(p[1], p[3], p.lineno(1), self._col(p, 1))
         p[0] = MethodCallExpr(receptor, p[6], p[8], p.lineno(1), self._col(p, 1))
 
@@ -1592,7 +1673,7 @@ class Parser:
         if p is None:
             self.error_manager.error_sintactico(
                 'IL-SIN-006',
-                'Se alcanzó el final del archivo con uno o más bloques sin cerrar',
+                M("IL-SIN-006.alcanzo_final_archivo_uno"),
                 0, 0
             )
             return
@@ -1603,7 +1684,7 @@ class Parser:
         if p.type == 'DEL_LLAVE_C':
             self.error_manager.error_sintactico(
                 'IL-SIN-005',
-                'Llave de cierre "}" sin una llave de apertura correspondiente',
+                M("IL-SIN-005.llave_cierre_sin_llave"),
                 linea, col
             )
             return
@@ -1612,8 +1693,7 @@ class Parser:
         if p.type in self._LEXEMA_KW and self._espera_identificador():
             self.error_manager.error_lexico(
                 'IL-LEX-006',
-                f'"{p.value}" es una palabra reservada del lenguaje y no puede '
-                f'usarse como identificador',
+                M("IL-LEX-006.palabra_reservada_lenguaje_no", value=p.value),
                 linea, col
             )
             return
@@ -1622,15 +1702,14 @@ class Parser:
         if self._dentro_de_for():
             self.error_manager.error_sintactico(
                 'IL-SIN-040',
-                'Faltan los punto y coma separadores en el encabezado de '
-                'for / para: for (inicio; condición; actualización)',
+                M("IL-SIN-040.faltan_punto_coma_separadores"),
                 linea, col
             )
             return
 
         self.error_manager.error_sintactico(
             'IL-SIN-010',
-            f'Se esperaba ";" o una instrucción válida cerca de "{p.value}"',
+            M("IL-SIN-010.esperaba_instruccion_valida_cerca", value=p.value),
             linea, col
         )
 
@@ -1658,6 +1737,16 @@ class Parser:
         """Indica si el error ocurrió dentro del encabezado de un for."""
         return 'KW_FOR' in self._pila_simbolos()[-6:]
 
+    @staticmethod
+    def _pos_lvalue(lvalue):
+        """(linea, columna) de un lvalue para la instruccion que encabeza (INV-2004).
+
+        MatrixLValue guarda en `columna` la EXPRESION del indice de columna
+        (lo usa el interprete), no una posicion: entonces la columna es 0.
+        """
+        columna = getattr(lvalue, 'columna', 0)
+        return lvalue.linea, columna if isinstance(columna, int) else 0
+
     def _col(self, p, idx):
         lexpos = p.lexpos(idx) if hasattr(p, 'lexpos') else 0
         return self._calc_col_pos(lexpos)
@@ -1674,12 +1763,18 @@ class Parser:
             return lexpos - inicio + 1
         return 1
 
-    def analizar(self, codigo, archivo="<desconocido>"):
+    def analizar(self, codigo, archivo="<desconocido>", *, ruta_fuente=None,
+                 enlazar=True, cargador=None):
         """Analiza sintácticamente el código fuente.
 
         Args:
             codigo: Código fuente como string
-            archivo: Nombre del archivo
+            archivo: Nombre del archivo (el que aparece en los diagnósticos)
+            ruta_fuente: Ruta real del archivo, base para resolver
+                `importar` (INV-1420). Por defecto, `archivo`.
+            enlazar: Si False, las importaciones quedan sin resolver (el
+                pipeline puro las enlaza en su propia fase medida).
+            cargador: Puerto `modulos.CargadorModulos` (por defecto, disco).
 
         Retorna:
             Tupla (ast, error_manager)
@@ -1700,10 +1795,17 @@ class Parser:
 
         try:
             ast = self.parser_obj.parse(lexer=self.lexer.lexer_obj)
-            return ast, self.error_manager
         except Exception as e:
             self.error_manager.error_sintactico(
                 'IL-SIN-010',
-                f'Error de sintaxis: {str(e)}', 0, 0
+                M("IL-SIN-010.error_sintaxis", str_e=str(e)), 0, 0
             )
             return None, self.error_manager
+        if (enlazar and ast is not None and ast.importaciones
+                and not self.error_manager.hay_errores()):
+            # INV-1420: con el AST completo y sin errores de sintaxis, se
+            # resuelven los módulos (ver modulos.py). Import diferido:
+            # modulos.py construye a su vez Parsers para cada módulo.
+            from .modulos import enlazar as enlazar_modulos
+            enlazar_modulos(ast, ruta_fuente or archivo, self.error_manager, cargador)
+        return ast, self.error_manager

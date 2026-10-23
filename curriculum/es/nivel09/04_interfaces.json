@@ -1,0 +1,23 @@
+{
+  "id": "N09-E04",
+  "nivel": 9,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Interfaces",
+  "enunciado": "Define las interfaces Volador (volar()) y Nadador (nadar()). Pato implementa ambas, Avion solo Volador y Pez solo Nadador. Recorre un arreglo de Volador y otro de Nadador.",
+  "objetivos": [
+    "Declarar interfaces e implementarlas",
+    "Implementar varias interfaces en una clase",
+    "Agrupar objetos por capacidad, no por herencia"
+  ],
+  "pistas": [
+    "Una interfaz solo declara métodos abstractos.",
+    "clase Pato implementa Volador, Nadador { ... }",
+    "Un Pato puede guardarse tanto en un arreglo de Volador como de Nadador."
+  ],
+  "conceptos": [
+    "interfaz",
+    "implementa",
+    "capacidad"
+  ]
+}

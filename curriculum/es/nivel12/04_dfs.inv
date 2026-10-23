@@ -1,0 +1,67 @@
+// Nivel 12 · Ejercicio 04 — Recorrido en profundidad (DFS)
+// Objetivos:
+//   - Implementar DFS recursivo
+//   - Sustituir la recursión por una pila explícita
+//
+constante entero N = 7;
+entero [N][N] adj;
+
+vacio agregarArista(entero a, entero b) {
+    adj[a][b] = 1;
+    adj[b][a] = 1;   // no dirigido: la relación va en ambos sentidos
+}
+
+vacio limpiar() {
+    para (entero i = 0; i < N; i++) {
+        para (entero j = 0; j < N; j++) {
+            adj[i][j] = 0;
+        }
+    }
+}
+
+logico [N] visitado;
+
+vacio dfsRec(entero u) {
+    visitado[u] = verdadero;
+    imprimir(" "); imprimir(u);
+    para (entero v = 0; v < N; v++) {
+        si (adj[u][v] == 1 && !visitado[v]) {
+            dfsRec(v);   // baja lo más profundo posible antes de retroceder
+        }
+    }
+}
+
+vacio main() {
+    limpiar();
+    agregarArista(0, 1);
+    agregarArista(0, 2);
+    agregarArista(1, 3);
+    agregarArista(2, 3);
+    agregarArista(3, 4);
+    agregarArista(4, 5);
+    para (entero i = 0; i < N; i++) { visitado[i] = falso; }
+    imprimir("recursive:");
+    dfsRec(0);
+    imprimir("\n");
+
+    para (entero i = 0; i < N; i++) { visitado[i] = falso; }
+    entero [32] pila;
+    entero tope = 0;
+    pila[0] = 0;
+    imprimir("stack:    ");
+    mientras (tope >= 0) {
+        entero u = pila[tope];
+        tope--;
+        si (!visitado[u]) {
+            visitado[u] = verdadero;
+            imprimir(" "); imprimir(u);
+            para (entero v = N - 1; v >= 0; v--) {
+                si (adj[u][v] == 1 && !visitado[v]) {
+                    tope++;
+                    pila[tope] = v;
+                }
+            }
+        }
+    }
+    imprimir("\n");
+}

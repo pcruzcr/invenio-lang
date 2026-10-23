@@ -1,0 +1,22 @@
+{
+  "id": "N08-E06",
+  "nivel": 8,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Composition: a car has an engine",
+  "enunciado": "Model Engine (power, running) and Car which HAS an Engine and a mileage. Car.drive(km) only adds kilometers if the engine is running. Show the mileage before and after starting it.",
+  "objetivos": [
+    "Build objects out of other objects (has-a relationship)",
+    "Delegate work to the contained object"
+  ],
+  "pistas": [
+    "The Car creates its Engine in the constructor.",
+    "To use the engine first store this.engine in a local variable: Engine m = this.engine;",
+    "Composition: the engine lives and dies with the car."
+  ],
+  "conceptos": [
+    "composition",
+    "delegation",
+    "has-a"
+  ]
+}

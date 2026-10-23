@@ -1,0 +1,22 @@
+{
+  "id": "N09-E12",
+  "nivel": 9,
+  "numero": 12,
+  "idioma": "en",
+  "titulo": "Sum types and match",
+  "enunciado": "Define enum Form with data-carrying variants: Circle(radius), Rect(width, height) and Point. Write formArea(f) with match and compute the area of several forms. Compare this solution with the polymorphic version from the abstract class exercise.",
+  "objetivos": [
+    "Model a closed set of variants carrying data",
+    "Destructure variants with match"
+  ],
+  "pistas": [
+    "Each match case names the variant's fields.",
+    "The compiler checks that you cover every variant.",
+    "Sum types: closed variants, open operations. Inheritance: the opposite."
+  ],
+  "conceptos": [
+    "sum type",
+    "match",
+    "destructuring"
+  ]
+}

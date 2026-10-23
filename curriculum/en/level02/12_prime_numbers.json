@@ -1,0 +1,22 @@
+{
+  "id": "N02-E12",
+  "nivel": 2,
+  "numero": 12,
+  "idioma": "en",
+  "titulo": "Prime numbers",
+  "enunciado": "Show all prime numbers between 2 and 50 on one line, and how many there are. Only test divisors up to the square root (d * d <= n).",
+  "objetivos": [
+    "Combine a loop with a boolean flag",
+    "Reduce work by stopping the search at the square root"
+  ],
+  "pistas": [
+    "A prime is only divisible by 1 and itself.",
+    "Use a bool variable isPrime that starts as true.",
+    "If n has a divisor larger than its root, it also has a smaller one."
+  ],
+  "conceptos": [
+    "flag",
+    "nested loops",
+    "primality"
+  ]
+}

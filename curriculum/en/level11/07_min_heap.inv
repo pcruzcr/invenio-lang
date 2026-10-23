@@ -1,0 +1,67 @@
+// Level 11 · Exercise 07 — Min-heap (priority queue)
+// Learning goals:
+//   - Represent a complete tree in an array
+//   - Maintain the heap property with sift-up/sift-down
+//
+const int CAP = 16;
+int [CAP] heap;
+int heapSize = 0;
+
+void swap(int i, int j) {
+    int tmp = heap[i];
+    heap[i] = heap[j];
+    heap[j] = tmp;
+}
+
+void insert(int v) {
+    heap[heapSize] = v;
+    int i = heapSize;
+    heapSize++;
+    // Sift up: while smaller than its parent, swap.
+    while (i > 0 && heap[i] < heap[(i - 1) / 2]) {
+        swap(i, (i - 1) / 2);
+        i = (i - 1) / 2;
+    }
+}
+
+int extractMin() {
+    int minimum = heap[0];
+    heapSize--;
+    heap[0] = heap[heapSize];
+    int i = 0;
+    bool keepGoing = true;
+    while (keepGoing) {
+        int smallest = i;
+        int l = 2 * i + 1;
+        int r = 2 * i + 2;
+        if (l < heapSize && heap[l] < heap[smallest]) { smallest = l; }
+        if (r < heapSize && heap[r] < heap[smallest]) { smallest = r; }
+        if (smallest == i) {
+            keepGoing = false;   // the property holds
+        } else {
+            swap(i, smallest);
+            i = smallest;
+        }
+    }
+    return minimum;
+}
+
+void show() {
+    for (int i = 0; i < heapSize; i++) {
+        print(heap[i]); print(" ");
+    }
+    print("\n");
+}
+
+void main() {
+    int [7] data = {15, 4, 20, 8, 1, 30, 6};
+    foreach (int v : data) {
+        insert(v);
+        show();
+    }
+    print("out:");
+    while (heapSize > 0) {
+        print(" "); print(extractMin());
+    }
+    print("\n");
+}

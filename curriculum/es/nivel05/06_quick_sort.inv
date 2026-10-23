@@ -1,0 +1,49 @@
+// Nivel 5 · Ejercicio 06 — Quick sort (ordenamiento rápido)
+// Objetivos:
+//   - Implementar la partición alrededor de un pivote
+//   - Ordenar recursivamente cada lado
+//
+vacio imprimirArreglo(entero [] a, entero n) {
+    imprimir("[");
+    para (entero i = 0; i < n; i++) {
+        imprimir(a[i]);
+        si (i < n - 1) {
+            imprimir(", ");
+        }
+    }
+    imprimir("]\n");
+}
+
+vacio intercambiar(entero [] a, entero i, entero j) {
+    entero aux = a[i];
+    a[i] = a[j];
+    a[j] = aux;
+}
+
+entero particion(entero [] a, entero izq, entero der) {
+    entero pivote = a[der];
+    entero i = izq - 1;
+    para (entero j = izq; j < der; j++) {
+        si (a[j] < pivote) {
+            i++;
+            intercambiar(a, i, j);
+        }
+    }
+    intercambiar(a, i + 1, der);   // el pivote va a su lugar final
+    imprimir("pivot "); imprimir(pivote); imprimir(": ");
+    imprimirArreglo(a, 7);
+    retornar i + 1;
+}
+
+vacio quickSort(entero [] a, entero izq, entero der) {
+    si (izq < der) {
+        entero p = particion(a, izq, der);
+        quickSort(a, izq, p - 1);
+        quickSort(a, p + 1, der);
+    }
+}
+
+vacio main() {
+    entero [7] a = {10, 80, 30, 90, 40, 50, 70};
+    quickSort(a, 0, 6);
+}

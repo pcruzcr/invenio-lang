@@ -1,0 +1,37 @@
+// Level 8 · Exercise 09 — Enumerations
+// Learning goals:
+//   - Represent a closed set of values with enum
+//   - Use exhaustive match
+//
+// An enum lists ALL possible values: there is no fourth color.
+enum TrafficLight { RED, GREEN, YELLOW }
+
+TrafficLight nextColor(TrafficLight s) {
+    TrafficLight r = TrafficLight.RED;
+    match (s) {
+        case RED: r = TrafficLight.GREEN;
+        case GREEN: r = TrafficLight.YELLOW;
+        case YELLOW: r = TrafficLight.RED;
+    }
+    return r;
+}
+
+string colorName(TrafficLight s) {
+    string n = "";
+    match (s) {
+        case RED: n = "RED";
+        case GREEN: n = "GREEN";
+        case YELLOW: n = "YELLOW";
+    }
+    return n;
+}
+
+void main() {
+    TrafficLight s = TrafficLight.RED;
+    for (int i = 0; i < 5; i++) {
+        print(colorName(s)); print(" -> ");
+        s = nextColor(s);
+    }
+    print(colorName(s)); print("\n");
+    print(s == TrafficLight.GREEN); print("\n");
+}

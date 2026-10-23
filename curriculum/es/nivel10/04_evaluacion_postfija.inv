@@ -1,0 +1,50 @@
+// Nivel 10 · Ejercicio 04 — Evaluar expresiones postfijas
+// Objetivos:
+//   - Evaluar expresiones sin paréntesis con una pila
+//   - Respetar el orden de los operandos al desapilar
+//
+constante entero CAP = 16;
+entero [CAP] pila;
+entero tope = -1;
+
+vacio apilar(entero v) { tope++; pila[tope] = v; }
+entero desapilar() { entero v = pila[tope]; tope--; retornar v; }
+
+vacio mostrarPila() {
+    imprimir("  [");
+    para (entero i = 0; i <= tope; i++) {
+        imprimir(" "); imprimir(pila[i]);
+    }
+    imprimir(" ]\n");
+}
+
+entero evaluarPostfija(texto [] tokens, entero n, logico traza) {
+    tope = -1;
+    para (entero i = 0; i < n; i++) {
+        texto tok = tokens[i];
+        si (tok == "+" || tok == "-" || tok == "*" || tok == "/") {
+            entero b = desapilar();   // el segundo operando sale primero
+            entero a = desapilar();
+            segun (tok) {
+                caso "+": apilar(a + b); romper;
+                caso "-": apilar(a - b); romper;
+                caso "*": apilar(a * b); romper;
+                caso "/": apilar(a / b); romper;
+            }
+        } sino {
+            apilar(texto_a_entero(tok));
+        }
+        si (traza) {
+            imprimir(tok); mostrarPila();
+        }
+    }
+    retornar desapilar();
+}
+
+vacio main() {
+    texto [5] e1 = {"3", "4", "+", "2", "*"};
+    imprimir(evaluarPostfija(e1, 5, falso)); imprimir("\n");
+    texto [9] e2 = {"5", "1", "2", "+", "4", "*", "+", "3", "-"};
+    entero r = evaluarPostfija(e2, 9, verdadero);
+    imprimir("= "); imprimir(r); imprimir("\n");
+}

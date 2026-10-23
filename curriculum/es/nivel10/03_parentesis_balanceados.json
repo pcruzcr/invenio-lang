@@ -1,0 +1,22 @@
+{
+  "id": "N10-E03",
+  "nivel": 10,
+  "numero": 3,
+  "idioma": "es",
+  "titulo": "Paréntesis balanceados",
+  "enunciado": "Usa una pila de textos para decidir si cada expresión tiene sus signos ( ) [ ] { } bien balanceados: \"{a[(b+c)*d]}\", \"(a+b]\", \"((x)\", \"x+y)\" y \"[{()()}]\".",
+  "objetivos": [
+    "Aplicar una pila a un problema real de compiladores",
+    "Detectar los tres tipos de error: cierre incorrecto, cierre sin apertura y apertura sin cierre"
+  ],
+  "pistas": [
+    "Apila cada símbolo de apertura.",
+    "Ante un cierre, la cima debe ser su pareja; si la pila está vacía, falla.",
+    "Al final la pila debe quedar vacía."
+  ],
+  "conceptos": [
+    "pila",
+    "análisis sintáctico",
+    "balanceo"
+  ]
+}

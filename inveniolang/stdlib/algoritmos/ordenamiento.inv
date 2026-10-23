@@ -1,0 +1,185 @@
+// algoritmos/ordenamiento.inv -- Algoritmos de ordenamiento de arreglos
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "algoritmos/ordenamiento";
+//
+// Todos ordenan de MENOR a MAYOR los primeros n elementos del arreglo, en
+// su lugar (el arreglo se pasa por referencia). n suele ser
+// longitud_arreglo(a), pero se pide aparte para poder ordenar solo una
+// parte.
+//
+//   Algoritmo   | Mejor      | Promedio   | Peor       | Estable
+//   burbuja     | O(n)       | O(n^2)     | O(n^2)     | sí
+//   seleccion   | O(n^2)     | O(n^2)     | O(n^2)     | no
+//   insercion   | O(n)       | O(n^2)     | O(n^2)     | sí
+//   mezcla      | O(n log n) | O(n log n) | O(n log n) | sí  (usa un arreglo auxiliar)
+//   rapido      | O(n log n) | O(n log n) | O(n^2)     | no
+//   monticulo   | O(n log n) | O(n log n) | O(n log n) | no
+
+// Intercambia a[i] y a[j].
+vacio intercambiar(entero[] a, entero i, entero j) {
+    entero temporal = a[i];
+    a[i] = a[j];
+    a[j] = temporal;
+}
+
+// verdadero si a[0..n-1] está ordenado de menor a mayor.
+logico esta_ordenado(entero[] a, entero n) {
+    para (entero i = 1; i < n; i++) {
+        si (a[i - 1] > a[i]) {
+            retornar falso;
+        }
+    }
+    retornar verdadero;
+}
+
+// BURBUJA: en cada pasada el mayor "sube" hasta el final comparando
+// vecinos. Si en una pasada no hubo intercambios, ya está ordenado.
+vacio ordenar_burbuja(entero[] a, entero n) {
+    para (entero pasada = 0; pasada < n - 1; pasada++) {
+        logico hubo_cambio = falso;
+        para (entero i = 0; i < n - 1 - pasada; i++) {
+            si (a[i] > a[i + 1]) {
+                intercambiar(a, i, i + 1);
+                hubo_cambio = verdadero;
+            }
+        }
+        si (!hubo_cambio) {
+            romper;
+        }
+    }
+}
+
+// SELECCIÓN: busca el menor de lo que falta y lo pone en su lugar.
+vacio ordenar_seleccion(entero[] a, entero n) {
+    para (entero i = 0; i < n - 1; i++) {
+        entero menor = i;
+        para (entero j = i + 1; j < n; j++) {
+            si (a[j] < a[menor]) {
+                menor = j;
+            }
+        }
+        si (menor != i) {
+            intercambiar(a, i, menor);
+        }
+    }
+}
+
+// INSERCIÓN: como ordenar cartas en la mano; cada elemento se desplaza
+// hacia la izquierda hasta encontrar su lugar entre los ya ordenados.
+vacio ordenar_insercion(entero[] a, entero n) {
+    para (entero i = 1; i < n; i++) {
+        entero actual = a[i];
+        entero j = i - 1;
+        mientras (j >= 0 && a[j] > actual) {
+            a[j + 1] = a[j];
+            j = j - 1;
+        }
+        a[j + 1] = actual;
+    }
+}
+
+// MEZCLA (merge sort): divide en mitades, ordena cada una y las mezcla.
+// aux debe tener al menos n elementos (espacio de trabajo).
+vacio ordenar_mezcla(entero[] a, entero[] aux, entero n) {
+    mezcla_rango(a, aux, 0, n - 1);
+}
+
+vacio mezcla_rango(entero[] a, entero[] aux, entero inicio, entero fin) {
+    si (inicio >= fin) {
+        retornar;
+    }
+    entero medio = (inicio + fin) / 2;
+    mezcla_rango(a, aux, inicio, medio);
+    mezcla_rango(a, aux, medio + 1, fin);
+    // Mezcla las dos mitades ordenadas en aux y las copia de vuelta.
+    entero i = inicio;
+    entero j = medio + 1;
+    entero k = inicio;
+    mientras (i <= medio && j <= fin) {
+        si (a[i] <= a[j]) {
+            aux[k] = a[i];
+            i = i + 1;
+        } sino {
+            aux[k] = a[j];
+            j = j + 1;
+        }
+        k = k + 1;
+    }
+    mientras (i <= medio) {
+        aux[k] = a[i];
+        i = i + 1;
+        k = k + 1;
+    }
+    mientras (j <= fin) {
+        aux[k] = a[j];
+        j = j + 1;
+        k = k + 1;
+    }
+    para (entero p = inicio; p <= fin; p++) {
+        a[p] = aux[p];
+    }
+}
+
+// RÁPIDO (quicksort): elige un pivote, deja a su izquierda los menores y a
+// su derecha los mayores, y ordena cada lado.
+vacio ordenar_rapido(entero[] a, entero n) {
+    rapido_rango(a, 0, n - 1);
+}
+
+vacio rapido_rango(entero[] a, entero inicio, entero fin) {
+    si (inicio >= fin) {
+        retornar;
+    }
+    entero p = particionar(a, inicio, fin);
+    rapido_rango(a, inicio, p - 1);
+    rapido_rango(a, p + 1, fin);
+}
+
+// Partición de Lomuto con el último elemento como pivote; devuelve la
+// posición final del pivote.
+entero particionar(entero[] a, entero inicio, entero fin) {
+    entero pivote = a[fin];
+    entero frontera = inicio;
+    para (entero i = inicio; i < fin; i++) {
+        si (a[i] < pivote) {
+            intercambiar(a, i, frontera);
+            frontera = frontera + 1;
+        }
+    }
+    intercambiar(a, frontera, fin);
+    retornar frontera;
+}
+
+// MONTÍCULO (heapsort): convierte el arreglo en un montículo de máximos y
+// va sacando el mayor al final.
+vacio ordenar_monticulo(entero[] a, entero n) {
+    para (entero i = n / 2 - 1; i >= 0; i--) {
+        hundir(a, i, n);
+    }
+    para (entero fin = n - 1; fin > 0; fin--) {
+        intercambiar(a, 0, fin);
+        hundir(a, 0, fin);
+    }
+}
+
+// Baja a[i] dentro del montículo a[0..n-1] hasta que sea mayor que sus hijos.
+vacio hundir(entero[] a, entero i, entero n) {
+    entero padre_actual = i;
+    mientras (verdadero) {
+        entero mayor = padre_actual;
+        entero izq = 2 * padre_actual + 1;
+        entero der = 2 * padre_actual + 2;
+        si (izq < n && a[izq] > a[mayor]) {
+            mayor = izq;
+        }
+        si (der < n && a[der] > a[mayor]) {
+            mayor = der;
+        }
+        si (mayor == padre_actual) {
+            romper;
+        }
+        intercambiar(a, padre_actual, mayor);
+        padre_actual = mayor;
+    }
+}

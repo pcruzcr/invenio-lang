@@ -1,0 +1,152 @@
+// estructuras/lista_enlazada.inv -- Lista simplemente enlazada
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "estructuras/lista_enlazada";
+//
+// Idea: una cadena de nodos donde cada uno conoce SOLO al siguiente.
+// Insertar o quitar al inicio cuesta O(1); llegar a la posición i obliga a
+// recorrer i nodos, O(n). Las posiciones empiezan en 0, como en un arreglo.
+//
+//      cabeza -> [ 7 ] -> [ 4 ] -> [ 9 ] -> nulo
+
+clase NodoLista {
+    publico entero valor;
+    publico NodoLista siguiente;
+
+    NodoLista(entero v) {
+        este.valor = v;
+    }
+}
+
+clase ListaEnlazada {
+    privado NodoLista cabeza;
+    privado entero cantidad;
+
+    // Inserta v como primer elemento. O(1).
+    publico vacio agregar_al_inicio(entero v) {
+        NodoLista nodo = nuevo NodoLista(v);
+        nodo.siguiente = este.cabeza;
+        este.cabeza = nodo;
+        este.cantidad = este.cantidad + 1;
+    }
+
+    // Inserta v como último elemento. O(n): hay que llegar al final.
+    publico vacio agregar_al_final(entero v) {
+        este.insertar(este.cantidad, v);
+    }
+
+    // Inserta v para que quede en la posición pos (0..tamano). O(pos).
+    publico vacio insertar(entero pos, entero v) {
+        si (pos < 0 || pos > este.cantidad) {
+            lanzar_error("insertar: posición fuera de rango");
+        }
+        si (pos == 0) {
+            este.agregar_al_inicio(v);
+            retornar;
+        }
+        // Se busca el nodo ANTERIOR a la posición y se "engancha" el nuevo.
+        NodoLista anterior = este.nodo_en(pos - 1);
+        NodoLista nodo = nuevo NodoLista(v);
+        nodo.siguiente = anterior.siguiente;
+        anterior.siguiente = nodo;
+        este.cantidad = este.cantidad + 1;
+    }
+
+    // Quita el elemento de la posición pos y lo devuelve. O(pos).
+    publico entero eliminar_en(entero pos) {
+        este.validar_posicion(pos);
+        NodoLista quitado = este.cabeza;
+        si (pos == 0) {
+            este.cabeza = quitado.siguiente;
+        } sino {
+            NodoLista anterior = este.nodo_en(pos - 1);
+            quitado = anterior.siguiente;
+            anterior.siguiente = quitado.siguiente;
+        }
+        este.cantidad = este.cantidad - 1;
+        retornar quitado.valor;
+    }
+
+    // Valor de la posición pos. O(pos).
+    publico entero obtener(entero pos) {
+        este.validar_posicion(pos);
+        NodoLista nodo = este.nodo_en(pos);
+        retornar nodo.valor;
+    }
+
+    // Reemplaza el valor de la posición pos. O(pos).
+    publico vacio asignar(entero pos, entero v) {
+        este.validar_posicion(pos);
+        NodoLista nodo = este.nodo_en(pos);
+        nodo.valor = v;
+    }
+
+    // Posición de la primera aparición de v, o -1 si no está. O(n).
+    publico entero buscar(entero v) {
+        entero pos = 0;
+        NodoLista actual = este.cabeza;
+        mientras (actual != nulo) {
+            si (actual.valor == v) {
+                retornar pos;
+            }
+            pos = pos + 1;
+            actual = actual.siguiente;
+        }
+        retornar -1;
+    }
+
+    publico logico contiene(entero v) {
+        retornar este.buscar(v) != -1;
+    }
+
+    // Invierte la lista en su lugar, sin crear nodos nuevos. O(n).
+    // Se van dando vuelta los enlaces uno por uno.
+    publico vacio invertir() {
+        NodoLista previo = nulo;
+        NodoLista actual = este.cabeza;
+        mientras (actual != nulo) {
+            NodoLista siguiente_nodo = actual.siguiente;
+            actual.siguiente = previo;
+            previo = actual;
+            actual = siguiente_nodo;
+        }
+        este.cabeza = previo;
+    }
+
+    publico entero tamano() {
+        retornar este.cantidad;
+    }
+
+    publico logico esta_vacia() {
+        retornar este.cantidad == 0;
+    }
+
+    // Representación, p. ej. "[7, 4, 9]".
+    publico texto a_texto() {
+        texto s = "[";
+        NodoLista actual = este.cabeza;
+        mientras (actual != nulo) {
+            s = s + entero_a_texto(actual.valor);
+            si (actual.siguiente != nulo) {
+                s = s + ", ";
+            }
+            actual = actual.siguiente;
+        }
+        retornar s + "]";
+    }
+
+    // Nodo de la posición pos (supone 0 <= pos < tamano).
+    privado NodoLista nodo_en(entero pos) {
+        NodoLista actual = este.cabeza;
+        para (entero i = 0; i < pos; i++) {
+            actual = actual.siguiente;
+        }
+        retornar actual;
+    }
+
+    privado vacio validar_posicion(entero pos) {
+        si (pos < 0 || pos >= este.cantidad) {
+            lanzar_error("posición fuera de rango: " + entero_a_texto(pos));
+        }
+    }
+}

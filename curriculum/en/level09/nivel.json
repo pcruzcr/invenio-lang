@@ -1,0 +1,15 @@
+{
+  "nivel": 9,
+  "titulo": "OOP II: inheritance, polymorphism and design patterns",
+  "descripcion": "Reuse and extend behaviour with inheritance, program against abstractions (abstract classes and interfaces) and apply classic design patterns.",
+  "temas": [
+    "inheritance and super",
+    "overriding and polymorphism",
+    "abstract classes",
+    "interfaces",
+    "overloading and generics",
+    "patterns: Strategy, Observer, Factory, Singleton, Template Method, Decorator",
+    "sum types and match"
+  ],
+  "idioma": "en"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N02-E06",
+  "nivel": 2,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "do-while: validating input",
+  "enunciado": "Ask for a grade between 0 and 100. While the value read is not valid, show \"invalid\" and read again. Finally show the accepted grade and how many attempts were needed.",
+  "objetivos": [
+    "Use do { } while (...) when the body must run at least once",
+    "Validate input data"
+  ],
+  "pistas": [
+    "In do-while the condition is checked at the end.",
+    "The repeat condition is: grade < 0 || grade > 100.",
+    "Count every read, valid or not."
+  ],
+  "conceptos": [
+    "do-while",
+    "validation"
+  ]
+}

@@ -1,0 +1,46 @@
+// Nivel 8 · Ejercicio 07 — Arreglo de objetos
+// Objetivos:
+//   - Declarar y recorrer arreglos de objetos
+//   - Invocar métodos sobre elementos del arreglo
+//
+clase Estudiante {
+    privado texto nombre;
+    privado entero nota;
+
+    Estudiante(texto n, entero g) {
+        este.nombre = n;
+        este.nota = g;
+    }
+
+    publico texto getNombre() { retornar este.nombre; }
+    publico entero getNota() { retornar este.nota; }
+    publico logico esAprobado() { retornar este.nota >= 70; }
+}
+
+vacio main() {
+    // Arreglo de referencias: cada posición guarda un objeto Estudiante.
+    Estudiante estudiantes[5];
+    estudiantes[0] = nuevo Estudiante("Ana", 88);
+    estudiantes[1] = nuevo Estudiante("Beto", 64);
+    estudiantes[2] = nuevo Estudiante("Carla", 95);
+    estudiantes[3] = nuevo Estudiante("Dani", 70);
+    estudiantes[4] = nuevo Estudiante("Eli", 52);
+
+    entero suma = 0;
+    entero mejor = 0;
+    para (entero i = 0; i < 5; i++) {
+        suma += estudiantes[i].getNota();
+        si (estudiantes[i].getNota() > estudiantes[mejor].getNota()) {
+            mejor = i;
+        }
+    }
+    imprimir("average = "); imprimir(entero_a_real(suma) / 5.0); imprimir("\n");
+    imprimir("best = "); imprimir(estudiantes[mejor].getNombre()); imprimir("\n");
+    imprimir("passed:");
+    para (entero i = 0; i < 5; i++) {
+        si (estudiantes[i].esAprobado()) {
+            imprimir(" "); imprimir(estudiantes[i].getNombre());
+        }
+    }
+    imprimir("\n");
+}

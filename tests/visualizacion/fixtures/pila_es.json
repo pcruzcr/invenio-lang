@@ -1,0 +1,494 @@
+{
+ "version": 1,
+ "idioma": "es",
+ "fuente": "importar \"estructuras/pila\";\n\nvacio main() {\n    Pila p = nuevo Pila();\n    p.apilar(10);\n    p.apilar(20);\n    p.apilar(30);\n    imprimir(p.desapilar());\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 4,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 4,
+     "variables": {
+      "p": {
+       "tipo": "Pila",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "3": {
+     "id": 3,
+     "tipo": "objeto",
+     "clase": "Pila",
+     "elementos": [],
+     "campos": {
+      "cima": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 0
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "p",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "pila",
+     "raiz": 3,
+     "etiqueta": "p",
+     "nodos": [],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 5,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 5,
+     "variables": {
+      "p": {
+       "tipo": "Pila",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Pila.apilar",
+     "linea": 30,
+     "variables": {
+      "este": {
+       "tipo": "Pila",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      },
+      "v": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 10
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "20": {
+     "id": 20,
+     "tipo": "objeto",
+     "clase": "NodoPila",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 10
+      },
+      "abajo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "3": {
+     "id": 3,
+     "tipo": "objeto",
+     "clase": "Pila",
+     "elementos": [],
+     "campos": {
+      "cima": {
+       "t": "ref",
+       "id": 20
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 1
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "v",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 3,
+     "indices": [],
+     "campo": "cima"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "pila",
+     "raiz": 3,
+     "etiqueta": "p",
+     "nodos": [
+      20
+     ],
+     "aristas": [
+      [
+       3,
+       20,
+       "cima"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "p": {
+       "tipo": "Pila",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Pila.apilar",
+     "linea": 31,
+     "variables": {
+      "este": {
+       "tipo": "Pila",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      },
+      "v": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 30
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "20": {
+     "id": 20,
+     "tipo": "objeto",
+     "clase": "NodoPila",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 10
+      },
+      "abajo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "21": {
+     "id": 21,
+     "tipo": "objeto",
+     "clase": "NodoPila",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 20
+      },
+      "abajo": {
+       "t": "ref",
+       "id": 20
+      }
+     }
+    },
+    "22": {
+     "id": 22,
+     "tipo": "objeto",
+     "clase": "NodoPila",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 30
+      },
+      "abajo": {
+       "t": "ref",
+       "id": 21
+      }
+     }
+    },
+    "3": {
+     "id": 3,
+     "tipo": "objeto",
+     "clase": "Pila",
+     "elementos": [],
+     "campos": {
+      "cima": {
+       "t": "ref",
+       "id": 22
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 3
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": null,
+     "nodo": 3,
+     "indices": [],
+     "campo": "cantidad"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 3,
+     "indices": [],
+     "campo": "cantidad"
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "pila",
+     "raiz": 3,
+     "etiqueta": "p",
+     "nodos": [
+      22,
+      21,
+      20
+     ],
+     "aristas": [
+      [
+       3,
+       22,
+       "cima"
+      ],
+      [
+       22,
+       21,
+       "abajo"
+      ],
+      [
+       21,
+       20,
+       "abajo"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "linea": 8,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 8,
+     "variables": {
+      "p": {
+       "tipo": "Pila",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "Pila.desapilar",
+     "linea": 44,
+     "variables": {
+      "este": {
+       "tipo": "Pila",
+       "valor": {
+        "t": "ref",
+        "id": 3
+       }
+      },
+      "tope": {
+       "tipo": "NodoPila",
+       "valor": {
+        "t": "ref",
+        "id": 22
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "20": {
+     "id": 20,
+     "tipo": "objeto",
+     "clase": "NodoPila",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 10
+      },
+      "abajo": {
+       "t": "escalar",
+       "tipo": "nulo",
+       "v": null
+      }
+     }
+    },
+    "21": {
+     "id": 21,
+     "tipo": "objeto",
+     "clase": "NodoPila",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 20
+      },
+      "abajo": {
+       "t": "ref",
+       "id": 20
+      }
+     }
+    },
+    "3": {
+     "id": 3,
+     "tipo": "objeto",
+     "clase": "Pila",
+     "elementos": [],
+     "campos": {
+      "cima": {
+       "t": "ref",
+       "id": 21
+      },
+      "cantidad": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 2
+      }
+     }
+    },
+    "22": {
+     "id": 22,
+     "tipo": "objeto",
+     "clase": "NodoPila",
+     "elementos": [],
+     "campos": {
+      "valor": {
+       "t": "escalar",
+       "tipo": "entero",
+       "v": 30
+      },
+      "abajo": {
+       "t": "ref",
+       "id": 21
+      }
+     }
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": null,
+     "nodo": 22,
+     "indices": [],
+     "campo": "valor"
+    },
+    {
+     "op": "escribe",
+     "var": null,
+     "nodo": 3,
+     "indices": [],
+     "campo": "cima"
+    }
+   ],
+   "salida_nueva": [
+    "30"
+   ],
+   "estructuras": [
+    {
+     "forma": "pila",
+     "raiz": 3,
+     "etiqueta": "p",
+     "nodos": [
+      21,
+      20
+     ],
+     "aristas": [
+      [
+       3,
+       21,
+       "cima"
+      ],
+      [
+       21,
+       20,
+       "abajo"
+      ]
+     ]
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "30"
+ ]
+}

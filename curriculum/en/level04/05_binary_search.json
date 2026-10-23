@@ -1,0 +1,23 @@
+{
+  "id": "N04-E05",
+  "nivel": 4,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Binary search",
+  "enunciado": "In the sorted array {2, 5, 8, 12, 16, 23, 38, 56, 72, 91} search for 23 and 7 with iterative binary search, showing lo, hi and mid at each step.",
+  "objetivos": [
+    "Implement binary search",
+    "Understand why the array must be sorted",
+    "See how the interval is halved"
+  ],
+  "pistas": [
+    "mid = (lo + hi) / 2.",
+    "If a[mid] < x, the answer is on the right: lo = mid + 1.",
+    "The loop ends when lo > hi."
+  ],
+  "conceptos": [
+    "binary search",
+    "divide and conquer",
+    "O(log n)"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N09-E09",
+  "nivel": 9,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "Patrón Singleton",
+  "enunciado": "Crea un Registro (logger) con constructor privado y un método estático obtenerInstancia() que siempre devuelva el mismo objeto. Registra mensajes desde dos funciones distintas y muestra que todas comparten el mismo contador de líneas.",
+  "objetivos": [
+    "Garantizar una única instancia con constructor privado",
+    "Combinar atributos y métodos estáticos"
+  ],
+  "pistas": [
+    "privado constructor Registro() impide nuevo Registro() desde fuera.",
+    "La instancia se crea la primera vez que se pide (inicialización perezosa).",
+    "Compara las referencias con == para comprobar que es la misma."
+  ],
+  "conceptos": [
+    "Singleton",
+    "constructor privado",
+    "inicialización perezosa"
+  ]
+}

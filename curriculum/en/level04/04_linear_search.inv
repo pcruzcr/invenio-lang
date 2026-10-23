@@ -1,0 +1,28 @@
+// Level 4 · Exercise 04 — Linear search
+// Learning goals:
+//   - Implement sequential search
+//   - Use -1 as a 'not found' sentinel value
+//   - See that the worst case traverses the whole array
+//
+int comparisons = 0;
+
+int linearSearch(int [] a, int n, int x) {
+    for (int i = 0; i < n; i++) {
+        comparisons++;
+        if (a[i] == x) {
+            return i;   // early exit
+        }
+    }
+    return -1;   // not found
+}
+
+void main() {
+    int [6] a = {16, 4, 42, 8, 23, 15};
+    int [3] queries = {23, 4, 99};
+    foreach (int x : queries) {
+        comparisons = 0;
+        int p = linearSearch(a, 6, x);
+        print(x); print(" -> "); print(p);
+        print(" ("); print(comparisons); print(" comparisons)\n");
+    }
+}

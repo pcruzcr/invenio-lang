@@ -1,0 +1,338 @@
+{
+ "version": 1,
+ "idioma": "es",
+ "fuente": "vacio main() {\n    entero edad = 15;\n    real altura = 1.72;\n    texto nombre = \"Ana\";\n    logico mayor = edad >= 18;\n    caracter inicial = 'A';\n    imprimir(nombre + \" tiene \" + entero_a_texto(edad));\n    imprimir(\"\\n\");\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 2,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 2,
+     "variables": {
+      "edad": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 15
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "edad",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 2,
+   "linea": 3,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 3,
+     "variables": {
+      "edad": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 15
+       }
+      },
+      "altura": {
+       "tipo": "real",
+       "valor": {
+        "t": "escalar",
+        "tipo": "real",
+        "v": 1.72
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "altura",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 3,
+   "linea": 4,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 4,
+     "variables": {
+      "edad": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 15
+       }
+      },
+      "altura": {
+       "tipo": "real",
+       "valor": {
+        "t": "escalar",
+        "tipo": "real",
+        "v": 1.72
+       }
+      },
+      "nombre": {
+       "tipo": "texto",
+       "valor": {
+        "t": "escalar",
+        "tipo": "texto",
+        "v": "Ana"
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "nombre",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 4,
+   "linea": 5,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 5,
+     "variables": {
+      "edad": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 15
+       }
+      },
+      "altura": {
+       "tipo": "real",
+       "valor": {
+        "t": "escalar",
+        "tipo": "real",
+        "v": 1.72
+       }
+      },
+      "nombre": {
+       "tipo": "texto",
+       "valor": {
+        "t": "escalar",
+        "tipo": "texto",
+        "v": "Ana"
+       }
+      },
+      "mayor": {
+       "tipo": "logico",
+       "valor": {
+        "t": "escalar",
+        "tipo": "logico",
+        "v": false
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "edad",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "mayor",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 5,
+   "linea": 6,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 6,
+     "variables": {
+      "edad": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 15
+       }
+      },
+      "altura": {
+       "tipo": "real",
+       "valor": {
+        "t": "escalar",
+        "tipo": "real",
+        "v": 1.72
+       }
+      },
+      "nombre": {
+       "tipo": "texto",
+       "valor": {
+        "t": "escalar",
+        "tipo": "texto",
+        "v": "Ana"
+       }
+      },
+      "mayor": {
+       "tipo": "logico",
+       "valor": {
+        "t": "escalar",
+        "tipo": "logico",
+        "v": false
+       }
+      },
+      "inicial": {
+       "tipo": "caracter",
+       "valor": {
+        "t": "escalar",
+        "tipo": "caracter",
+        "v": "A"
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "inicial",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 6,
+   "linea": 7,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 7,
+     "variables": {
+      "edad": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 15
+       }
+      },
+      "altura": {
+       "tipo": "real",
+       "valor": {
+        "t": "escalar",
+        "tipo": "real",
+        "v": 1.72
+       }
+      },
+      "nombre": {
+       "tipo": "texto",
+       "valor": {
+        "t": "escalar",
+        "tipo": "texto",
+        "v": "Ana"
+       }
+      },
+      "mayor": {
+       "tipo": "logico",
+       "valor": {
+        "t": "escalar",
+        "tipo": "logico",
+        "v": false
+       }
+      },
+      "inicial": {
+       "tipo": "caracter",
+       "valor": {
+        "t": "escalar",
+        "tipo": "caracter",
+        "v": "A"
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "nombre",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "lee",
+     "var": "edad",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [
+    "Ana tiene 15"
+   ],
+   "estructuras": []
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "Ana tiene 15"
+ ]
+}

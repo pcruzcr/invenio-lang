@@ -1,0 +1,22 @@
+{
+  "id": "N13-E06",
+  "nivel": 13,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Maximum subarray: O(n²) versus O(n)",
+  "enunciado": "Find the largest sum of a contiguous subarray of {-2, 1, -3, 4, -1, 2, 1, -5, 4} with brute force (every pair i, j) and with Kadane's algorithm, counting each one's operations. Repeat with a pseudo-random array of 200 elements.",
+  "objetivos": [
+    "Redesign an algorithm to lower its order",
+    "Check that both versions give the same result"
+  ],
+  "pistas": [
+    "Brute force: for each start i, accumulate the sum up to each end j.",
+    "Kadane: the best sum ending at i is max(a[i], best_ending_at_i-1 + a[i]).",
+    "With 200 elements the difference in operations is two orders of magnitude."
+  ],
+  "conceptos": [
+    "Kadane",
+    "O(n)",
+    "O(n²)"
+  ]
+}

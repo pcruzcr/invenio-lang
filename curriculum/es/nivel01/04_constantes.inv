@@ -1,0 +1,16 @@
+// Nivel 1 · Ejercicio 04 — Constantes
+// Objetivos:
+//   - Declarar constantes con constante/const
+//   - Usar constantes en expresiones
+//
+// Las constantes globales se escriben en MAYÚSCULAS por convención.
+constante real PI = 3.14;
+
+vacio main() {
+    real radio = 2.0;
+    real area = PI * radio * radio;
+    real perimetro = 2.0 * PI * radio;
+    imprimir("area = "); imprimir(area); imprimir("\n");
+    imprimir("perimeter = "); imprimir(perimetro); imprimir("\n");
+    // PI = 3.0;  <- sería un error: no se puede reasignar una constante.
+}

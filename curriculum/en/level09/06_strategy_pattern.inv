@@ -1,0 +1,52 @@
+// Level 9 · Exercise 06 — Strategy pattern
+// Learning goals:
+//   - Encapsulate interchangeable algorithms behind an abstraction
+//   - Prefer composition over conditionals on the type
+//
+interface ShippingStrategy {
+    public abstract int cost(int weight);
+    public abstract string name();
+}
+
+class StandardShipping implements ShippingStrategy {
+    public int cost(int weight) { return 5 + 2 * weight; }
+    public string name() { return "standard"; }
+}
+
+class ExpressShipping implements ShippingStrategy {
+    public int cost(int weight) { return 15 + 3 * weight; }
+    public string name() { return "express"; }
+}
+
+class FreeShipping implements ShippingStrategy {
+    public int cost(int weight) { return 0; }
+    public string name() { return "free"; }
+}
+
+class Order {
+    private int weight;
+    private ShippingStrategy strategy;
+
+    Order(int kg) {
+        this.weight = kg;
+        this.strategy = new StandardShipping();
+    }
+
+    public void setStrategy(ShippingStrategy e) {
+        this.strategy = e;
+    }
+
+    public string shippingCost() {
+        ShippingStrategy e = this.strategy;   // delegate to the current strategy
+        return e.name() + ": " + int_to_string(e.cost(this.weight));
+    }
+}
+
+void main() {
+    Order order = new Order(4);
+    print(order.shippingCost()); print("\n");
+    order.setStrategy(new ExpressShipping());
+    print(order.shippingCost()); print("\n");
+    order.setStrategy(new FreeShipping());
+    print(order.shippingCost()); print("\n");
+}

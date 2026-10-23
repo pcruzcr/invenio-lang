@@ -1,0 +1,85 @@
+// structures/queue.inv -- Queue (FIFO: first in, first out)
+//
+// InvenioLang educational standard library (INV-1430).
+// Usage:   import "structures/queue";
+//
+// Idea: like a line at the bank. People are served at the FRONT and arrive
+// at the REAR. Keeping both ends makes enqueue and dequeue O(1).
+//
+//      front -> [ 1 ] -> [ 2 ] -> [ 3 ] <- rear
+
+// A queue node: a value and the link to the node that arrived after it.
+class QueueNode {
+    public int value;
+    public QueueNode next;
+
+    QueueNode(int v) {
+        this.value = v;
+    }
+}
+
+class Queue {
+    private QueueNode front;
+    private QueueNode rear;
+    private int count;
+
+    // Adds v at the rear of the queue. O(1).
+    public void enqueue(int v) {
+        QueueNode new_node = new QueueNode(v);
+        if (this.rear == null) {
+            // Empty queue: the new node is both front and rear.
+            this.front = new_node;
+        } else {
+            QueueNode last = this.rear;
+            last.next = new_node;
+        }
+        this.rear = new_node;
+        this.count = this.count + 1;
+    }
+
+    // Removes and returns the front element. O(1).
+    // Error IL-EJE-060 if the queue is empty.
+    public int dequeue() {
+        if (this.front == null) {
+            throw_error("dequeue: the queue is empty");
+        }
+        QueueNode first = this.front;
+        this.front = first.next;
+        if (this.front == null) {
+            this.rear = null;
+        }
+        this.count = this.count - 1;
+        return first.value;
+    }
+
+    // Returns the front WITHOUT removing it. O(1).
+    public int front_value() {
+        if (this.front == null) {
+            throw_error("front_value: the queue is empty");
+        }
+        QueueNode first = this.front;
+        return first.value;
+    }
+
+    public bool is_empty() {
+        return this.front == null;
+    }
+
+    public int size() {
+        return this.count;
+    }
+
+    // From the front to the rear, e.g. "[1, 2, 3]".
+    public string to_text() {
+        string s = "[";
+        QueueNode current = this.front;
+        while (current != null) {
+            s = s + int_to_string(current.value);
+            if (current.next != null) {
+                s = s + ", ";
+            }
+            current = current.next;
+        }
+        return s + "]";
+    }
+}

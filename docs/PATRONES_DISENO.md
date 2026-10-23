@@ -15,12 +15,12 @@ catálogo estable `§18.1` (391 casos de `pruebas/conformidad.py:1`).
 | Visitor | `Visitor:1`, `Visitable:1` | `ast_nodes.ASTNode:1` → `semantic.py:44`, `type_checker.py:17`, `interpreter.py:149` | O(1) despacho vs `isinstance` chain gigante; agregar operación sin tocar nodos (OCP) |
 | Strategy | `Strategy:1`, `StrategyContext:1` | `errors.py:32` formateo, `builtins.py:504` conversiones, `ir.py:130` optimizaciones, `type_checker.py:17` ops binarias | Evita `if/else` de 200 líneas; intercambiable en runtime |
 | Factory | `RegistryFactory:1` | `ast_nodes.py:980` `ASTFactory`, `lexer.py:550` `TokenFactory`, `ir.py:117` `InstrFactory`, `builtins.py:521` `BuiltInFactory` | Centraliza validación, permite pooling/caching |
-| Observer | `Subject:1`, `Observer:1` | `errors.py:44` `ErrorManager`, `symbol_table.py:120` `SymbolTable`, `cli.py:230` `CompilerFacade` | IDE se suscribe sin acoplar; notificación O(1) vs polling |
+| Observer | `Subject:1`, `Observer:1` | `errors.py:44` `ErrorManager`, `symbol_table.py:120` `SymbolTable`, `lms.py` `LMSStore` | IDE se suscribe sin acoplar; notificación O(1) vs polling |
 | Singleton | `SingletonMeta:1` | `patterns.py:15` (config, factories), `symbol_table` cache global | 1 instancia, thread-safe |
-| Command | `Command:1`, `CommandInvoker:1` | `cli.py:215` `CompilationCommand`, `flowchart_builder.py:53` insertar/mover, `interpreter.py:570` debug | Cola, undo, logging, macros |
+| Command | `Command:1`, `CommandInvoker:1` | `cli.py:215` `CompilationCommand`, `flujo/edicion.py` insertar/mover/envolver (operaciones puras + deshacer), `interpreter.py:570` debug | Cola, undo, logging, macros |
 | Decorator | `cached_method:1`, `logged:1`, `validated:1` | `symbol_table.py:390` `_tipo_compatible_simple`, `builtins.py:536` validación | Cross-cutting sin herencia |
-| Facade | `Facade:1`, `CompilerFacade:1` | `cli.py:230` pipeline `lex→parse→semantic→types→run` | API de alto nivel para CLI/GUI/tests |
-| Builder | `Builder:1` | `parser.py:11` AST, `ir.py:145` `GeneradorIR`, `flowchart.py:1`, `flowchart_builder.py:1` | Construcción paso a paso, variantes |
+| Facade | `core/compiler.py` `analizar_fuente`/`compile_pure`, `api.py` | Pipeline único `lex→parse→semantic→types→run`; CLI, LSP, currículo y herramientas lo consumen | API de alto nivel para CLI/GUI/tests |
+| Builder | `Builder:1` | `parser.py:11` AST, `ir.py:145` `GeneradorIR`, `flujo/esquema.py` (`_Disposicion`) | Construcción paso a paso, variantes |
 | Template Method | `TemplatePipeline:1` | `cli.py` fases, `semantic.py` pipeline | Orden garantizado, evita duplicación |
 | Chain | `Handler:1` | `errors.py` filtros, `ir.py` pasadas optimización | Orden dinámico, desacoplado |
 | Memento | `Memento:1`, `Caretaker:1` | `symbol_table.py:165` snapshot ámbito, `interpreter.py:179` debug time-travel | Externaliza estado sin violar encapsulamiento |
@@ -41,7 +41,7 @@ catálogo estable `§18.1` (391 casos de `pruebas/conformidad.py:1`).
 - **Medición:** 391 casos → 12% menos tiempo en `es_subtipo_clase` (herencia profunda).
 
 ### `builtins.py:1` — Strategy + Factory + Decorator
-- Cada conversión es `ConversionStrategy:504` (`IntAFloatStrategy`…), registro central `BuiltInFactory:521` Singleton, decorador `validar_argumentos_built_in:536` para aridad.
+- Registro bilingüe declarativo `BUILT_INS_BILINGUES` (una implementación, nombre es/en) y `BuiltInFactory` Singleton; la aridad la verifica el semántico.
 - Validación de rutas (`security.py`) como Decorator compuesto.
 - **Ganancia:** añadir nueva función = 1 `register` sin tocar `ejecutar_built_in`.
 
@@ -58,11 +58,11 @@ catálogo estable `§18.1` (391 casos de `pruebas/conformidad.py:1`).
 - `GeneradorIR(Visitor)` recorre AST vía `accept`.
 
 ### `cli.py:1` — Facade + Command + Template + Observer
-- `CompilerFacade(Facade, Subject):230` con `CompilationCommand:215` + `CommandInvoker` cola; `TemplatePipeline` para fases; `--version`/`--json` como Commands.
+- La CLI es un adaptador de E/S sobre `core.analizar_fuente` y `api` (fachada única, INV-1022).
 
 ### `gui.py:1`, `gui_qt.py:1` — Observer + Command + Singleton + Strategy + Factory
 - `gui.py:113` `Command` para ejecutar/guardar, `Observer` para análisis en vivo (600ms debounce); `gui_qt.py:46` importa `accessibility` Strategy para temas (`TEMA_OSCURO/CLARO/ALTO_CONTRASTE`).
-- `flowchart.py:1` Builder + Factory + Strategy; `flowchart_builder.py:53` Command para insertar/mover/eliminar + Observer validación viva.
+- `flujo/esquema.py` Builder (esquema dibujable) + `flujo/extraccion.py` Strategy por tipo de instrucción (`_MANEJADORES`); `flujo/edicion.py` operaciones tipo Command (puras, con historial para deshacer) + validación viva.
 
 ## Principios SOLID aplicados
 
@@ -70,7 +70,7 @@ catálogo estable `§18.1` (391 casos de `pruebas/conformidad.py:1`).
 - **O**CP: nueva optimización = nueva `OptimizationStrategy` sin tocar `ir.py` core.
 - **L**SP: `ASTVisitor` genérico funciona para cualquier `ASTNode`.
 - **I**SP: `Observer.update(event,data)` minimal.
-- **D**IP: `CompilerFacade` depende de `Strategy` abstracto, no de `PlegadoConstantes` concreto.
+- **D**IP: los consumidores dependen de la fachada `api`/`core`, no de las fases concretas.
 
 ## Rendimiento
 

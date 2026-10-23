@@ -1,0 +1,22 @@
+{
+  "id": "N09-E07",
+  "nivel": 9,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Patrón Observer",
+  "enunciado": "Un Termometro (sujeto) avisa a sus observadores cada vez que cambia la temperatura: una Pantalla que la muestra y una Alarma que solo reacciona si supera un límite. Los observadores se guardan en una lista enlazada. Cambia la temperatura a 22, 31 y 18.",
+  "objetivos": [
+    "Desacoplar quien produce eventos de quien reacciona",
+    "Mantener una colección de objetos con una lista enlazada"
+  ],
+  "pistas": [
+    "Observador es una interfaz con actualizar(temperatura).",
+    "suscribir agrega un nodo al inicio de la lista.",
+    "Los atributos de clase no pueden ser arreglos: por eso la lista enlazada."
+  ],
+  "conceptos": [
+    "Observer",
+    "evento",
+    "bajo acoplamiento"
+  ]
+}

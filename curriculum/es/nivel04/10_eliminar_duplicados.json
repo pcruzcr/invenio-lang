@@ -1,0 +1,21 @@
+{
+  "id": "N04-E10",
+  "nivel": 4,
+  "numero": 10,
+  "idioma": "es",
+  "titulo": "Eliminar duplicados de un arreglo ordenado",
+  "enunciado": "Compacta en el lugar el arreglo ordenado {1, 1, 2, 3, 3, 3, 4, 7, 7, 9} para que los valores distintos queden al principio. Muestra el nuevo tamaño y la parte válida.",
+  "objetivos": [
+    "Usar un índice de lectura y otro de escritura",
+    "Distinguir capacidad del arreglo y tamaño lógico"
+  ],
+  "pistas": [
+    "Como está ordenado, los repetidos están juntos.",
+    "Copia a[i] a la posición de escritura solo si es distinto del último escrito.",
+    "El tamaño lógico es la posición de escritura final."
+  ],
+  "conceptos": [
+    "tamaño lógico",
+    "dos índices"
+  ]
+}

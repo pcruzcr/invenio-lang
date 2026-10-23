@@ -2,7 +2,10 @@
 (* Extraída de parser.py y docs/InvenioLang_GramaticaFormal.md, máquina-verificable *)
 
 programa        ::= { elemento_programa } ;
-elemento_programa ::= decl_global | def_funcion | def_procedimiento | def_main | class_decl | enum_decl | interface_decl ;
+elemento_programa ::= decl_global | def_funcion | def_procedimiento | def_main | class_decl | enum_decl | interface_decl | importacion ;
+(* Módulos (INV-1420, docs/modulos.md): la ruta es relativa al archivo que importa,
+   ".inv" opcional; si no existe junto a él se busca en inveniolang/stdlib. *)
+importacion     ::= ( "import" | "importar" ) TEXTO_LIT ";" ;
 decl_global     ::= decl_variable | decl_constante | decl_arreglo | decl_matriz ;
 decl_variable   ::= tipo IDENTIFICADOR [ "=" expresion ] ";" ;
 decl_constante  ::= "const" tipo IDENTIFICADOR "=" expresion ";" ;
@@ -24,7 +27,11 @@ elem_bloque     ::= decl_local | instruccion | def_funcion | def_procedimiento (
 instruccion     ::= lvalue op_asig expresion ";" | inc_dec_stmt | print_stmt | read_stmt 
                   | if_stmt | while_stmt | for_stmt | foreach_stmt | do_while_stmt 
                   | switch_stmt | match_stmt | try_stmt | return_stmt | break_stmt | continue_stmt | call_stmt ;
-lvalue          ::= IDENTIFICADOR | IDENTIFICADOR "[" expresion "]" | IDENTIFICADOR "[" expresion "]" "[" expresion "]" | receptor "." IDENTIFICADOR ;
+lvalue          ::= IDENTIFICADOR | IDENTIFICADOR "[" expresion "]" | IDENTIFICADOR "[" expresion "]" "[" expresion "]" | receptor "." IDENTIFICADOR
+                  | receptor "." IDENTIFICADOR "[" expresion "]"     (* INV-1440 *)
+                  | acceso "." IDENTIFICADOR [ "[" expresion "]" ] ; (* encadenado, INV-4406 *)
+acceso          ::= receptor "." IDENTIFICADOR [ "(" [ lista_args ] ")" ]
+                  | acceso "." IDENTIFICADOR [ "(" [ lista_args ] ")" ] ;   (* a.b.c, a.m().c — InvenioLang 11 *)
 
 if_stmt         ::= "if" "(" expresion ")" bloque [ "else" bloque ] ;
 while_stmt      ::= "while" "(" expresion ")" bloque ;
@@ -55,9 +62,14 @@ expr_primaria   ::= ENTERO_LIT | REAL_LIT | TEXTO_LIT | "true" | "false" | IDENT
                   | IDENTIFICADOR "[" expresion "]" | IDENTIFICADOR "[" expresion "]" "[" expresion "]"
                   | IDENTIFICADOR "(" [ lista_args ] ")" | "(" expresion ")" 
                   | "new" IDENTIFICADOR "(" [ lista_args ] ")" | receptor "." IDENTIFICADOR 
-                  | receptor "." IDENTIFICADOR "(" [ lista_args ] ")" | receptor "?." IDENTIFICADOR ;
+                  | "new" tipo "[" expresion "]"                      (* arreglo dinámico, INV-1440 *)
+                  | receptor "." IDENTIFICADOR "[" expresion "]"      (* elemento de atributo arreglo, INV-1440 *)
+                  | receptor "." IDENTIFICADOR "(" [ lista_args ] ")" | receptor "?." IDENTIFICADOR
+                  | acceso "." IDENTIFICADOR [ "(" [ lista_args ] ")" | "[" expresion "]" ] ;  (* INV-4406 *)
 
 (* POO 2.0 *)
 class_decl      ::= [ "abstract" ] "class" IDENTIFICADOR [ "<" IDENTIFICADOR ">" ] [ "extends" IDENTIFICADOR ] [ "implements" lista_ids ] "{" { miembro_clase } "}" ;
 interface_decl  ::= "interface" IDENTIFICADOR "{" { miembro_clase } "}" ;
-miembro_clase   ::= attr_decl | method_decl | constructor_decl ;
+miembro_clase   ::= attr_decl | attr_arreglo_decl | method_decl | constructor_decl ;
+(* Atributo arreglo dinámico (INV-1440): sin tamaño; se crea con new tipo[expr]. *)
+attr_arreglo_decl ::= visibilidad [ modificador ] tipo "[" "]" IDENTIFICADOR ";" ;

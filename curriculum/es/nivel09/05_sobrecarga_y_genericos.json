@@ -1,0 +1,22 @@
+{
+  "id": "N09-E05",
+  "nivel": 9,
+  "numero": 5,
+  "idioma": "es",
+  "titulo": "Sobrecarga de métodos y genéricos",
+  "enunciado": "Crea Calculadora con tres versiones de sumar (dos enteros, tres enteros, dos reales) y una clase genérica Caja<T> que guarde un valor de cualquier tipo. Úsala con entero y con texto.",
+  "objetivos": [
+    "Sobrecargar métodos por número y tipo de parámetros",
+    "Escribir una clase genérica reutilizable"
+  ],
+  "pistas": [
+    "El compilador elige la versión de sumar según los argumentos.",
+    "clase Caja<T> { privado T contenido; ... }",
+    "Al crearla indica el tipo: nuevo Caja<entero>()."
+  ],
+  "conceptos": [
+    "sobrecarga",
+    "genéricos",
+    "parámetro de tipo"
+  ]
+}

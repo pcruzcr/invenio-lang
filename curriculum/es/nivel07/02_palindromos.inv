@@ -1,0 +1,38 @@
+// Nivel 7 · Ejercicio 02 — Invertir y detectar palíndromos
+// Objetivos:
+//   - Construir una cadena por concatenación
+//   - Normalizar texto antes de compararlo
+//
+texto invertir(texto s) {
+    texto r = "";
+    para (entero i = longitud_texto(s) - 1; i >= 0; i--) {
+        r = r + caracter_en(s, i);
+    }
+    retornar r;
+}
+
+// Normalizar: quitar espacios y unificar mayúsculas antes de comparar.
+texto limpiar(texto s) {
+    texto r = "";
+    texto bajo = minusculas(s);
+    para (entero i = 0; i < longitud_texto(bajo); i++) {
+        texto c = caracter_en(bajo, i);
+        si (c != " ") {
+            r = r + c;
+        }
+    }
+    retornar r;
+}
+
+logico esPalindromo(texto s) {
+    texto limpio = limpiar(s);
+    retornar limpio == invertir(limpio);
+}
+
+vacio main() {
+    texto [3] frases = {"Anita lava la tina", "Hola mundo", "Oso"};
+    para_cada (texto f : frases) {
+        imprimir(invertir(f)); imprimir(" | "); imprimir(esPalindromo(f)); imprimir("\n");
+    }
+    imprimir(invertir("abc") == invertir_texto("abc")); imprimir("\n");
+}

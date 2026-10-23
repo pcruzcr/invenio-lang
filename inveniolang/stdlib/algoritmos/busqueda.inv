@@ -1,0 +1,90 @@
+// algoritmos/busqueda.inv -- Algoritmos de búsqueda en arreglos
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "algoritmos/busqueda";
+//
+// Todas trabajan sobre los primeros n elementos del arreglo y devuelven una
+// POSICIÓN (0..n-1) o -1 si el valor no está.
+
+// LINEAL: revisa uno por uno. Sirve para cualquier arreglo. O(n).
+entero busqueda_lineal(entero[] a, entero n, entero x) {
+    para (entero i = 0; i < n; i++) {
+        si (a[i] == x) {
+            retornar i;
+        }
+    }
+    retornar -1;
+}
+
+// BINARIA: SOLO para arreglos ordenados. Compara con el elemento del medio
+// y descarta la mitad que no puede contener x. O(log n).
+entero busqueda_binaria(entero[] a, entero n, entero x) {
+    entero inicio = 0;
+    entero fin = n - 1;
+    mientras (inicio <= fin) {
+        entero medio = inicio + (fin - inicio) / 2;
+        si (a[medio] == x) {
+            retornar medio;
+        }
+        si (a[medio] < x) {
+            inicio = medio + 1;
+        } sino {
+            fin = medio - 1;
+        }
+    }
+    retornar -1;
+}
+
+// La misma búsqueda binaria escrita de forma recursiva, sobre a[inicio..fin].
+entero busqueda_binaria_recursiva(entero[] a, entero inicio, entero fin, entero x) {
+    si (inicio > fin) {
+        retornar -1;
+    }
+    entero medio = inicio + (fin - inicio) / 2;
+    si (a[medio] == x) {
+        retornar medio;
+    }
+    si (a[medio] < x) {
+        retornar busqueda_binaria_recursiva(a, medio + 1, fin, x);
+    }
+    retornar busqueda_binaria_recursiva(a, inicio, medio - 1, x);
+}
+
+// Posición del mayor elemento (el primero si se repite). O(n).
+entero posicion_maximo(entero[] a, entero n) {
+    si (n <= 0) {
+        lanzar_error("posicion_maximo: el arreglo está vacío");
+    }
+    entero mejor = 0;
+    para (entero i = 1; i < n; i++) {
+        si (a[i] > a[mejor]) {
+            mejor = i;
+        }
+    }
+    retornar mejor;
+}
+
+// Posición del menor elemento (el primero si se repite). O(n).
+entero posicion_minimo(entero[] a, entero n) {
+    si (n <= 0) {
+        lanzar_error("posicion_minimo: el arreglo está vacío");
+    }
+    entero mejor = 0;
+    para (entero i = 1; i < n; i++) {
+        si (a[i] < a[mejor]) {
+            mejor = i;
+        }
+    }
+    retornar mejor;
+}
+
+// Cuántas veces aparece x. O(n).
+entero contar_apariciones(entero[] a, entero n, entero x) {
+    entero total = 0;
+    para (entero i = 0; i < n; i++) {
+        si (a[i] == x) {
+            total = total + 1;
+        }
+    }
+    retornar total;
+}

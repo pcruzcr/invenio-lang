@@ -1,0 +1,30 @@
+// Nivel 9 · Ejercicio 12 — Tipos suma y emparejar
+// Objetivos:
+//   - Modelar un conjunto cerrado de variantes con datos
+//   - Desestructurar variantes con emparejar
+//
+// Cada variante lleva sus propios datos; Punto no lleva ninguno.
+enumeracion Forma {
+    Circulo(entero radio),
+    Rect(entero ancho, entero alto),
+    Punto
+}
+
+entero areaForma(Forma f) {
+    entero r = 0;
+    emparejar (f) {
+        caso Circulo(rad): r = 3 * rad * rad;
+        caso Rect(w, h): r = w * h;
+        caso Punto: r = 0;
+    }
+    retornar r;
+}
+
+vacio main() {
+    Forma a = nuevo Circulo(2);
+    Forma b = nuevo Rect(3, 5);
+    Forma c = nuevo Punto();
+    imprimir(areaForma(a)); imprimir(" ");
+    imprimir(areaForma(b)); imprimir(" ");
+    imprimir(areaForma(c)); imprimir("\n");
+}

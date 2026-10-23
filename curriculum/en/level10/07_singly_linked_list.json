@@ -1,0 +1,23 @@
+{
+  "id": "N10-E07",
+  "nivel": 10,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Singly linked list",
+  "enunciado": "Implement SinglyLinkedList with pushFront, pushBack, contains, remove (first occurrence) and reverse (relinking, without creating nodes). Run a sequence of operations showing the list.",
+  "objetivos": [
+    "Manipulate links between nodes",
+    "Handle special cases: empty list and first node",
+    "Reverse a list with three references"
+  ],
+  "pistas": [
+    "To remove, you need the node BEFORE the one being deleted.",
+    "If the head is removed, the head becomes its next.",
+    "Reverse: previous, current, next; flip one link per iteration."
+  ],
+  "conceptos": [
+    "linked list",
+    "node",
+    "link"
+  ]
+}

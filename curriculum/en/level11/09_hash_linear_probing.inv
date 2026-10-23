@@ -1,0 +1,51 @@
+// Level 11 · Exercise 09 — Hash table with linear probing
+// Learning goals:
+//   - Understand hash functions and collisions
+//   - Implement open addressing with linear probing
+//
+const int CAP = 11;
+int [CAP] keys;
+int [CAP] values;
+bool [CAP] used;
+
+int hash(int k) { return k % CAP; }
+
+int put(int k, int v) {
+    int p = hash(k);
+    int probes = 1;
+    while (used[p] && keys[p] != k) {
+        p = (p + 1) % CAP;   // try the next slot
+        probes++;
+    }
+    keys[p] = k;
+    values[p] = v;
+    used[p] = true;
+    return probes;
+}
+
+int get(int k) {
+    int p = hash(k);
+    while (used[p]) {
+        if (keys[p] == k) {
+            return values[p];
+        }
+        p = (p + 1) % CAP;
+    }
+    return -1;
+}
+
+void main() {
+    for (int i = 0; i < CAP; i++) {
+        used[i] = false;
+    }
+    int [5] ks = {22, 33, 5, 16, 44};
+    for (int i = 0; i < 5; i++) {
+        int s = put(ks[i], ks[i] * 10);
+        print(ks[i]); print(" -> h="); print(hash(ks[i])); print(" probes="); print(s); print("\n");
+    }
+    print(get(33)); print(" "); print(get(16)); print(" "); print(get(7)); print("\n");
+    for (int i = 0; i < CAP; i++) {
+        print(used[i] ? int_to_string(keys[i]) : "."); print(" ");
+    }
+    print("\n");
+}

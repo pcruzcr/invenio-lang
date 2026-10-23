@@ -63,10 +63,63 @@ from .ast_nodes import (
     VarLValue,
     WhileStmt,
 )
-from .patterns import RegistryFactory, Strategy
+from .i18n import M, t, texto
+from .patterns import RegistryFactory
 
-_BINOPS = {"+", "-", "*", "/", "%", "==", "!=", "<", ">", "<=", ">="}
+# Bit a bit (Etapa 11): el generador ya emitía estos operadores tal cual
+# venían del AST, pero ni MaquinaTAC ni el plegado los conocían, así que
+# cualquier programa con `&`, `|`, `^`, `<<` o `>>` fallaba con
+# "operación de IR no soportada" bajo --run-ir (pruebas/bit_a_bit.inv).
+_BINOPS = {
+    "+", "-", "*", "/", "%", "==", "!=", "<", ">", "<=", ">=",
+    "&", "|", "^", "<<", ">>",
+}  # fmt: skip
+# Operaciones unarias puras -> símbolo con que se imprimen. `bnot` (`~x`,
+# complemento a uno) antes se traducía a `not` (negación lógica): `~5`
+# daba `false` en vez de `-6`.
+_UNOPS = {"neg": "-", "not": "!", "bnot": "~"}
 _VALORES_POR_DEFECTO = {"int": 0, "float": 0.0, "string": "", "bool": False}
+
+
+class Temp(str):
+    """Nombre de un temporal generado por `GeneradorIR` (`t1`, `t2`, ...).
+
+    Se imprime igual que un `str`, pero se distingue por tipo. Antes los
+    temporales se reconocían por el prefijo `"t"`, y eso confundía a
+    variables del programa como `tam`, `total` o `t`: la eliminación de
+    código muerto borraba `tam = const 0` de las globales y `--run-ir-opt`
+    terminaba operando con `None` (pruebas/monticulo.inv, arbol_b.inv).
+    Además un temporal siempre vive en el marco de la llamada actual; nunca
+    se comparte con las globales ni entre llamadas recursivas.
+    """
+
+    __slots__ = ()
+
+
+class Local(str):
+    """Destino de una DECLARACIÓN local (`int x = ...;` dentro de una subrutina).
+
+    Marca que el nombre nace en el marco actual aunque exista una global
+    homónima: sin esta marca, `MaquinaTAC` escribía la variable local sobre
+    la global (sombreado roto).
+    """
+
+    __slots__ = ()
+
+
+class _Matriz(list):
+    """Arreglo row-major que recuerda su número de columnas en ejecución.
+
+    Hace falta para indexar un parámetro `int [][] m`, cuyas columnas no se
+    conocen al generar el TAC de la subrutina.
+    """
+
+    __slots__ = ("cols",)
+
+
+def _es_nombre_de_marco(nombre):
+    """True si `nombre` siempre vive en el marco actual (temporal o local)."""
+    return isinstance(nombre, (Temp, Local))
 
 
 class NoSoportadoIR(Exception):
@@ -88,7 +141,12 @@ class ErrorEjecucionTAC(Exception):
     def __init__(self, codigo, mensaje):
         self.codigo = codigo
         self.mensaje = mensaje
-        super().__init__(f"[{codigo}] {mensaje}")
+        super().__init__(codigo, mensaje)
+
+    def __str__(self):
+        # INV-1400: `mensaje` puede ser un Mensaje diferido; se presenta al
+        # convertir a texto (idioma del proceso), no al crear la excepcion.
+        return f"[{self.codigo}] {self.mensaje}"
 
 
 class Instr:
@@ -122,9 +180,10 @@ class Instr:
             return f"    {r} = const {a1!r}"
         if op == "copy":
             return f"    {r} = {a1}"
-        if op in ("neg", "not"):
-            simbolo = "-" if op == "neg" else "!"
-            return f"    {r} = {simbolo}{a1}"
+        if op in _UNOPS:
+            return f"    {r} = {_UNOPS[op]}{a1}"
+        if op == "ncols":
+            return f"    {r} = ncols({a1})"
         if op == "a_float":
             return f"    {r} = (float) {a1}"
         if op == "param":
@@ -171,14 +230,6 @@ class InstrFactory(RegistryFactory):
         return Instr(op, arg1, arg2, arg3, resultado)
 
 
-class OptimizationStrategy(Strategy):
-    """Strategy base para pasadas de optimización TAC."""
-
-    def execute(self, instrucciones: list[Instr], *args, **kwargs) -> tuple[list[Instr], int]:
-        """Ejecuta la operación."""
-        raise NotImplementedError
-
-
 # ============================================================
 # Generación de código intermedio (AST -> TAC)
 # ============================================================
@@ -188,7 +239,8 @@ class GeneradorIR:
     """Recorre el AST (ya validado por semantic.py/type_checker.py) y.
 
     genera TAC. Reutiliza el mismo patrón de recorrido de control de flujo
-    ya resuelto en flowchart.py para if/while/for/break/continue/return,
+    ya resuelto en el diagrama de flujo (flujo/esquema.py) para
+    if/while/for/break/continue/return,
     aquí emitiendo saltos con etiquetas en vez de geometría 2D.
     """
 
@@ -206,12 +258,68 @@ class GeneradorIR:
         self._profundidad_try = 0  # try/catch anidados actualmente abiertos
         self._tipos = {}  # nombre -> tipo declarado (para 'leer')
         self._tams = {}  # nombre de arreglo -> tam declarado (Etapa 12.1, para_cada)
+        self._cols = {}  # nombre de matriz -> columnas (int o nombre de const), row-major
+        # Lo que declaran las globales, visible desde toda subrutina. Antes
+        # `_reiniciar` vaciaba `_cols` al empezar cada subrutina, así que una
+        # matriz GLOBAL se indexaba con 10 columnas por defecto dentro de
+        # las funciones (arbol_b.inv: "Índice 30 fuera de rango"), mientras
+        # `_tipos`/`_tams` nunca se vaciaban y se filtraban de una subrutina
+        # a la siguiente.
+        self._globales_tipos = {}
+        self._globales_tams = {}
+        self._globales_cols = {}
+        self._en_subrutina = False
+        # INV-1291: pila de ámbitos de bloque de la subrutina en curso
+        # (nombre fuente -> nombre TAC). El marco de MaquinaTAC es plano por
+        # llamada, así que una declaración en un bloque interno que reutiliza
+        # un nombre ya visible (global, parámetro o de un bloque externo) se
+        # renombra a `nombre#k`: sin esto, `entero x = 1;` dentro de un `si`
+        # seguía tapando a la global `x` después de cerrar el bloque.
+        self._ambitos: list[dict[str, str]] = []
+        self._renombres = 0
+        self._tipo_retorno = "void"
 
     # ---- utilidades ----
 
     def _nuevo_temp(self):
         self._temp_n += 1
-        return f"t{self._temp_n}"
+        return Temp(f"t{self._temp_n}")
+
+    def _destino_decl(self, nombre):
+        """Nombre destino de una declaración: local si estamos en una subrutina.
+
+        Registra la declaración en el ámbito de bloque actual y, si el nombre
+        ya era visible, le asigna un nombre TAC único (INV-1291).
+        """
+        if not self._en_subrutina:
+            return nombre
+        visible = nombre in self._globales_tipos or any(nombre in a for a in self._ambitos)
+        destino = nombre
+        if visible:
+            self._renombres += 1
+            destino = f"{nombre}#{self._renombres}"
+        self._ambitos[-1][nombre] = destino
+        return Local(destino)
+
+    def _r(self, nombre):
+        """Nombre TAC de `nombre` según los ámbitos de bloque visibles."""
+        for ambito in reversed(self._ambitos):
+            if nombre in ambito:
+                return ambito[nombre]
+        return nombre
+
+    def _entrar_ambito(self):
+        self._ambitos.append({})
+
+    def _salir_ambito(self):
+        self._ambitos.pop()
+
+    def _gen_bloque(self, elementos):
+        """Genera una lista de instrucciones dentro de un ámbito de bloque propio."""
+        self._entrar_ambito()
+        for e in elementos:
+            self._gen_stmt(e)
+        self._salir_ambito()
 
     def _nueva_etiqueta(self):
         self._label_n += 1
@@ -228,18 +336,44 @@ class GeneradorIR:
         para ejecutarse una sola vez antes de invocar 'main' (§5.2.3).
         """
         self._reiniciar()
+        self._en_subrutina = False
+        self._ambitos = []
         for d in list(ast.declaraciones_globales) + list(ast.declaraciones_posteriores):
             self._gen_declaracion_global(d)
+        self._globales_tipos = dict(self._tipos)
+        self._globales_tams = dict(self._tams)
+        self._globales_cols = dict(self._cols)
         return self.instrucciones
 
-    def generar_subrutina(self, parametros, bloque):
+    def generar_subrutina(self, parametros, bloque, tipo_retorno="void"):
         """TAC de UNA función/procedimiento.
 
         Retorna (nombres_parametros, instrucciones).
         """
         self._reiniciar()
+        self._en_subrutina = True
+        self._tipo_retorno = tipo_retorno
+        self._ambitos = [{p.nombre: p.nombre for p in parametros}, {}]
         for p in parametros:
             self._tipos[p.nombre] = p.tipo
+            # Un parámetro sombrea a cualquier global homónima.
+            self._tams.pop(p.nombre, None)
+            if getattr(p, "es_matriz", False):
+                # Columnas desconocidas al generar: se leen del propio
+                # arreglo en ejecución (ver op 'ncols' y _Matriz).
+                self._cols[p.nombre] = None
+            else:
+                self._cols.pop(p.nombre, None)
+        # INV-1293: un argumento int que llega a un parámetro `real` se
+        # promueve al entrar (el intérprete de árbol ya lo hacía; --run-ir
+        # imprimía "3" en vez de "3.0").
+        for p in parametros:
+            if (
+                p.tipo == "float"
+                and not getattr(p, "es_arreglo", False)
+                and not getattr(p, "es_matriz", False)
+            ):
+                self._emit("a_float", p.nombre, resultado=p.nombre)
         for elem in bloque.elementos:
             self._gen_stmt(elem)
         return [p.nombre for p in parametros], self.instrucciones
@@ -250,7 +384,9 @@ class GeneradorIR:
         self.instrucciones = []
         self._ctx_ciclo = []
         self._profundidad_try = 0
-        self._cols = {}  # nombre matriz -> cols (para row-major)
+        self._tipos = dict(self._globales_tipos)
+        self._tams = dict(self._globales_tams)
+        self._cols = dict(self._globales_cols)
 
     def _gen_declaracion_global(self, d):
         if isinstance(d, VarDecl):
@@ -277,36 +413,45 @@ class GeneradorIR:
 
     def _gen_stmt(self, nodo):
         if isinstance(nodo, VarDecl):
-            self._tipos[nodo.nombre] = nodo.tipo
+            # El inicializador se evalúa con el ámbito ANTERIOR a la
+            # declaración (`entero x = x + 1;` lee la x externa).
+            val = self._gen_expr(nodo.init_expr) if nodo.init_expr is not None else None
+            destino = self._destino_decl(nodo.nombre)
+            self._tipos[destino] = nodo.tipo
+            self._tams.pop(destino, None)
+            self._cols.pop(destino, None)
             if nodo.init_expr is not None:
-                val = self._gen_expr(nodo.init_expr)
                 if nodo.tipo == "float":
                     val = self._gen_promover_float(val)
-                self._emit("copy", val, resultado=nodo.nombre)
+                self._emit("copy", val, resultado=destino)
+            else:
+                # Sin inicializador la variable igual NACE aquí (valor por
+                # defecto del tipo, como en las globales); si no se emitía
+                # nada, la primera asignación posterior caía sobre una
+                # global homónima.
+                self._emit("const", _VALORES_POR_DEFECTO.get(nodo.tipo), resultado=destino)
         elif isinstance(nodo, ConstDecl):
-            self._tipos[nodo.nombre] = nodo.tipo
             val = self._gen_expr(nodo.init_expr)
+            destino = self._destino_decl(nodo.nombre)
+            self._tipos[destino] = nodo.tipo
             if nodo.tipo == "float":
                 val = self._gen_promover_float(val)
-            self._emit("copy", val, resultado=nodo.nombre)
+            self._emit("copy", val, resultado=destino)
         elif isinstance(nodo, ArrayDecl):
             self._gen_array_decl(nodo)
         elif isinstance(nodo, MatrixDecl):
-            raise NoSoportadoIR(
-                "El generador de código intermedio no cubre matrices en "
-                "este incremento (alcance: subconjunto estructurado, sin "
-                "matrices ni POO)."
-            )
+            self._gen_matrix_decl(nodo)
         elif isinstance(nodo, AssignStmt):
             self._gen_asignacion(nodo.lvalue, nodo.operador, nodo.expr)
         elif isinstance(nodo, IncDecStmt):
-            self._gen_incdec(nodo.nombre, nodo.operador)
+            self._gen_incdec(self._r(nodo.nombre), nodo.operador)
         elif isinstance(nodo, PrintStmt):
             val = self._gen_expr(nodo.expr)
             self._emit("print", val)
         elif isinstance(nodo, ReadStmt):
-            tipo = self._tipos.get(nodo.nombre, "string")
-            self._emit("read", tipo, resultado=nodo.nombre)
+            nombre = self._r(nodo.nombre)
+            tipo = self._tipos.get(nombre, "string")
+            self._emit("read", tipo, resultado=nombre)
         elif isinstance(nodo, IfStmt):
             self._gen_if(nodo)
         elif isinstance(nodo, WhileStmt):
@@ -323,6 +468,8 @@ class GeneradorIR:
             self._gen_try(nodo)
         elif isinstance(nodo, ReturnStmt):
             val = self._gen_expr(nodo.expr) if nodo.expr is not None else None
+            if val is not None and self._tipo_retorno == "float":
+                val = self._gen_promover_float(val)  # INV-1293: `retornar 1;` en una función real
             self._emit("return", val)
         elif isinstance(nodo, BreakStmt):
             self._emit_break()
@@ -334,37 +481,76 @@ class GeneradorIR:
             self._gen_llamada(nodo.nombre, nodo.argumentos, quiere_valor=False)
         else:
             raise NoSoportadoIR(
-                f'"{type(nodo).__name__}" no está soportado por el generador '
-                f"de código intermedio (alcance: subconjunto estructurado, "
-                f"sin POO). Ver docs/InvenioLang_2.0_POO.md."
+                M("IR.no_soportado.no_esta_soportado_generador_2", clase=type(nodo).__name__)
             )
 
     def _gen_array_decl(self, nodo):
-        self._tipos[nodo.nombre] = nodo.tipo
-        self._tams[nodo.nombre] = len(nodo.init_exprs) if nodo.init_exprs else nodo.tam
+        valores = [self._gen_expr(e) for e in nodo.init_exprs]
+        nombre = self._destino_decl(nodo.nombre)
+        self._tipos[nombre] = nodo.tipo
+        self._cols.pop(nombre, None)
+        self._tams[nombre] = len(nodo.init_exprs) if nodo.init_exprs else nodo.tam
         if nodo.init_exprs:
-            tam = len(nodo.init_exprs)
-            self._emit("array_new", nodo.nombre, tam)
-            for i, e in enumerate(nodo.init_exprs):
-                val = self._gen_expr(e)
-                self._emit("array_set", nodo.nombre, i, val)
+            self._emit("array_new", nombre, len(valores))
+            for i, val in enumerate(valores):
+                self._emit("array_set", nombre, i, val)
         else:
-            self._emit("array_new", nodo.nombre, nodo.tam)
+            self._emit("array_new", nombre, nodo.tam)
 
     def _gen_matrix_decl(self, nodo):
-        # row-major: flat array de filas*cols
-        self._tipos[nodo.nombre] = nodo.tipo
-        filas = nodo.filas if isinstance(nodo.filas, int) else 10
-        cols = nodo.cols if isinstance(nodo.cols, int) else 10
-        self._cols[nodo.nombre] = cols
-        total = filas * cols if isinstance(filas, int) and isinstance(cols, int) else 100
-        self._emit("array_new", nodo.nombre, total)
+        # row-major: arreglo plano de filas*cols. Una dimensión puede ser un
+        # literal entero o el nombre de una constante (`int [N][M] m`); antes
+        # cualquier dimensión no literal se sustituía en silencio por 10, lo
+        # que daba índices equivocados con N/M distintos de 10.
+        nombre = self._destino_decl(nodo.nombre)
+        self._tipos[nombre] = nodo.tipo
+        self._tams.pop(nombre, None)
+        filas, cols = nodo.filas, nodo.cols
+        for dim in (filas, cols):
+            if not isinstance(dim, (int, str)) or isinstance(dim, bool):
+                raise NoSoportadoIR(M("IR.no_soportado.generador_codigo_intermedio_solo"))
+        self._cols[nombre] = cols
+        if isinstance(filas, int) and isinstance(cols, int):
+            total = filas * cols
+        else:
+            total = self._nuevo_temp()
+            self._emit("*", filas, cols, resultado=total)
+        # arg3 = columnas: MaquinaTAC crea una _Matriz que las recuerda, para
+        # poder indexarla también a través de un parámetro `int [][]`.
+        self._emit("array_new", nombre, total, cols)
         if nodo.init_filas:
             for r, fila in enumerate(nodo.init_filas):
                 for c, e in enumerate(fila):
                     val = self._gen_expr(e)
-                    idx = r * cols + c
-                    self._emit("array_set", nodo.nombre, idx, val)
+                    if isinstance(cols, int):
+                        idx = r * cols + c
+                    else:
+                        t_mul = self._nuevo_temp()
+                        self._emit("*", r, cols, resultado=t_mul)
+                        idx = self._nuevo_temp()
+                        self._emit("+", t_mul, c, resultado=idx)
+                    self._emit("array_set", nombre, idx, val)
+
+    def _gen_indice_matriz(self, nombre, fila_expr, col_expr):
+        """TAC del índice row-major `fila * cols + col` de `nombre[fila][col]`.
+
+        `nombre` ya es el nombre TAC (resuelto con `_r`).
+        """
+        fila = self._gen_expr(fila_expr)
+        col = self._gen_expr(col_expr)
+        if nombre not in self._cols:
+            raise NoSoportadoIR(
+                M("IR.no_soportado.matriz_sin_dimensiones_conocidas", nombre=nombre)
+            )
+        cols = self._cols[nombre]
+        if cols is None:  # parámetro `int [][] m`: columnas en ejecución
+            cols = self._nuevo_temp()
+            self._emit("ncols", nombre, resultado=cols)
+        t_mul = self._nuevo_temp()
+        self._emit("*", fila, cols, resultado=t_mul)
+        t_idx = self._nuevo_temp()
+        self._emit("+", t_mul, col, resultado=t_idx)
+        return t_idx
 
     def _gen_promover_float(self, val):
         """Promueve int a float en TAC.
@@ -379,7 +565,9 @@ class GeneradorIR:
 
     def _gen_asignacion(self, lvalue, operador, expr):
         val = self._gen_expr(expr)
-        destino_float = isinstance(lvalue, VarLValue) and self._tipos.get(lvalue.nombre) == "float"
+        destino_float = (
+            isinstance(lvalue, VarLValue) and self._tipos.get(self._r(lvalue.nombre)) == "float"
+        )
         if destino_float:
             val = self._gen_promover_float(val)
         if operador != "=":
@@ -399,57 +587,50 @@ class GeneradorIR:
 
     def _gen_lvalue_read(self, lvalue):
         if isinstance(lvalue, VarLValue):
-            return lvalue.nombre
+            return self._r(lvalue.nombre)
         if isinstance(lvalue, ArrayLValue):
             idx = self._gen_expr(lvalue.indice)
             t = self._nuevo_temp()
-            self._emit("array_get", lvalue.nombre, idx, resultado=t)
+            self._emit("array_get", self._r(lvalue.nombre), idx, resultado=t)
             return t
         if isinstance(lvalue, MatrixLValue):
-            fila = self._gen_expr(lvalue.fila)
-            col = self._gen_expr(lvalue.columna)
-            cols = self._cols.get(lvalue.nombre, 10)
-            t_mul = self._nuevo_temp()
-            self._emit("*", fila, cols, resultado=t_mul)
-            t_idx = self._nuevo_temp()
-            self._emit("+", t_mul, col, resultado=t_idx)
+            nombre = self._r(lvalue.nombre)
+            t_idx = self._gen_indice_matriz(nombre, lvalue.fila, lvalue.columna)
             t = self._nuevo_temp()
-            self._emit("array_get", lvalue.nombre, t_idx, resultado=t)
+            self._emit("array_get", nombre, t_idx, resultado=t)
             return t
-        raise NoSoportadoIR(f'lvalue "{type(lvalue).__name__}" fuera del subconjunto estructurado')
+        raise NoSoportadoIR(
+            M("IR.no_soportado.lvalue_fuera_subconjunto_estructurado", clase=type(lvalue).__name__)
+        )
 
     def _gen_lvalue_write(self, lvalue, valor):
         if isinstance(lvalue, VarLValue):
-            self._emit("copy", valor, resultado=lvalue.nombre)
+            self._emit("copy", valor, resultado=self._r(lvalue.nombre))
         elif isinstance(lvalue, ArrayLValue):
             idx = self._gen_expr(lvalue.indice)
-            self._emit("array_set", lvalue.nombre, idx, valor)
+            self._emit("array_set", self._r(lvalue.nombre), idx, valor)
         elif isinstance(lvalue, MatrixLValue):
-            fila = self._gen_expr(lvalue.fila)
-            col = self._gen_expr(lvalue.columna)
-            cols = self._cols.get(lvalue.nombre, 10)
-            t_mul = self._nuevo_temp()
-            self._emit("*", fila, cols, resultado=t_mul)
-            t_idx = self._nuevo_temp()
-            self._emit("+", t_mul, col, resultado=t_idx)
-            self._emit("array_set", lvalue.nombre, t_idx, valor)
+            nombre = self._r(lvalue.nombre)
+            t_idx = self._gen_indice_matriz(nombre, lvalue.fila, lvalue.columna)
+            self._emit("array_set", nombre, t_idx, valor)
         else:
             raise NoSoportadoIR(
-                f'lvalue "{type(lvalue).__name__}" fuera del subconjunto estructurado'
+                M(
+                    "IR.no_soportado.lvalue_fuera_subconjunto_estructurado",
+                    clase=type(lvalue).__name__,
+                )
             )
 
     def _gen_if(self, nodo):
         cond = self._gen_expr(nodo.condicion)
         etq_else = self._nueva_etiqueta()
         self._emit("if_false", cond, etq_else)
-        for e in nodo.bloque_then.elementos:
-            self._gen_stmt(e)
+        self._gen_bloque(nodo.bloque_then.elementos)
         if nodo.bloque_else is not None:
             etq_fin = self._nueva_etiqueta()
             self._emit("goto", etq_fin)
             self._emit("label", etq_else)
-            for e in nodo.bloque_else.elementos:
-                self._gen_stmt(e)
+            self._gen_bloque(nodo.bloque_else.elementos)
             self._emit("label", etq_fin)
         else:
             self._emit("label", etq_else)
@@ -461,8 +642,7 @@ class GeneradorIR:
         cond = self._gen_expr(nodo.condicion)
         self._emit("if_false", cond, etq_fin)
         self._ctx_ciclo.append(("loop", etq_inicio, etq_fin, self._profundidad_try))
-        for e in nodo.bloque.elementos:
-            self._gen_stmt(e)
+        self._gen_bloque(nodo.bloque.elementos)
         self._ctx_ciclo.pop()
         self._emit("goto", etq_inicio)
         self._emit("label", etq_fin)
@@ -478,13 +658,10 @@ class GeneradorIR:
         `array_get`, equivalente a como un estudiante lo escribiría a
         mano con un `for` clásico.
         """
-        tam = self._tams.get(nodo.arreglo.nombre) if isinstance(nodo.arreglo, Identifier) else None
+        arreglo = self._r(nodo.arreglo.nombre) if isinstance(nodo.arreglo, Identifier) else None
+        tam = self._tams.get(arreglo) if arreglo is not None else None
         if tam is None:
-            raise NoSoportadoIR(
-                "para_cada / foreach solo está soportado por el generador de "
-                "código intermedio sobre un arreglo local de tamaño estático "
-                "conocido (no un parámetro). Ver docs/InvenioLang_2.0_POO.md."
-            )
+            raise NoSoportadoIR(M("IR.no_soportado.cada_foreach_solo_esta"))
         idx = self._nuevo_temp()
         self._emit("const", 0, resultado=idx)
         etq_inicio = self._nueva_etiqueta()
@@ -494,11 +671,14 @@ class GeneradorIR:
         cond = self._nuevo_temp()
         self._emit("<", idx, tam, resultado=cond)
         self._emit("if_false", cond, etq_fin)
-        self._emit("array_get", nodo.arreglo.nombre, idx, resultado=nodo.nombre)
+        self._entrar_ambito()
+        destino = self._destino_decl(nodo.nombre)
+        self._tipos[destino] = nodo.tipo
+        self._emit("array_get", arreglo, idx, resultado=destino)
         self._ctx_ciclo.append(("loop", etq_continuar, etq_fin, self._profundidad_try))
-        for e in nodo.bloque.elementos:
-            self._gen_stmt(e)
+        self._gen_bloque(nodo.bloque.elementos)
         self._ctx_ciclo.pop()
+        self._salir_ambito()
         self._emit("label", etq_continuar)
         t = self._nuevo_temp()
         self._emit("+", idx, 1, resultado=t)
@@ -507,6 +687,7 @@ class GeneradorIR:
         self._emit("label", etq_fin)
 
     def _gen_for(self, nodo):
+        self._entrar_ambito()  # la variable del encabezado es local al ciclo
         if nodo.init_stmt is not None:
             self._gen_for_init_act(nodo.init_stmt)
         etq_inicio = self._nueva_etiqueta()
@@ -517,14 +698,14 @@ class GeneradorIR:
             cond = self._gen_expr(nodo.cond_expr)
             self._emit("if_false", cond, etq_fin)
         self._ctx_ciclo.append(("loop", etq_continuar, etq_fin, self._profundidad_try))
-        for e in nodo.bloque.elementos:
-            self._gen_stmt(e)
+        self._gen_bloque(nodo.bloque.elementos)
         self._ctx_ciclo.pop()
         self._emit("label", etq_continuar)
         if nodo.act_stmt is not None:
             self._gen_for_init_act(nodo.act_stmt)
         self._emit("goto", etq_inicio)
         self._emit("label", etq_fin)
+        self._salir_ambito()
 
     def _gen_do_while(self, nodo):
         """do/hacer ... while/mientras (Etapa 6): el cuerpo corre al menos.
@@ -537,8 +718,7 @@ class GeneradorIR:
         etq_fin = self._nueva_etiqueta()
         self._emit("label", etq_inicio)
         self._ctx_ciclo.append(("loop", etq_continuar, etq_fin, self._profundidad_try))
-        for e in nodo.bloque.elementos:
-            self._gen_stmt(e)
+        self._gen_bloque(nodo.bloque.elementos)
         self._ctx_ciclo.pop()
         self._emit("label", etq_continuar)
         cond = self._gen_expr(nodo.condicion)
@@ -571,6 +751,7 @@ class GeneradorIR:
         self._emit("goto", etq_default)
 
         self._ctx_ciclo.append(("switch", etq_fin, self._profundidad_try))
+        self._entrar_ambito()  # un solo ámbito para todo el cuerpo (semántica C)
         for etq, caso in zip(etq_casos, nodo.casos, strict=True):
             self._emit("label", etq)
             for e in caso.bloque.elementos:
@@ -579,6 +760,7 @@ class GeneradorIR:
             self._emit("label", etq_default)
             for e in nodo.bloque_default.elementos:
                 self._gen_stmt(e)
+        self._salir_ambito()
         self._ctx_ciclo.pop()
         self._emit("label", etq_fin)
 
@@ -597,14 +779,12 @@ class GeneradorIR:
         etq_fin = self._nueva_etiqueta()
         self._emit("try_begin", etq_catch, nodo.nombre_catch)
         self._profundidad_try += 1
-        for e in nodo.bloque_try.elementos:
-            self._gen_stmt(e)
+        self._gen_bloque(nodo.bloque_try.elementos)
         self._profundidad_try -= 1
         self._emit("try_end")
         self._emit("goto", etq_fin)
         self._emit("label", etq_catch)
-        for e in nodo.bloque_catch.elementos:
-            self._gen_stmt(e)
+        self._gen_bloque(nodo.bloque_catch.elementos)
         self._emit("label", etq_fin)
 
     def _emit_pops_manejadores(self, profundidad_objetivo):
@@ -627,7 +807,7 @@ class GeneradorIR:
             self._emit_pops_manejadores(prof)
             self._emit("goto", etq_break)
             return
-        raise NoSoportadoIR("break fuera de un ciclo o switch (no debería pasar el semántico)")
+        raise NoSoportadoIR(M("IR.no_soportado.break_fuera_ciclo_switch"))
 
     def _emit_continue(self):
         for entrada in reversed(self._ctx_ciclo):
@@ -636,20 +816,23 @@ class GeneradorIR:
                 self._emit_pops_manejadores(prof)
                 self._emit("goto", etq_continuar)
                 return
-        raise NoSoportadoIR("continue fuera de un ciclo (no debería pasar el semántico)")
+        raise NoSoportadoIR(M("IR.no_soportado.continue_fuera_ciclo_no"))
 
     def _gen_for_init_act(self, nodo):
         if isinstance(nodo, ForInitVar):
-            self._tipos[nodo.nombre] = nodo.tipo
+            val = self._gen_expr(nodo.init_expr) if nodo.init_expr is not None else None
+            destino = self._destino_decl(nodo.nombre)
+            self._tipos[destino] = nodo.tipo
             if nodo.init_expr is not None:
-                val = self._gen_expr(nodo.init_expr)
                 if nodo.tipo == "float":
                     val = self._gen_promover_float(val)
-                self._emit("copy", val, resultado=nodo.nombre)
+                self._emit("copy", val, resultado=destino)
+            else:
+                self._emit("const", _VALORES_POR_DEFECTO.get(nodo.tipo), resultado=destino)
         elif isinstance(nodo, ForInitAsig):
             self._gen_asignacion(nodo.lvalue, nodo.operador, nodo.expr)
         elif isinstance(nodo, ForInitIncDec):
-            self._gen_incdec(nodo.nombre, nodo.operador)
+            self._gen_incdec(self._r(nodo.nombre), nodo.operador)
 
     def _gen_llamada(self, nombre, argumentos, quiere_valor):
         # Etapa 12.6: `nombre(args)` puede ahora ser una llamada a través
@@ -662,13 +845,8 @@ class GeneradorIR:
         # rechazarse limpiamente en tiempo de generación (mismo criterio
         # que la exclusión de POO/matrices: NoSoportadoIR aquí mismo, antes
         # de emitir nada).
-        if self._tipos.get(nombre, "").startswith("funcion("):
-            raise NoSoportadoIR(
-                "El generador de código intermedio no soporta llamar a través "
-                "de una variable de tipo función (closures, Etapa 12.6) -- "
-                "alcance: subconjunto estructurado, sin funciones de primera "
-                "clase. Ver docs/InvenioLang_2.0_POO.md."
-            )
+        if self._tipos.get(self._r(nombre), "").startswith("funcion("):
+            raise NoSoportadoIR(M("IR.no_soportado.generador_codigo_intermedio_no_2"))
         for arg in argumentos:
             val = self._gen_expr(arg)
             self._emit("param", val)
@@ -688,7 +866,8 @@ class GeneradorIR:
             self._emit("const", nodo.valor, resultado=t)
             return t
         if isinstance(nodo, Identifier):
-            if nodo.nombre not in self._tipos:
+            nombre = self._r(nodo.nombre)
+            if nombre not in self._tipos:
                 # Etapa 12.6: la única razón por la que un IDENTIFICADOR ya
                 # validado por semantic.py NO es una variable/parámetro
                 # conocido (todo lo cual queda registrado en self._tipos al
@@ -696,27 +875,18 @@ class GeneradorIR:
                 # procedimiento de nivel superior pasada por valor
                 # (`operar = sumar;`) -- fuera de alcance de este generador,
                 # mismo criterio que _gen_llamada de arriba.
-                raise NoSoportadoIR(
-                    "El generador de código intermedio no soporta pasar una "
-                    "función por nombre como valor (funciones de primera "
-                    "clase, Etapa 12.6). Ver docs/InvenioLang_2.0_POO.md."
-                )
-            return nodo.nombre
+                raise NoSoportadoIR(M("IR.no_soportado.generador_codigo_intermedio_no_3"))
+            return nombre
         if isinstance(nodo, ArrayAccess):
             idx = self._gen_expr(nodo.indice)
             t = self._nuevo_temp()
-            self._emit("array_get", nodo.nombre, idx, resultado=t)
+            self._emit("array_get", self._r(nodo.nombre), idx, resultado=t)
             return t
         if isinstance(nodo, MatrixAccess):
-            fila = self._gen_expr(nodo.fila)
-            col = self._gen_expr(nodo.columna)
-            cols = self._cols.get(nodo.nombre, 10)
-            t_mul = self._nuevo_temp()
-            self._emit("*", fila, cols, resultado=t_mul)
-            t_idx = self._nuevo_temp()
-            self._emit("+", t_mul, col, resultado=t_idx)
+            nombre = self._r(nodo.nombre)
+            t_idx = self._gen_indice_matriz(nombre, nodo.fila, nodo.columna)
             t = self._nuevo_temp()
-            self._emit("array_get", nodo.nombre, t_idx, resultado=t)
+            self._emit("array_get", nombre, t_idx, resultado=t)
             return t
         if isinstance(nodo, FunctionCall):
             return self._gen_llamada(nodo.nombre, nodo.argumentos, quiere_valor=True)
@@ -734,15 +904,22 @@ class GeneradorIR:
             if nodo.operador in ("++", "--"):
                 return self._gen_incdec_expr(nodo)
             val = self._gen_expr(nodo.operando)
+            if nodo.operador == "+":
+                return val
+            op = {"-": "neg", "!": "not", "~": "bnot"}.get(nodo.operador)
+            if op is None:
+                raise NoSoportadoIR(
+                    M("IR.no_soportado.operador_unario_no_soportado", operador=nodo.operador)
+                )
             t = self._nuevo_temp()
-            self._emit("neg" if nodo.operador == "-" else "not", val, resultado=t)
+            self._emit(op, val, resultado=t)
             return t
         if isinstance(nodo, TernaryExpr):
             return self._gen_ternario(nodo)
         if (
             isinstance(nodo, MemberAccess)
             and isinstance(nodo.receptor, Identifier)
-            and nodo.nombre_miembro in ("codigo", "mensaje")
+            and nodo.nombre_miembro in ("codigo", "mensaje", "code", "message")
         ):
             # Caso especial acotado (Etapa 6, NO soporte general de POO):
             # `e.codigo`/`e.mensaje` dentro de un catch -- el manejador de
@@ -750,8 +927,7 @@ class GeneradorIR:
             # _gen_try / MaquinaTAC._ejecutar_lista, op 'try_begin').
             return f"{nodo.receptor.nombre}.{nodo.nombre_miembro}"
         raise NoSoportadoIR(
-            f'"{type(nodo).__name__}" no está soportado por el generador de '
-            f"código intermedio (alcance: subconjunto estructurado, sin POO)."
+            M("IR.no_soportado.no_esta_soportado_generador", clase=type(nodo).__name__)
         )
 
     def _gen_ternario(self, nodo):
@@ -776,7 +952,7 @@ class GeneradorIR:
 
     def _gen_incdec_expr(self, nodo):
         # el operando siempre es un Identifier simple (garantizado por la gramatica)
-        nombre = nodo.operando.nombre
+        nombre = self._r(nodo.operando.nombre)
         t_nuevo = self._nuevo_temp()
         self._emit("+" if nodo.operador == "++" else "-", nombre, 1, resultado=t_nuevo)
         if nodo.es_prefijo:
@@ -825,18 +1001,16 @@ def generar_programa(ast):
     e incluye 'main'. Lanza NoSoportadoIR si el programa usa clases/POO.
     """
     if ast.clases:
-        raise NoSoportadoIR(
-            "El generador de código intermedio no cubre clases/POO en este "
-            "incremento (alcance: subconjunto estructurado de la v1.0). "
-            "Ver docs/InvenioLang_2.0_POO.md."
-        )
+        raise NoSoportadoIR(M("IR.no_soportado.generador_codigo_intermedio_no"))
     gen = GeneradorIR()
     ir_globales = gen.generar_globales(ast)
     subrutinas = {}
     if ast.main is not None:
         subrutinas["main"] = gen.generar_subrutina([], ast.main.bloque)
     for sub in ast.subrutinas:
-        subrutinas[sub.nombre] = gen.generar_subrutina(sub.parametros, sub.bloque)
+        subrutinas[sub.nombre] = gen.generar_subrutina(
+            sub.parametros, sub.bloque, getattr(sub, "tipo_retorno", "void")
+        )
     return subrutinas, ir_globales
 
 
@@ -884,7 +1058,28 @@ def _calcular_binop(op, a, b):
             r = abs(a) % abs(b)
             return -r if a < 0 else r
         return a % b
+    if op == "&":
+        return a & b
+    if op == "|":
+        return a | b
+    if op == "^":
+        return a ^ b
+    if op in ("<<", ">>"):
+        if b < 0:
+            # Igual que interpreter.py::_aplicar_binario (IL-EJE-001).
+            raise ValueError(M("IL-EJE-001.desplazamiento_exponente_negativo"))
+        return a << b if op == "<<" else a >> b
     raise ValueError(f"operador no soportado: {op}")
+
+
+def _calcular_unop(op, v):
+    if op == "neg":
+        return -v
+    if op == "not":
+        return not v
+    if op == "bnot":
+        return ~v
+    raise ValueError(f"operador unario no soportado: {op}")
 
 
 def _es_entero(v):
@@ -951,8 +1146,8 @@ def plegado_constantes(instrucciones):
                         constantes[ins.resultado] = valor
                         cambios += 1
                         continue
-        if ins.op in ("neg", "not") and isinstance(ins.arg1, str) and ins.arg1 in constantes:
-            valor = (-constantes[ins.arg1]) if ins.op == "neg" else (not constantes[ins.arg1])
+        if ins.op in _UNOPS and isinstance(ins.arg1, str) and ins.arg1 in constantes:
+            valor = _calcular_unop(ins.op, constantes[ins.arg1])
             nuevas.append(Instr("const", valor, resultado=ins.resultado))
             constantes[ins.resultado] = valor
             cambios += 1
@@ -964,6 +1159,12 @@ def plegado_constantes(instrucciones):
             constantes[ins.resultado] = valor
             cambios += 1
             continue
+        if ins.op == "call":
+            # La subrutina llamada puede modificar cualquier variable global;
+            # solo los temporales (siempre locales a este marco) conservan
+            # su valor conocido a través de una llamada.
+            for nombre in [k for k in constantes if not isinstance(k, Temp)]:
+                del constantes[nombre]
         if ins.resultado is not None:
             constantes.pop(ins.resultado, None)
         nuevas.append(ins)
@@ -981,15 +1182,11 @@ def eliminar_codigo_muerto(instrucciones):
         for campo in (ins.arg1, ins.arg2, ins.arg3):
             if isinstance(campo, str):
                 usados.add(campo)
-    puras = _BINOPS | {"const", "copy", "neg", "not", "a_float", "array_get"}
+    puras = _BINOPS | set(_UNOPS) | {"const", "copy", "a_float", "array_get", "ncols"}
     nuevas = []
     cambios = 0
     for ins in instrucciones:
-        es_temp_no_usado = (
-            ins.resultado is not None
-            and ins.resultado.startswith("t")
-            and ins.resultado not in usados
-        )
+        es_temp_no_usado = isinstance(ins.resultado, Temp) and ins.resultado not in usados
         if ins.op in puras and es_temp_no_usado:
             cambios += 1
             continue
@@ -1066,6 +1263,14 @@ def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
     """
     etq_inicio = f"__tco_{nombre_funcion}_inicio"
     nuevas = [Instr("label", etq_inicio)]
+    siguiente_temp = max(
+        (
+            int(ins.resultado[1:])
+            for ins in instrucciones
+            if isinstance(ins.resultado, Temp) and ins.resultado[1:].isdigit()
+        ),
+        default=0,
+    )
     cambios = 0
     i = 0
     n = len(instrucciones)
@@ -1101,8 +1306,18 @@ def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
                 # aritmética, ...) quedan en `nuevas` sin su 'param' -- se
                 # vuelven temporales muertos que `eliminar_codigo_muerto`
                 # (la pasada siguiente en optimizar_programa) limpia solo.
-                for nombre_param, val in zip(nombres_parametros, valores, strict=True):
-                    nuevas.append(Instr("copy", val, resultado=nombre_param))
+                # Asignación PARALELA: primero se copian todos los valores a
+                # temporales nuevos y solo después a los parámetros. Copiar
+                # directo rompía `f(b, a)` (intercambio): `a = b; b = a`
+                # dejaba ambos parámetros con el valor de `b`.
+                intermedios = []
+                for val in valores:
+                    siguiente_temp += 1
+                    tmp = Temp(f"t{siguiente_temp}")
+                    nuevas.append(Instr("copy", val, resultado=tmp))
+                    intermedios.append(tmp)
+                for nombre_param, tmp in zip(nombres_parametros, intermedios, strict=True):
+                    nuevas.append(Instr("copy", tmp, resultado=nombre_param))
                 nuevas.append(Instr("goto", etq_inicio))
                 cambios += 1
                 i += 2  # el 'call' y el 'return' que lo sigue, ya reemplazados
@@ -1120,6 +1335,24 @@ _PASADAS = (
     ("eliminación de código muerto", eliminar_codigo_muerto),
     ("peephole (saltos redundantes)", peephole_saltos_redundantes),
 )
+
+
+# INV-1401: los nombres internos de las pasadas siguen siendo la identidad
+# estable del resumen (las pruebas y la GUI los usan como clave); lo que ve
+# el estudiante se presenta desde el catalogo i18n con esta tabla.
+CLAVES_PASADAS = {
+    "plegado de constantes": "IR.pasada.plegado_constantes",
+    "eliminación de código inalcanzable": "IR.pasada.inalcanzable",
+    "eliminación de código muerto": "IR.pasada.codigo_muerto",
+    "peephole (saltos redundantes)": "IR.pasada.peephole",
+    "eliminación de recursión de cola": "IR.pasada.recursion_cola",
+}
+
+
+def nombre_pasada(nombre, idioma=None):
+    """Nombre presentable de una pasada de optimización en `idioma`."""
+    clave = CLAVES_PASADAS.get(nombre)
+    return t(clave, idioma) if clave else nombre
 
 
 def optimizar(instrucciones, rondas=3):
@@ -1177,6 +1410,21 @@ def optimizar_programa(subrutinas):
 # ============================================================
 
 
+def _ejecutar_globales(ir_globales):
+    """Ejecuta el TAC de las globales y devuelve el dict de globales.
+
+    Los temporales usados para calcularlas se descartan al terminar: si se
+    quedaban en las globales, `_escribir_var` escribía los temporales de
+    cada subrutina sobre esas globales homónimas (`t1`, `t2`, ...) y una
+    llamada recursiva pisaba los temporales de su llamador.
+    """
+    globales = {}
+    MaquinaTAC({}, ir_globales)._ejecutar_lista(ir_globales, globales)
+    for nombre in [k for k in globales if isinstance(k, Temp)]:
+        del globales[nombre]
+    return globales
+
+
 class MaquinaTAC:
     """Intérprete lineal de TAC. Modelo de ámbitos deliberadamente simple.
 
@@ -1189,9 +1437,12 @@ class MaquinaTAC:
     el intérprete de producción.
     """
 
-    def __init__(self, subrutinas, ir_globales):
+    def __init__(self, subrutinas, ir_globales, idioma=None):
         self.subrutinas = subrutinas  # nombre -> (parametros, instrucciones)
         self.ir_globales = ir_globales
+        # INV-1400: idioma del texto que recibe `e.mensaje` dentro de un catch
+        # (None = idioma del proceso), igual que el interprete de arbol.
+        self.idioma = idioma
         self.globales = {}
         self.salida = []
         self.entrada = []
@@ -1200,8 +1451,7 @@ class MaquinaTAC:
         """Ejecuta el programa."""
         self.entrada = list(entrada) if entrada else []
         self.salida = []
-        self.globales = {}
-        self._ejecutar_lista(self.ir_globales, self.globales)
+        self.globales = _ejecutar_globales(self.ir_globales)
         self._llamar("main", [])
         return self.salida
 
@@ -1232,10 +1482,13 @@ class MaquinaTAC:
         return self._contenedor(operando, marco).get(operando)
 
     def _escribir_var(self, nombre, valor, marco):
-        # Ya existe como local o global: escribe ahí. Primera aparición
-        # (declaración): nace en el marco local actual.
-        cont = marco if nombre in marco else (self.globales if nombre in self.globales else marco)
-        cont[nombre] = valor
+        # Temporales y declaraciones locales nacen siempre en el marco
+        # actual; cualquier otro nombre se escribe donde ya exista (local o
+        # global) y, si no existe, en el marco actual.
+        if _es_nombre_de_marco(nombre) or nombre in marco or nombre not in self.globales:
+            marco[nombre] = valor
+        else:
+            self.globales[nombre] = valor
 
     def _ejecutar_lista(self, instrucciones, marco):
         etiquetas = {ins.arg1: i for i, ins in enumerate(instrucciones) if ins.op == "label"}
@@ -1260,6 +1513,10 @@ class MaquinaTAC:
                     b = self._leer_var(ins.arg2, marco)
                     try:
                         resultado = _calcular_binop(op, a, b)
+                    except ValueError as e:
+                        raise ErrorEjecucionTAC(
+                            "IL-EJE-001", e.args[0] if e.args else str(e)
+                        ) from e
                     except ZeroDivisionError as e:
                         # Misma distinción que interpreter.py::_error_division_cero:
                         # '/' entre reales -> IL-EJE-002, entre enteros -> IL-EJE-006;
@@ -1267,17 +1524,23 @@ class MaquinaTAC:
                         if op == "/" and (_es_real(a) or _es_real(b)):
                             raise ErrorEjecucionTAC(
                                 "IL-EJE-002",
-                                "Operación de punto flotante inválida: división entre 0.0",
+                                M("IL-EJE-002.operacion_punto_flotante_invalida"),
                             ) from e
                         raise ErrorEjecucionTAC(
                             "IL-EJE-006",
-                            "División por cero" if op == "/" else "División por cero en módulo",
+                            M(
+                                "IL-EJE-006.division_cero"
+                                if op == "/"
+                                else "IL-EJE-006.division_cero_modulo"
+                            ),
                         ) from e
                     self._escribir_var(ins.resultado, resultado, marco)
-                elif op == "neg":
-                    self._escribir_var(ins.resultado, -self._leer_var(ins.arg1, marco), marco)
-                elif op == "not":
-                    self._escribir_var(ins.resultado, not self._leer_var(ins.arg1, marco), marco)
+                elif op in _UNOPS:
+                    v = _calcular_unop(op, self._leer_var(ins.arg1, marco))
+                    self._escribir_var(ins.resultado, v, marco)
+                elif op == "ncols":
+                    arr = self._contenedor(ins.arg1, marco)[ins.arg1]
+                    self._escribir_var(ins.resultado, arr.cols, marco)
                 elif op == "a_float":
                     v = self._leer_var(ins.arg1, marco)
                     self._escribir_var(ins.resultado, float(v) if _es_entero(v) else v, marco)
@@ -1305,18 +1568,28 @@ class MaquinaTAC:
                 elif op == "read":
                     self._escribir_var(ins.resultado, self._leer_entrada(ins.arg1), marco)
                 elif op == "array_new":
-                    marco[ins.arg1] = [None] * self._leer_var(ins.arg2, marco)
+                    tam = self._leer_var(ins.arg2, marco)
+                    if ins.arg3 is None:
+                        marco[ins.arg1] = [None] * tam
+                    else:
+                        matriz = _Matriz([None] * tam)
+                        matriz.cols = self._leer_var(ins.arg3, marco)
+                        marco[ins.arg1] = matriz
                 elif op == "array_get":
                     arr = self._contenedor(ins.arg1, marco)[ins.arg1]
                     idx = self._leer_var(ins.arg2, marco)
                     if idx < 0 or idx >= len(arr):
-                        raise ErrorEjecucionTAC("IL-EJE-050", f"Índice {idx} fuera de rango")
+                        raise ErrorEjecucionTAC(
+                            "IL-EJE-050", M("IL-EJE-050.indice_fuera_rango_2", idx=idx)
+                        )
                     self._escribir_var(ins.resultado, arr[idx], marco)
                 elif op == "array_set":
                     arr = self._contenedor(ins.arg1, marco)[ins.arg1]
                     idx = self._leer_var(ins.arg2, marco)
                     if idx < 0 or idx >= len(arr):
-                        raise ErrorEjecucionTAC("IL-EJE-050", f"Índice {idx} fuera de rango")
+                        raise ErrorEjecucionTAC(
+                            "IL-EJE-050", M("IL-EJE-050.indice_fuera_rango_2", idx=idx)
+                        )
                     arr[idx] = self._leer_var(ins.arg3, marco)
                 elif op == "try_begin":
                     pila_manejadores.append((ins.arg1, ins.arg2))
@@ -1333,7 +1606,10 @@ class MaquinaTAC:
                     raise
                 etq_catch, nombre_catch = pila_manejadores.pop()
                 marco[f"{nombre_catch}.codigo"] = err.codigo
-                marco[f"{nombre_catch}.mensaje"] = err.mensaje
+                marco[f"{nombre_catch}.mensaje"] = texto(err.mensaje, self.idioma)
+                # INV-1404: alias en inglés (`e.code`/`e.message`).
+                marco[f"{nombre_catch}.code"] = err.codigo
+                marco[f"{nombre_catch}.message"] = marco[f"{nombre_catch}.mensaje"]
                 i = etiquetas[etq_catch]
                 continue
             i += 1
@@ -1465,7 +1741,13 @@ _MAPA_BINOP_OBJETIVO = {
     "<=": "CMPLE",
     ">": "CMPGT",
     ">=": "CMPGE",
+    "&": "AND",
+    "|": "OR",
+    "^": "XOR",
+    "<<": "SHL",
+    ">>": "SHR",
 }
+_MAPA_OBJETIVO_BINOP = {v: k for k, v in _MAPA_BINOP_OBJETIVO.items()}
 
 _NO_SOPORTADOS_OBJETIVO = {
     "array_new",
@@ -1475,6 +1757,7 @@ _NO_SOPORTADOS_OBJETIVO = {
     "try_end",
     "pop_manejador",
     "read",
+    "ncols",
 }
 
 
@@ -1522,7 +1805,7 @@ def _usos_defs_instr(ins):
         return set(), set()
     if op == "const":
         return set(), _s(ins.resultado)
-    if op in ("copy", "neg", "not", "a_float"):
+    if op in ("copy", "a_float", "ncols") or op in _UNOPS:
         return _s(ins.arg1), _s(ins.resultado)
     if op in _BINOPS:
         return _s(ins.arg1) | _s(ins.arg2), _s(ins.resultado)
@@ -1680,47 +1963,56 @@ def generar_objetivo_subrutina(instrucciones, asignacion=None):
             return nombre
         return asignacion.get(nombre, nombre)
 
+    def _cargar(operando):
+        # Un operando que no es str es un literal inmediato (el `1` de
+        # `i++`, un índice constante...). Antes se emitía `LOAD 1` y
+        # MaquinaObjetivo buscaba una variable llamada 1 -> None, así que
+        # cualquier programa con ++/-- fallaba en el código objetivo.
+        if isinstance(operando, str):
+            return InstrObjetivo("LOAD", _ren(operando))
+        return InstrObjetivo("PUSH", operando)
+
     salida = []
     for ins in instrucciones:
         op = ins.op
         if op in _NO_SOPORTADOS_OBJETIVO:
-            raise NoSoportadoObjetivo(
-                f'"{op}" no está soportado por el generador de código '
-                f"objetivo (alcance: subconjunto estructurado sin arreglos "
-                f'ni try/catch). Ver ir.py, sección "Etapa 12.11".'
-            )
+            raise NoSoportadoObjetivo(M("IR.objetivo.no_esta_soportado_generador", op=op))
         if op == "label":
             salida.append(InstrObjetivo("LABEL", ins.arg1))
         elif op == "const":
             salida.append(InstrObjetivo("PUSH", ins.arg1))
             salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
         elif op == "copy":
-            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(_cargar(ins.arg1))
             salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
         elif op in _BINOPS:
-            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
-            salida.append(InstrObjetivo("LOAD", _ren(ins.arg2)))
+            salida.append(_cargar(ins.arg1))
+            salida.append(_cargar(ins.arg2))
             salida.append(InstrObjetivo(_MAPA_BINOP_OBJETIVO[op]))
             salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
         elif op == "neg":
-            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(_cargar(ins.arg1))
             salida.append(InstrObjetivo("NEG"))
             salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
         elif op == "not":
-            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(_cargar(ins.arg1))
             salida.append(InstrObjetivo("NOT"))
             salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
+        elif op == "bnot":
+            salida.append(_cargar(ins.arg1))
+            salida.append(InstrObjetivo("BNOT"))
+            salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
         elif op == "a_float":
-            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(_cargar(ins.arg1))
             salida.append(InstrObjetivo("CVTF"))
             salida.append(InstrObjetivo("STORE", _ren(ins.resultado)))
         elif op == "goto":
             salida.append(InstrObjetivo("JMP", ins.arg1))
         elif op == "if_false":
-            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(_cargar(ins.arg1))
             salida.append(InstrObjetivo("JZ", ins.arg2))
         elif op == "param":
-            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(_cargar(ins.arg1))
             salida.append(InstrObjetivo("PUSHPARAM"))
         elif op == "call":
             if ins.resultado is not None:
@@ -1730,17 +2022,15 @@ def generar_objetivo_subrutina(instrucciones, asignacion=None):
                 salida.append(InstrObjetivo("CALLV", ins.arg1, ins.arg2))
         elif op == "return":
             if ins.arg1 is not None:
-                salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+                salida.append(_cargar(ins.arg1))
                 salida.append(InstrObjetivo("RETV"))
             else:
                 salida.append(InstrObjetivo("RET"))
         elif op == "print":
-            salida.append(InstrObjetivo("LOAD", _ren(ins.arg1)))
+            salida.append(_cargar(ins.arg1))
             salida.append(InstrObjetivo("PRINT"))
         else:
-            raise NoSoportadoObjetivo(
-                f'"{op}" no está soportado por el generador de código objetivo.'
-            )
+            raise NoSoportadoObjetivo(M("IR.objetivo.no_esta_soportado_generador_2", op=op))
     return salida
 
 
@@ -1768,6 +2058,18 @@ def generar_objetivo_programa(subrutinas, k_registros=None):
         if k_registros:
             vivo_in, vivo_out = calcular_liveness(instrs)
             rangos = calcular_rangos_vida(instrs, vivo_in, vivo_out)
+            # Solo temporales, locales declarados y parámetros pueden ir a
+            # registro: una GLOBAL renombrada a 'R2' se escribía en el marco
+            # de la llamada y la global real nunca cambiaba (bit_a_bit.inv).
+            locales = {str(i.resultado) for i in instrs if isinstance(i.resultado, Local)}
+            elegibles = locales | set(params)
+            rangos = {n: r for n, r in rangos.items() if isinstance(n, Temp) or str(n) in elegibles}
+            # Todos los parámetros llegan VIVOS a la entrada, a la vez: si el
+            # rango de uno empezaba tarde, dos parámetros podían compartir
+            # registro y uno pisaba al otro al armar el marco (hanoi.inv).
+            for p in params:
+                if p in rangos:
+                    rangos[p] = (0, rangos[p][1])
             asignacion, spills = asignar_registros(rangos, k_registros)
             resumen[nombre] = (asignacion, spills)
             params = [asignacion.get(p, p) for p in params]
@@ -1801,12 +2103,11 @@ class MaquinaObjetivo:
         """Ejecuta el programa."""
         self.entrada = list(entrada) if entrada else []
         self.salida = []
-        self.globales = {}
         # Las declaraciones globales son TAC sin traducir -- se ejecutan con
         # la misma lógica que MaquinaTAC (no hay control de flujo real en
         # ellas, solo 'const'/'copy'/binops), reutilizada aquí sin duplicar
         # código.
-        MaquinaTAC({}, self.ir_globales)._ejecutar_lista(self.ir_globales, self.globales)
+        self.globales = _ejecutar_globales(self.ir_globales)
         self._llamar("main", [])
         return self.salida
 
@@ -1830,8 +2131,10 @@ class MaquinaObjetivo:
         return self._contenedor(nombre, marco).get(nombre)
 
     def _escribir_var(self, nombre, valor, marco):
-        cont = marco if nombre in marco else (self.globales if nombre in self.globales else marco)
-        cont[nombre] = valor
+        if _es_nombre_de_marco(nombre) or nombre in marco or nombre not in self.globales:
+            marco[nombre] = valor
+        else:
+            self.globales[nombre] = valor
 
     def _ejecutar_lista(self, instrucciones, marco):
         etiquetas = {ins.arg1: i for i, ins in enumerate(instrucciones) if ins.op == "LABEL"}
@@ -1850,37 +2153,33 @@ class MaquinaObjetivo:
                 pila.append(self._leer_var(ins.arg1, marco))
             elif op == "STORE":
                 self._escribir_var(ins.arg1, pila.pop(), marco)
-            elif op in (
-                "ADD",
-                "SUB",
-                "MUL",
-                "DIV",
-                "MOD",
-                "CMPEQ",
-                "CMPNE",
-                "CMPLT",
-                "CMPLE",
-                "CMPGT",
-                "CMPGE",
-            ):
+            elif op in _MAPA_OBJETIVO_BINOP:
                 b = pila.pop()
                 a = pila.pop()
-                simbolo = {v: k for k, v in _MAPA_BINOP_OBJETIVO.items()}[op]
+                simbolo = _MAPA_OBJETIVO_BINOP[op]
                 try:
                     pila.append(_calcular_binop(simbolo, a, b))
+                except ValueError as e:
+                    raise ErrorEjecucionTAC("IL-EJE-001", e.args[0] if e.args else str(e)) from e
                 except ZeroDivisionError as e:
                     if simbolo == "/" and (_es_real(a) or _es_real(b)):
                         raise ErrorEjecucionTAC(
-                            "IL-EJE-002", "Operación de punto flotante inválida: división entre 0.0"
+                            "IL-EJE-002", M("IL-EJE-002.operacion_punto_flotante_invalida")
                         ) from e
                     raise ErrorEjecucionTAC(
                         "IL-EJE-006",
-                        "División por cero" if simbolo == "/" else "División por cero en módulo",
+                        M(
+                            "IL-EJE-006.division_cero"
+                            if simbolo == "/"
+                            else "IL-EJE-006.division_cero_modulo"
+                        ),
                     ) from e
             elif op == "NEG":
                 pila.append(-pila.pop())
             elif op == "NOT":
                 pila.append(not pila.pop())
+            elif op == "BNOT":
+                pila.append(~pila.pop())
             elif op == "CVTF":
                 v = pila.pop()
                 pila.append(float(v) if _es_entero(v) else v)

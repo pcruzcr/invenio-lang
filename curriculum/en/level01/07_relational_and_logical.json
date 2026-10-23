@@ -1,0 +1,23 @@
+{
+  "id": "N01-E07",
+  "nivel": 1,
+  "numero": 7,
+  "idioma": "en",
+  "titulo": "Relational and logical operators",
+  "enunciado": "With x=8 evaluate: x > 5, x == 10, x != 10, x >= 8 && x < 10, x < 0 || x > 7 and !(x > 5). Show each boolean result on its own line.",
+  "objetivos": [
+    "Compare values with < > <= >= == !=",
+    "Combine conditions with && || !"
+  ],
+  "pistas": [
+    "A comparison produces true or false.",
+    "&& is true only if both parts are.",
+    "|| is true if at least one part is; ! negates."
+  ],
+  "conceptos": [
+    "comparison",
+    "conjunction",
+    "disjunction",
+    "negation"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N11-E01",
+  "nivel": 11,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Binary search tree: insertion",
+  "enunciado": "Insert 50, 30, 70, 20, 40, 60, 80, 30 into a BST (duplicates are ignored) and show the in-order traversal, which must come out sorted. Also show the left and right children of the root.",
+  "objetivos": [
+    "Implement recursive BST insertion",
+    "See that the in-order traversal of a BST is sorted"
+  ],
+  "pistas": [
+    "Smaller to the left, larger to the right.",
+    "If the subtree is null, that is where the new node goes.",
+    "In-order: left, root, right."
+  ],
+  "conceptos": [
+    "BST",
+    "recursion",
+    "in-order"
+  ]
+}

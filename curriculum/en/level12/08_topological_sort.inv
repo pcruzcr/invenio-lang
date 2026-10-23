@@ -1,0 +1,42 @@
+// Level 12 · Exercise 08 — Topological sort (Kahn)
+// Learning goals:
+//   - Model dependencies with a directed graph
+//   - Implement Kahn's algorithm with in-degrees
+//
+const int N = 6;
+int [N][N] adj;
+
+void main() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) { adj[i][j] = 0; }
+    }
+    adj[0][2] = 1; adj[1][2] = 1; adj[1][3] = 1;
+    adj[2][4] = 1; adj[3][4] = 1; adj[4][5] = 1;
+
+    int [N] inDegree;
+    bool [N] taken;
+    for (int v = 0; v < N; v++) {
+        inDegree[v] = 0;
+        taken[v] = false;
+        for (int u = 0; u < N; u++) {
+            inDegree[v] += adj[u][v];
+        }
+    }
+    print("order:");
+    for (int k = 0; k < N; k++) {
+        int u = -1;
+        for (int v = 0; v < N && u == -1; v++) {
+            if (!taken[v] && inDegree[v] == 0) {
+                u = v;   // the smallest vertex with no pending dependencies
+            }
+        }
+        taken[u] = true;
+        print(" "); print(u);
+        for (int v = 0; v < N; v++) {
+            if (adj[u][v] == 1) {
+                inDegree[v] = inDegree[v] - 1;
+            }
+        }
+    }
+    print("\n");
+}

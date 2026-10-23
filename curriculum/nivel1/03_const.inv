@@ -1,1 +1,0 @@
-void main(){ const int N=10; imprimir(N*2); }

@@ -1,0 +1,21 @@
+{
+  "id": "N04-E06",
+  "nivel": 4,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Recursive binary search",
+  "enunciado": "Implement binary search recursively and use it to search each value from 0 to 10 in {1, 3, 4, 6, 9}, showing the position or -1.",
+  "objetivos": [
+    "Express binary search as recursion",
+    "Identify the two base cases"
+  ],
+  "pistas": [
+    "Base case 1: lo > hi, it is not there.",
+    "Base case 2: a[mid] == x.",
+    "Recurse only on the half that may contain x."
+  ],
+  "conceptos": [
+    "recursion",
+    "binary search"
+  ]
+}

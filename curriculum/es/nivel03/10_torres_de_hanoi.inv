@@ -1,0 +1,29 @@
+// Nivel 3 · Ejercicio 10 — Torres de Hanói
+// Objetivos:
+//   - Confiar en la recursión: resolver n usando la solución de n - 1
+//   - Relacionar la recursión con 2^n - 1 movimientos
+//
+entero movimientos = 0;
+
+vacio hanoi(entero n, texto origen, texto destino, texto auxiliar, logico mostrarPasos) {
+    si (n == 0) {
+        retornar;
+    }
+    // 1) Apartar los n - 1 discos de arriba en el poste auxiliar.
+    hanoi(n - 1, origen, auxiliar, destino, mostrarPasos);
+    // 2) Mover el disco n, que ahora está libre, al destino.
+    movimientos++;
+    si (mostrarPasos) {
+        imprimir("disk "); imprimir(n); imprimir(": "); imprimir(origen + " -> " + destino + "\n");
+    }
+    // 3) Volver a poner los n - 1 discos encima del disco n.
+    hanoi(n - 1, auxiliar, destino, origen, mostrarPasos);
+}
+
+vacio main() {
+    hanoi(3, "A", "C", "B", verdadero);
+    imprimir("moves = "); imprimir(movimientos); imprimir("\n");
+    movimientos = 0;
+    hanoi(10, "A", "C", "B", falso);
+    imprimir("moves(10) = "); imprimir(movimientos); imprimir("\n");
+}

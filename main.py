@@ -1,4 +1,4 @@
-# InvenioLang 2.0 - Punto de entrada principal
+# InvenioLang 11 - Punto de entrada principal
 # Curso: TIIT2002.2 Lenguajes Formales II
 # Universidad Invenio
 #
@@ -46,7 +46,9 @@ def main():
         from inveniolang.cli import main as cli_main
         return cli_main()
 
-    if len(sys.argv) < 2 or '--gui' in sys.argv:
+    # INV-5001: `--gui-tk` solo también abre la GUI; antes exigía `--gui` y
+    # caía al CLI, que rechazaba la opción como desconocida.
+    if len(sys.argv) < 2 or '--gui' in sys.argv or '--gui-tk' in sys.argv:
         # GUI principal: PySide6 (Qt). Si no está disponible, respaldo a Tk.
         if '--gui-tk' in sys.argv:
             from inveniolang.gui_tk import main as gui_main
@@ -60,11 +62,15 @@ def main():
         return 0
 
     if '--version' in sys.argv:
-        print("InvenioLang 10.0.0")
+        # INV-4408: la versión sale de la fuente única (_version.py); antes
+        # estaba escrita a mano aquí y se quedaba atrás en cada versión.
+        from inveniolang._version import __version__
+        print(f"InvenioLang {__version__}")
         return 0
 
     if '--help' in sys.argv:
-        print("InvenioLang 10.0 - Compilador Educativo")
+        from inveniolang._version import __version__
+        print(f"InvenioLang {__version__} - Compilador Educativo")
         print("Universidad Invenio - TIIT2002.2 Lenguajes Formales II")
         print("")
         print("Uso:")

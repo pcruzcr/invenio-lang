@@ -23,7 +23,7 @@ def main():
     from inveniolang.config import Config
     from inveniolang.core import COMPILER_VERSION
 
-    if not (pkg_v == COMPILER_VERSION == Config().compiler_version == "10.0.0"):
+    if not (pkg_v == COMPILER_VERSION == Config().compiler_version == "11.0.0"):
         ok = fallo(f"versiones divergentes {pkg_v}/{COMPILER_VERSION}") and False
     # 2. SBOM y lock existen
     for f in ("SBOM.json", "requirements-lock.txt", "docs/QUICKSTART_EN.md"):
@@ -54,16 +54,16 @@ def main():
         rr = api.ejecutar(cod)
         if not (rr.ok and fragmento in "".join(rr.salida)):
             ok = fallo(f"{nombre}: {rr.errores if not rr.ok else ''.join(rr.salida)}") and False
-    # 5. LSP/presupuestos/policy importables
+    # 5. LSP/presupuestos importables (policy.py se eliminó: era un alias de
+    #    api.ejecutar_aislado, INV-1025)
     try:
-        from inveniolang import budgets, lsp, policy  # noqa: F401
+        from inveniolang import budgets, lsp  # noqa: F401
         from inveniolang.observability import PipelineMetrics
 
         mm = PipelineMetrics()
         with mm.mide("smoke"):
             pass
         assert budgets.evaluar_metricas(mm)
-        assert "sandbox" in policy.AVISO_AULA
     except Exception as e:
         ok = fallo(f"plataforma: {e}") and False
     print("RELEASE_OK" if ok else "RELEASE_FAIL")

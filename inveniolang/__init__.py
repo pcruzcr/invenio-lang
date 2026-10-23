@@ -1,11 +1,13 @@
-# InvenioLang 10.0 - Compilador educativo para el curso Lenguajes Formales II
+# InvenioLang 11 - Compilador educativo para el curso Lenguajes Formales II
 # Universidad Invenio - TIIT2002.2
-# Paquete principal del compilador InvenioLang 10.0 - Producto estable
-__version__ = "10.0.0"
+# Paquete principal del compilador InvenioLang 11 - Producto estable
+from ._version import __version__ as __version__
+
 __stable__ = True
 
+# INV-1029: ya no se reexportan Any/Callable/Optional de `typing` (llegaban
+# al API público del paquete por el `import *` de ast_nodes).
 from .ast_nodes import (
-    Any,
     ArrayAccess,
     ArrayDecl,
     ArrayLValue,
@@ -18,7 +20,6 @@ from .ast_nodes import (
     BinaryOp,
     Bloque,
     BreakStmt,
-    Callable,
     CallStmt,
     Caso,
     CasoMatch,
@@ -58,7 +59,6 @@ from .ast_nodes import (
     MethodDecl,
     NewExpr,
     NullExpr,
-    Optional,
     Parametro,
     PrintStmt,
     ProcedureDecl,
@@ -101,7 +101,6 @@ __all__ = [
     "ASTNode",
     "ASTVisitor",
     "ASTWalker",
-    "Any",
     "ArrayAccess",
     "ArrayDecl",
     "ArrayLValue",
@@ -111,7 +110,6 @@ __all__ = [
     "Bloque",
     "BreakStmt",
     "CallStmt",
-    "Callable",
     "Caso",
     "CasoMatch",
     "ClassDecl",
@@ -155,7 +153,6 @@ __all__ = [
     "MetricsObserver",
     "NewExpr",
     "NullExpr",
-    "Optional",
     "Parametro",
     "Parser",
     "PipelineMetrics",

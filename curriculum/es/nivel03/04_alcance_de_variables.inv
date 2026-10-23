@@ -1,0 +1,32 @@
+// Nivel 3 · Ejercicio 04 — Alcance de variables
+// Objetivos:
+//   - Diferenciar variables globales y locales
+//   - Entender el ocultamiento (shadowing)
+//
+entero llamadas = 0;
+entero x = 100;
+
+vacio saludar() {
+    llamadas++;   // modifica la global
+}
+
+vacio usarLocal() {
+    entero x = 1;   // local: oculta a la global SOLO dentro de esta función
+    x = x + 1;
+    imprimir("local x = "); imprimir(x); imprimir("\n");
+}
+
+entero cuadrado(entero x) {
+    retornar x * x;   // aquí x es el parámetro, no la global
+}
+
+vacio main() {
+    saludar();
+    saludar();
+    saludar();
+    imprimir("calls = "); imprimir(llamadas); imprimir("\n");
+    usarLocal();
+    imprimir("square(3) = "); imprimir(cuadrado(3)); imprimir("\n");
+    // Al salir de usarLocal su x desaparece; la global sigue intacta.
+    imprimir("global x = "); imprimir(x); imprimir("\n");
+}

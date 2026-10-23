@@ -1,0 +1,73 @@
+// Level 13 · Exercise 03 — O(n²) versus O(n log n): bubble and merge sort
+// Learning goals:
+//   - Count comparisons in sorting algorithms
+//   - Watch how the gap grows as n increases
+//
+// Linear congruential pseudo-random generator: always the same sequence,
+// so the output is reproducible.
+int seed = 7;
+
+int nextRandom(int limit) {
+    seed = (seed * 1103 + 12345) % 65536;
+    return seed % limit;
+}
+
+const int MAX = 64;
+int comparisons = 0;
+
+void bubbleSort(int [] v, int n) {
+    for (int p = 0; p < n - 1; p++) {
+        for (int j = 0; j < n - 1 - p; j++) {
+            comparisons++;
+            if (v[j] > v[j + 1]) {
+                int tmp = v[j];
+                v[j] = v[j + 1];
+                v[j + 1] = tmp;
+            }
+        }
+    }
+}
+
+void merge(int [] v, int left, int mid, int right) {
+    int [MAX] tmp;
+    int i = left;
+    int j = mid + 1;
+    int k = left;
+    while (i <= mid && j <= right) {
+        comparisons++;
+        if (v[i] <= v[j]) { tmp[k] = v[i]; i++; } else { tmp[k] = v[j]; j++; }
+        k++;
+    }
+    while (i <= mid) { tmp[k] = v[i]; i++; k++; }
+    while (j <= right) { tmp[k] = v[j]; j++; k++; }
+    for (int x = left; x <= right; x++) { v[x] = tmp[x]; }
+}
+
+void mergeSort(int [] v, int left, int right) {
+    if (left < right) {
+        int mid = (left + right) / 2;
+        mergeSort(v, left, mid);
+        mergeSort(v, mid + 1, right);
+        merge(v, left, mid, right);
+    }
+}
+
+void main() {
+    int [MAX] a;
+    int [MAX] b;
+    print("n\tbubble\tmerge\tratio\n");
+    for (int n = 8; n <= MAX; n = n * 2) {
+        for (int i = 0; i < n; i++) {
+            a[i] = nextRandom(1000);
+            b[i] = a[i];   // the same input for both
+        }
+        comparisons = 0;
+        bubbleSort(a, n);
+        int cb = comparisons;
+        comparisons = 0;
+        mergeSort(b, 0, n - 1);
+        int cm = comparisons;
+        print(n); print("\t"); print(cb); print("\t"); print(cm); print("\t");
+        print(cb / cm); print("\n");
+    }
+}

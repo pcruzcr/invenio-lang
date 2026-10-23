@@ -1,0 +1,23 @@
+// Nivel 6 · Ejercicio 08 — Triángulo de Pascal
+// Objetivos:
+//   - Calcular cada celda a partir de celdas ya calculadas
+//   - Introducir la programación dinámica
+//
+constante entero FILAS = 7;
+
+vacio main() {
+    entero [FILAS][FILAS] p;
+    para (entero i = 0; i < FILAS; i++) {
+        p[i][0] = 1;
+        p[i][i] = 1;
+        para (entero j = 1; j < i; j++) {
+            p[i][j] = p[i - 1][j - 1] + p[i - 1][j];   // usa la fila anterior
+        }
+    }
+    para (entero i = 0; i < FILAS; i++) {
+        para (entero j = 0; j <= i; j++) {
+            imprimir(p[i][j]); imprimir(" ");
+        }
+        imprimir("\n");
+    }
+}

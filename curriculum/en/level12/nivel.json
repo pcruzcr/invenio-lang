@@ -1,0 +1,16 @@
+{
+  "nivel": 12,
+  "titulo": "Graphs",
+  "descripcion": "Represent relationships with adjacency matrices and lists, traverse them (BFS, DFS) and solve classic problems: shortest paths, components, topological order and cycles.",
+  "temas": [
+    "adjacency matrix",
+    "adjacency list",
+    "BFS and DFS",
+    "unweighted shortest path",
+    "connected components",
+    "Dijkstra",
+    "topological sort",
+    "cycle detection"
+  ],
+  "idioma": "en"
+}

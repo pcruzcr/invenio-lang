@@ -1,0 +1,42 @@
+// Level 6 · Exercise 09 — Rotate a matrix 90 degrees
+// Learning goals:
+//   - Compose matrix transformations
+//   - Reuse the in-place transpose
+//
+const int N = 3;
+
+void printMatrix(int [][] m, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            print(m[i][j]);
+            if (j < cols - 1) {
+                print("\t");
+            }
+        }
+        print("\n");
+    }
+}
+
+void main() {
+    int [N][N] m = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    for (int i = 0; i < N; i++) {
+        for (int j = i + 1; j < N; j++) {
+            int tmp = m[i][j];
+            m[i][j] = m[j][i];
+            m[j][i] = tmp;
+        }
+    }
+    // Step 2: reverse each row (horizontal mirror).
+    for (int i = 0; i < N; i++) {
+        int left = 0;
+        int right = N - 1;
+        while (left < right) {
+            int tmp = m[i][left];
+            m[i][left] = m[i][right];
+            m[i][right] = tmp;
+            left++;
+            right--;
+        }
+    }
+    printMatrix(m, N, N);
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N04-E11",
+  "nivel": 4,
+  "numero": 11,
+  "idioma": "es",
+  "titulo": "Sumas prefijas",
+  "enunciado": "Calcula el arreglo de sumas prefijas de {5, 2, 8, 1, 9, 3, 7} (prefijo[i] = suma de a[0..i-1], con prefijo[0] = 0) y úsalo para responder la suma de los rangos [1, 3], [0, 6] y [4, 5] con una sola resta cada uno.",
+  "objetivos": [
+    "Precalcular para responder consultas rápido",
+    "Razonar con índices desplazados"
+  ],
+  "pistas": [
+    "prefijo tiene n + 1 posiciones.",
+    "prefijo[i + 1] = prefijo[i] + a[i].",
+    "suma(i..j) = prefijo[j + 1] - prefijo[i]."
+  ],
+  "conceptos": [
+    "suma prefija",
+    "precálculo"
+  ]
+}

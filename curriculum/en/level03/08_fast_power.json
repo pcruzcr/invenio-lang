@@ -1,0 +1,21 @@
+{
+  "id": "N03-E08",
+  "nivel": 3,
+  "numero": 8,
+  "idioma": "en",
+  "titulo": "Fast exponentiation",
+  "enunciado": "Implement a recursive power(b, e) using b^e = (b^(e/2))^2 if e is even and b * b^(e-1) if it is odd. Show 2^10, 3^7, 5^0 and 7^9, and the number of multiplications for 2^30.",
+  "objetivos": [
+    "Design a recursion that halves the problem",
+    "Count operations"
+  ],
+  "pistas": [
+    "Base case: e == 0 returns 1.",
+    "Compute the half ONCE and keep it in a variable.",
+    "For e = 30 very few multiplications are needed, not 30."
+  ],
+  "conceptos": [
+    "divide and conquer",
+    "recursion"
+  ]
+}

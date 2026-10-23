@@ -1,0 +1,45 @@
+// Nivel 9 · Ejercicio 01 — Herencia
+// Objetivos:
+//   - Heredar atributos y métodos con hereda/extends
+//   - Llamar al constructor del padre con padre(...)/super(...)
+//   - Reutilizar el método del padre con padre.metodo()
+//
+clase Empleado {
+    publico texto nombre;
+    publico entero salario;
+
+    Empleado(texto n, entero s) {
+        este.nombre = n;
+        este.salario = s;
+    }
+
+    publico entero salarioTotal() {
+        retornar este.salario;
+    }
+
+    publico texto describir() {
+        // Llama a salarioTotal(): si el objeto es Gerente, se usa SU versión.
+        retornar este.nombre + ": " + entero_a_texto(este.salarioTotal());
+    }
+}
+
+clase Gerente hereda Empleado {
+    publico entero bono;
+
+    Gerente(texto n, entero s, entero b) {
+        padre(n, s);
+        este.bono = b;
+    }
+
+    publico entero salarioTotal() {
+        retornar padre.salarioTotal() + este.bono;
+    }
+}
+
+vacio main() {
+    Empleado emp = nuevo Empleado("Luis", 1000);
+    Gerente ger = nuevo Gerente("Marta", 1500, 700);
+    imprimir(emp.describir()); imprimir("\n");
+    imprimir(ger.describir()); imprimir("\n");
+    imprimir(ger.salario); imprimir("\n");   // atributo heredado
+}

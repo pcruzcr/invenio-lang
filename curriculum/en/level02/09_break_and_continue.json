@@ -1,0 +1,21 @@
+{
+  "id": "N02-E09",
+  "nivel": 2,
+  "numero": 9,
+  "idioma": "en",
+  "titulo": "break and continue",
+  "enunciado": "Go through the numbers 1 to 20: skip multiples of 3 (continue) and stop the loop at the first multiple of 7 greater than 10 (break). Show the processed numbers on one line.",
+  "objetivos": [
+    "Skip an iteration with continue",
+    "Leave a loop with break"
+  ],
+  "pistas": [
+    "continue jumps straight to the next iteration.",
+    "break ends the loop immediately.",
+    "Trace iterations 12, 13 and 14 by hand."
+  ],
+  "conceptos": [
+    "break",
+    "continue"
+  ]
+}

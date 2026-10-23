@@ -1,0 +1,38 @@
+// Nivel 10 · Ejercicio 10 — Problema de Josefo con lista circular
+// Objetivos:
+//   - Construir una lista circular
+//   - Eliminar nodos mientras se recorre
+//
+clase Nodo {
+    publico entero valor;
+    publico Nodo siguiente;
+    Nodo(entero v) { este.valor = v; }
+}
+
+vacio main() {
+    entero n = 7;
+    entero salto = 3;
+    Nodo primero = nuevo Nodo(1);
+    Nodo ultimo = primero;
+    para (entero i = 2; i <= n; i++) {
+        Nodo nuevoNodo = nuevo Nodo(i);
+        ultimo.siguiente = nuevoNodo;
+        ultimo = nuevoNodo;
+    }
+    ultimo.siguiente = primero;   // cerrar el círculo
+
+    Nodo anterior = ultimo;
+    Nodo actual = primero;
+    imprimir("out:");
+    mientras (actual.siguiente != actual) {
+        para (entero k = 1; k < salto; k++) {
+            anterior = actual;
+            actual = actual.siguiente;
+        }
+        imprimir(" "); imprimir(actual.valor);
+        anterior.siguiente = actual.siguiente;   // sacar del círculo
+        actual = anterior.siguiente;
+    }
+    imprimir("\n");
+    imprimir("survivor = "); imprimir(actual.valor); imprimir("\n");
+}

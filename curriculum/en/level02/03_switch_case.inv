@@ -1,0 +1,26 @@
+// Level 2 · Exercise 03 — Multiple selection with switch
+// Learning goals:
+//   - Use switch / case / default
+//   - Take advantage of grouped cases (fall-through)
+//   - End each group with break
+//
+void main() {
+    for (int month = 1; month <= 12; month++) {
+        int days = 0;
+        switch (month) {
+            case 2:
+                days = 28;
+                break;
+            // Months with 30 days share one block.
+            case 4:
+            case 6:
+            case 9:
+            case 11:
+                days = 30;
+                break;
+            default:
+                days = 31;
+        }
+        print(month); print(": "); print(days); print("\n");
+    }
+}

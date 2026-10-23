@@ -1,0 +1,22 @@
+{
+  "id": "N11-E01",
+  "nivel": 11,
+  "numero": 1,
+  "idioma": "es",
+  "titulo": "Árbol binario de búsqueda: inserción",
+  "enunciado": "Inserta 50, 30, 70, 20, 40, 60, 80, 30 en un ABB (los duplicados se ignoran) y muestra el recorrido en orden, que debe salir ordenado. Muestra también el hijo izquierdo y derecho de la raíz.",
+  "objetivos": [
+    "Implementar la inserción recursiva en un ABB",
+    "Ver que el recorrido en orden de un ABB está ordenado"
+  ],
+  "pistas": [
+    "Menores a la izquierda, mayores a la derecha.",
+    "Si el subárbol es nulo, ahí va el nuevo nodo.",
+    "En orden: izquierdo, raíz, derecho."
+  ],
+  "conceptos": [
+    "ABB",
+    "recursión",
+    "en orden"
+  ]
+}

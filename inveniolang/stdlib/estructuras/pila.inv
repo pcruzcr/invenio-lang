@@ -1,0 +1,78 @@
+// estructuras/pila.inv -- Pila (LIFO: el último en entrar es el primero en salir)
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "estructuras/pila";
+//
+// Idea: cada elemento se guarda en un nodo que apunta al nodo de abajo.
+// La pila solo recuerda la CIMA; apilar y desapilar trabajan siempre ahí,
+// por eso las dos operaciones cuestan O(1) sin importar cuántos elementos
+// haya.
+//
+//      cima -> [ 3 ] -> [ 2 ] -> [ 1 ] -> nulo
+
+// Un nodo de la pila: un valor y el enlace al nodo que está debajo.
+clase NodoPila {
+    publico entero valor;
+    publico NodoPila abajo;
+
+    NodoPila(entero v, NodoPila siguiente) {
+        este.valor = v;
+        este.abajo = siguiente;
+    }
+}
+
+clase Pila {
+    privado NodoPila cima;
+    privado entero cantidad;
+
+    // Coloca v encima de todos los demás. O(1).
+    publico vacio apilar(entero v) {
+        este.cima = nuevo NodoPila(v, este.cima);
+        este.cantidad = este.cantidad + 1;
+    }
+
+    // Quita y devuelve el elemento de la cima. O(1).
+    // Error IL-EJE-060 si la pila está vacía.
+    publico entero desapilar() {
+        si (este.cima == nulo) {
+            lanzar_error("desapilar: la pila está vacía");
+        }
+        // InvenioLang accede a miembros de un solo nivel (a.b, no a.b.c):
+        // se toma primero el nodo de la cima en una variable.
+        NodoPila tope = este.cima;
+        este.cima = tope.abajo;
+        este.cantidad = este.cantidad - 1;
+        retornar tope.valor;
+    }
+
+    // Devuelve la cima SIN quitarla. O(1).
+    publico entero cima_valor() {
+        si (este.cima == nulo) {
+            lanzar_error("cima_valor: la pila está vacía");
+        }
+        NodoPila tope = este.cima;
+        retornar tope.valor;
+    }
+
+    publico logico esta_vacia() {
+        retornar este.cima == nulo;
+    }
+
+    publico entero tamano() {
+        retornar este.cantidad;
+    }
+
+    // Representación de la cima hacia el fondo, p. ej. "[3, 2, 1]".
+    publico texto a_texto() {
+        texto s = "[";
+        NodoPila actual = este.cima;
+        mientras (actual != nulo) {
+            s = s + entero_a_texto(actual.valor);
+            si (actual.abajo != nulo) {
+                s = s + ", ";
+            }
+            actual = actual.abajo;
+        }
+        retornar s + "]";
+    }
+}

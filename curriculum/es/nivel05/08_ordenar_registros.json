@@ -1,0 +1,23 @@
+{
+  "id": "N05-E08",
+  "nivel": 5,
+  "numero": 8,
+  "idioma": "es",
+  "titulo": "Ordenar registros con arreglos paralelos",
+  "enunciado": "Tienes nombres {\"Ana\", \"Luis\", \"Eva\", \"Juan\", \"Sofi\"} y puntos {85, 92, 85, 70, 92}. Ordénalos de mayor a menor puntaje con inserción (estable), moviendo nombre y puntos juntos. Observa que los empates conservan su orden original.",
+  "objetivos": [
+    "Mantener sincronizados arreglos paralelos",
+    "Entender la estabilidad de un ordenamiento",
+    "Ordenar de forma descendente"
+  ],
+  "pistas": [
+    "Cada vez que muevas un puntaje, mueve también su nombre.",
+    "Para descendente desplaza mientras puntos[j] < clave.",
+    "Con < estricto, los empates no se adelantan: el orden es estable."
+  ],
+  "conceptos": [
+    "arreglos paralelos",
+    "estabilidad",
+    "orden descendente"
+  ]
+}

@@ -6,7 +6,7 @@
 
 | Criterio | Implementado | Detalle |
 |----------|--------------|---------|
-| **Nombres accesibles** | ✅ | `accessibility.py::describir_widget` asigna `AccessibleName/Description` a cada widget interactivo; lectores NVDA/JAWS/Orca anuncian correctamente |
+| **Nombres accesibles** | ⚠️ parcial | La IDE asigna `AccessibleName` al editor y a la consola; el resto de widgets aún no (el helper `describir_widget` nunca se llegó a usar y se eliminó, INV-1027) |
 | **Alto contraste** | ✅ | Tema `TEMA_ALTO_CONTRASTE` 7:1 (negro #000 / blanco #fff / amarillo #ff0) — menú Ver → Tema |
 | **Escalado de fuente** | ✅ | `Ctrl++`/`Ctrl+-`/`Ctrl+0` (9–24 pt), se persiste en `QSettings`; fuente dislexia-friendly si está instalada |
 | **Foco visible** | ✅ | `linea_activa` + borde de gutter; navegación `Tab`/`Shift+Tab` completa |
@@ -14,7 +14,7 @@
 | **Tooltips** | ✅ | Cada acción con tooltip + atajo |
 | **Subrayado de errores** | ✅ | Rojo ondulado (error) / ámbar punteado (advertencia) + lista navegable |
 | **Minimapa navegable** | ⚠️ parcial | Clic/arrastre, pero aún sin control por teclado (mejora futura) |
-| **Contraste verificado** | ✅ | `accessibility.py::validar_tema_accesible` comprueba 4.5:1 |
+| **Contraste verificado** | ✅ | `accessibility.py::validar_tema_accesible` comprueba 4.5:1; `tests/test_cli_herramientas.py` lo exige a los tres temas (el oscuro fallaba en los números de línea: 4.2:1) |
 
 ## Uso
 
@@ -34,4 +34,3 @@ python -c "from inveniolang.accessibility import validar_tema_accesible, TEMA_AL
 
 - Navegación completa del diagrama de flujo por teclado
 - Soporte para Orca en Linux (propiedades `QAccessible::Role`)
-- Tema oscuro con contraste verificado AA

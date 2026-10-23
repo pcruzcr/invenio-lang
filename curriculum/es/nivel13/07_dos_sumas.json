@@ -1,0 +1,22 @@
+{
+  "id": "N13-E07",
+  "nivel": 13,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Par con suma dada: O(n²) frente a O(n)",
+  "enunciado": "En el arreglo ordenado a[i] = 3i + 1 (n = 300) busca dos posiciones cuya suma sea 1787 y otra búsqueda sin solución (suma 3). Compáralo por fuerza bruta (todas las parejas) y con dos punteros que se acercan desde los extremos, contando comparaciones.",
+  "objetivos": [
+    "Aprovechar que los datos están ordenados",
+    "Aplicar la técnica de dos punteros para reducir la complejidad"
+  ],
+  "pistas": [
+    "Si a[i] + a[j] es pequeña, avanza i; si es grande, retrocede j.",
+    "Cada paso descarta un elemento para siempre: a lo sumo n pasos.",
+    "La fuerza bruta sin solución prueba n(n-1)/2 parejas."
+  ],
+  "conceptos": [
+    "dos punteros",
+    "O(n)",
+    "O(n²)"
+  ]
+}

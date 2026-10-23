@@ -1,0 +1,7 @@
+out 1
+out 2
+full: 7
+front=2 out 3
+front=3 out 4
+front=0 out 5
+front=1 out 6

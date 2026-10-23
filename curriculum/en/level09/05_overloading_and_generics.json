@@ -1,0 +1,22 @@
+{
+  "id": "N09-E05",
+  "nivel": 9,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Method overloading and generics",
+  "enunciado": "Create Calculator with three versions of add (two ints, three ints, two floats) and a generic class Box<T> that stores a value of any type. Use it with int and with string.",
+  "objetivos": [
+    "Overload methods by number and type of parameters",
+    "Write a reusable generic class"
+  ],
+  "pistas": [
+    "The compiler picks the version of add based on the arguments.",
+    "class Box<T> { private T content; ... }",
+    "When creating it give the type: new Box<int>()."
+  ],
+  "conceptos": [
+    "overloading",
+    "generics",
+    "type parameter"
+  ]
+}

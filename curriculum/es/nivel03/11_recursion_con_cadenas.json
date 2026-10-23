@@ -1,0 +1,22 @@
+{
+  "id": "N03-E11",
+  "nivel": 3,
+  "numero": 11,
+  "idioma": "es",
+  "titulo": "Recursión con cadenas y dígitos",
+  "enunciado": "Escribe recursivamente: sumaDigitos(n), esPalindromo(s, i, j) comparando los extremos de la cadena, y binario(n) que imprime n en base 2. Pruébalas con 9045, \"reconocer\", \"recursion\" y 37.",
+  "objetivos": [
+    "Aplicar recursión sobre números y cadenas",
+    "Imprimir en el orden correcto aprovechando la vuelta de la recursión"
+  ],
+  "pistas": [
+    "sumaDigitos(n) = n % 10 + sumaDigitos(n / 10).",
+    "Una cadena es palíndromo si los extremos coinciden y el interior también lo es.",
+    "En binario, imprime el bit DESPUÉS de la llamada recursiva."
+  ],
+  "conceptos": [
+    "recursión",
+    "palíndromo",
+    "base 2"
+  ]
+}

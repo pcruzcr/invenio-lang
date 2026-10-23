@@ -1,0 +1,49 @@
+// Level 9 · Exercise 03 — Abstract classes
+// Learning goals:
+//   - Declare abstract classes and methods
+//   - Force subclasses to implement a contract
+//
+// You cannot create a generic Shape: only concrete shapes.
+abstract class Shape {
+    public abstract float area();
+    public abstract string name();
+
+    public string describe() {
+        return this.name() + " " + float_to_string(this.area());
+    }
+}
+
+class Circle extends Shape {
+    private float radius;
+    Circle(float r) { this.radius = r; }
+    public float area() { return 3.0 * this.radius * this.radius; }
+    public string name() { return "circle"; }
+}
+
+class Square extends Shape {
+    private float side;
+    Square(float l) { this.side = l; }
+    public float area() { return this.side * this.side; }
+    public string name() { return "square"; }
+}
+
+class Triangle extends Shape {
+    private float base;
+    private float height;
+    Triangle(float b, float h) { this.base = b; this.height = h; }
+    public float area() { return this.base * this.height / 2.0; }
+    public string name() { return "triangle"; }
+}
+
+void main() {
+    Shape shapes[3];
+    shapes[0] = new Circle(2.0);
+    shapes[1] = new Square(3.0);
+    shapes[2] = new Triangle(4.0, 5.0);
+    float total = 0.0;
+    for (int i = 0; i < 3; i++) {
+        print(shapes[i].describe()); print("\n");
+        total = total + shapes[i].area();
+    }
+    print("total = "); print(total); print("\n");
+}

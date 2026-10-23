@@ -1,0 +1,35 @@
+// Level 6 · Exercise 03 — Matrix addition
+// Learning goals:
+//   - Pass matrices as parameters
+//   - Implement an element-wise operation
+//
+const int N = 3;
+
+void printMatrix(int [][] m, int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            print(m[i][j]);
+            if (j < cols - 1) {
+                print("\t");
+            }
+        }
+        print("\n");
+    }
+}
+
+void addMatrices(int [][] A, int [][] B, int [][] C, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            // Each result cell depends only on the same cell in A and B.
+            C[i][j] = A[i][j] + B[i][j];
+        }
+    }
+}
+
+void main() {
+    int [N][N] A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    int [N][N] B = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
+    int [N][N] C;
+    addMatrices(A, B, C, N);
+    printMatrix(C, N, N);
+}

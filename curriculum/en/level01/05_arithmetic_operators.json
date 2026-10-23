@@ -1,0 +1,22 @@
+{
+  "id": "N01-E05",
+  "nivel": 1,
+  "numero": 5,
+  "idioma": "en",
+  "titulo": "Arithmetic operators",
+  "enunciado": "With a=17 and b=5 show a+b, a-b, a*b, a/b (integer division), a%b (remainder) and the real division 17.0/5.0, one per line.",
+  "objetivos": [
+    "Use + - * / %",
+    "Tell integer division from real division"
+  ],
+  "pistas": [
+    "Between two ints, / drops the decimals.",
+    "% gives the remainder of integer division.",
+    "If one operand is a float, the result is a float."
+  ],
+  "conceptos": [
+    "integer division",
+    "modulo",
+    "real division"
+  ]
+}

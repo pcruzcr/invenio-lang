@@ -1,0 +1,21 @@
+{
+  "id": "N12-E06",
+  "nivel": 12,
+  "numero": 6,
+  "idioma": "en",
+  "titulo": "Connected components",
+  "enunciado": "A 7-vertex graph has the edges 0-1, 1-2, 3-4 and 5-6. Label each vertex with its component number using DFS and show how many components there are and which vertices form each one.",
+  "objetivos": [
+    "Start traversals from every unvisited vertex",
+    "Label vertices by component"
+  ],
+  "pistas": [
+    "Every time you find an unlabelled vertex, start a new component.",
+    "The DFS from that vertex labels its whole component.",
+    "Use -1 as 'unlabelled'."
+  ],
+  "conceptos": [
+    "connected component",
+    "DFS"
+  ]
+}

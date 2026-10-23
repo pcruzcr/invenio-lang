@@ -1,0 +1,17 @@
+// Ejercita estructuras/lista_doble desde un programa (INV-1430).
+importar "estructuras/lista_doble";
+
+vacio main() {
+    ListaDoble d = nuevo ListaDoble();
+    d.agregar_al_final(2); d.agregar_al_inicio(1); d.agregar_al_final(3); d.agregar_al_final(4);
+    imprimir(d.a_texto()); imprimir(" "); imprimir(d.a_texto_inverso()); imprimir("\n");
+    imprimir(d.obtener(0)); imprimir(d.obtener(1)); imprimir(d.obtener(2)); imprimir(d.obtener(3)); imprimir("\n");
+    imprimir(d.quitar_ultimo()); imprimir(" "); imprimir(d.quitar_primero()); imprimir(" "); imprimir(d.a_texto()); imprimir(" "); imprimir(d.tamano()); imprimir("\n");
+    d.quitar_ultimo(); d.quitar_ultimo();
+    imprimir(d.esta_vacia()); imprimir(d.a_texto()); imprimir("\n");
+    intentar {
+        d.quitar_primero();
+    } capturar (e) {
+        imprimir(e.codigo); imprimir("\n");
+    }
+}

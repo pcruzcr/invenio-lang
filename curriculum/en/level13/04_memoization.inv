@@ -1,0 +1,36 @@
+// Level 13 · Exercise 04 — From exponential to linear: memoization
+// Learning goals:
+//   - Identify repeated subproblems
+//   - Go from O(2^n) to O(n) by storing results
+//
+int calls = 0;
+int [32] memo;
+
+int fibNaive(int n) {
+    calls++;
+    if (n < 2) { return n; }
+    return fibNaive(n - 1) + fibNaive(n - 2);
+}
+
+int fibMemo(int n) {
+    calls++;
+    if (n < 2) { return n; }
+    if (memo[n] != -1) {
+        return memo[n];   // already computed: no repeated work
+    }
+    memo[n] = fibMemo(n - 1) + fibMemo(n - 2);
+    return memo[n];
+}
+
+void main() {
+    print("n\tfib\tnaive\tmemo\n");
+    for (int n = 5; n <= 20; n = n + 5) {
+        calls = 0;
+        int r = fibNaive(n);
+        int naive = calls;
+        for (int i = 0; i < 32; i++) { memo[i] = -1; }
+        calls = 0;
+        fibMemo(n);
+        print(n); print("\t"); print(r); print("\t"); print(naive); print("\t"); print(calls); print("\n");
+    }
+}

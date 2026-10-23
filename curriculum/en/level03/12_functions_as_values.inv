@@ -1,0 +1,28 @@
+// Level 3 · Exercise 12 — Functions as values
+// Learning goals:
+//   - Treat functions as values
+//   - Use higher-order functions: map, filter, reduce
+//
+int add(int a, int b) {
+    return a + b;
+}
+
+void main() {
+    int [5] data = {3, 8, 1, 6, 5};
+    int [5] doubled;
+    int [5] evens;
+
+    // An anonymous function (lambda) stored in a variable.
+    function(int x) int twice;
+    twice = function(int x) int { return x * 2; };
+    map(data, doubled, twice);
+    foreach (int d : doubled) { print(d); print(" "); }
+    print("\n");
+
+    int howMany = filter(data, evens, function(int x) bool { return x % 2 == 0; });
+    for (int i = 0; i < howMany; i++) { print(evens[i]); print(" "); }
+    print("\n");
+
+    // A named function is also a value.
+    print(reduce(data, add, 0)); print("\n");
+}

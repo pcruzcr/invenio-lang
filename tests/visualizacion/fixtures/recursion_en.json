@@ -1,0 +1,278 @@
+{
+ "version": 1,
+ "idioma": "en",
+ "fuente": "int factorial(int n) {\n    if (n <= 1) {\n        return 1;\n    }\n    return n * factorial(n - 1);\n}\n\nvoid main() {\n    int r = factorial(3);\n    print(r);\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 9,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 9,
+     "variables": {}
+    }
+   ],
+   "monticulo": {},
+   "accesos": [],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 2,
+   "linea": 2,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 9,
+     "variables": {}
+    },
+    {
+     "subrutina": "factorial",
+     "linea": 2,
+     "variables": {
+      "n": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 3
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "n",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 3,
+   "linea": 2,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 9,
+     "variables": {}
+    },
+    {
+     "subrutina": "factorial",
+     "linea": 5,
+     "variables": {
+      "n": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 3
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "factorial",
+     "linea": 2,
+     "variables": {
+      "n": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 2
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "n",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 4,
+   "linea": 3,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 9,
+     "variables": {}
+    },
+    {
+     "subrutina": "factorial",
+     "linea": 5,
+     "variables": {
+      "n": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 3
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "factorial",
+     "linea": 5,
+     "variables": {
+      "n": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 2
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "factorial",
+     "linea": 3,
+     "variables": {
+      "n": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 1
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "n",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 5,
+   "linea": 5,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 9,
+     "variables": {}
+    },
+    {
+     "subrutina": "factorial",
+     "linea": 5,
+     "variables": {
+      "n": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 3
+       }
+      }
+     }
+    },
+    {
+     "subrutina": "factorial",
+     "linea": 5,
+     "variables": {
+      "n": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 2
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "n",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": []
+  },
+  {
+   "n": 6,
+   "linea": 10,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 9,
+     "variables": {
+      "r": {
+       "tipo": "int",
+       "valor": {
+        "t": "escalar",
+        "tipo": "int",
+        "v": 6
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {},
+   "accesos": [
+    {
+     "op": "escribe",
+     "var": "r",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "lee",
+     "var": "r",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [
+    "6"
+   ],
+   "estructuras": []
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "6"
+ ]
+}

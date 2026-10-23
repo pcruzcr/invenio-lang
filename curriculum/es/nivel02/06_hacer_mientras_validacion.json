@@ -1,0 +1,21 @@
+{
+  "id": "N02-E06",
+  "nivel": 2,
+  "numero": 6,
+  "idioma": "es",
+  "titulo": "hacer-mientras: validar la entrada",
+  "enunciado": "Pide una nota entre 0 y 100. Mientras el valor leído no sea válido, muestra \"invalid\" y vuelve a leer. Al final muestra la nota aceptada y cuántos intentos hicieron falta.",
+  "objetivos": [
+    "Usar hacer { } mientras (...) cuando el cuerpo debe ejecutarse al menos una vez",
+    "Validar datos de entrada"
+  ],
+  "pistas": [
+    "En hacer-mientras la condición se evalúa al final.",
+    "La condición de repetición es: nota < 0 || nota > 100.",
+    "Cuenta cada lectura, válida o no."
+  ],
+  "conceptos": [
+    "hacer-mientras",
+    "validación"
+  ]
+}

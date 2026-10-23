@@ -1,0 +1,22 @@
+{
+  "id": "N13-E03",
+  "nivel": 13,
+  "numero": 3,
+  "idioma": "en",
+  "titulo": "O(n²) versus O(n log n): bubble and merge sort",
+  "enunciado": "Generate reproducible pseudo-random data of size 8, 16, 32 and 64 and count the comparisons of bubble sort and merge sort on identical copies. Show the table and the bubble/merge ratio.",
+  "objetivos": [
+    "Count comparisons in sorting algorithms",
+    "Watch how the gap grows as n increases"
+  ],
+  "pistas": [
+    "Sort two copies of the same array so the comparison is fair.",
+    "Plain bubble sort always makes n(n-1)/2 comparisons.",
+    "Merge sort makes at most n log2(n) comparisons."
+  ],
+  "conceptos": [
+    "O(n²)",
+    "O(n log n)",
+    "empirical analysis"
+  ]
+}

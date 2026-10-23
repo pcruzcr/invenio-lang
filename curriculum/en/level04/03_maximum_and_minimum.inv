@@ -1,0 +1,33 @@
+// Level 4 · Exercise 03 — Maximum, minimum and their positions
+// Learning goals:
+//   - Keep positions as well as values
+//   - Solve variants of the maximum problem
+//
+const int N = 7;
+
+void main() {
+    int [N] a = {31, -4, 57, 12, 57, -9, 0};
+    int maxPos = 0;
+    int minPos = 0;
+    for (int i = 1; i < N; i++) {
+        if (a[i] > a[maxPos]) {
+            maxPos = i;
+        }
+        if (a[i] < a[minPos]) {
+            minPos = i;
+        }
+    }
+    print("max = "); print(a[maxPos]); print(" at "); print(maxPos); print("\n");
+    print("min = "); print(a[minPos]); print(" at "); print(minPos); print("\n");
+
+    // Second largest: the largest among those different from the maximum.
+    bool exists = false;
+    int second = 0;
+    for (int i = 0; i < N; i++) {
+        if (a[i] != a[maxPos] && (!exists || a[i] > second)) {
+            second = a[i];
+            exists = true;
+        }
+    }
+    print("second = "); print(second); print("\n");
+}

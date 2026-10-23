@@ -1,0 +1,22 @@
+{
+  "id": "N02-E01",
+  "nivel": 2,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Even or odd",
+  "enunciado": "Read three ints and, for each, show whether it is EVEN or ODD using the format \"n: EVEN\" or \"n: ODD\".",
+  "objetivos": [
+    "Make decisions with if / else",
+    "Use % to test divisibility"
+  ],
+  "pistas": [
+    "A number is even if n % 2 == 0.",
+    "Careful with negatives: -3 % 2 is -1, not 1.",
+    "That is why you compare with 0 instead of 1."
+  ],
+  "conceptos": [
+    "conditional",
+    "if/else",
+    "modulo"
+  ]
+}

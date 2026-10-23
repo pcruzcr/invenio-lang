@@ -1,0 +1,23 @@
+{
+  "id": "N01-E07",
+  "nivel": 1,
+  "numero": 7,
+  "idioma": "es",
+  "titulo": "Operadores relacionales y lógicos",
+  "enunciado": "Con x=8 evalúa: x > 5, x == 10, x != 10, x >= 8 && x < 10, x < 0 || x > 7 y !(x > 5). Muestra cada resultado lógico en una línea.",
+  "objetivos": [
+    "Comparar valores con < > <= >= == !=",
+    "Combinar condiciones con && || !"
+  ],
+  "pistas": [
+    "Una comparación produce verdadero o falso.",
+    "&& es verdadero solo si ambas partes lo son.",
+    "|| es verdadero si al menos una parte lo es; ! invierte."
+  ],
+  "conceptos": [
+    "comparación",
+    "conjunción",
+    "disyunción",
+    "negación"
+  ]
+}

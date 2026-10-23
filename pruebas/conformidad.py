@@ -18,17 +18,15 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from inveniolang import flujo
+from inveniolang import ir as ir_mod
+from inveniolang import ll1 as ll1_demo
+from inveniolang.errors import ErrorManager
+from inveniolang.interpreter import Interpreter
 from inveniolang.lexer import Lexer
 from inveniolang.parser import Parser
-from inveniolang.errors import ErrorManager
 from inveniolang.semantic import SemanticAnalyzer
 from inveniolang.type_checker import TypeChecker
-from inveniolang.interpreter import Interpreter
-from inveniolang import ir as ir_mod
-from inveniolang import ll1_demo
-from inveniolang import flowchart as fcmod
-from inveniolang import flowchart_builder as fb
-from inveniolang.ast_nodes import Bloque as _BloqueFlowchart
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIR_PRUEBAS = os.path.join(RAIZ, 'pruebas')
@@ -976,11 +974,14 @@ ESTRUCTURAS = [
 # ============================================================================
 
 class Resultados:
+    """Acumula casos conformes y divergencias de la suite."""
+
     def __init__(self):
         self.ok = 0
         self.fallos = []
 
     def registrar(self, bien, referencia, esperado, obtenido):
+        """Cuenta un caso conforme o guarda la divergencia."""
         if bien:
             self.ok += 1
         else:
@@ -988,6 +989,7 @@ class Resultados:
 
     @property
     def total(self):
+        """Número total de casos ejecutados."""
         return self.ok + len(self.fallos)
 
 
@@ -1185,6 +1187,7 @@ def correr_codificacion(res, verboso):
     que el lexer vea un solo caracter.
     """
     import tempfile
+
     from inveniolang.cli import leer_fuente
 
     print('\n[5] CODIFICACION DEL ARCHIVO FUENTE (§2.1)')
@@ -1791,11 +1794,13 @@ PARIDAD_REGISTROS = [
 
 
 def _paridad_objetivo(fuente, k_registros=None):
-    """Corre `fuente` por el interprete de arbol Y por el codigo objetivo
-    de juguete (Etapa 12.11: TAC optimizado -> InstrObjetivo ->
+    """Corre `fuente` por el interprete de arbol Y por el codigo objetivo.
+
+    De juguete (Etapa 12.11: TAC optimizado -> InstrObjetivo ->
     MaquinaObjetivo), opcionalmente con asignacion de registros (Etapa
     12.12, linear-scan con `k_registros` registros). Retorna
-    (salida_arbol, salida_objetivo, resumen_registros, error)."""
+    (salida_arbol, salida_objetivo, resumen_registros, error).
+    """
     em = ErrorManager()
     lx = Lexer(em)
     lx.tokenizar(fuente, 't.inv')
@@ -1920,83 +1925,84 @@ def correr_etapa12(res, verboso):
 
 
 def correr_etapa13(res, verboso):
-    """Etapa 13: constructor de diagramas de flujo
-    (inveniolang/flowchart_builder.py) -- sin Qt, mismo patrón que ya
-    usaba la Etapa 4 para probar flowchart.py sin abrir una ventana."""
+    """Etapa 13: constructor de diagramas de flujo.
+
+    INV-3007: los mismos 19 casos de siempre, ahora sobre el modelo de
+    `inveniolang.flujo` (edición estructurada + generación de código), que
+    sustituyó a flowchart_builder.py/flowchart.py -- sin Qt, igual que antes.
+    """
     print('\n[13] ETAPA 13: CONSTRUCTOR DE DIAGRAMAS DE FLUJO')
+
+    def _crear(tipo, **campos):
+        try:
+            return flujo.nuevo_nodo(tipo, **campos), []
+        except flujo.ErrorFlujo as e:
+            return None, [e.texto('es')]
 
     # ---- validación de fragmentos por forma (válidos e inválidos) ----
     casos_fragmentos = [
-        ('§1(E13) proceso: declaración válida', lambda: fb.crear_proceso('entero x = 5'), True),
-        ('§1(E13) proceso: no exige ";" final', lambda: fb.crear_proceso('x = x + 1'), True),
-        ('§1(E13) proceso: aridad incorrecta (2 instrucciones)',
-         lambda: fb.crear_proceso('int a; int b'), False),
-        ('§1(E13) proceso: error de sintaxis', lambda: fb.crear_proceso('x = = 1'), False),
-        ('§1(E13) entrada: identificador simple', lambda: fb.crear_entrada('n'), True),
+        ('§1(E13) declaración: declaración válida', lambda: _crear('declaracion', texto='entero x = 5'), True),
+        ('§1(E13) proceso: no exige ";" final', lambda: _crear('proceso', texto='x = x + 1'), True),
+        ('§1(E13) declaración: aridad incorrecta (2 instrucciones)',
+         lambda: _crear('declaracion', texto='int a; int b'), False),
+        ('§1(E13) proceso: error de sintaxis', lambda: _crear('proceso', texto='x = = 1'), False),
+        ('§1(E13) entrada: identificador simple', lambda: _crear('leer', texto='n'), True),
         ('§1(E13) entrada: rechaza expresión (no identificador)',
-         lambda: fb.crear_entrada('n + 1'), False),
-        ('§1(E13) salida: expresión válida', lambda: fb.crear_salida('n * 2'), True),
-        ('§1(E13) decisión: condición válida', lambda: fb.crear_decision('n > 0'), True),
-        ('§1(E13) decisión: condición vacía es error', lambda: fb.crear_decision(''), False),
-        ('§1(E13) mientras: condición válida', lambda: fb.crear_mientras('n < 10'), True),
+         lambda: _crear('leer', texto='n + 1'), False),
+        ('§1(E13) salida: expresión válida', lambda: _crear('escribir', texto='n * 2'), True),
+        ('§1(E13) decisión: condición válida', lambda: _crear('si', condicion='n > 0'), True),
+        ('§1(E13) decisión: condición vacía es error', lambda: _crear('si', condicion=''), False),
+        ('§1(E13) mientras: condición válida', lambda: _crear('mientras', condicion='n < 10'), True),
         ('§1(E13) hacer-mientras: condición válida',
-         lambda: fb.crear_hacer_mientras('n < 10'), True),
+         lambda: _crear('hacer_mientras', condicion='n < 10'), True),
         ('§1(E13) para: cabecera válida',
-         lambda: fb.crear_para('entero i = 0', 'i < 10', 'i++'), True),
+         lambda: _crear('para', inicio='entero i = 0', condicion='i < 10', paso='i++'), True),
         ('§1(E13) para: condición inválida (operador incompleto)',
-         lambda: fb.crear_para('entero i = 0', 'i <', 'i++'), False),
+         lambda: _crear('para', inicio='entero i = 0', condicion='i <', paso='i++'), False),
     ]
     for referencia, llamada, valido_esperado in casos_fragmentos:
         nodo, errores = llamada()
         bien = (not errores) == valido_esperado and (nodo is not None) == valido_esperado
         res.registrar(bien, referencia, 'válido' if valido_esperado else 'inválido',
-                      'válido' if not errores else [str(e) for e in errores])
+                      'válido' if not errores else errores)
         if verboso or not bien:
             print(f'  {"ok  " if bien else "FALLA"} {referencia}')
 
-    # ---- ida y vuelta: construir un Bloque anidado a mano, generar texto,
-    # re-parsear con el pipeline REAL y confirmar que compila y corre ----
+    # ---- ida y vuelta: armar un diagrama anidado con las operaciones
+    # estructuradas, generar el programa y correrlo con el pipeline REAL ----
+    U = flujo.Ubicacion  # noqa: N806 - alias corto de la clase en la tabla de casos
+
+    def _agregar(m, tipo, ubicacion=None, **campos):
+        return flujo.insertar(m, 'main', ubicacion or U(), flujo.nuevo_nodo(tipo, **campos))
+
+    def _ultimo(m):
+        return m.diagrama('main').cuerpo[-1].id
+
     def _diagrama_acumulador_par():
         # entero suma = 0; para (i=0;i<5;i++) { si (i%2==0) { suma=suma+i; } } imprimir(suma);
-        raiz = _BloqueFlowchart([])
-        n1, _ = fb.crear_proceso('entero suma = 0')
-        fb.insertar(raiz, 0, n1)
-        if_nodo, _ = fb.crear_decision('i % 2 == 0')
-        n2, _ = fb.crear_proceso('suma = suma + i')
-        fb.insertar(if_nodo.bloque_then, 0, n2)
-        for_nodo, _ = fb.crear_para('entero i = 0', 'i < 5', 'i++')
-        fb.insertar(for_nodo.bloque, 0, if_nodo)
-        fb.insertar(raiz, 1, for_nodo)
-        n3, _ = fb.crear_salida('suma')
-        fb.insertar(raiz, 2, n3)
-        return raiz
+        m = _agregar(flujo.nuevo_modelo('es'), 'declaracion', texto='entero suma = 0')
+        m = _agregar(m, 'proceso', texto='suma = suma + i')
+        m = flujo.envolver_en_si(m, 'main', [_ultimo(m)], 'i % 2 == 0')
+        m = flujo.envolver_en_ciclo(m, 'main', [_ultimo(m)], 'para',
+                                    inicio='entero i = 0', condicion='i < 5', paso='i++')
+        return _agregar(m, 'escribir', texto='suma')
 
     def _diagrama_si_sino():
         # entero x = 7; si (x > 5) { imprimir("grande"); } sino { imprimir("chico"); }
-        raiz = _BloqueFlowchart([])
-        n1, _ = fb.crear_proceso('entero x = 7')
-        fb.insertar(raiz, 0, n1)
-        if_nodo, _ = fb.crear_decision('x > 5')
-        fb.agregar_rama_else(if_nodo)
-        n2, _ = fb.crear_salida('"grande"')
-        fb.insertar(if_nodo.bloque_then, 0, n2)
-        n3, _ = fb.crear_salida('"chico"')
-        fb.insertar(if_nodo.bloque_else, 0, n3)
-        fb.insertar(raiz, 1, if_nodo)
-        return raiz
+        m = _agregar(flujo.nuevo_modelo('es'), 'declaracion', texto='entero x = 7')
+        m = _agregar(m, 'si', condicion='x > 5')
+        si_id = _ultimo(m)
+        m = flujo.agregar_rama(m, 'main', si_id, 'sino')
+        m = _agregar(m, 'escribir', U(si_id, 'rama:0'), texto='"grande"')
+        return _agregar(m, 'escribir', U(si_id, 'sino'), texto='"chico"')
 
     def _diagrama_hacer_mientras():
         # entero n = 0; hacer { n = n + 1; imprimir(n); } mientras (n < 3);
-        raiz = _BloqueFlowchart([])
-        n1, _ = fb.crear_proceso('entero n = 0')
-        fb.insertar(raiz, 0, n1)
-        do_nodo, _ = fb.crear_hacer_mientras('n < 3')
-        n2, _ = fb.crear_proceso('n = n + 1')
-        fb.insertar(do_nodo.bloque, 0, n2)
-        n3, _ = fb.crear_salida('n')
-        fb.insertar(do_nodo.bloque, 1, n3)
-        fb.insertar(raiz, 1, do_nodo)
-        return raiz
+        m = _agregar(flujo.nuevo_modelo('es'), 'declaracion', texto='entero n = 0')
+        m = _agregar(m, 'hacer_mientras', condicion='n < 3')
+        ciclo = _ultimo(m)
+        m = _agregar(m, 'proceso', U(ciclo, 'cuerpo'), texto='n = n + 1')
+        return _agregar(m, 'escribir', U(ciclo, 'cuerpo'), texto='n')
 
     diagramas_referencia = [
         ('§5(E13) ida y vuelta: para con decisión anidada (acumulador de pares)',
@@ -2004,14 +2010,9 @@ def correr_etapa13(res, verboso):
         ('§5(E13) ida y vuelta: si-sino', _diagrama_si_sino(), 'grande'),
         ('§5(E13) ida y vuelta: hacer-mientras', _diagrama_hacer_mientras(), '123'),
     ]
-    for referencia, bloque, fragmento_esperado in diagramas_referencia:
-        texto, errores_por_nodo = fb.validar_diagrama(bloque)
-        sin_errores = not errores_por_nodo
-        # Ejecutar directamente el texto COMPLETO ya generado (ya incluye
-        # su propio 'void main() { ... }') con el pipeline real, en vez de
-        # re-envolverlo -- reusa la MISMA verificación de extremo a
-        # extremo que ya hace flowchart_builder.validar_diagrama, y
-        # además corre el intérprete para confirmar el resultado.
+    for referencia, modelo, fragmento_esperado in diagramas_referencia:
+        problemas = flujo.validar(modelo)
+        texto = flujo.codigo_desde_modelo(modelo)
         em = ErrorManager()
         lx = Lexer(em)
         lx.tokenizar(texto, 't.inv')
@@ -2024,29 +2025,94 @@ def correr_etapa13(res, verboso):
                 if not em.hay_errores():
                     interp = Interpreter(em, tabla)
                     salida_texto = ''.join(interp.interpretar(ast, [], usar_stdin=False))
-        bien = sin_errores and not em.hay_errores() and fragmento_esperado in salida_texto
+        bien = not problemas and not em.hay_errores() and fragmento_esperado in salida_texto
         res.registrar(bien, referencia, fragmento_esperado,
-                      salida_texto if bien else (errores_por_nodo or [e.codigo for e in em.errores]))
+                      salida_texto if bien else ([p.texto() for p in problemas] or [e.codigo for e in em.errores]))
         if verboso or not bien:
             print(f'  {"ok  " if bien else "FALLA"} {referencia}')
             if not bien:
                 print(f'         texto generado:\n{texto}')
-                print(f'         salida={salida_texto!r} errores_diagrama={errores_por_nodo} '
-                      f'errores_compilacion={[e.codigo for e in em.errores]}')
 
-    # ---- vista previa: construir_diagrama (flowchart.py) debe aceptar
-    # sin caso especial CUALQUIER Bloque armado por el constructor ----
-    for referencia, bloque, _ in diagramas_referencia:
+    # ---- vista previa: el esquema dibujable acepta CUALQUIER diagrama armado ----
+    for referencia, modelo, _ in diagramas_referencia:
         try:
-            diagrama = fcmod.construir_diagrama(bloque)
-            bien = len(diagrama.cajas) > 0
-        except Exception as e:  # pragma: no cover
+            esquema = flujo.esquemas(modelo, 'main')[0]
+            bien = len(esquema.nodos) > 0
+        except Exception:  # pragma: no cover
             bien = False
-            diagrama = None
+            esquema = None
         res.registrar(bien, f'{referencia} (vista previa sin excepción)',
-                      'diagrama con cajas', diagrama.cajas if diagrama else 'EXCEPCION')
+                      'diagrama con símbolos', esquema.nodos if esquema else 'EXCEPCION')
         if verboso or not bien:
             print(f'  {"ok  " if bien else "FALLA"} {referencia} (vista previa)')
+
+
+# ============================================================================
+# GRUPO 14 — InvenioLang 11: acceso a miembro encadenado (INV-4406)
+# docs/InvenioLang_2.0_POO.md §14. Casos nuevos: los 391 anteriores no cambian.
+# ============================================================================
+
+_CLASES_CADENA = """clase Motor {
+    publico entero potencia;
+    Motor(entero p) { este.potencia = p; }
+    publico entero doble() { retornar este.potencia * 2; }
+}
+clase Auto {
+    publico Motor motor;
+    publico entero[] km;
+    privado Motor oculto;
+    Auto(entero p) { este.motor = nuevo Motor(p); este.km = nuevo entero[3]; este.oculto = este.motor; }
+    publico Motor getMotor() { retornar este.motor; }
+    publico entero edad() { retornar 3; }
+}
+clase Garaje {
+    publico Auto auto;
+    Garaje() { este.auto = nuevo Auto(100); }
+    publico vacio tunear() { este.auto.motor.potencia = este.auto.motor.potencia + 10; }
+}
+"""
+
+
+def _cadena(cuerpo):
+    return _CLASES_CADENA + 'vacio main() {\n    Garaje g = nuevo Garaje();\n' + cuerpo + '\n}\n'
+
+
+ACCESO_ENCADENADO = [
+    ('§14 lectura a.b.c', '100', _cadena('imprimir(g.auto.motor.potencia);')),
+    ('§14 escritura a.b.c = v', '7', _cadena('g.auto.motor.potencia = 7; imprimir(g.auto.motor.potencia);')),
+    ('§14 asignación compuesta a.b.c += v', '105',
+     _cadena('g.auto.motor.potencia += 5; imprimir(g.auto.motor.potencia);')),
+    ('§14 llamada al final a.b.m()', '200', _cadena('imprimir(g.auto.motor.doble());')),
+    ('§14 la cadena sigue tras una llamada a.m().c', '100', _cadena('imprimir(g.auto.getMotor().potencia);')),
+    ('§14 instrucción de llamada encadenada', '110', _cadena('g.tunear(); imprimir(g.auto.motor.potencia);')),
+    ('§14 escritura tras una llamada a.m().c = v', '1',
+     _cadena('g.auto.getMotor().potencia = 1; imprimir(g.auto.motor.potencia);')),
+    ('§14 atributo arreglo al final a.b.c[i]', '7', _cadena('g.auto.km[1] = 7; imprimir(g.auto.km[1]);')),
+    ('§14 receptor elemento de arreglo v[i].b.c', '9',
+     _cadena('Auto autos[2]; autos[0] = nuevo Auto(9); imprimir(autos[0].motor.potencia);')),
+    ('§14 método como instrucción a.b.m();', '200', _cadena('g.auto.motor.doble(); imprimir(g.auto.motor.doble());')),
+    ('§14 IL-POO-006 eslabón que no es clase', 'IL-POO-006', _cadena('imprimir(g.auto.edad().x);')),
+    ('§14 IL-POO-006 atributo inexistente', 'IL-POO-006', _cadena('imprimir(g.auto.rueda.x);')),
+    ('§14 IL-POO-005 eslabón privado', 'IL-POO-005', _cadena('imprimir(g.auto.oculto.potencia);')),
+    ('§14 IL-POO-013 tipo del último eslabón', 'IL-POO-013', _cadena('entero x = g.auto.motor;')),
+    ('§14 IL-POO-017 aridad de la llamada final', 'IL-POO-017', _cadena('imprimir(g.auto.motor.doble(3));')),
+    ('§14 IL-EJE-010 eslabón intermedio nulo', 'IL-EJE-010',
+     _cadena('Garaje h = nuevo Garaje(); h.auto = nulo; imprimir(h.auto.motor.potencia);')),
+    ('§14 ?. sigue siendo de un solo nivel', 'IL-SIN-010', _cadena('imprimir(g?.auto.motor);')),
+]
+
+
+def correr_inveniolang11(res, verboso):
+    print('\n[14] INVENIOLANG 11: ACCESO A MIEMBRO ENCADENADO')
+    for referencia, esperado, fuente in ACCESO_ENCADENADO:
+        codigos, salida = analizar(fuente, ejecutar=True)
+        bien = esperado in codigos if esperado.startswith('IL-') else salida == esperado and not [
+            c for c in codigos if '-WARN-' not in c]
+        res.registrar(bien, referencia, esperado, salida or codigos)
+        if verboso or not bien:
+            print(f'  {"ok  " if bien else "FALLA"} {referencia}')
+            if not bien:
+                print(f'         esperado={esperado!r}  obtenido={salida!r} {codigos}')
 
 
 GRUPOS = {
@@ -2063,6 +2129,7 @@ GRUPOS = {
     'etapa11': correr_etapa11,
     'etapa12': correr_etapa12,
     'etapa13': correr_etapa13,
+    'inveniolang11': correr_inveniolang11,
 }
 
 

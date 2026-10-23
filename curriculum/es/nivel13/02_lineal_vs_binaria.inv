@@ -1,0 +1,40 @@
+// Nivel 13 · Ejercicio 02 — Búsqueda lineal frente a binaria
+// Objetivos:
+//   - Comparar O(n) con O(log n) con datos reales
+//   - Analizar el peor caso
+//
+constante entero MAX = 1000;
+entero [MAX] a;
+
+entero peorLineal(entero n, entero x) {
+    entero c = 0;
+    para (entero i = 0; i < n; i++) {
+        c++;
+        si (a[i] == x) { retornar c; }
+    }
+    retornar c;
+}
+
+entero peorBinaria(entero n, entero x) {
+    entero c = 0;
+    entero izq = 0;
+    entero der = n - 1;
+    mientras (izq <= der) {
+        entero medio = (izq + der) / 2;
+        c++;
+        si (a[medio] == x) { retornar c; }
+        si (a[medio] < x) { izq = medio + 1; } sino { der = medio - 1; }
+    }
+    retornar c;
+}
+
+vacio main() {
+    para (entero i = 0; i < MAX; i++) {
+        a[i] = 2 * i;
+    }
+    imprimir("n\tlinear\tbinary\n");
+    para (entero n = 10; n <= MAX; n = n * 10) {
+        entero x = 2 * n + 1;   // mayor que todos: peor caso
+        imprimir(n); imprimir("\t"); imprimir(peorLineal(n, x)); imprimir("\t"); imprimir(peorBinaria(n, x)); imprimir("\n");
+    }
+}

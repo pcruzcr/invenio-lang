@@ -1,0 +1,23 @@
+// Level 2 · Exercise 04 — Ternary operator
+// Learning goals:
+//   - Write conditional expressions with ? :
+//   - Know when a ternary is clearer than an if
+//
+string plural(int n) {
+    return n == 1 ? "1 item" : int_to_string(n) + " items";
+}
+
+void main() {
+    int a = 12;
+    int b = 30;
+    // Read it as: if a > b then a, otherwise b.
+    int larger = a > b ? a : b;
+    print(larger); print("\n");
+
+    int v = -9;
+    int absValue = v < 0 ? -v : v;
+    print(absValue); print("\n");
+
+    print(plural(1)); print("\n");
+    print(plural(3)); print("\n");
+}

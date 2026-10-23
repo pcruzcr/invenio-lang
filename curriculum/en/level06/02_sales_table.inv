@@ -1,0 +1,33 @@
+// Level 6 · Exercise 02 — Sales table: row and column totals
+// Learning goals:
+//   - Aggregate data by rows and by columns
+//   - Use a matrix as a data table
+//
+void main() {
+    int [3][4] sales = {{12, 15, 9, 20}, {8, 11, 14, 10}, {20, 18, 22, 25}};
+    int total = 0;
+    int best = 0;
+    int bestTotal = -1;
+    for (int i = 0; i < 3; i++) {
+        // Row traversal: total of store i.
+        int rowSum = 0;
+        for (int j = 0; j < 4; j++) {
+            rowSum += sales[i][j];
+        }
+        print("store "); print(i); print(": "); print(rowSum); print("\n");
+        total += rowSum;
+        if (rowSum > bestTotal) {
+            bestTotal = rowSum;
+            best = i;
+        }
+    }
+    for (int j = 0; j < 4; j++) {
+        int colSum = 0;
+        for (int i = 0; i < 3; i++) {
+            colSum += sales[i][j];
+        }
+        print("week "); print(j); print(": "); print(colSum); print("\n");
+    }
+    print("total = "); print(total); print("\n");
+    print("best store = "); print(best); print("\n");
+}

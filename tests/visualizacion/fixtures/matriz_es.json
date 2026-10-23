@@ -1,0 +1,389 @@
+{
+ "version": 1,
+ "idioma": "es",
+ "fuente": "vacio main() {\n    entero [3][3] m;\n    para (entero f = 0; f < 3; f++) {\n        para (entero c = 0; c < 3; c++) {\n            m[f][c] = f * 3 + c;\n        }\n    }\n    imprimir(m[1][2]);\n}\n",
+ "pasos": [
+  {
+   "n": 1,
+   "linea": 5,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 5,
+     "variables": {
+      "m": {
+       "tipo": "entero[3][3]",
+       "valor": {
+        "t": "ref",
+        "id": 7
+       }
+      },
+      "f": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 1
+       }
+      },
+      "c": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 1
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "7": {
+     "id": 7,
+     "tipo": "matriz",
+     "clase": null,
+     "elementos": [
+      [
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 1
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 2
+       }
+      ],
+      [
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 3
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 4
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      ],
+      [
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      ]
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "f",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "lee",
+     "var": "c",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "m",
+     "nodo": 7,
+     "indices": [
+      1,
+      1
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "matriz",
+     "raiz": 7,
+     "etiqueta": "m",
+     "nodos": [
+      7
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "linea": 5,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 5,
+     "variables": {
+      "m": {
+       "tipo": "entero[3][3]",
+       "valor": {
+        "t": "ref",
+        "id": 7
+       }
+      },
+      "f": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 1
+       }
+      },
+      "c": {
+       "tipo": "entero",
+       "valor": {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 2
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "7": {
+     "id": 7,
+     "tipo": "matriz",
+     "clase": null,
+     "elementos": [
+      [
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 1
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 2
+       }
+      ],
+      [
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 3
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 4
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 5
+       }
+      ],
+      [
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       }
+      ]
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "f",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "lee",
+     "var": "c",
+     "nodo": null,
+     "indices": [],
+     "campo": null
+    },
+    {
+     "op": "escribe",
+     "var": "m",
+     "nodo": 7,
+     "indices": [
+      1,
+      2
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [],
+   "estructuras": [
+    {
+     "forma": "matriz",
+     "raiz": 7,
+     "etiqueta": "m",
+     "nodos": [
+      7
+     ],
+     "aristas": []
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "linea": 8,
+   "columna": 5,
+   "marcos": [
+    {
+     "subrutina": "main",
+     "linea": 8,
+     "variables": {
+      "m": {
+       "tipo": "entero[3][3]",
+       "valor": {
+        "t": "ref",
+        "id": 7
+       }
+      }
+     }
+    }
+   ],
+   "monticulo": {
+    "7": {
+     "id": 7,
+     "tipo": "matriz",
+     "clase": null,
+     "elementos": [
+      [
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 0
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 1
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 2
+       }
+      ],
+      [
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 3
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 4
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 5
+       }
+      ],
+      [
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 6
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 7
+       },
+       {
+        "t": "escalar",
+        "tipo": "entero",
+        "v": 8
+       }
+      ]
+     ],
+     "campos": {}
+    }
+   },
+   "accesos": [
+    {
+     "op": "lee",
+     "var": "m",
+     "nodo": 7,
+     "indices": [
+      1,
+      2
+     ],
+     "campo": null
+    }
+   ],
+   "salida_nueva": [
+    "5"
+   ],
+   "estructuras": [
+    {
+     "forma": "matriz",
+     "raiz": 7,
+     "etiqueta": "m",
+     "nodos": [
+      7
+     ],
+     "aristas": []
+    }
+   ]
+  }
+ ],
+ "truncada": false,
+ "error": null,
+ "salida": [
+  "5"
+ ]
+}

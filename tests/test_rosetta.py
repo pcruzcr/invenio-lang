@@ -24,7 +24,7 @@ def test_python_fiel():
     assert "def doble(x):" in s
     assert "if (a > 0):" in s
     assert "while (a < 6):" in s
-    assert 'print("hola")' in s
+    assert 'print("hola", end="")' in s  # INV-4403: imprimir no añade salto
     assert "doble(a)" in s
     assert "pass  #" not in s
 
@@ -33,7 +33,7 @@ def test_c_fiel():
     """C conserva tipos, printf con formato y for."""
     s = transpile("c", PROG)
     assert "static int doble(int x)" in s
-    assert 'printf("%s\\n", "hola")' in s
+    assert 'printf("%s", "hola")' in s  # INV-4403: sin salto de línea
     assert "for (int i = 0;" in s
     assert "return (x * 2);" in s
 
@@ -50,10 +50,10 @@ def test_java_csharp_fiel():
 
 
 def test_pascal_fiel():
-    """Pascal conserva program, writeln y while desazucarado."""
+    """Pascal conserva program, write y while desazucarado."""
     s = transpile("pascal", PROG)
     assert "program Main;" in s
-    assert "writeln(" in s
+    assert "write(" in s and "writeln(" not in s  # INV-4403
     assert "while" in s
     assert "for desazucarado" in s
 

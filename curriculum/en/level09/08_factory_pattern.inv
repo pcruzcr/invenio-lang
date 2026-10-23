@@ -1,0 +1,47 @@
+// Level 9 · Exercise 08 — Factory pattern
+// Learning goals:
+//   - Centralize object creation
+//   - Program against the abstraction, not concrete classes
+//
+abstract class Shape {
+    public abstract int area();
+    public abstract string name();
+}
+
+class Circle extends Shape {
+    private int radius;
+    Circle(int r) { this.radius = r; }
+    public int area() { return 3 * this.radius * this.radius; }
+    public string name() { return "circle"; }
+}
+
+class Square extends Shape {
+    private int side;
+    Square(int l) { this.side = l; }
+    public int area() { return this.side * this.side; }
+    public string name() { return "square"; }
+}
+
+class ShapeFactory {
+    public static Shape create(string kind, int size) {
+        switch (kind) {
+            case "circle":
+                return new Circle(size);
+            case "square":
+                return new Square(size);
+        }
+        return null;   // unknown kind
+    }
+}
+
+void main() {
+    string [3] requests = {"square", "circle", "hexagon"};
+    foreach (string t : requests) {
+        Shape f = ShapeFactory.create(t, 2);
+        if (f == null) {
+            print(t); print(": unknown\n");
+        } else {
+            print(f.name()); print(": "); print(f.area()); print("\n");
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "N02-E02",
+  "nivel": 2,
+  "numero": 2,
+  "idioma": "es",
+  "titulo": "Calificación con si-sino-si",
+  "enunciado": "Dadas las notas 95, 83, 71, 64 y 40, muestra la letra de cada una: A (>= 90), B (>= 80), C (>= 70), D (>= 60) y F en otro caso.",
+  "objetivos": [
+    "Encadenar condiciones excluyentes",
+    "Ordenar las condiciones de la más restrictiva a la menos"
+  ],
+  "pistas": [
+    "Un sino { si (...) } se evalúa solo si la condición anterior fue falsa.",
+    "Como ya sabes que la nota < 90, basta preguntar >= 80 para la B.",
+    "Escribe una función que retorne la letra."
+  ],
+  "conceptos": [
+    "si-sino-si",
+    "condiciones excluyentes"
+  ]
+}

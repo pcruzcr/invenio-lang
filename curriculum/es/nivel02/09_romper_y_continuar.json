@@ -1,0 +1,21 @@
+{
+  "id": "N02-E09",
+  "nivel": 2,
+  "numero": 9,
+  "idioma": "es",
+  "titulo": "romper y continuar",
+  "enunciado": "Recorre los números del 1 al 20: sáltate los múltiplos de 3 (continuar) y detén el ciclo al encontrar el primer múltiplo de 7 mayor que 10 (romper). Muestra los números procesados en una línea.",
+  "objetivos": [
+    "Saltar una vuelta con continuar",
+    "Salir de un ciclo con romper"
+  ],
+  "pistas": [
+    "continuar pasa directamente a la siguiente vuelta.",
+    "romper termina el ciclo inmediatamente.",
+    "Traza a mano las vueltas 12, 13 y 14."
+  ],
+  "conceptos": [
+    "romper",
+    "continuar"
+  ]
+}

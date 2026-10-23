@@ -1,0 +1,61 @@
+// Level 11 · Exercise 02 — Tree traversals
+// Learning goals:
+//   - Implement the three depth-first traversals
+//   - Relate each traversal to its uses
+//
+class Node {
+    public int value;
+    public Node left;
+    public Node right;
+    Node(int v) { this.value = v; }
+}
+
+// Recursive insertion: returns the (possibly new) root of the subtree.
+Node insert(Node r, int v) {
+    if (r == null) {
+        return new Node(v);
+    }
+    if (v < r.value) {
+        r.left = insert(r.left, v);
+    } else {
+        if (v > r.value) {
+            r.right = insert(r.right, v);
+        }
+    }
+    return r;
+}
+
+void inOrder(Node r) {
+    if (r != null) {
+        inOrder(r.left);
+        print(r.value); print(" ");
+        inOrder(r.right);
+    }
+}
+
+void preOrder(Node r) {
+    if (r != null) {
+        print(r.value); print(" ");
+        preOrder(r.left);
+        preOrder(r.right);
+    }
+}
+
+void postOrder(Node r) {
+    if (r != null) {
+        postOrder(r.left);
+        postOrder(r.right);
+        print(r.value); print(" ");
+    }
+}
+
+void main() {
+    int [9] data = {8, 3, 10, 1, 6, 14, 4, 7, 13};
+    Node root = null;
+    foreach (int v : data) {
+        root = insert(root, v);
+    }
+    print("pre:  "); preOrder(root); print("\n");
+    print("in:   "); inOrder(root); print("\n");
+    print("post: "); postOrder(root); print("\n");
+}

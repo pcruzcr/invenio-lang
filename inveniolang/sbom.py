@@ -10,6 +10,8 @@ import platform
 import sys
 from pathlib import Path
 
+from ._version import __version__
+
 
 def _sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -35,7 +37,7 @@ def generar_sbom(raiz: str | None = None) -> dict:
         ply_v = "no-instalado"
     return {
         "producto": "inveniolang",
-        "version": "10.0.0",
+        "version": __version__,
         "python": platform.python_version(),
         "plataforma": sys.platform,
         "dependencias": [

@@ -4,12 +4,20 @@
 # depurador visual con breakpoints (usa los ganchos debug_* ya expuestos por
 # interpreter.py), buscar/reemplazar y persistencia de sesión.
 
-import math
 import os
 import re
 import threading
 
-from PySide6.QtCore import QPointF, QSettings, QStringListModel, Qt, QThread, QTimer, Signal
+from PySide6.QtCore import (
+    QByteArray,
+    QEvent,
+    QSettings,
+    QStringListModel,
+    Qt,
+    QThread,
+    QTimer,
+    Signal,
+)
 from PySide6.QtGui import (
     QAction,
     QColor,
@@ -18,8 +26,6 @@ from PySide6.QtGui import (
     QKeySequence,
     QPainter,
     QPalette,
-    QPen,
-    QPolygonF,
     QShortcut,
     QSyntaxHighlighter,
     QTextCharFormat,
@@ -27,6 +33,7 @@ from PySide6.QtGui import (
     QTextDocument,
     QTextFormat,
 )
+from PySide6.QtSvgWidgets import QSvgWidget
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -36,9 +43,6 @@ from PySide6.QtWidgets import (
     QDockWidget,
     QFileDialog,
     QFileSystemModel,
-    QGraphicsScene,
-    QGraphicsSimpleTextItem,
-    QGraphicsView,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -46,10 +50,11 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMainWindow,
-    QMenu,
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
+    QScrollArea,
+    QSlider,
     QSpinBox,
     QSplitter,
     QStatusBar,
@@ -61,32 +66,20 @@ from PySide6.QtWidgets import (
     QToolBar,
     QToolTip,
     QTreeView,
-    QTreeWidget,
-    QTreeWidgetItem,
     QVBoxLayout,
     QWidget,
 )
 
-from . import flowchart as fc
-
-try:
-    from .ds_visualizer import attach_to_interpreter as _attach_vis
-except Exception:
-    _attach_vis = None
+from . import api as _api
 from . import builtins as _builtins_mod
-from . import flowchart_builder as fb
+from . import i18n
 from . import ir as ir_mod
+from . import uml as _uml
+from . import visualizacion as _vis
 from .ast_nodes import (
     ASTNode,
-    Bloque,
-    DoWhileStmt,
-    ForStmt,
-    IfStmt,
     Parametro,
-    PrintStmt,
-    ReadStmt,
     VarDecl,
-    WhileStmt,
 )
 from .docstrings import (
     _DOC_ATAJOS,
@@ -97,11 +90,14 @@ from .docstrings import (
     EJEMPLOS,
 )
 from .errors import ErrorManager
+from .gui.panel_bloques import PanelBloques
+from .gui.panel_flujo import PanelFlujo
 from .interpreter import DebugStopped, ExecutionCancelled, Interpreter
 from .lexer import Lexer
 from .parser import Parser
 from .semantic import SemanticAnalyzer
 from .type_checker import TypeChecker
+from .visualizacion import traza as _vis_traza
 
 # Accesibilidad profesional (WCAG 2.1 AA) — ver accessibility.py / ACCESSIBILITY.md
 try:
@@ -455,6 +451,8 @@ class CodeEditor(QPlainTextEdit):
         self.updateRequest.connect(lambda *_: self.minimapa.update())
         self.cursorPositionChanged.connect(self._highlight_current_line)
         self._extra_adicional = []  # selecciones de errores/advertencias
+        # INV-2233: línea del paso que muestra el Visualizador (None = ninguna).
+        self.linea_traza = None
 
         # Estado de IDE propio de esta pestaña.
         self.ruta = None
@@ -695,7 +693,33 @@ class CodeEditor(QPlainTextEdit):
         sel.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
         sel.cursor = self.textCursor()
         sel.cursor.clearSelection()
-        self.setExtraSelections([sel] + list(self._extra_adicional))
+        extra = list(self._extra_adicional)
+        if self.linea_traza is not None:
+            bloque = self.document().findBlockByNumber(self.linea_traza - 1)
+            if bloque.isValid():
+                traza = QTextEdit.ExtraSelection()
+                traza.format.setBackground(QColor(COLORES["flash"]))
+                traza.format.setFontWeight(QFont.Weight.Bold)
+                traza.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
+                traza.cursor = QTextCursor(bloque)
+                extra.append(traza)
+        self.setExtraSelections([sel] + extra)
+
+    def marcar_linea_traza(self, linea):
+        """Resalta la línea del paso visualizado (fondo, negrita y ▶ en el margen).
+
+        INV-2233: el resaltado no depende sólo del color: el margen pinta una
+        flecha ▶ junto al número de línea, como el reproductor HTML.
+        """
+        self.linea_traza = linea if linea and linea > 0 else None
+        self._highlight_current_line()
+        self.line_number_area.update()
+        if self.linea_traza is not None:
+            bloque = self.document().findBlockByNumber(self.linea_traza - 1)
+            if bloque.isValid():
+                cursor = QTextCursor(bloque)
+                self.setTextCursor(cursor)
+                self.ensureCursorVisible()
 
     def _recorrer_bloques(self):
         """Genera (block, top, bottom, numero_linea) para los bloques visibles."""
@@ -745,6 +769,10 @@ class CodeEditor(QPlainTextEdit):
                 cy = int(top + fm.height() / 2)
                 painter.drawEllipse(3, cy - radio, radio * 2, radio * 2)
                 painter.restore()
+            if linea == self.linea_traza:
+                painter.setPen(QColor(COLORES["texto"]))
+                alto = fm.height()
+                painter.drawText(2, int(top), alto, alto, Qt.AlignmentFlag.AlignLeft, "▶")
             painter.setPen(QColor(COLORES["gutter_linea"]))
             painter.drawText(
                 0,
@@ -862,12 +890,6 @@ class _HiloEjecucion(QThread):
         if depurar:
             self.interp.debug = True
             self.interp.debug_breakpoints = set(breakpoints or ())
-            # H1.2 cableado ds_visualizer via Observer
-            if _attach_vis and depurar:
-                try:
-                    self._visualizer = _attach_vis(self.interp)
-                except Exception:  # noqa: S110 - visualizador opcional, depuración sigue
-                    pass
             self.interp.debug_on_statement = self._on_debug_statement
             self.interp.debug_wait = self._on_debug_wait
 
@@ -935,6 +957,516 @@ class _HiloEjecucion(QThread):
         self.terminado.emit(list(salida), self._em, cancelado, fallo)
 
 
+class _HiloTraza(QThread):
+    """Ejecuta el trazador fuera del hilo de la interfaz (INV-2232).
+
+    Igual que `_HiloEjecucion`: trazar un programa con un ciclo largo no
+    debe congelar la ventana. Emite `lista(traza)` o `fallo(mensaje)`; nunca
+    toca widgets desde este hilo.
+    """
+
+    lista = Signal(object)
+    fallo = Signal(str)
+
+    def __init__(self, trazar, codigo, ruta, entrada, idioma, parent=None):
+        super().__init__(parent)
+        self._trazar = trazar
+        self._args = (codigo,)
+        self._kwargs = {
+            "ruta": os.path.basename(ruta) if ruta else "<memoria>",
+            "entrada": tuple(entrada or ()),
+            "idioma": idioma,
+            "ruta_fuente": ruta or None,
+        }
+
+    def run(self):
+        """Traza y emite el resultado."""
+        try:
+            self.lista.emit(self._trazar(*self._args, **self._kwargs))
+        except Exception as e:  # el error se muestra al estudiante, no se oculta
+            self.fallo.emit(str(e))
+
+
+class PanelVisualizador(QWidget):
+    """Panel "Visualizador": navega los pasos de una Traza (INV-2232).
+
+    Recibe una Traza (dict, JSON u objeto del contrato de la Fase 2), dibuja
+    el SVG del paso actual (`visualizacion.svg_paso`), muestra su descripción
+    accesible (`visualizacion.describir`) y emite `linea_cambiada` para que la
+    ventana resalte la línea en el editor. Teclado: ←/→ paso anterior y
+    siguiente, Inicio/Fin primero y último, Espacio reproduce o pausa; ratón:
+    botones y deslizador.
+    """
+
+    linea_cambiada = Signal(int)
+    solicitud_trazar = Signal()
+
+    def __init__(self, parent=None, idioma=None):
+        super().__init__(parent)
+        self.idioma = i18n.normalizar_idioma(idioma) if idioma else i18n.idioma_actual()
+        self.tema = "oscuro"
+        self.traza = None
+        self.actual = 0
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setAccessibleName(self._t("VIS.gui.titulo"))
+
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(4, 4, 4, 4)
+        acciones = QHBoxLayout()
+        self.btn_trazar = QPushButton(self._t("VIS.gui.trazar"))
+        self.btn_trazar.clicked.connect(self.solicitud_trazar.emit)
+        self.btn_abrir = QPushButton(self._t("VIS.gui.abrir"))
+        self.btn_abrir.clicked.connect(self.abrir_json)
+        self.btn_exportar = QPushButton(self._t("VIS.gui.exportar"))
+        self.btn_exportar.clicked.connect(self.exportar_html)
+        # INV-4402: el diagrama de objetos (Fase 3) se ve desde el mismo panel,
+        # alternando con el dibujo de estructuras del paso (tecla O).
+        self.btn_objetos = QPushButton(self._t("VIS.gui.objetos"))
+        self.btn_objetos.setCheckable(True)
+        self.btn_objetos.setAccessibleName(self._t("VIS.gui.objetos"))
+        self.btn_objetos.setToolTip(self._t("VIS.gui.objetos_ayuda"))
+        self.btn_objetos.toggled.connect(self._al_cambiar_vista)
+        for b in (self.btn_trazar, self.btn_abrir, self.btn_exportar, self.btn_objetos):
+            acciones.addWidget(b)
+        acciones.addStretch(1)
+        lay.addLayout(acciones)
+
+        nav = QHBoxLayout()
+        self.btn_inicio = self._boton("⏮", "VIS.ui.inicio", self.inicio)
+        self.btn_anterior = self._boton("◀", "VIS.ui.anterior", self.anterior)
+        self.btn_reproducir = self._boton("▶", "VIS.ui.reproducir", self.alternar_reproduccion)
+        self.btn_reproducir.setCheckable(True)
+        self.btn_siguiente = self._boton("▶|", "VIS.ui.siguiente", self.siguiente)
+        self.btn_fin = self._boton("⏭", "VIS.ui.fin", self.fin)
+        for b in self._botones_navegacion():
+            nav.addWidget(b)
+        self.deslizador = QSlider(Qt.Orientation.Horizontal)
+        self.deslizador.setAccessibleName(self._t("VIS.ui.deslizador"))
+        self.deslizador.valueChanged.connect(self.ir)
+        nav.addWidget(self.deslizador, 1)
+        self.contador = QLabel("")
+        nav.addWidget(self.contador)
+        lay.addLayout(nav)
+
+        self.lienzo = QSvgWidget()
+        self.lienzo.setAccessibleName(self._t("VIS.gui.lienzo"))
+        self.scroll = QScrollArea()
+        self.scroll.setWidget(self.lienzo)
+        self.scroll.setWidgetResizable(False)
+        lay.addWidget(self.scroll, 3)
+
+        self.descripcion = QPlainTextEdit()
+        self.descripcion.setReadOnly(True)
+        self.descripcion.setAccessibleName(self._t("VIS.gui.descripcion"))
+        self.descripcion.setMaximumHeight(140)
+        lay.addWidget(self.descripcion, 1)
+
+        self.temporizador = QTimer(self)
+        self.temporizador.setInterval(900)
+        self.temporizador.timeout.connect(self._avanzar_reproduccion)
+
+        # Atajos: un filtro de eventos sobre el panel y sus hijos, para que
+        # funcionen tenga el foco el lienzo, un botón o el deslizador.
+        self._teclas = {
+            Qt.Key.Key_Left: self.anterior,
+            Qt.Key.Key_Right: self.siguiente,
+            Qt.Key.Key_Home: self.inicio,
+            Qt.Key.Key_End: self.fin,
+            Qt.Key.Key_Space: self.alternar_reproduccion,
+            Qt.Key.Key_O: self.btn_objetos.toggle,
+        }
+        for hijo in self.findChildren(QWidget):
+            if hijo is not self.descripcion:  # el área de texto conserva su navegación
+                hijo.installEventFilter(self)
+        self._actualizar_controles()
+        self.mostrar_mensaje(self._t("VIS.gui.sin_traza"))
+
+    def _t(self, clave, **args):
+        return i18n.t(clave, self.idioma, **args)
+
+    def _atender_tecla(self, evento):
+        if evento.modifiers() & ~Qt.KeyboardModifier.KeypadModifier:
+            return False
+        fn = self._teclas.get(evento.key())
+        if fn is None or not self.total():
+            return False
+        fn()
+        return True
+
+    def keyPressEvent(self, evento):
+        """←/→, Inicio/Fin y Espacio cuando el foco está en el panel."""
+        if not self._atender_tecla(evento):
+            super().keyPressEvent(evento)
+
+    def eventFilter(self, objeto, evento):
+        """Atiende los atajos aunque el foco lo tenga un control hijo."""
+        if evento.type() == QEvent.Type.KeyPress and self._atender_tecla(evento):
+            return True
+        return super().eventFilter(objeto, evento)
+
+    def _boton(self, texto, clave, fn):
+        b = QPushButton(texto)
+        b.setAccessibleName(self._t(clave))
+        b.setToolTip(self._t(clave))
+        b.clicked.connect(fn)
+        return b
+
+    def _botones_navegacion(self):
+        """Botones de navegación, en el orden en que se muestran."""
+        return (
+            self.btn_inicio,
+            self.btn_anterior,
+            self.btn_reproducir,
+            self.btn_siguiente,
+            self.btn_fin,
+        )
+
+    def total(self):
+        """Número de pasos de la traza cargada."""
+        return len(self.traza["pasos"]) if self.traza else 0
+
+    def cargar_traza(self, traza):
+        """Carga una Traza (dict/JSON/objeto) y muestra su primer paso."""
+        self.pausar()
+        self.traza = _vis.normalizar_traza(traza)
+        self.actual = -1
+        self.deslizador.blockSignals(True)
+        self.deslizador.setRange(0, max(self.total() - 1, 0))
+        self.deslizador.setValue(0)
+        self.deslizador.blockSignals(False)
+        self._actualizar_controles()
+        if not self.total():
+            self.mostrar_mensaje(self._t("VIS.ui.sin_pasos"))
+            return
+        self.ir(0)
+
+    def ir(self, i):
+        """Muestra el paso ``i`` (se acota a 0..N-1)."""
+        if not self.total():
+            return
+        i = max(0, min(self.total() - 1, int(i)))
+        cambio = i != self.actual
+        self.actual = i
+        if self.deslizador.value() != i:
+            self.deslizador.blockSignals(True)
+            self.deslizador.setValue(i)
+            self.deslizador.blockSignals(False)
+        paso = self.traza["pasos"][i]
+        self._dibujar()
+        texto = self._describir(paso)
+        extra = []
+        if i == self.total() - 1 and self.traza["error"]:
+            extra.append(self._t("VIS.ui.error", error=self.traza["error"]))
+        if i == self.total() - 1 and self.traza["truncada"]:
+            extra.append(self._t("VIS.ui.truncada"))
+        self.descripcion.setPlainText("\n\n".join([texto] + extra))
+        self.descripcion.setAccessibleDescription(texto)
+        self.contador.setText(self._t("VIS.gui.contador", n=i + 1, total=self.total()))
+        self._actualizar_controles()
+        if cambio:
+            self.linea_cambiada.emit(paso["linea"])
+
+    def vista_objetos(self):
+        """True si el lienzo muestra el diagrama de objetos en vez de las estructuras."""
+        return self.btn_objetos.isChecked()
+
+    def _svg(self, paso):
+        if self.vista_objetos():
+            return _uml.svg_objetos(paso, self.idioma, tema=self.tema)
+        return _vis.svg_paso(paso, self.idioma, tema=self.tema)
+
+    def _describir(self, paso):
+        if self.vista_objetos():
+            return _uml.describir_objetos(paso, self.idioma)
+        return _vis.describir(paso, self.idioma)
+
+    def _al_cambiar_vista(self, _marcado):
+        if self.total():
+            actual, self.actual = self.actual, -1
+            self.ir(actual)  # mismo paso, otra vista (y su descripción accesible)
+
+    def _dibujar(self):
+        paso = self.traza["pasos"][self.actual]
+        svg = self._svg(paso)
+        self.lienzo.load(QByteArray(svg.encode("utf-8")))
+        self.lienzo.setFixedSize(self.lienzo.renderer().defaultSize())
+
+    def establecer_tema(self, claro):
+        """Repinta el paso actual con la paleta clara u oscura."""
+        self.tema = "claro" if claro else "oscuro"
+        if self.total():
+            self._dibujar()
+
+    def svg_actual(self):
+        """SVG del paso visible (el mismo que se exporta), o "" sin traza."""
+        if not self.total():
+            return ""
+        return self._svg(self.traza["pasos"][self.actual])
+
+    def anterior(self):
+        """Paso anterior."""
+        self.pausar()
+        self.ir(self.actual - 1)
+
+    def siguiente(self):
+        """Paso siguiente."""
+        self.pausar()
+        self.ir(self.actual + 1)
+
+    def inicio(self):
+        """Primer paso."""
+        self.pausar()
+        self.ir(0)
+
+    def fin(self):
+        """Último paso."""
+        self.pausar()
+        self.ir(self.total() - 1)
+
+    def alternar_reproduccion(self):
+        """Reproduce o pausa el avance automático."""
+        if self.temporizador.isActive():
+            self.pausar()
+        elif self.total():
+            if self.actual >= self.total() - 1:
+                self.ir(0)
+            self.temporizador.start()
+            self.btn_reproducir.setChecked(True)
+            self.btn_reproducir.setText("⏸")
+            self.btn_reproducir.setAccessibleName(self._t("VIS.ui.pausar"))
+
+    def pausar(self):
+        """Detiene la reproducción automática."""
+        self.temporizador.stop()
+        self.btn_reproducir.setChecked(False)
+        self.btn_reproducir.setText("▶")
+        self.btn_reproducir.setAccessibleName(self._t("VIS.ui.reproducir"))
+
+    def _avanzar_reproduccion(self):
+        if self.actual >= self.total() - 1:
+            self.pausar()
+        else:
+            self.ir(self.actual + 1)
+
+    def _actualizar_controles(self):
+        hay = self.total() > 0
+        for b in self._botones_navegacion():
+            b.setEnabled(hay)
+        self.deslizador.setEnabled(hay)
+        self.btn_exportar.setEnabled(hay)
+        self.btn_objetos.setEnabled(hay)
+
+    def mostrar_mensaje(self, texto):
+        """Muestra un aviso en el área de descripción (y para el lector de pantalla)."""
+        self.descripcion.setPlainText(texto)
+        self.descripcion.setAccessibleDescription(texto)
+
+    def abrir_json(self, ruta=None):
+        """Carga una traza JSON desde disco (útil aunque no haya trazador)."""
+        if not ruta:
+            ruta, _ = QFileDialog.getOpenFileName(
+                self, self._t("VIS.gui.abrir"), "", self._t("VIS.gui.filtro_json")
+            )
+        if not ruta:
+            return False
+        try:
+            with open(ruta, encoding="utf-8") as f:
+                self.cargar_traza(f.read())
+        except (OSError, ValueError) as e:
+            self.mostrar_mensaje(self._t("VIS.gui.traza_invalida", error=e))
+            return False
+        return True
+
+    def exportar_html(self, ruta=None):
+        """Guarda el reproductor HTML autónomo de la traza cargada."""
+        if not self.total():
+            return None
+        if not ruta:
+            ruta, _ = QFileDialog.getSaveFileName(
+                self, self._t("VIS.gui.exportar"), "traza.html", self._t("VIS.gui.filtro_html")
+            )
+        if not ruta:
+            return None
+        with open(ruta, "w", encoding="utf-8") as f:
+            f.write(_vis.traza_html(self.traza, self.idioma))
+        self.mostrar_mensaje(self._t("VIS.gui.exportado", ruta=ruta))
+        return ruta
+
+
+# ================================================================ UML (Fase 3)
+
+
+class PanelUML(QWidget):
+    """Panel "Diagrama UML" (INV-3214): diagrama de clases del editor y esqueletos.
+
+    Arriba, el dibujo SVG del diagrama de clases del código del editor
+    (`uml.svg_clases`) y su descripción accesible (`uml.texto`); "Exportar…"
+    lo guarda como SVG, PlantUML, Mermaid, JSON o texto según la extensión.
+    Abajo, el mismo diagrama en PlantUML **editable**: el estudiante lo
+    cambia (o abre un .puml/.json) y "Generar esqueleto" emite el código
+    InvenioLang que compila, en español o inglés, para abrirlo en una
+    pestaña nueva.
+    """
+
+    solicitud_diagrama = Signal()
+    esqueleto_generado = Signal(str)
+
+    _FORMATOS_EXTENSION = {
+        ".svg": "svg",
+        ".puml": "plantuml",
+        ".plantuml": "plantuml",
+        ".mmd": "mermaid",
+        ".json": "json",
+        ".txt": "texto",
+    }
+
+    def __init__(self, parent=None, idioma=None):
+        super().__init__(parent)
+        self.idioma = i18n.normalizar_idioma(idioma) if idioma else i18n.idioma_actual()
+        self.tema = "oscuro"
+        self.modelo = None
+        self.setAccessibleName(self._t("UML.gui.titulo"))
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(4, 4, 4, 4)
+        acciones = QHBoxLayout()
+        self.btn_actualizar = QPushButton(self._t("UML.gui.actualizar"))
+        self.btn_actualizar.clicked.connect(self.solicitud_diagrama.emit)
+        self.btn_exportar = QPushButton(self._t("UML.gui.exportar"))
+        self.btn_exportar.clicked.connect(lambda: self.exportar())
+        for b in (self.btn_actualizar, self.btn_exportar):
+            acciones.addWidget(b)
+        acciones.addStretch(1)
+        lay.addLayout(acciones)
+
+        self.lienzo = QSvgWidget()
+        self.lienzo.setAccessibleName(self._t("UML.gui.lienzo"))
+        self.scroll = QScrollArea()
+        self.scroll.setWidget(self.lienzo)
+        self.scroll.setWidgetResizable(False)
+        lay.addWidget(self.scroll, 3)
+
+        self.descripcion = QPlainTextEdit()
+        self.descripcion.setReadOnly(True)
+        self.descripcion.setAccessibleName(self._t("UML.gui.descripcion"))
+        self.descripcion.setMaximumHeight(120)
+        lay.addWidget(self.descripcion, 1)
+
+        self.editor_puml = QPlainTextEdit()
+        self.editor_puml.setAccessibleName(self._t("UML.gui.editor"))
+        self.editor_puml.setPlaceholderText(self._t("UML.gui.editor"))
+        lay.addWidget(self.editor_puml, 2)
+        generar = QHBoxLayout()
+        self.btn_abrir = QPushButton(self._t("UML.gui.abrir"))
+        self.btn_abrir.clicked.connect(lambda: self.abrir())
+        etiqueta = QLabel(self._t("UML.gui.idioma_codigo"))
+        self.combo_idioma = QComboBox()
+        self.combo_idioma.addItems(["es", "en"])
+        self.combo_idioma.setCurrentText(self.idioma)
+        self.combo_idioma.setAccessibleName(self._t("UML.gui.idioma_codigo"))
+        etiqueta.setBuddy(self.combo_idioma)
+        self.btn_generar = QPushButton(self._t("UML.gui.generar"))
+        self.btn_generar.clicked.connect(self.generar_esqueleto)
+        for w in (self.btn_abrir, etiqueta, self.combo_idioma, self.btn_generar):
+            generar.addWidget(w)
+        generar.addStretch(1)
+        lay.addLayout(generar)
+        self.btn_exportar.setEnabled(False)
+        self.mostrar_mensaje(self._t("UML.gui.sin_diagrama"))
+
+    def _t(self, clave, **args):
+        return i18n.t(clave, self.idioma, **args)
+
+    def mostrar_mensaje(self, texto):
+        """Aviso en el área de descripción (también para el lector de pantalla)."""
+        self.descripcion.setPlainText(texto)
+        self.descripcion.setAccessibleDescription(texto)
+
+    def mostrar_modelo(self, modelo):
+        """Dibuja ``modelo`` (uml.DiagramaClases) y vuelca su PlantUML editable."""
+        self.modelo = modelo
+        self._dibujar()
+        texto = _uml.exportar(modelo, "texto", self.idioma)
+        self.mostrar_mensaje(texto)
+        self.editor_puml.setPlainText(_uml.exportar(modelo, "plantuml", modelo.idioma))
+        self.btn_exportar.setEnabled(True)
+
+    def mostrar_errores(self, errores):
+        """El programa no es válido: se explica en vez de dibujar un diagrama viejo."""
+        self.mostrar_mensaje(self._t("UML.gui.errores", errores="\n".join(errores)))
+
+    def _dibujar(self):
+        svg = self.svg_actual()
+        self.lienzo.load(QByteArray(svg.encode("utf-8")))
+        self.lienzo.setFixedSize(self.lienzo.renderer().defaultSize())
+
+    def svg_actual(self):
+        """SVG del diagrama visible, o "" si todavía no hay ninguno."""
+        if self.modelo is None:
+            return ""
+        return _uml.exportar(self.modelo, "svg", self.idioma, self.tema)
+
+    def establecer_tema(self, claro):
+        """Repinta con la paleta clara u oscura."""
+        self.tema = "claro" if claro else "oscuro"
+        if self.modelo is not None:
+            self._dibujar()
+
+    def exportar(self, ruta=None):
+        """Guarda el diagrama; el formato sale de la extensión (.svg, .puml, .mmd, .json, .txt)."""
+        if self.modelo is None:
+            return None
+        if not ruta:
+            ruta, _ = QFileDialog.getSaveFileName(
+                self,
+                self._t("UML.gui.exportar"),
+                "diagrama.svg",
+                self._t("UML.gui.filtro_exportar"),
+            )
+        if not ruta:
+            return None
+        formato = self._FORMATOS_EXTENSION.get(os.path.splitext(ruta)[1].lower(), "svg")
+        with open(ruta, "w", encoding="utf-8") as f:
+            f.write(_uml.exportar(self.modelo, formato, self.idioma, self.tema))
+        self.mostrar_mensaje(self._t("UML.gui.exportado", ruta=ruta))
+        return ruta
+
+    def abrir(self, ruta=None):
+        """Carga un diagrama PlantUML o JSON en el editor de abajo."""
+        if not ruta:
+            ruta, _ = QFileDialog.getOpenFileName(
+                self, self._t("UML.gui.abrir"), "", self._t("UML.gui.filtro_abrir")
+            )
+        if not ruta:
+            return False
+        try:
+            with open(ruta, encoding="utf-8") as f:
+                texto = f.read()
+            modelo = _uml.cargar_diagrama(texto, self.idioma)
+        except (OSError, UnicodeDecodeError) as e:
+            self.mostrar_mensaje(self._t("UML.gui.error_archivo", ruta=ruta, error=e))
+            return False
+        except _uml.ErrorUML as e:
+            error = e.texto(self.idioma)
+            self.mostrar_mensaje(self._t("UML.gui.error_archivo", ruta=ruta, error=error))
+            return False
+        self.mostrar_modelo(modelo)
+        return True
+
+    def generar_esqueleto(self):
+        """Genera el código del PlantUML editado; lo emite y lo devuelve (None si falla)."""
+        idioma = self.combo_idioma.currentText()
+        texto = self.editor_puml.toPlainText()
+        r = _api.codigo_desde_uml(texto, idioma)
+        if not r.ok:
+            if idioma != self.idioma:  # los motivos, en el idioma del panel
+                r = _api.codigo_desde_uml(texto, self.idioma)
+            self.mostrar_mensaje(self._t("UML.gui.no_generable", errores="\n".join(r.errores)))
+            return None
+        self.mostrar_mensaje(self._t("UML.gui.generado", lengua=idioma))
+        self.esqueleto_generado.emit(r.salida[0])
+        return r.salida[0]
+
+
 def _crear_panel(parent=None, read_only=True):
     """Crea un QPlainTextEdit de solo lectura con el tema oscuro."""
     t = QPlainTextEdit(parent)
@@ -961,20 +1493,11 @@ class ErrorTextEdit(QPlainTextEdit):
         super().mouseReleaseEvent(event)
 
 
-class _DiagramaView(QGraphicsView):
-    """QGraphicsView con zoom en la rueda del mouse (Etapa 4)."""
-
-    def wheelEvent(self, event):
-        """Atiende la rueda del mouse."""
-        factor = 1.15 if event.angleDelta().y() > 0 else 1 / 1.15
-        self.scale(factor, factor)
-
-
 def _ubicar_contexto(ast, linea):
     """Ubica la subrutina/método/constructor que contiene `linea`, dado el.
 
     AST del análisis en vivo (Etapa 9, breadcrumbs). Sin dependencia de Qt
-    -- función pura, testeable igual que flowchart.py.
+    -- función pura, testeable sin abrir una ventana.
 
     El AST no guarda línea de fin por nodo (solo línea de inicio, ver
     ast_nodes.py), así que se usa la misma heurística que ya usa el resto
@@ -1388,8 +1911,10 @@ class MainWindow(QMainWindow):
         self._build_explorador()
         self._build_panel_variables()
         self._build_panel_diagrama()
-        self._build_panel_constructor()
         self._build_panel_terminal()
+        self._build_panel_visualizador()
+        self._build_panel_uml()
+        self._build_panel_bloques()
 
     def _build_explorador(self):
         dock = QDockWidget("Explorador", self)
@@ -1433,116 +1958,217 @@ class MainWindow(QMainWindow):
         dock.hide()
 
     def _build_panel_diagrama(self):
-        dock = QDockWidget("Diagrama de flujo", self)
+        """Dock «Diagrama de flujo» (INV-3010): ver, editar y volver a código.
+
+        Un solo panel (``gui/panel_flujo.py``) sustituye al dock de solo
+        lectura y al «Constructor de diagramas»: ambos trabajan ahora sobre el
+        mismo modelo ``inveniolang.flujo`` (todas las subrutinas y métodos,
+        ida y vuelta es/en).
+        """
+        dock = QDockWidget(i18n.t("FLU.gui.titulo"), self)
         dock.setObjectName("dock_diagrama")
-        cont = QWidget()
-        lay = QVBoxLayout(cont)
-        lay.setContentsMargins(4, 4, 4, 4)
-
-        fila = QWidget()
-        fila_lay = QHBoxLayout(fila)
-        fila_lay.setContentsMargins(0, 0, 0, 0)
-        fila_lay.addWidget(QLabel("Subrutina:"))
-        self.combo_diagrama = QComboBox()
-        self.combo_diagrama.currentIndexChanged.connect(self._al_cambiar_subrutina_diagrama)
-        fila_lay.addWidget(self.combo_diagrama, 1)
-        btn_generar = QPushButton("Generar")
-        btn_generar.clicked.connect(self.generar_diagrama)
-        fila_lay.addWidget(btn_generar)
-        lay.addWidget(fila)
-
-        self.escena_diagrama = QGraphicsScene()
-        self.vista_diagrama = _DiagramaView(self.escena_diagrama)
-        self.vista_diagrama.setRenderHint(QPainter.RenderHint.Antialiasing)
-        self.vista_diagrama.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
-        self.vista_diagrama.setBackgroundBrush(QColor(COLORES["fondo"]))
-        lay.addWidget(self.vista_diagrama, 1)
-
-        dock.setWidget(cont)
+        self.panel_flujo = PanelFlujo(dock)
+        self.panel_flujo.proveedor_codigo = self._codigo_para_diagrama
+        self.panel_flujo.codigo_generado.connect(lambda codigo: self._nueva_pestana(codigo=codigo))
+        self.panel_flujo.establecer_tema(getattr(self, "_tema_claro", False))
+        dock.setWidget(self.panel_flujo)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
         self.dock_diagrama = dock
-        self._subrutinas_diagrama = {}  # etiqueta -> Bloque, poblado al generar
-        self._diagrama_actual = None
-        self._resaltado_diagrama = None
         dock.hide()
 
-    def _build_panel_constructor(self):
-        """Constructor de diagramas de flujo (Etapa 13): panel NUEVO y.
+    def _build_panel_bloques(self):
+        """Dock «Bloques» (INV-4012): editor de bloques sincronizado.
 
-        SEPARADO del dock "Diagrama de flujo" de arriba -- ese sigue
-        siendo de solo lectura (revela el diagrama de código YA escrito);
-        este es de AUTORÍA (el estudiante arma el diagrama insertando
-        bloques de una paleta, y el diagrama GENERA el código). El
-        estudiante nunca dibuja una flecha a mano -- inserta bloques en
-        una posición de una secuencia (después de la caja seleccionada, o
-        dentro de una rama/cuerpo seleccionado) y el layout se calcula
-        solo, reutilizando `flowchart.py::construir_diagrama` sin ningún
-        caso especial (ver `inveniolang/flowchart_builder.py`).
+        Es otra vista del mismo árbol que el diagrama de flujo: los cambios
+        de uno llegan al otro (mismos ids), el código generado va al editor
+        y elegir un bloque lleva el cursor a su línea y su caja al diagrama.
         """
-        dock = QDockWidget("Constructor de diagramas", self)
-        dock.setObjectName("dock_constructor_diagrama")
-        cont = QWidget()
-        lay = QVBoxLayout(cont)
-        lay.setContentsMargins(4, 4, 4, 4)
-
-        ayuda = QLabel(
-            "Arma el algoritmo insertando bloques (se agregan después de la "
-            "caja seleccionada, o al inicio de una rama/cuerpo seleccionado). "
-            "Doble clic en una caja para editar su texto."
+        dock = QDockWidget(i18n.t("BLQ.gui.titulo"), self)
+        dock.setObjectName("dock_bloques")
+        self.panel_bloques = PanelBloques(dock)
+        self.panel_bloques.proveedor_codigo = self._codigo_para_diagrama
+        self.panel_bloques.establecer_tema(self._tema_claro)
+        self.panel_bloques.codigo_generado.connect(self._codigo_desde_bloques)
+        self.panel_bloques.bloque_elegido.connect(self._al_elegir_bloque)
+        self.panel_bloques.modelo_flujo.connect(self.panel_flujo.mostrar_modelo)
+        self.panel_bloques.trazar_codigo.connect(self._trazar_desde_bloques)
+        self.panel_flujo.modelo_cambiado.connect(self.panel_bloques.cargar_flujo)
+        self.panel_flujo.nodo_elegido.connect(
+            lambda ident: self.panel_bloques.seleccionar(ident, emitir=False)
         )
-        ayuda.setWordWrap(True)
-        lay.addWidget(ayuda)
-
-        paleta = QWidget()
-        paleta_lay = QHBoxLayout(paleta)
-        paleta_lay.setContentsMargins(0, 0, 0, 0)
-        for forma, etiqueta in (
-            (fb.PROCESO, "Proceso"),
-            (fb.ENTRADA, "Entrada"),
-            (fb.SALIDA, "Salida"),
-            (fb.DECISION, "Decisión"),
-            (fb.MIENTRAS, "Mientras"),
-            (fb.HACER_MIENTRAS, "Hacer-mientras"),
-            (fb.PARA, "Para"),
-        ):
-            btn = QPushButton(etiqueta)
-            btn.clicked.connect(lambda _=False, f=forma: self._insertar_forma_constructor(f))
-            paleta_lay.addWidget(btn)
-        lay.addWidget(paleta)
-
-        split = QSplitter(Qt.Orientation.Vertical)
-        self.arbol_constructor = QTreeWidget()
-        self.arbol_constructor.setHeaderHidden(True)
-        self.arbol_constructor.itemDoubleClicked.connect(self._editar_item_constructor)
-        self.arbol_constructor.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.arbol_constructor.customContextMenuRequested.connect(self._menu_contextual_constructor)
-        split.addWidget(self.arbol_constructor)
-
-        self.escena_constructor = QGraphicsScene()
-        self.vista_constructor = _DiagramaView(self.escena_constructor)
-        self.vista_constructor.setRenderHint(QPainter.RenderHint.Antialiasing)
-        self.vista_constructor.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
-        self.vista_constructor.setBackgroundBrush(QColor(COLORES["fondo"]))
-        split.addWidget(self.vista_constructor)
-        lay.addWidget(split, 1)
-
-        fila_botones = QWidget()
-        fila_botones_lay = QHBoxLayout(fila_botones)
-        fila_botones_lay.setContentsMargins(0, 0, 0, 0)
-        btn_nuevo = QPushButton("Nuevo diagrama")
-        btn_nuevo.clicked.connect(self.nuevo_diagrama_constructor)
-        fila_botones_lay.addWidget(btn_nuevo)
-        btn_generar = QPushButton("Generar código InvenioLang")
-        btn_generar.clicked.connect(self.generar_codigo_constructor)
-        fila_botones_lay.addWidget(btn_generar)
-        lay.addWidget(fila_botones)
-
-        dock.setWidget(cont)
+        self.panel_visualizador.linea_cambiada.connect(self.panel_bloques.resaltar_linea)
+        self._sincronizando_bloques = False
+        dock.setWidget(self.panel_bloques)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
-        self.dock_constructor = dock
-        self._bloque_constructor = Bloque([])
+        self.dock_bloques = dock
         dock.hide()
-        self._reconstruir_arbol_constructor()
+
+    def mostrar_bloques(self):
+        """Muestra el panel «Bloques» con los bloques del archivo activo (o un main vacío)."""
+        self.dock_bloques.show()
+        self.dock_bloques.raise_()
+        self.panel_bloques.generar_desde_editor()
+        if self.panel_bloques.modelo is None:
+            self.panel_bloques.nuevo()
+        self.panel_bloques.lienzo.setFocus()
+
+    def _codigo_desde_bloques(self, codigo):
+        """Bloques → editor: reemplaza el texto como una sola edición (deshacible)."""
+        editor = self._tab_actual()
+        if editor is None:
+            self._nueva_pestana(codigo=codigo)
+            return
+        if editor.toPlainText() == codigo:
+            return
+        self._sincronizando_bloques = True
+        try:
+            cursor = editor.textCursor()
+            cursor.beginEditBlock()
+            cursor.select(QTextCursor.SelectionType.Document)
+            cursor.insertText(codigo)
+            cursor.endEditBlock()
+        finally:
+            self._sincronizando_bloques = False
+
+    def _al_elegir_bloque(self, ident, linea):
+        """Bloque elegido: su caja en el diagrama de flujo y el cursor en su línea."""
+        self.panel_flujo.seleccionar_nodo(ident, emitir=False)
+        editor = self._tab_actual()
+        if editor is None or linea <= 0:
+            return
+        bloque = editor.document().findBlockByNumber(linea - 1)
+        if not bloque.isValid():
+            return
+        self._sincronizando_bloques = True
+        try:
+            cursor = editor.textCursor()
+            cursor.setPosition(bloque.position())
+            editor.setTextCursor(cursor)
+            editor.centerCursor()
+        finally:
+            self._sincronizando_bloques = False
+
+    def _sincronizar_bloques(self, editor, codigo):
+        """Editor → bloques en vivo (sólo con el panel visible y la sincronía activa)."""
+        if (
+            hasattr(self, "dock_bloques")
+            and self.dock_bloques.isVisible()
+            and editor is self._tab_actual()
+            and not self._sincronizando_bloques
+        ):
+            self.panel_bloques.sincronizar_desde_codigo(codigo, editor.ruta)
+
+    def _trazar_desde_bloques(self, codigo, entrada):
+        """Paso a paso del programa de los bloques en el Visualizador."""
+        panel = self.panel_visualizador
+        try:
+            traza = _vis_traza.trazar(codigo, "<bloques>", tuple(entrada), panel.idioma)
+        except Exception as e:  # noqa: BLE001 - el fallo se muestra al estudiante
+            panel.mostrar_mensaje(i18n.t("VIS.gui.error_trazar", panel.idioma, error=str(e)))
+            self.dock_visualizador.show()
+            return False
+        self.mostrar_traza(traza)
+        return True
+
+    def _build_panel_visualizador(self):
+        """Dock "Visualizador" (INV-2232): traza el programa y navega sus pasos."""
+        dock = QDockWidget(i18n.t("VIS.gui.titulo"), self)
+        dock.setObjectName("dock_visualizador")
+        self.panel_visualizador = PanelVisualizador(dock)
+        self.panel_visualizador.establecer_tema(self._tema_claro)
+        self.panel_visualizador.linea_cambiada.connect(self._al_cambiar_linea_traza)
+        self.panel_visualizador.solicitud_trazar.connect(self.trazar_programa)
+        dock.setWidget(self.panel_visualizador)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+        self.dock_visualizador = dock
+        self._tab_visualizada = None
+        self._hilo_traza = None
+        dock.hide()
+
+    def _build_panel_uml(self):
+        """Dock "Diagrama UML" (INV-3214): clases del editor y esqueletos desde UML."""
+        dock = QDockWidget(i18n.t("UML.gui.titulo"), self)
+        dock.setObjectName("dock_uml")
+        self.panel_uml = PanelUML(dock)
+        self.panel_uml.establecer_tema(self._tema_claro)
+        self.panel_uml.solicitud_diagrama.connect(self.generar_uml)
+        self.panel_uml.esqueleto_generado.connect(lambda codigo: self._nueva_pestana(codigo=codigo))
+        dock.setWidget(self.panel_uml)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+        self.dock_uml = dock
+        dock.hide()
+
+    def generar_uml(self):
+        """Diagrama de clases del programa del editor (con sus `importar`) en el panel UML."""
+        editor = self._tab_actual()
+        self.dock_uml.show()
+        self.dock_uml.raise_()
+        if editor is None:
+            return False
+        ruta = editor.ruta or "<editor>"
+        r = _api.uml(
+            editor.toPlainText(),
+            os.path.basename(ruta),
+            formato="json",
+            ruta_fuente=editor.ruta,
+        )
+        if not r.ok:
+            self.panel_uml.mostrar_errores(r.errores)
+            return False
+        self.panel_uml.mostrar_modelo(_uml.desde_json(r.salida[0]))
+        return True
+
+    def mostrar_traza(self, traza, editor=None):
+        """Abre el Visualizador con una Traza ya calculada (dict/JSON/objeto)."""
+        self._tab_visualizada = editor if editor is not None else self._tab_actual()
+        self.dock_visualizador.show()
+        self.panel_visualizador.cargar_traza(traza)
+        self.panel_visualizador.setFocus()
+
+    def trazar_programa(self):
+        """Traza el programa del editor en segundo plano y lo visualiza.
+
+        INV-2008: usa el trazador real (`visualizacion.traza.trazar`), que se
+        busca en el módulo en cada llamada; la ruta del archivo se pasa como
+        `ruta_fuente` para que `importar` resuelva junto al archivo y los
+        diagnósticos muestren solo su nombre.
+        """
+        editor = self._tab_actual()
+        self.dock_visualizador.show()
+        panel = self.panel_visualizador
+        if editor is None or (self._hilo_traza is not None and self._hilo_traza.isRunning()):
+            return False
+        entrada_str = self.entry_input.text().strip()
+        hilo = _HiloTraza(
+            _vis_traza.trazar,
+            editor.toPlainText(),
+            editor.ruta,
+            entrada_str.split() if entrada_str else (),
+            panel.idioma,
+            self,
+        )
+        hilo.lista.connect(lambda traza: self.mostrar_traza(traza, editor))
+        hilo.fallo.connect(
+            lambda msg: panel.mostrar_mensaje(
+                i18n.t("VIS.gui.error_trazar", panel.idioma, error=msg)
+            )
+        )
+        self._hilo_traza = hilo
+        panel.mostrar_mensaje(i18n.t("VIS.gui.trazando", panel.idioma))
+        hilo.start()
+        return True
+
+    def _al_cambiar_linea_traza(self, linea):
+        editor = self._tab_visualizada
+        if not self._tab_valida(editor):
+            return
+        for i in range(self.editor_tabs.count()):
+            otro = self.editor_tabs.widget(i)
+            if otro is not editor and otro.linea_traza is not None:
+                otro.marcar_linea_traza(None)
+        if self.editor_tabs.currentWidget() is not editor:
+            self.editor_tabs.setCurrentWidget(editor)
+        editor.marcar_linea_traza(linea)
 
     def _build_panel_terminal(self):
         """Terminal integrada (Etapa 9): corre el archivo activo con salida.
@@ -1692,15 +2318,27 @@ class MainWindow(QMainWindow):
             mv,
         )
         self._accion(
-            "Constructor de diagramas",
-            None,
-            lambda: self.dock_constructor.setVisible(not self.dock_constructor.isVisible()),
-            mv,
-        )
-        self._accion(
             "Terminal",
             QKeySequence("Ctrl+`"),
             lambda: self.dock_terminal.setVisible(not self.dock_terminal.isVisible()),
+            mv,
+        )
+        self._accion(
+            i18n.t("VIS.gui.accion_panel"),
+            None,
+            lambda: self.dock_visualizador.setVisible(not self.dock_visualizador.isVisible()),
+            mv,
+        )
+        self._accion(
+            i18n.t("UML.gui.accion_panel"),
+            None,
+            lambda: self.dock_uml.setVisible(not self.dock_uml.isVisible()),
+            mv,
+        )
+        self._accion(
+            i18n.t("BLQ.gui.titulo"),
+            None,
+            lambda: self.dock_bloques.setVisible(not self.dock_bloques.isVisible()),
             mv,
         )
         self._accion("Buscar / Reemplazar", None, self._mostrar_buscar, mv)
@@ -1763,7 +2401,12 @@ class MainWindow(QMainWindow):
             "Mostrar código objetivo con registros", None, self.mostrar_objetivo_registros, me
         )
         self._accion("Mostrar diagrama de flujo", None, self.generar_diagrama, me)
-        self._accion("Constructor de diagramas de flujo", None, self.abrir_constructor_diagrama, me)
+        atajo = QKeySequence("Ctrl+Shift+V")
+        self._accion(i18n.t("VIS.gui.trazar"), atajo, self.trazar_programa, me)
+        constructor = i18n.t("FLU.gui.accion_constructor")
+        self._accion(constructor, None, self.abrir_constructor_diagrama, me)
+        self._accion(i18n.t("UML.gui.accion_panel"), None, self.generar_uml, me)
+        self._accion(i18n.t("BLQ.gui.accion_panel"), None, self.mostrar_bloques, me)
 
         ay = mb.addMenu("Ayuda")
         self._accion("Documentación (F1)", "F1", self._abrir_documentacion, ay)
@@ -1871,8 +2514,14 @@ class MainWindow(QMainWindow):
             editor._pintar_paleta()
             editor.highlighter.actualizar_colores()
             editor.line_number_area.update()
-        if hasattr(self, "vista_diagrama"):
-            self.vista_diagrama.setBackgroundBrush(QColor(COLORES["fondo"]))
+        if hasattr(self, "panel_flujo"):
+            self.panel_flujo.establecer_tema(claro)
+        if hasattr(self, "panel_visualizador"):
+            self.panel_visualizador.establecer_tema(claro)
+        if hasattr(self, "panel_uml"):
+            self.panel_uml.establecer_tema(claro)
+        if hasattr(self, "panel_bloques"):
+            self.panel_bloques.establecer_tema(claro)
         self.settings.setValue("tema", "claro" if claro else "oscuro")
 
     def _aplicar_tamano_fuente(self, tam):
@@ -2635,6 +3284,12 @@ class MainWindow(QMainWindow):
         if sub:
             partes.append(sub)
         self.breadcrumb.setText(" › ".join(partes))
+        if (
+            hasattr(self, "dock_bloques")
+            and self.dock_bloques.isVisible()
+            and not self._sincronizando_bloques
+        ):
+            self.panel_bloques.seleccionar_linea(linea)
 
     def _analizar_en_vivo(self, editor):
         if not self._tab_valida(editor):
@@ -2680,6 +3335,7 @@ class MainWindow(QMainWindow):
             else:
                 self.statusBar().showMessage("Sin problemas")
         self._actualizar_breadcrumb(editor)
+        self._sincronizar_bloques(editor, codigo)
 
     def _saltar_a_linea(self, editor, linea, col=1):
         if not self._tab_valida(editor):
@@ -3012,606 +3668,41 @@ class MainWindow(QMainWindow):
         self.mostrar_objetivo(k_registros=4)
 
     # ============================================================
-    # Diagrama de flujo (Etapa 4)
+    # Diagrama de flujo (INV-3010: panel sobre el modelo inveniolang.flujo)
     # ============================================================
 
-    def _listar_subrutinas_diagrama(self, ast):
-        """Mapea 'etiqueta visible' -> Bloque para cada subrutina/método.
-
-        diagramable del programa (main, funciones/procedimientos, y
-        constructores/métodos de cada clase, POO). Con sobrecarga (Etapa 7:
-        métodos: Etapa 10: constructores) puede haber varias entradas con
-        el mismo nombre -- se distinguen por firma en la etiqueta para no
-        pisarse unas a otras en el dict. Un método abstracto (sin cuerpo)
-        no tiene Bloque que diagramar y se omite.
-        """
-
-        def _firma(params):
-            return "(" + ", ".join(p.tipo for p in params) + ")"
-
-        subrutinas = {}
-        if ast.main is not None:
-            subrutinas["main"] = ast.main.bloque
-        for sub in ast.subrutinas:
-            subrutinas[sub.nombre] = sub.bloque
-        for c in ast.clases:
-            varios_ctor = len(c.constructores) > 1
-            for ctor in c.constructores:
-                sufijo = _firma(ctor.parametros) if varios_ctor else ""
-                subrutinas[f"{c.nombre}.{ctor.nombre}{sufijo} (constructor)"] = ctor.bloque
-            por_nombre = {}
-            for met in c.metodos:
-                por_nombre.setdefault(met.nombre, []).append(met)
-            for nombre_met, sobrecargas in por_nombre.items():
-                varios = len(sobrecargas) > 1
-                for met in sobrecargas:
-                    if met.bloque is None:
-                        continue  # método abstracto (Etapa 7): sin cuerpo
-                    sufijo = _firma(met.parametros) if varios else ""
-                    subrutinas[f"{c.nombre}.{nombre_met}{sufijo}"] = met.bloque
-        return subrutinas
+    def _codigo_para_diagrama(self):
+        """(código, ruta) del editor activo para el panel de diagrama, o None."""
+        editor = self._tab_actual()
+        if editor is None or not editor.toPlainText().strip():
+            return None
+        return editor.toPlainText(), editor.ruta
 
     def generar_diagrama(self):
-        """Compila el archivo activo (lexer→parser→semántico, como.
-
-        `revisar()`) y puebla el selector de subrutinas del panel de
-        diagrama. No hace falta el verificador de tipos: el diagrama es
-        estructural, no depende de la compatibilidad de tipos.
-        """
-        editor = self._tab_actual()
-        if editor is None:
-            return
-        codigo = editor.toPlainText().strip()
-        if not codigo:
-            return
-        nombre = editor.ruta or "<sin_titulo>"
-
-        em = ErrorManager()
-        lexer = Lexer(em)
-        lexer.tokenizar(codigo, nombre)
-        ast = None
-        if not em.hay_errores():
-            parser = Parser(lexer, em)
-            ast, em = parser.analizar(codigo, nombre)
-            if ast is not None and not em.hay_errores():
-                SemanticAnalyzer(em).analizar(ast)
-
+        """Muestra el panel con el diagrama del archivo activo (todas sus subrutinas)."""
         self.dock_diagrama.show()
         self.dock_diagrama.raise_()
-
-        if ast is None or em.hay_errores():
-            self.escena_diagrama.clear()
-            self.escena_diagrama.addSimpleText(
-                "Corrija los errores de compilación primero (pestaña Errores)."
-            )
-            return
-
-        self._subrutinas_diagrama = self._listar_subrutinas_diagrama(ast)
-        if not self._subrutinas_diagrama:
-            self.escena_diagrama.clear()
-            self.escena_diagrama.addSimpleText("No hay ninguna subrutina para diagramar.")
-            return
-
-        etiqueta_previa = self.combo_diagrama.currentText()
-        self.combo_diagrama.blockSignals(True)
-        self.combo_diagrama.clear()
-        self.combo_diagrama.addItems(list(self._subrutinas_diagrama.keys()))
-        idx = self.combo_diagrama.findText(etiqueta_previa)
-        self.combo_diagrama.setCurrentIndex(idx if idx >= 0 else 0)
-        self.combo_diagrama.blockSignals(False)
-
-        self._dibujar_subrutina_diagrama()
-
-    def _al_cambiar_subrutina_diagrama(self, _idx):
-        self._dibujar_subrutina_diagrama()
+        self.panel_flujo.generar_desde_editor()
 
     def abrir_constructor_diagrama(self):
-        """Abre y enfoca el panel del constructor de diagramas (Etapa 13).
-
-        -- no necesita ningún archivo abierto/compilado, a diferencia de
-        `generar_diagrama` (que sí revela el de un archivo existente):
-        el estudiante empieza a construir desde cero.
-        """
-        self.dock_constructor.show()
-        self.dock_constructor.raise_()
-
-    def _dibujar_subrutina_diagrama(self):
-        bloque = self._subrutinas_diagrama.get(self.combo_diagrama.currentText())
-        if bloque is None:
-            return
-        # La escena se limpia dentro de _pintar_diagrama; cualquier item de
-        # resaltado que hubiera queda invalido (C++ ya lo destruyo), asi que
-        # se olvida la referencia en vez de intentar removerlo.
-        self._resaltado_diagrama = None
-        self._diagrama_actual = fc.construir_diagrama(bloque)
-        self._pintar_diagrama(self._diagrama_actual, self.escena_diagrama, self.vista_diagrama)
-
-    # ---- Enlace con el depurador (Etapa 5) ----
+        """Abre el panel para construir un diagrama desde cero (main vacío)."""
+        self.dock_diagrama.show()
+        self.dock_diagrama.raise_()
+        if self.panel_flujo.modelo is None:
+            self.panel_flujo.nuevo()
 
     def _resaltar_en_diagrama(self, snap):
-        """Si el panel de diagrama está visible, lo sincroniza con la.
-
-        subrutina que el depurador está ejecutando ahora mismo y resalta la
-        línea pausada -- estilo PSeInt.
-        """
+        """Sincroniza el diagrama con la subrutina y la línea donde pausó el depurador."""
         if not self.dock_diagrama.isVisible():
             return
-        if not self._subrutinas_diagrama:
-            self.generar_diagrama()
-            if not self._subrutinas_diagrama:
-                return
-
+        if self.panel_flujo.modelo is None:
+            self.panel_flujo.generar_desde_editor()
         pila = snap.get("pila") or []
-        etiqueta = pila[-1] if pila else "main"
-        if etiqueta not in self._subrutinas_diagrama:
-            alterna = f"{etiqueta} (constructor)"
-            etiqueta = alterna if alterna in self._subrutinas_diagrama else None
-        if etiqueta is None:
-            self._quitar_resaltado_diagrama()
-            return
-
-        if self.combo_diagrama.currentText() != etiqueta:
-            idx = self.combo_diagrama.findText(etiqueta)
-            if idx >= 0:
-                self.combo_diagrama.blockSignals(True)
-                self.combo_diagrama.setCurrentIndex(idx)
-                self.combo_diagrama.blockSignals(False)
-                self._dibujar_subrutina_diagrama()
-
-        self._resaltar_caja_linea(snap.get("linea"))
-
-    def _resaltar_caja_linea(self, linea):
-        self._quitar_resaltado_diagrama()
-        if linea is None or self._diagrama_actual is None:
-            return
-        for caja in self._diagrama_actual.cajas:
-            if caja.linea == linea:
-                pen = QPen(QColor("#ffcc00"))
-                pen.setWidth(3)
-                item = self.escena_diagrama.addRect(
-                    caja.x - 4, caja.y - 4, caja.w + 8, caja.h + 8, pen
-                )
-                item.setZValue(10)
-                self._resaltado_diagrama = item
-                self.vista_diagrama.centerOn(item)
-                break
+        funcion = pila[-1] if pila else "main"
+        self.panel_flujo.resaltar(funcion, snap.get("linea"))
 
     def _quitar_resaltado_diagrama(self):
-        if self._resaltado_diagrama is not None:
-            self.escena_diagrama.removeItem(self._resaltado_diagrama)
-            self._resaltado_diagrama = None
-
-    def _pintar_diagrama(self, diagrama, escena, vista):
-        """Pinta cualquier `Diagrama` (flowchart.py) en la `escena`/`vista`.
-
-        dadas -- generalizado en la Etapa 13 para que tanto el dock de
-        solo lectura (diagrama generado desde código) como el panel del
-        constructor (diagrama armado por el estudiante) reusen exactamente
-        el mismo dibujo, sin duplicar esta función.
-        """
-        escena.clear()
-        escena.setSceneRect(0, 0, diagrama.ancho, diagrama.alto)
-
-        fuente = QFont("Consolas", 9)
-        color_texto = QColor(COLORES["dfd_texto"])
-        pen_borde = QPen(QColor(COLORES["dfd_borde"]))
-        pen_borde.setWidth(2)
-        pen_flecha = QPen(QColor(COLORES["dfd_flecha"]))
-        pen_flecha.setWidth(2)
-        rellenos = {
-            fc.INICIO: COLORES["dfd_inicio_fin"],
-            fc.FIN: COLORES["dfd_inicio_fin"],
-            fc.PROCESO: COLORES["dfd_proceso"],
-            fc.DECISION: COLORES["dfd_decision"],
-            fc.ENTRADA_SALIDA: COLORES["dfd_es"],
-        }
-
-        for caja in diagrama.cajas:
-            if caja.forma == fc.CONECTOR:
-                continue
-            relleno = QColor(rellenos.get(caja.forma, COLORES["dfd_proceso"]))
-            if caja.forma in (fc.INICIO, fc.FIN):
-                item = escena.addEllipse(caja.x, caja.y, caja.w, caja.h, pen_borde, relleno)
-            elif caja.forma == fc.DECISION:
-                poligono = QPolygonF(
-                    [
-                        QPointF(caja.x + caja.w / 2, caja.y),
-                        QPointF(caja.x + caja.w, caja.y + caja.h / 2),
-                        QPointF(caja.x + caja.w / 2, caja.y + caja.h),
-                        QPointF(caja.x, caja.y + caja.h / 2),
-                    ]
-                )
-                item = escena.addPolygon(poligono, pen_borde, relleno)
-            elif caja.forma == fc.ENTRADA_SALIDA:
-                d = 16
-                poligono = QPolygonF(
-                    [
-                        QPointF(caja.x + d, caja.y),
-                        QPointF(caja.x + caja.w, caja.y),
-                        QPointF(caja.x + caja.w - d, caja.y + caja.h),
-                        QPointF(caja.x, caja.y + caja.h),
-                    ]
-                )
-                item = escena.addPolygon(poligono, pen_borde, relleno)
-            else:
-                item = escena.addRect(caja.x, caja.y, caja.w, caja.h, pen_borde, relleno)
-            if caja.linea:
-                item.setToolTip(f"Línea {caja.linea}")
-
-            texto = QGraphicsSimpleTextItem(caja.texto)
-            texto.setFont(fuente)
-            texto.setBrush(color_texto)
-            tb = texto.boundingRect()
-            texto.setPos(caja.x + (caja.w - tb.width()) / 2, caja.y + (caja.h - tb.height()) / 2)
-            escena.addItem(texto)
-
-        for flecha in diagrama.flechas:
-            puntos = flecha.puntos
-            for i in range(len(puntos) - 1):
-                x1, y1 = puntos[i]
-                x2, y2 = puntos[i + 1]
-                escena.addLine(x1, y1, x2, y2, pen_flecha)
-            self._agregar_punta_flecha(puntos[-2], puntos[-1], pen_flecha, escena)
-            if flecha.etiqueta:
-                etq = QGraphicsSimpleTextItem(flecha.etiqueta)
-                etq.setFont(fuente)
-                etq.setBrush(QColor(COLORES["dfd_borde"]))
-                ex, ey = puntos[0]
-                etq.setPos(ex + 6, ey + 4)
-                escena.addItem(etq)
-
-        vista.setSceneRect(escena.itemsBoundingRect())
-
-    def _agregar_punta_flecha(self, origen, destino, pen, escena):
-        x1, y1 = origen
-        x2, y2 = destino
-        angulo = math.atan2(y2 - y1, x2 - x1)
-        tam = 8
-        p1 = QPointF(x2, y2)
-        p2 = QPointF(
-            x2 - tam * math.cos(angulo - math.pi / 6), y2 - tam * math.sin(angulo - math.pi / 6)
-        )
-        p3 = QPointF(
-            x2 - tam * math.cos(angulo + math.pi / 6), y2 - tam * math.sin(angulo + math.pi / 6)
-        )
-        escena.addPolygon(QPolygonF([p1, p2, p3]), pen, QColor(COLORES["dfd_flecha"]))
-
-    # ============================================================
-    # Constructor de diagramas de flujo (Etapa 13)
-    # ============================================================
-    #
-    # El estado del diagrama que arma el estudiante es `self.
-    # _bloque_constructor`, un `Bloque` REAL de ast_nodes.py -- las mismas
-    # clases que produce el parser real (ver inveniolang/
-    # flowchart_builder.py). Cada QTreeWidgetItem guarda en
-    # `UserRole` la tupla `(bloque_contenedor, nodo_o_None)`:
-    #   - nodo no es None: el ítem representa una instrucción/decisión/
-    #     ciclo real, viviendo dentro de `bloque_contenedor.elementos`.
-    #   - nodo es None: el ítem es un encabezado de contenedor ("Rama Sí"/
-    #     "Rama No"/"Cuerpo"), usado como punto de inserción explícito
-    #     para "insertar como primer elemento de esta rama/cuerpo".
-
-    def _etiqueta_nodo_constructor(self, nodo):
-        if isinstance(nodo, IfStmt):
-            return f"Decisión: si ({fc._texto_expr(nodo.condicion)})"
-        if isinstance(nodo, WhileStmt):
-            return f"Mientras ({fc._texto_expr(nodo.condicion)})"
-        if isinstance(nodo, DoWhileStmt):
-            return f"Hacer ... mientras ({fc._texto_expr(nodo.condicion)})"
-        if isinstance(nodo, ForStmt):
-            init_txt = fc._texto_for_init_act(nodo.init_stmt)
-            cond_txt = fc._texto_expr(nodo.cond_expr)
-            act_txt = fc._texto_for_init_act(nodo.act_stmt)
-            return f"Para ({init_txt}; {cond_txt}; {act_txt})"
-        texto = fc._texto_instruccion(nodo)
-        return texto if texto is not None else "?"
-
-    def _llenar_arbol_constructor(self, item_padre_qt, bloque):
-        for nodo in bloque.elementos:
-            item = QTreeWidgetItem([self._etiqueta_nodo_constructor(nodo)])
-            item.setData(0, Qt.ItemDataRole.UserRole, (bloque, nodo))
-            item_padre_qt.addChild(item)
-            if isinstance(nodo, IfStmt):
-                item_si = QTreeWidgetItem(["   Rama Sí"])
-                item_si.setData(0, Qt.ItemDataRole.UserRole, (nodo.bloque_then, None))
-                item.addChild(item_si)
-                self._llenar_arbol_constructor(item_si, nodo.bloque_then)
-                if nodo.bloque_else is not None:
-                    item_no = QTreeWidgetItem(["   Rama No"])
-                    item_no.setData(0, Qt.ItemDataRole.UserRole, (nodo.bloque_else, None))
-                    item.addChild(item_no)
-                    self._llenar_arbol_constructor(item_no, nodo.bloque_else)
-            elif isinstance(nodo, (WhileStmt, DoWhileStmt, ForStmt)):
-                item_cuerpo = QTreeWidgetItem(["   Cuerpo"])
-                item_cuerpo.setData(0, Qt.ItemDataRole.UserRole, (nodo.bloque, None))
-                item.addChild(item_cuerpo)
-                self._llenar_arbol_constructor(item_cuerpo, nodo.bloque)
-
-    def _reconstruir_arbol_constructor(self):
-        self.arbol_constructor.clear()
-        self._llenar_arbol_constructor(
-            self.arbol_constructor.invisibleRootItem(), self._bloque_constructor
-        )
-        self.arbol_constructor.expandAll()
-        self._actualizar_vista_constructor()
-
-    def _actualizar_vista_constructor(self):
-        diagrama = fc.construir_diagrama(self._bloque_constructor)
-        self._pintar_diagrama(diagrama, self.escena_constructor, self.vista_constructor)
-        _, errores_por_nodo = fb.validar_diagrama(self._bloque_constructor)
-        self._marcar_errores_constructor(
-            self.arbol_constructor.invisibleRootItem(), errores_por_nodo
-        )
-
-    def _marcar_errores_constructor(self, item_qt, errores_por_nodo):
-        for i in range(item_qt.childCount()):
-            hijo = item_qt.child(i)
-            _, nodo = hijo.data(0, Qt.ItemDataRole.UserRole)
-            if nodo is not None and id(nodo) in errores_por_nodo:
-                hijo.setForeground(0, QColor("#ff5555"))
-                hijo.setToolTip(
-                    0, "\n".join(e.formato_oficial() for e in errores_por_nodo[id(nodo)])
-                )
-            else:
-                hijo.setForeground(0, QColor(COLORES["texto"]))
-                hijo.setToolTip(0, "")
-            self._marcar_errores_constructor(hijo, errores_por_nodo)
-
-    def _punto_insercion_constructor(self):
-        """(bloque_destino, índice) donde debe caer el próximo bloque.
-
-        insertado -- después del ítem seleccionado (en su mismo nivel de
-        anidación), al inicio del contenedor si el ítem seleccionado es
-        un encabezado de rama/cuerpo, o al final de la secuencia raíz si
-        no hay nada seleccionado.
-        """
-        item = self.arbol_constructor.currentItem()
-        if item is None:
-            return self._bloque_constructor, len(self._bloque_constructor.elementos)
-        bloque, nodo = item.data(0, Qt.ItemDataRole.UserRole)
-        if nodo is None:
-            return bloque, 0
-        return bloque, bloque.elementos.index(nodo) + 1
-
-    def _dialogo_para(self, init="entero i = 0", cond="i < 10", paso="i++"):
-        d = QDialog(self)
-        d.setWindowTitle("Para")
-        lay = QVBoxLayout(d)
-        lay.addWidget(QLabel("Inicialización:"))
-        e_init = QLineEdit(init)
-        lay.addWidget(e_init)
-        lay.addWidget(QLabel("Condición:"))
-        e_cond = QLineEdit(cond)
-        lay.addWidget(e_cond)
-        lay.addWidget(QLabel("Paso:"))
-        e_paso = QLineEdit(paso)
-        lay.addWidget(e_paso)
-        botones = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
-        )
-        botones.accepted.connect(d.accept)
-        botones.rejected.connect(d.reject)
-        lay.addWidget(botones)
-        if d.exec() != QDialog.DialogCode.Accepted:
-            return None
-        return e_init.text(), e_cond.text(), e_paso.text()
-
-    def _mostrar_errores_fragmento(self, errores):
-        QMessageBox.warning(
-            self, "Error de sintaxis", "\n".join(e.formato_oficial() for e in errores)
-        )
-
-    def _insertar_forma_constructor(self, forma):
-        bloque_destino, indice = self._punto_insercion_constructor()
-        nodo, errores = None, []
-        if forma == fb.PROCESO:
-            texto, ok = QInputDialog.getText(self, "Proceso", "Instrucción InvenioLang:")
-            if not ok or not texto.strip():
-                return
-            nodo, errores = fb.crear_proceso(texto)
-        elif forma == fb.ENTRADA:
-            texto, ok = QInputDialog.getText(self, "Entrada", "Variable a leer (leer):")
-            if not ok or not texto.strip():
-                return
-            nodo, errores = fb.crear_entrada(texto)
-        elif forma == fb.SALIDA:
-            texto, ok = QInputDialog.getText(self, "Salida", "Expresión a imprimir:")
-            if not ok or not texto.strip():
-                return
-            nodo, errores = fb.crear_salida(texto)
-        elif forma == fb.DECISION:
-            texto, ok = QInputDialog.getText(self, "Decisión (si)", "Condición:")
-            if not ok or not texto.strip():
-                return
-            nodo, errores = fb.crear_decision(texto)
-        elif forma == fb.MIENTRAS:
-            texto, ok = QInputDialog.getText(self, "Mientras", "Condición:")
-            if not ok or not texto.strip():
-                return
-            nodo, errores = fb.crear_mientras(texto)
-        elif forma == fb.HACER_MIENTRAS:
-            texto, ok = QInputDialog.getText(
-                self, "Hacer-mientras", "Condición (se evalúa DESPUÉS del cuerpo):"
-            )
-            if not ok or not texto.strip():
-                return
-            nodo, errores = fb.crear_hacer_mientras(texto)
-        elif forma == fb.PARA:
-            datos = self._dialogo_para()
-            if datos is None:
-                return
-            nodo, errores = fb.crear_para(*datos)
-        else:
-            return
-
-        if errores:
-            self._mostrar_errores_fragmento(errores)
-            return
-        fb.insertar(bloque_destino, indice, nodo)
-        self._reconstruir_arbol_constructor()
-
-    def _editar_item_constructor(self, item, _columna):
-        bloque, nodo = item.data(0, Qt.ItemDataRole.UserRole)
-        if nodo is None:
-            return  # encabezado de rama/cuerpo: no se edita directamente
-
-        if isinstance(nodo, IfStmt):
-            texto, ok = QInputDialog.getText(
-                self, "Editar decisión", "Condición:", text=fc._texto_expr(nodo.condicion)
-            )
-            if not ok:
-                return
-            nuevo, errores = fb.crear_decision(texto)
-            if errores:
-                self._mostrar_errores_fragmento(errores)
-                return
-            nodo.condicion = nuevo.condicion
-        elif isinstance(nodo, WhileStmt):
-            texto, ok = QInputDialog.getText(
-                self, "Editar mientras", "Condición:", text=fc._texto_expr(nodo.condicion)
-            )
-            if not ok:
-                return
-            nuevo, errores = fb.crear_mientras(texto)
-            if errores:
-                self._mostrar_errores_fragmento(errores)
-                return
-            nodo.condicion = nuevo.condicion
-        elif isinstance(nodo, DoWhileStmt):
-            texto, ok = QInputDialog.getText(
-                self, "Editar hacer-mientras", "Condición:", text=fc._texto_expr(nodo.condicion)
-            )
-            if not ok:
-                return
-            nuevo, errores = fb.crear_hacer_mientras(texto)
-            if errores:
-                self._mostrar_errores_fragmento(errores)
-                return
-            nodo.condicion = nuevo.condicion
-        elif isinstance(nodo, ForStmt):
-            datos = self._dialogo_para(
-                fc._texto_for_init_act(nodo.init_stmt),
-                fc._texto_expr(nodo.cond_expr),
-                fc._texto_for_init_act(nodo.act_stmt),
-            )
-            if datos is None:
-                return
-            nuevo, errores = fb.crear_para(*datos)
-            if errores:
-                self._mostrar_errores_fragmento(errores)
-                return
-            nodo.init_stmt, nodo.cond_expr, nodo.act_stmt = (
-                nuevo.init_stmt,
-                nuevo.cond_expr,
-                nuevo.act_stmt,
-            )
-        else:
-            # Proceso/Entrada/Salida: sin hijos que preservar, reemplazo
-            # completo del nodo en su misma posición.
-            if isinstance(nodo, ReadStmt):
-                texto, ok = QInputDialog.getText(
-                    self, "Editar entrada", "Variable a leer:", text=nodo.nombre
-                )
-                constructor = fb.crear_entrada
-            elif isinstance(nodo, PrintStmt):
-                texto, ok = QInputDialog.getText(
-                    self, "Editar salida", "Expresión a imprimir:", text=fc._texto_expr(nodo.expr)
-                )
-                constructor = fb.crear_salida
-            else:
-                texto, ok = QInputDialog.getText(
-                    self, "Editar proceso", "Instrucción:", text=fc._texto_instruccion(nodo) or ""
-                )
-                constructor = fb.crear_proceso
-            if not ok:
-                return
-            nuevo, errores = constructor(texto)
-            if errores:
-                self._mostrar_errores_fragmento(errores)
-                return
-            fb.reemplazar(bloque, nodo, nuevo)
-        self._reconstruir_arbol_constructor()
-
-    def _menu_contextual_constructor(self, punto):
-        item = self.arbol_constructor.itemAt(punto)
-        if item is None:
-            return
-        bloque, nodo = item.data(0, Qt.ItemDataRole.UserRole)
-        if nodo is None:
-            return
-        menu = QMenu(self)
-        menu.addAction("Eliminar", lambda: self._eliminar_item_constructor(bloque, nodo))
-        menu.addAction("Mover arriba", lambda: self._mover_item_constructor(bloque, nodo, -1))
-        menu.addAction("Mover abajo", lambda: self._mover_item_constructor(bloque, nodo, 1))
-        if isinstance(nodo, IfStmt):
-            if nodo.bloque_else is None:
-                menu.addAction('Agregar rama "sino"', lambda: self._agregar_else_constructor(nodo))
-            else:
-                menu.addAction('Quitar rama "sino"', lambda: self._quitar_else_constructor(nodo))
-        menu.exec(self.arbol_constructor.viewport().mapToGlobal(punto))
-
-    def _eliminar_item_constructor(self, bloque, nodo):
-        fb.eliminar(bloque, nodo)
-        self._reconstruir_arbol_constructor()
-
-    def _mover_item_constructor(self, bloque, nodo, delta):
-        fb.mover(bloque, nodo, delta)
-        self._reconstruir_arbol_constructor()
-
-    def _agregar_else_constructor(self, nodo):
-        fb.agregar_rama_else(nodo)
-        self._reconstruir_arbol_constructor()
-
-    def _quitar_else_constructor(self, nodo):
-        if (
-            nodo.bloque_else.elementos
-            and QMessageBox.question(
-                self,
-                'Quitar rama "sino"',
-                'La rama "sino" tiene contenido -- ¿quitarla de todas formas?',
-            )
-            != QMessageBox.StandardButton.Yes
-        ):
-            return
-        fb.quitar_rama_else(nodo)
-        self._reconstruir_arbol_constructor()
-
-    def nuevo_diagrama_constructor(self):
-        """Abre el constructor de diagramas."""
-        if (
-            self._bloque_constructor.elementos
-            and QMessageBox.question(
-                self, "Nuevo diagrama", "Se perderá el diagrama actual. ¿Continuar?"
-            )
-            != QMessageBox.StandardButton.Yes
-        ):
-            return
-        self._bloque_constructor = Bloque([])
-        self._reconstruir_arbol_constructor()
-
-    def generar_codigo_constructor(self):
-        """Botón "Generar código InvenioLang": valida TODO el diagrama.
-
-        junto (ver flowchart_builder.py::validar_diagrama) y, si hay
-        errores pendientes, confirma antes de continuar -- no bloquea,
-        el estudiante puede seguir corrigiendo en el editor de texto
-        normal. Reusa `_nueva_pestana` exactamente como ya hace la carga
-        de ejemplos (Ayuda → Ejemplos), sin caso especial.
-        """
-        texto, errores_por_nodo = fb.validar_diagrama(self._bloque_constructor)
-        if errores_por_nodo:
-            total = sum(len(v) for v in errores_por_nodo.values())
-            if (
-                QMessageBox.question(
-                    self,
-                    "Diagrama con errores",
-                    f"El diagrama tiene {total} error(es) pendientes (marcados en rojo "
-                    "en el árbol). ¿Generar el código de todas formas?",
-                )
-                != QMessageBox.StandardButton.Yes
-            ):
-                return
-        self._nueva_pestana(codigo=texto)
+        self.panel_flujo.quitar_resaltado()
 
     # ============================================================
     # Ayuda y documentación
@@ -3741,6 +3832,8 @@ class MainWindow(QMainWindow):
             if resp != QMessageBox.StandardButton.Yes:
                 event.ignore()
                 return
+        if self._hilo_traza is not None and self._hilo_traza.isRunning():
+            self._hilo_traza.wait(3000)
         self._guardar_sesion()
         event.accept()
 

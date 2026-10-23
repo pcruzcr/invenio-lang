@@ -1,0 +1,22 @@
+{
+  "id": "N12-E04",
+  "nivel": 12,
+  "numero": 4,
+  "idioma": "en",
+  "titulo": "Depth-first search (DFS)",
+  "enunciado": "Run a depth-first search on the graph from vertex 0 in two ways: recursively and with an explicit stack. Show both orders and explain why they may differ.",
+  "objetivos": [
+    "Implement recursive DFS",
+    "Replace recursion with an explicit stack"
+  ],
+  "pistas": [
+    "Recursive DFS: visit the vertex and recurse into each unvisited neighbor.",
+    "With a stack: push neighbors in reverse order to mimic the recursive order.",
+    "In the stack version a vertex can be pushed twice: check it when popping."
+  ],
+  "conceptos": [
+    "DFS",
+    "recursion",
+    "stack"
+  ]
+}

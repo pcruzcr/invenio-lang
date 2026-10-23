@@ -17,7 +17,7 @@ estudiante pueda derivarlo a mano y comparar contra lo que PLY calculó de
 verdad.
 
 **Todo lo que sigue se generó/verificó a partir del código fuente real**
-(`inveniolang/parser.py`, `inveniolang/parser.out`), no se transcribió de
+(`inveniolang/parser.py` y su `parser.out`, §7), no se transcribió de
 memoria — la sección 1 se extrajo programáticamente de los 138 docstrings
 de producción de `parser.py` para que no haya desfase entre este documento
 y el código.
@@ -180,6 +180,7 @@ call_stmt
     | KW_SUPER DEL_PAREN_A lista_args DEL_PAREN_C DEL_PUNTO_COMA
     | IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C DEL_PUNTO IDENTIFICADOR
         DEL_PAREN_A lista_args DEL_PAREN_C DEL_PUNTO_COMA
+    | acceso DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C DEL_PUNTO_COMA  -- a.b.m(); (InvenioLang 11)
 ```
 
 ### 2.4 lvalue y asignación
@@ -193,6 +194,8 @@ lvalue
     | KW_THIS DEL_PUNTO IDENTIFICADOR
     | KW_SUPER DEL_PUNTO IDENTIFICADOR
     | IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C DEL_PUNTO IDENTIFICADOR
+    | acceso DEL_PUNTO IDENTIFICADOR                                         -- a.b.c = v (InvenioLang 11)
+    | acceso DEL_PUNTO IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C
 
 op_asig : OP_ASIG | OP_ASIG_SUMA | OP_ASIG_RESTA | OP_ASIG_MULT | OP_ASIG_DIV | OP_ASIG_MOD
 ```
@@ -238,14 +241,23 @@ expr_primaria
     | KW_NEW IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
     | KW_NEW IDENTIFICADOR OP_MENOR tipo_generico_arg OP_MAYOR DEL_PAREN_A lista_args DEL_PAREN_C
     | KW_THIS | KW_NULL
-    | IDENTIFICADOR DEL_PUNTO IDENTIFICADOR | KW_THIS DEL_PUNTO IDENTIFICADOR | KW_SUPER DEL_PUNTO IDENTIFICADOR
     | IDENTIFICADOR OP_ACCESO_SEGURO IDENTIFICADOR                                  -- ?. (Etapa 12.2)
+    | IDENTIFICADOR OP_ACCESO_SEGURO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
+    | acceso                                                                        -- InvenioLang 11
+    | acceso DEL_PUNTO IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C
+
+-- InvenioLang 11 (INV-4406): acceso a miembro encadenable. Tras un `acceso`
+-- el token DEL_PUNTO solo continúa la cadena (no está en FOLLOW(expr_primaria)),
+-- así que no aparece ningún conflicto nuevo: siguen 20 shift/reduce, 0 reduce/reduce.
+acceso
+    : IDENTIFICADOR DEL_PUNTO IDENTIFICADOR | KW_THIS DEL_PUNTO IDENTIFICADOR | KW_SUPER DEL_PUNTO IDENTIFICADOR
     | IDENTIFICADOR DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
     | KW_THIS DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
     | KW_SUPER DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
-    | IDENTIFICADOR OP_ACCESO_SEGURO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
     | IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C DEL_PUNTO IDENTIFICADOR
     | IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C
+    | acceso DEL_PUNTO IDENTIFICADOR                                                -- a.b.c
+    | acceso DEL_PUNTO IDENTIFICADOR DEL_PAREN_A lista_args DEL_PAREN_C             -- a.b.m(), a.m().n()
 
 acceso_arreglo  : IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C
 acceso_matriz   : IDENTIFICADOR DEL_CORCHETE_A expresion DEL_CORCHETE_C DEL_CORCHETE_A expresion DEL_CORCHETE_C
@@ -389,23 +401,23 @@ documenta la regla, no solo el código.
 ## 6. Puntos reales de decisión LALR(1) (con `parser.out`)
 
 Los tres casos siguientes son fragmentos **reales** de
-`inveniolang/parser.out` (regenerado con `python -c "from
-inveniolang.parser import Parser; Parser().build(debug=True)"`), no
+`parser.out` de la gramática de InvenioLang 11 (regenerado con el comando
+de §7, que lo escribe en `build/gramatica/` y no dentro del paquete), no
 transcripciones — un estudiante puede reproducir exactamente estos números
 de estado con el mismo comando.
 
-### 6.1 Dangling else — shift/reduce resuelto a favor de shift (state 462)
+### 6.1 Dangling else — shift/reduce resuelto a favor de shift (state 517)
 
 ```
-state 462
+state 517
 
-    (122) if_stmt -> KW_IF expr_rel bloque .
-    (123) if_stmt -> KW_IF expr_rel bloque . KW_ELSE bloque
+    (134) if_stmt -> KW_IF expr_rel bloque .
+    (135) if_stmt -> KW_IF expr_rel bloque . KW_ELSE bloque
 
   ! shift/reduce conflict for KW_ELSE resolved as shift
-    DEL_PUNTO_COMA  reduce using rule 122 (if_stmt -> KW_IF expr_rel bloque .)
-    DEL_LLAVE_C     reduce using rule 122 (if_stmt -> KW_IF expr_rel bloque .)
-    IDENTIFICADOR   reduce using rule 122 (if_stmt -> KW_IF expr_rel bloque .)
+    DEL_PUNTO_COMA  reduce using rule 134 (if_stmt -> KW_IF expr_rel bloque .)
+    DEL_LLAVE_C     reduce using rule 134 (if_stmt -> KW_IF expr_rel bloque .)
+    IDENTIFICADOR   reduce using rule 134 (if_stmt -> KW_IF expr_rel bloque .)
     ...
 ```
 El clásico "dangling else": tras `if (cond) { ... }`, ver `else` a
@@ -441,20 +453,20 @@ silencio el análisis de CUALQUIER atributo/método de tipo clase con
 visibilidad explícita (confirmado con una regresión completa de
 `pruebas/conformidad.py`: varios `.inv` de POO fallaban con `IL-SIN-010`).
 
-**Versión corregida** (la que está en `parser.py` hoy — state 210, arriba
+**Versión corregida** (la que está en `parser.py` hoy — state 227, arriba
 extraído literal de `parser.out`):
 ```
-    (243) miembro_clase -> visibilidad . KW_CONSTRUCTOR IDENTIFICADOR DEL_PAREN_A lista_params DEL_PAREN_C bloque
-    (265) miembro_clase -> visibilidad . modificador_miembro IDENTIFICADOR IDENTIFICADOR DEL_PUNTO_COMA
+    (261) miembro_clase -> visibilidad . KW_CONSTRUCTOR IDENTIFICADOR DEL_PAREN_A lista_params DEL_PAREN_C bloque
+    (296) miembro_clase -> visibilidad . modificador_miembro IDENTIFICADOR IDENTIFICADOR DEL_PUNTO_COMA
     ...
-    KW_CONSTRUCTOR  shift and go to state 276
-    KW_STATIC       shift and go to state 277
-    KW_ABSTRACT     shift and go to state 278
-    KW_VOID         reduce using rule 280 (empty -> .)
-    IDENTIFICADOR   reduce using rule 280 (empty -> .)
+    KW_CONSTRUCTOR  shift and go to state 301
+    KW_STATIC       shift and go to state 302
+    KW_ABSTRACT     shift and go to state 303
+    KW_VOID         reduce using rule 311 (empty -> .)
+    IDENTIFICADOR   reduce using rule 311 (empty -> .)
     ...
 ```
-Ninguna línea dice `shift/reduce conflict` — el estado 210 no tiene
+Ninguna línea dice `shift/reduce conflict` — el estado 227 no tiene
 ninguno. La palabra reservada nueva `constructor` (bilingüe, misma grafía
 en español e inglés) es el **punto de compromiso** (commit point):
 después de `visibilidad`, ver el token `KW_CONSTRUCTOR` decide sin
@@ -488,17 +500,21 @@ que el analizador "adivine" la intención.
 ## 7. Verificación
 
 ```bash
-# Regenerar parser.out y contrastar contra el baseline (20 shift/reduce, 0 reduce/reduce)
-python -c "from inveniolang.parser import Parser; Parser().build(debug=True)"
-grep -c "WARNING: shift/reduce" inveniolang/parser.out
-grep -c "WARNING: reduce/reduce" inveniolang/parser.out
+# Regenerar parser.out FUERA del paquete y contrastar contra el baseline
+# (20 shift/reduce, 0 reduce/reduce). INV-4409: el parser ya no deja
+# parser.out dentro de inveniolang/ (un parser.out suelto de una gramática
+# anterior engaña; scripts/limpiar_obsoletos.py lo retira).
+python -c "import os; os.makedirs('build/gramatica', exist_ok=True); from inveniolang.parser import Parser; Parser().build(debug=True, outputdir='build/gramatica', tabmodule='parsetab_doc', write_tables=False)"
+grep -c "^WARNING: shift/reduce" build/gramatica/parser.out
+grep -c "^WARNING: reduce/reduce" build/gramatica/parser.out
+# o, sin archivos: python -m inveniolang.grammar_validator
 
 # Confirmar que cada bloque de la sección 2 de este documento corresponde
 # literalmente a un docstring de parser.py (evita desfase spec/codigo)
 grep -A2 "def p_if_stmt\b" inveniolang/parser.py
 ```
 
-Ver también [`inveniolang/ll1_demo.py`](../inveniolang/ll1_demo.py)
+Ver también [`inveniolang/ll1.py`](../inveniolang/ll1.py)
 (Etapa 12.13) para un analizador LL(1) recursivo-descendente de
 comparación sobre el subconjunto de expresiones aritméticas, con sus
 propios FIRST/FOLLOW documentados al lado — el contraste directo entre

@@ -1,0 +1,10 @@
+search 23
+  lo=0 hi=9 mid=4
+  lo=5 hi=9 mid=7
+  lo=5 hi=6 mid=5
+-> 5
+search 7
+  lo=0 hi=9 mid=4
+  lo=0 hi=3 mid=1
+  lo=2 hi=3 mid=2
+-> -1

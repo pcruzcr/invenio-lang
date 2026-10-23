@@ -1,0 +1,13 @@
+// Level 1 · Exercise 09 — Type conversion
+// Learning goals:
+//   - Use the conversion functions
+//   - Know that float→int truncates
+//
+void main() {
+    print(int_to_float(7)); print("\n");
+    // Truncating is not rounding: 9.99 becomes 9.
+    print(float_to_int(9.99)); print("\n");
+    int n = string_to_int("42");
+    print(n + 8); print("\n");
+    print("año " + int_to_string(2026)); print("\n");
+}

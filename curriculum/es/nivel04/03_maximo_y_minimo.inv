@@ -1,0 +1,33 @@
+// Nivel 4 · Ejercicio 03 — Máximo, mínimo y sus posiciones
+// Objetivos:
+//   - Guardar posiciones además de valores
+//   - Resolver variantes del problema del máximo
+//
+constante entero N = 7;
+
+vacio main() {
+    entero [N] a = {31, -4, 57, 12, 57, -9, 0};
+    entero posMayor = 0;
+    entero posMenor = 0;
+    para (entero i = 1; i < N; i++) {
+        si (a[i] > a[posMayor]) {
+            posMayor = i;
+        }
+        si (a[i] < a[posMenor]) {
+            posMenor = i;
+        }
+    }
+    imprimir("max = "); imprimir(a[posMayor]); imprimir(" at "); imprimir(posMayor); imprimir("\n");
+    imprimir("min = "); imprimir(a[posMenor]); imprimir(" at "); imprimir(posMenor); imprimir("\n");
+
+    // Segundo mayor: el mayor de los que son distintos del máximo.
+    logico hay = falso;
+    entero segundo = 0;
+    para (entero i = 0; i < N; i++) {
+        si (a[i] != a[posMayor] && (!hay || a[i] > segundo)) {
+            segundo = a[i];
+            hay = verdadero;
+        }
+    }
+    imprimir("second = "); imprimir(segundo); imprimir("\n");
+}

@@ -1,0 +1,22 @@
+{
+  "id": "N13-E01",
+  "nivel": 13,
+  "numero": 1,
+  "idioma": "en",
+  "titulo": "Orders of growth",
+  "enunciado": "For n = 8, 16, 32 and 64 count how many times the body of four typical loops runs: one that halves n (log n), a simple one (n), one that repeats the halving n times (n log n) and two nested ones (n²). Show a table.",
+  "objetivos": [
+    "Count operations instead of measuring time",
+    "Recognize code patterns and their order of growth"
+  ],
+  "pistas": [
+    "When n doubles, log n adds 1, n doubles and n² quadruples.",
+    "A loop that does i = i * 2 runs log2(n) times.",
+    "Compare the columns row by row."
+  ],
+  "conceptos": [
+    "big-O notation",
+    "O(log n)",
+    "O(n²)"
+  ]
+}

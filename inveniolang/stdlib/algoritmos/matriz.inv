@@ -1,0 +1,96 @@
+// algoritmos/matriz.inv -- Utilidades para matrices de enteros
+//
+// Biblioteca estándar educativa de InvenioLang (INV-1430).
+// Uso:   importar "algoritmos/matriz";
+//
+// Las matrices se pasan por referencia (entero[][] m) junto con sus
+// dimensiones: filas (f) y columnas (c). Los resultados se escriben en una
+// matriz destino que declara quien llama, con el tamaño adecuado.
+
+// Pone valor en todas las celdas.
+vacio llenar_matriz(entero[][] m, entero f, entero c, entero valor) {
+    para (entero i = 0; i < f; i++) {
+        para (entero j = 0; j < c; j++) {
+            m[i][j] = valor;
+        }
+    }
+}
+
+// Matriz identidad n x n: unos en la diagonal, ceros fuera de ella.
+vacio matriz_identidad(entero[][] m, entero n) {
+    para (entero i = 0; i < n; i++) {
+        para (entero j = 0; j < n; j++) {
+            m[i][j] = i == j ? 1 : 0;
+        }
+    }
+}
+
+// resultado = a + b (las tres de f x c).
+vacio sumar_matrices(entero[][] a, entero[][] b, entero[][] resultado, entero f, entero c) {
+    para (entero i = 0; i < f; i++) {
+        para (entero j = 0; j < c; j++) {
+            resultado[i][j] = a[i][j] + b[i][j];
+        }
+    }
+}
+
+// resultado = a x b, con a de f x n, b de n x c y resultado de f x c.
+// Cada celda es el producto punto de una fila de a por una columna de b.
+// O(f * n * c).
+vacio multiplicar_matrices(entero[][] a, entero[][] b, entero[][] resultado, entero f, entero n, entero c) {
+    para (entero i = 0; i < f; i++) {
+        para (entero j = 0; j < c; j++) {
+            entero suma = 0;
+            para (entero k = 0; k < n; k++) {
+                suma = suma + a[i][k] * b[k][j];
+            }
+            resultado[i][j] = suma;
+        }
+    }
+}
+
+// t = transpuesta de m (m de f x c, t de c x f): las filas pasan a ser
+// columnas.
+vacio transponer_matriz(entero[][] m, entero[][] t, entero f, entero c) {
+    para (entero i = 0; i < f; i++) {
+        para (entero j = 0; j < c; j++) {
+            t[j][i] = m[i][j];
+        }
+    }
+}
+
+// Suma de la diagonal principal de una matriz cuadrada n x n.
+entero traza_matriz(entero[][] m, entero n) {
+    entero suma = 0;
+    para (entero i = 0; i < n; i++) {
+        suma = suma + m[i][i];
+    }
+    retornar suma;
+}
+
+// verdadero si m (n x n) es igual a su transpuesta.
+logico es_simetrica(entero[][] m, entero n) {
+    para (entero i = 0; i < n; i++) {
+        para (entero j = i + 1; j < n; j++) {
+            si (m[i][j] != m[j][i]) {
+                retornar falso;
+            }
+        }
+    }
+    retornar verdadero;
+}
+
+// Texto de la matriz, una fila por línea con valores separados por espacio.
+texto matriz_a_texto(entero[][] m, entero f, entero c) {
+    texto s = "";
+    para (entero i = 0; i < f; i++) {
+        para (entero j = 0; j < c; j++) {
+            s = s + entero_a_texto(m[i][j]);
+            si (j < c - 1) {
+                s = s + " ";
+            }
+        }
+        s = s + "\n";
+    }
+    retornar s;
+}

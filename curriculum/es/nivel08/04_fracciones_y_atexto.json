@@ -1,0 +1,21 @@
+{
+  "id": "N08-E04",
+  "nivel": 8,
+  "numero": 4,
+  "idioma": "es",
+  "titulo": "Fracciones: aTexto y objetos inmutables",
+  "enunciado": "Crea la clase Fraccion que se simplifica en el constructor (usando mcd) y tiene sumarF(otra) y multiplicarF(otra) que devuelven NUEVAS fracciones. Define aTexto() para que imprimir muestre \"n/d\". Calcula 1/2 + 1/3, 2/4 * 6/9 y 3/4 + 1/4.",
+  "objetivos": [
+    "Personalizar la representación con aTexto/toString",
+    "Diseñar objetos inmutables que devuelven objetos nuevos"
+  ],
+  "pistas": [
+    "a/b + c/d = (a*d + c*b) / (b*d).",
+    "Simplifica dividiendo numerador y denominador entre su mcd.",
+    "imprimir(objeto) llama automáticamente a aTexto()."
+  ],
+  "conceptos": [
+    "aTexto/toString",
+    "inmutabilidad"
+  ]
+}

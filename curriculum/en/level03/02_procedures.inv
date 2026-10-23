@@ -1,0 +1,25 @@
+// Level 3 · Exercise 02 — Procedures
+// Learning goals:
+//   - Tell procedures (void) apart from functions
+//   - Avoid repeating code with subprograms
+//
+void line(string symbol, int n) {
+    for (int i = 0; i < n; i++) {
+        print(symbol);
+    }
+    print("\n");
+}
+
+// A procedure can call another one: frame reuses line.
+void frame(string msg) {
+    int length = text_length(msg) + 4;
+    line("=", length);
+    print("| " + msg + " |\n");
+    line("=", length);
+}
+
+void main() {
+    line("-", 10);
+    frame("InvenioLang");
+    frame("OK");
+}
