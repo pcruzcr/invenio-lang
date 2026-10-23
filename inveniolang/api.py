@@ -156,7 +156,9 @@ def ejecutar(
     ``idioma`` elige el idioma de los diagnósticos; ``modulos`` ({ruta: texto})
     sirve los ``importar`` desde memoria, sin tocar el disco.
     """
-    req = CompileRequest(ruta, codigo, config.compiler_version, modo="run", entrada=entrada)
+    req = CompileRequest(
+        ruta, codigo, config.compiler_version, modo="run", entrada=entrada, config=config
+    )
     return _compilar(req, metrics, idioma, modulos)
 
 

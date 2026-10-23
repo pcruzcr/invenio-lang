@@ -8,6 +8,7 @@ minor, CONTRIBUTING §1). ``compile_pure`` y ``analizar_fuente`` (en
 from dataclasses import dataclass
 
 from .. import _version
+from ..config import Config
 
 COMPILER_VERSION = _version.__version__
 
@@ -23,6 +24,11 @@ class CompileRequest:
     version: str = COMPILER_VERSION
     modo: str = "run"  # run|check|tokens|ast
     entrada: tuple[str, ...] = ()
+    # INV-5010: límites de ejecución de esta petición (iteraciones, segundos,
+    # recursión). None = los globales del proceso (variables INVE_MAX_*).
+    # Campo opcional al final: compatible con quien construye la petición
+    # por posición.
+    config: Config | None = None
 
     def __post_init__(self):
         """Rechaza modos desconocidos en vez de ejecutar el programa por defecto."""

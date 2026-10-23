@@ -189,6 +189,10 @@ def compile_pure(
     mide = metrics.mide if metrics else _mida_nula
     with mide("ejecucion"):
         interp = Interpreter(em, analisis.tabla)
+        if req.config is not None:
+            interp.max_iteraciones = req.config.max_iteraciones
+            interp.max_segundos = req.config.max_segundos
+            interp.MAX_RECURSION = req.config.max_recursion
         salida = interp.interpretar(analisis.ast, list(req.entrada) or None, usar_stdin=False)
     if em.hay_errores():
         # INV-4202: un error de ejecución ya no descarta lo que el programa

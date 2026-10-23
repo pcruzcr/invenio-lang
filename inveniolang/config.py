@@ -36,7 +36,12 @@ class Config:
     max_matrix_dim: int = 10_000
     max_recursion: int = 500
     max_iteraciones: int = 1_000_000
-    max_segundos: float = 5.0
+    # INV-5015: 10 s (antes 5 s). El límite de tiempo antes solo se comprobaba
+    # cuando UN ciclo llegaba a 2000 vueltas, así que casi nunca se aplicaba;
+    # ahora vigila el programa entero (INV-5009) y ejercicios legítimos del
+    # currículo (N13-E07, comparación O(n²) con n = 300) necesitan ~7 s con el
+    # intérprete actual. Revisar a la baja cuando WS-3 lo acelere.
+    max_segundos: float = 10.0
     max_string_len: int = 100_000
     max_errores: int = 50
     ruta_max_len: int = 512

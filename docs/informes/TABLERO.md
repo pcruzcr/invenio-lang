@@ -6,8 +6,8 @@
 
 | Frente | Estado | Notas |
 |---|---|---|
-| WS-0 Release honesto | **En curso** | Hecho: rama `v12/ws0-release-honesto`, 19 módulos legado y 10 carpetas del currículo viejo eliminados, CI nuevo con Python 3.13, `--gui-tk` corregido (INV-5001), informes y registro de riesgos guardados. Falta: protección de rama, segundo mantenedor y matriz de CI en macOS |
-| WS-1 Núcleo correcto | Pendiente | — |
+| WS-0 Release honesto | **Hecho** (salvo protección de rama, segundo mantenedor y macOS en CI) | Hecho: rama `v12/ws0-release-honesto`, 19 módulos legado y 10 carpetas del currículo viejo eliminados, CI nuevo con Python 3.13, `--gui-tk` corregido (INV-5001), informes y registro de riesgos guardados. Falta: protección de rama, segundo mantenedor y matriz de CI en macOS |
+| WS-1 Núcleo correcto | **En curso** | Hecho: plagio (INV-5005), promoción de parámetros (5006), recursión de procedimientos (5007), recursión de cola anidada (5008), tiempo global (5009), `config` (5010), intérprete ~1,9× (5011..5014). Falta: `--5`, paridad TAC, `R0`, `_siempre_retorna`/inalcanzable, posiciones del léxico y parser, tokens esperados, topes de memoria, `OverflowError` en `elevar`, suite diferencial y fuzzing |
 | WS-2 Seguridad | Pendiente | — |
 | WS-3 Rendimiento | Pendiente | — |
 | WS-4 Arquitectura | Pendiente | — |

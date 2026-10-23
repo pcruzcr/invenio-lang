@@ -2,6 +2,25 @@
 
 Todas las mejoras notables de la auditoría profesional.
 
+## [Sin publicar] — camino a 12.0.0 (ver `docs/informes/PLAN_MAESTRO_v12.md`)
+
+### WS-0: release honesto
+- Versionada toda la v11; eliminados 19 módulos legado/falsos y `curriculum/nivel1..10`; CI nuevo con Python 3.13.
+- **INV-5001** `python main.py --gui-tk` abre la GUI Tk (antes caía al CLI y fallaba).
+- **INV-5002** la CLI escribe UTF-8 aunque se redirija (en Windows escribía cp1252).
+- **INV-5003 / INV-5004** ruff limpio también en pruebas; `docs/informes/` exento de la verificación de rutas citadas.
+- Pruebas portables a Windows: rutas con `fileURLToPath`, salida de Node en UTF-8 y reportero TAP, ids cortos en `test_puente`, conteo del currículo con `Path.parts`.
+
+### WS-1: núcleo correcto (primera parte)
+- **INV-5005** el detector de plagio funciona: `//.*` con `re.S` borraba todo desde el primer comentario y la similitud salía siempre 0.
+- **INV-5006** un argumento `entero` a un parámetro `real` se promueve en funciones, procedimientos, métodos, constructores y lambdas (`g(3)` daba 1.0 en vez de 1.5).
+- **INV-5007** los procedimientos recursivos tienen el límite IL-EJE-040 (antes escapaba un `RecursionError` de Python).
+- **INV-5008** la eliminación de recursión de cola ignora los `param` de llamadas anidadas (`f(n-1, g(n, acc))`: TAC optimizado daba 12 en vez de 30).
+- **INV-5009** el límite de tiempo vigila el programa entero (ciclos anidados y recursión sin ciclos ya no corren sin límite).
+- **INV-5010** `api.ejecutar(config=...)` aplica `max_iteraciones`, `max_segundos` y `max_recursion` (antes se ignoraba); `CompileRequest.config` opcional.
+- **INV-5011..INV-5014** intérprete ~1,9× más rápido en ciclos: `Visitable` sin `ABC`, búsqueda de marcos sin generador, `BinaryOp` primero, sin marco para bloques sin declaraciones.
+- **INV-5015** `max_segundos` por defecto 10 s (antes 5 s, casi nunca aplicado de verdad).
+
 ## [11.0.0] - 2026-10-03 — Lenguaje educativo completo: núcleo bilingüe, visualización, diagramas, bloques y web
 
 Resumen de las cuatro fases de la versión 11 (detalle por fase debajo).

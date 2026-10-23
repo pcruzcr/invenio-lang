@@ -177,12 +177,19 @@ class Visitor(ABC):  # noqa: B024 - base con despacho concreto por diseño
         return None
 
 
-class Visitable(ABC):
-    """Elemento que acepta visitantes."""
+class Visitable:
+    """Elemento que acepta visitantes.
 
-    @abstractmethod
+    INV-5011: clase simple, no ``ABC``. Todos los nodos del AST heredan de
+    aquí y el intérprete hace decenas de ``isinstance`` por instrucción; con
+    ``ABCMeta`` cada uno pasaba por ``__instancecheck__`` (~4× más lento) y
+    ese costo era casi la mitad del tiempo de un ciclo. El contrato es el
+    mismo: quien no redefine ``accept`` falla al usarlo.
+    """
+
     def accept(self, visitor: Visitor) -> Any:
         """Acepta un visitante (doble despacho)."""
+        raise NotImplementedError(f"{type(self).__name__} debe implementar accept()")
 
 
 # ----------------------------------------------------------------- Memento

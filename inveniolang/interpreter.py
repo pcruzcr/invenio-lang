@@ -130,10 +130,8 @@ class _TiposLexicos:
 
     def get(self, nombre, defecto=None):
         """Tipo declarado de `nombre` visible desde el punto actual."""
-        for marco in self._interprete._marcos_visibles():
-            if nombre in marco.tipos:
-                return marco.tipos[nombre]
-        return defecto
+        marco = self._interprete._marco_de(nombre, tipos=True)
+        return marco.tipos[nombre] if marco is not None else defecto
 
     def __contains__(self, nombre):
         return self.get(nombre) is not None
@@ -325,6 +323,9 @@ class Interpreter(ASTVisitor, Subject):
         self.max_iteraciones = security.MAX_ITERACIONES
         self.max_segundos = security.MAX_SEGUNDOS
         self._t_inicio = None
+        self._pasos_globales = 0
+        # id(lista de elementos) -> ¿declara algo directamente? (INV-5014)
+        self._bloque_declara: dict[int, bool] = {}
         # Cancelacion cooperativa: el consumidor asigna aqui un callable sin
         # argumentos que retorne True cuando quiera detener la ejecucion (por
         # ejemplo el boton Detener de la IDE). Se consulta en cada vuelta de
@@ -431,6 +432,7 @@ class Interpreter(ASTVisitor, Subject):
         self._pila_clase_definicion = []
         self._profundidad_llamadas = 0
         self._t_inicio = time.monotonic()
+        self._pasos_globales = 0
 
         # Dar holgura al limite de Python para que IL-EJE-040 se dispare antes
         # que RecursionError (véase MAX_RECURSION).
@@ -504,8 +506,23 @@ class Interpreter(ASTVisitor, Subject):
         """Cierra el ambito del bloque actual."""
         self.pila_marcos.pop()
 
+    _DECLARACIONES = (VarDecl, ConstDecl, ArrayDecl, MatrixDecl)
+
     def _ejecutar_bloque(self, elementos):
         """Ejecuta una lista de elementos en un ambito de bloque propio."""
+        # INV-5014: un bloque sin declaraciones directas no necesita marco
+        # propio (nada se declararía en él; las declaraciones anidadas abren
+        # el suyo). Crear y destruir un Marco en cada vuelta de un ciclo era
+        # una parte notable del tiempo y alargaba cada búsqueda de variable.
+        clave = id(elementos)
+        declara = self._bloque_declara.get(clave)
+        if declara is None:
+            declara = any(isinstance(e, self._DECLARACIONES) for e in elementos)
+            self._bloque_declara[clave] = declara
+        if not declara:
+            for elem in elementos:
+                self._ejecutar_elemento(elem)
+            return
         self._entrar_bloque()
         try:
             for elem in elementos:
@@ -521,6 +538,28 @@ class Interpreter(ASTVisitor, Subject):
         if self._base > 0:
             yield pila[0]
 
+    def _marco_de(self, nombre, tipos=False):
+        """Marco visible más interno que declara `nombre` (o None).
+
+        INV-5012: mismo recorrido que `_marcos_visibles` pero con un ciclo
+        simple. Cada lectura de variable lo usa; reanudar un generador por
+        marco recorrido costaba ~25 % del tiempo de un programa con ciclos
+        anidados. `tipos=True` busca en los tipos declarados del marco.
+        """
+        pila = self.pila_marcos
+        base = self._base
+        i = len(pila) - 1
+        while i >= base:
+            marco = pila[i]
+            if nombre in (marco.tipos if tipos else marco):
+                return marco
+            i -= 1
+        if base > 0:
+            marco = pila[0]
+            if nombre in (marco.tipos if tipos else marco):
+                return marco
+        return None
+
     def _declarar_variable(self, nombre, valor):
         """Declara una variable en el marco actual (no busca en marcos superiores)."""
         self._marco_actual()[nombre] = valor
@@ -528,18 +567,18 @@ class Interpreter(ASTVisitor, Subject):
     def _asignar_variable(self, nombre, valor):
         """Asigna un valor a una variable en el marco actual o superiores."""
         # Buscar en la pila de marcos (de adentro hacia afuera)
-        for marco in self._marcos_visibles():
-            if nombre in marco:
-                marco[nombre] = valor
-                return
+        marco = self._marco_de(nombre)
+        if marco is not None:
+            marco[nombre] = valor
+            return
         # Si no existe, crear en el marco actual
         self._marco_actual()[nombre] = valor
 
     def _obtener_variable(self, nombre):
         """Obtiene el valor de una variable desde la pila de marcos."""
-        for marco in self._marcos_visibles():
-            if nombre in marco:
-                return marco[nombre]
+        marco = self._marco_de(nombre)
+        if marco is not None:
+            return marco[nombre]
 
         entrada = self.tabla.buscar(nombre)
         if entrada and entrada.inicializado:
@@ -550,10 +589,7 @@ class Interpreter(ASTVisitor, Subject):
 
     def _existe_en_marco(self, nombre):
         """Verifica si una variable existe en algún marco visible."""
-        for marco in self._marcos_visibles():
-            if nombre in marco:
-                return True
-        return False
+        return self._marco_de(nombre) is not None
 
     def _resolver_dimension(self, dim):
         """Resuelve una dimensión que puede ser int o nombre de constante."""
@@ -567,6 +603,18 @@ class Interpreter(ASTVisitor, Subject):
         if tipo_esperado == "float" and isinstance(valor, int) and not isinstance(valor, bool):
             return float(valor)
         return valor
+
+    def _enlazar_parametros(self, parametros, argumentos):
+        """Declara cada parámetro en el marco actual con el valor de su argumento.
+
+        INV-5006: un argumento ``entero`` pasado a un parámetro ``real`` se
+        promueve (§4, igual que en la asignación). Antes se guardaba el entero
+        tal cual y ``real g(real x) { retornar x / 2; }`` con ``g(3)`` daba
+        1.0 (división entera) en vez de 1.5, distinto de la máquina TAC.
+        """
+        for param, arg in zip(parametros, argumentos, strict=True):
+            self.tipos_variables[param.nombre] = param.tipo
+            self._declarar_variable(param.nombre, self._promover_si_float(arg, param.tipo))
 
     # Valores por defecto de las variables globales (§5.2.3, Apendice D).
     # Las locales NO reciben valor por defecto: leerlas sin inicializar es
@@ -688,6 +736,7 @@ class Interpreter(ASTVisitor, Subject):
     def _ejecutar_funcion(self, nodo, argumentos):
         """Ejecuta una función y retorna su valor."""
         self._comprobar_cancelacion()
+        self._paso_global(nodo)
         self._profundidad_llamadas += 1
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
@@ -702,9 +751,7 @@ class Interpreter(ASTVisitor, Subject):
 
         try:
             # Asignar parámetros
-            for param, arg in zip(nodo.parametros, argumentos, strict=True):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(nodo.parametros, argumentos)
 
             try:
                 for elem in nodo.bloque.elementos:
@@ -727,14 +774,25 @@ class Interpreter(ASTVisitor, Subject):
 
     def _ejecutar_procedimiento(self, nodo, argumentos):
         """Ejecuta un procedimiento (no retorna valor)."""
+        # INV-5007: el mismo límite IL-EJE-040 que las funciones. Sin él, un
+        # procedimiento recursivo sin caso base agotaba la pila de Python y
+        # escapaba un RecursionError sin código ni línea.
+        self._comprobar_cancelacion()
+        self._paso_global(nodo)
         self._profundidad_llamadas += 1
+        if self._profundidad_llamadas > self.MAX_RECURSION:
+            self._profundidad_llamadas -= 1
+            raise RuntimeError_(
+                "IL-EJE-040",
+                M("IL-EJE-040.desbordamiento_pila_llamadas_recursion"),
+                nodo.linea,
+                nodo.columna,
+            )
         self._entrar_marco()
         self._pila_subrutinas.append(nodo.nombre)
 
         try:
-            for param, arg in zip(nodo.parametros, argumentos, strict=True):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(nodo.parametros, argumentos)
 
             try:
                 for elem in nodo.bloque.elementos:
@@ -792,6 +850,8 @@ class Interpreter(ASTVisitor, Subject):
             return self._ejecutar_subrutina(vf.nombre_subrutina, argumentos, nodo)
 
         nodo_lambda = vf.lambda_nodo
+        self._comprobar_cancelacion()
+        self._paso_global(nodo)
         self._profundidad_llamadas += 1
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
@@ -809,9 +869,7 @@ class Interpreter(ASTVisitor, Subject):
         self._base, self._bases_previas = 1, []
         self._pila_subrutinas.append("<lambda>")
         try:
-            for param, arg in zip(nodo_lambda.parametros, argumentos, strict=True):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(nodo_lambda.parametros, argumentos)
             try:
                 for elem in nodo_lambda.bloque.elementos:
                     self._ejecutar_elemento(elem)
@@ -1172,6 +1230,7 @@ class Interpreter(ASTVisitor, Subject):
             return
 
         self._comprobar_cancelacion()
+        self._paso_global(nodo)
         self._profundidad_llamadas += 1
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
@@ -1186,9 +1245,7 @@ class Interpreter(ASTVisitor, Subject):
         self._pila_clase_definicion.append(nombre_clase)
         self._pila_subrutinas.append(f"{nombre_clase}.{nombre_clase}")
         try:
-            for param, arg in zip(constructor.parametros, argumentos, strict=True):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(constructor.parametros, argumentos)
 
             elementos = constructor.bloque.elementos
             if elementos and isinstance(elementos[0], SuperCallStmt):
@@ -1233,6 +1290,7 @@ class Interpreter(ASTVisitor, Subject):
 
     def _ejecutar_metodo(self, instancia, clase_declarante, nodo_metodo, argumentos, nodo_llamada):
         self._comprobar_cancelacion()
+        self._paso_global(nodo_metodo)
         self._profundidad_llamadas += 1
         if self._profundidad_llamadas > self.MAX_RECURSION:
             self._profundidad_llamadas -= 1
@@ -1247,9 +1305,7 @@ class Interpreter(ASTVisitor, Subject):
         self._pila_clase_definicion.append(clase_declarante)
         self._pila_subrutinas.append(f"{instancia.clase}.{nodo_metodo.nombre}")
         try:
-            for param, arg in zip(nodo_metodo.parametros, argumentos, strict=True):
-                self.tipos_variables[param.nombre] = param.tipo
-                self._declarar_variable(param.nombre, arg)
+            self._enlazar_parametros(nodo_metodo.parametros, argumentos)
 
             try:
                 for elem in nodo_metodo.bloque.elementos:
@@ -1622,10 +1678,8 @@ class Interpreter(ASTVisitor, Subject):
 
     def _obtener_valor_variable(self, nombre):
         """Obtiene el valor de una variable desde los marcos."""
-        for marco in self._marcos_visibles():
-            if nombre in marco:
-                return marco[nombre]
-        return None
+        marco = self._marco_de(nombre)
+        return marco[nombre] if marco is not None else None
 
     def _crear_arreglo_dinamico(self, nodo):
         """`nuevo tipo[n]` (INV-1440): n elementos con el valor por defecto."""
@@ -1793,14 +1847,33 @@ class Interpreter(ASTVisitor, Subject):
                 nodo.linea,
                 nodo.columna,
             )
-        if self.max_segundos and n % 2000 == 0 and self._t_inicio is not None:
+        self._paso_global(nodo)
+
+    # Cada cuántos pasos globales se consulta el reloj (potencia de 2 - 1).
+    _MASCARA_RELOJ = 1023
+
+    def _paso_global(self, nodo):
+        """Cuenta un paso del programa entero y vigila el tiempo total (INV-5009).
+
+        Antes el reloj solo se miraba cuando UN ciclo llegaba a 2000 vueltas:
+        tres ciclos anidados de 1999 vueltas, o una recursión sin ciclos
+        (``f(n-1) + f(n-1)``), corrían sin límite de tiempo. Ahora cada vuelta
+        de ciclo y cada llamada a subrutina cuentan en un contador GLOBAL, y
+        el reloj se consulta cada 1024 pasos, sea cual sea su origen.
+        """
+        self._pasos_globales += 1
+        if (
+            self.max_segundos
+            and not self._pasos_globales & self._MASCARA_RELOJ
+            and self._t_inicio is not None
+        ):
             transcurrido = time.monotonic() - self._t_inicio
             if transcurrido > self.max_segundos:
                 raise RuntimeError_(
                     "IL-EJE-030",
                     M("IL-EJE-030.posible_ciclo_infinito_programa", transcurrido=transcurrido),
-                    nodo.linea,
-                    nodo.columna,
+                    getattr(nodo, "linea", 0),
+                    getattr(nodo, "columna", 0),
                 )
 
     def _ejecutar_while(self, nodo):
@@ -2111,6 +2184,35 @@ class Interpreter(ASTVisitor, Subject):
         if isinstance(nodo, Literal):
             return nodo.valor
 
+        # INV-5013: BinaryOp justo después de Literal. Es el nodo más frecuente
+        # en ciclos y condiciones; antes era la comprobación número 14 de esta
+        # cadena. Todas las clases de expresión son hermanas (ninguna hereda
+        # de otra), así que el orden no cambia qué rama se toma.
+        if isinstance(nodo, BinaryOp):
+            # Cortocircuito garantizado por §6.3.1: el operando derecho NO se
+            # evalua cuando el izquierdo ya determina el resultado. Debe
+            # resolverse aqui, antes de evaluar la derecha.
+            if nodo.operador == "&&":
+                if self._evaluar_expresion(nodo.izquierda) is not True:
+                    return False
+                return self._evaluar_expresion(nodo.derecha)
+            if nodo.operador == "||":
+                if self._evaluar_expresion(nodo.izquierda) is True:
+                    return True
+                return self._evaluar_expresion(nodo.derecha)
+            if nodo.operador == "??":
+                # Coalescencia nula (Etapa 12.2): la derecha NO se evalua
+                # si la izquierda no es nula (mismo cortocircuito que
+                # &&/||, mismo criterio de "no evaluar lo que no hace
+                # falta").
+                izq = self._evaluar_expresion(nodo.izquierda)
+                if izq is not None:
+                    return izq
+                return self._evaluar_expresion(nodo.derecha)
+            left = self._evaluar_expresion(nodo.izquierda)
+            right = self._evaluar_expresion(nodo.derecha)
+            return self._aplicar_binario(nodo.operador, left, right, nodo)
+
         if isinstance(nodo, Identifier):
             # Etapa 12.6: un IDENTIFICADOR bare que no es NINGUNA variable
             # DECLARADA (ni siquiera sin inicializar -- `tipos_variables`
@@ -2126,9 +2228,12 @@ class Interpreter(ASTVisitor, Subject):
             # función del mismo nombre (sombra normal, ya lo impediría
             # semantic.py de todas formas -- los nombres de función están
             # en el mismo espacio que las variables).
-            if nodo.nombre not in self.tipos_variables and (
+            # INV-5013: primero la búsqueda O(1) en los diccionarios de
+            # subrutinas; el recorrido de marcos de `tipos_variables` solo
+            # hace falta si el nombre coincide con una (caso raro).
+            if (
                 nodo.nombre in self.funciones_ast or nodo.nombre in self.procedimientos_ast
-            ):
+            ) and nodo.nombre not in self.tipos_variables:
                 return ValorFuncion(nombre_subrutina=nodo.nombre)
             valor = self._obtener_valor_variable(nodo.nombre)
             if valor is None and not self._es_tipo_clase_de_variable(nodo.nombre):
@@ -2297,31 +2402,6 @@ class Interpreter(ASTVisitor, Subject):
             return self._invocar_metodo_desde(
                 instancia, clase_inicio, nodo.nombre_metodo, args, nodo
             )
-
-        if isinstance(nodo, BinaryOp):
-            # Cortocircuito garantizado por §6.3.1: el operando derecho NO se
-            # evalua cuando el izquierdo ya determina el resultado. Debe
-            # resolverse aqui, antes de evaluar la derecha.
-            if nodo.operador == "&&":
-                if self._evaluar_expresion(nodo.izquierda) is not True:
-                    return False
-                return self._evaluar_expresion(nodo.derecha)
-            if nodo.operador == "||":
-                if self._evaluar_expresion(nodo.izquierda) is True:
-                    return True
-                return self._evaluar_expresion(nodo.derecha)
-            if nodo.operador == "??":
-                # Coalescencia nula (Etapa 12.2): la derecha NO se evalua
-                # si la izquierda no es nula (mismo cortocircuito que
-                # &&/||, mismo criterio de "no evaluar lo que no hace
-                # falta").
-                izq = self._evaluar_expresion(nodo.izquierda)
-                if izq is not None:
-                    return izq
-                return self._evaluar_expresion(nodo.derecha)
-            left = self._evaluar_expresion(nodo.izquierda)
-            right = self._evaluar_expresion(nodo.derecha)
-            return self._aplicar_binario(nodo.operador, left, right, nodo)
 
         if isinstance(nodo, UnaryOp):
             # ++ / -- en expresion modifican la variable (§5.3.3). El operando

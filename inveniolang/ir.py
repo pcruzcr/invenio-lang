@@ -1291,11 +1291,22 @@ def eliminar_recursion_cola(nombre_funcion, nombres_parametros, instrucciones):
             # segundo argumento queda ENTRE el 'param' del primero y el
             # del segundo. Se buscan los `num_args` 'param' más recientes,
             # sin importar qué haya entre medio.
+            # INV-5008: salvo los 'param' de una llamada ANIDADA en un
+            # argumento (`f(n - 1, g(n, acc))`): cada 'call' que aparece al
+            # retroceder ya consumió sus propios 'param', que están antes que
+            # él. Tomarlos como argumentos de la llamada de cola reasignaba los
+            # parámetros con valores equivocados (30 en el árbol, 12 aquí).
             indices_param = []
+            ajenos = 0  # 'param' pendientes de llamadas anidadas ya vistas
             j = len(nuevas) - 1
             while j >= 0 and len(indices_param) < num_args:
-                if nuevas[j].op == "param":
-                    indices_param.append(j)
+                if nuevas[j].op == "call":
+                    ajenos += nuevas[j].arg2
+                elif nuevas[j].op == "param":
+                    if ajenos:
+                        ajenos -= 1
+                    else:
+                        indices_param.append(j)
                 j -= 1
             if len(indices_param) == num_args:
                 indices_param.reverse()  # orden de argumento: primero -> último

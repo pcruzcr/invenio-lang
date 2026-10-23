@@ -16,7 +16,7 @@ a veces, sobre el mismo equipo compartido. El programa del estudiante es
 | **Path traversal** vía `leer_archivo`/`escribir_archivo` | Solo rutas relativas simples, sin `..`, sin `:`/`/`, extensiones permitidas `.txt/.inv/.csv/.dat/.log/.json`, máx 260 chars | `inveniolang/builtins.py::_validar_ruta` + `inveniolang/security.py` |
 | **DoS por archivo gigante** | `leer_archivo` máx 2 MiB, `.inv` fuente máx 1 MiB, truncado con error `IL-EST-015` | `builtins.py`, `cli.py::leer_fuente`, `security.py` |
 | **DoS por arreglo/matriz gigante** | `int[100000]` máx 100k, matriz 10k×10k pero `filas*cols` ≤ 200k, error `IL-SEM-071` | `semantic.py`, `interpreter.py` |
-| **Ciclo infinito / recursión** | `max_iteraciones=1M` → `IL-EJE-030`, `max_segundos=5s`, `MAX_RECURSION=500` → `IL-EJE-040` | `interpreter.py` |
+| **Ciclo infinito / recursión** | `max_iteraciones=1M` → `IL-EJE-030`, `max_segundos=10s` (tiempo total del programa), `MAX_RECURSION=500` → `IL-EJE-040` | `interpreter.py` |
 | **Ejecución aislada (v10.2)** | `ResourceSandbox`: timeout + rlimits (Unix) y **Job Object con límite de memoria + `KILL_ON_JOB_CLOSE`** (Windows, vía ctypes); stdin por caso de prueba vía pipe | `sandbox.py` |
 | **fork bomb / procesos** | `RLIMIT_NPROC=64` (Unix), `--pids-limit=64` (Docker), `CREATE_NEW_PROCESS_GROUP` (Windows) | `sandbox.py` |
 | **Ventanas emergentes ocultas** | `CREATE_NO_WINDOW` en subprocess de sandbox | `sandbox.py` |

@@ -12,6 +12,18 @@ import re
 __all__ = ["cluster", "gramas", "normalizar", "plagiarism_score", "similitud_gramas"]
 
 _TIPOS = r"\b(int|float|string|bool|void|texto|entero|real|logico)\b"
+# INV-5005: un solo patrón con alternativas y coincidencia más a la izquierda.
+# Antes era ``//.*`` con ``re.S``: el punto cruzaba saltos de línea y el primer
+# ``//`` borraba TODO el resto del archivo, así que cualquier entrega con un
+# comentario quedaba vacía y la similitud salía siempre 0. Los literales de
+# texto se conservan: un ``"//"`` dentro de una cadena no es un comentario.
+_COMENTARIO_O_TEXTO = re.compile(
+    r""""(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|//[^\n]*|/\*[\s\S]*?\*/"""
+)
+
+
+def _sin_comentarios(codigo: str) -> str:
+    return _COMENTARIO_O_TEXTO.sub(lambda m: m.group(0) if m.group(0)[0] in "\"'" else " ", codigo)
 
 
 def normalizar(codigo: str) -> str:
@@ -19,7 +31,7 @@ def normalizar(codigo: str) -> str:
 
     Renombrar variables o cambiar ``int`` por ``entero`` no oculta una copia.
     """
-    codigo = re.sub(r"//.*|/\*.*?\*/", "", codigo, flags=re.S)
+    codigo = _sin_comentarios(codigo)
     codigo = re.sub(_TIPOS, "TIPO", codigo)
     codigo = re.sub(r"\b[A-Za-z_][A-Za-z0-9_]*\b", "X", codigo)
     return " ".join(codigo.split())
