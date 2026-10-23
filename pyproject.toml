@@ -59,6 +59,9 @@ include = ["inveniolang*"]
 inveniolang = ["stdlib/*/*.inv"]
 
 [tool.pytest.ini_options]
+# INV-5016: la raíz en sys.path también al invocar `pytest` (no `python -m
+# pytest`), como hace el CI; si no, tests/conftest.py no encuentra inveniolang.
+pythonpath = ["."]
 testpaths = ["pruebas", "tests"]
 python_files = ["test_*.py", "conformidad.py"]
 python_classes = ["Test*"]
